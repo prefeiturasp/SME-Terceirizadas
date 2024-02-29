@@ -1,13 +1,16 @@
+from django.http import QueryDict
+
 from sme_terceirizadas.medicao_inicial.models import Medicao, ValorMedicao
 
 
-def _obtem_medicoes(mes: str, ano: str):
+def _obtem_medicoes(mes: str, ano: str, filtros: dict):
     return (
         Medicao.objects.select_related("periodo_escolar", "grupo")
         .filter(
             solicitacao_medicao_inicial__mes=mes,
             solicitacao_medicao_inicial__ano=ano,
             solicitacao_medicao_inicial__status="MEDICAO_APROVADA_PELA_CODAE",
+            **filtros
         )
         .exclude(
             solicitacao_medicao_inicial__escola__tipo_unidade__iniciais__in=[
@@ -93,11 +96,35 @@ def _soma_totais_por_medicao(
     return resultados
 
 
-def obtem_resultados(mes: str, ano: str):
+def _cria_filtros(query_params: QueryDict):
+    filtros = {}
+
+    dre = query_params.get("diretoria_regional")
+    if dre:
+        filtros["solicitacao_medicao_inicial__escola__diretoria_regional__uuid"] = dre
+
+    lotes = query_params.getlist("lotes[]")
+    if lotes:
+        filtros["solicitacao_medicao_inicial__escola__lote__uuid__in"] = lotes
+
+    escola = query_params.get("escola")
+    if escola:
+        escola = escola.split("-")[0].strip()
+        filtros["solicitacao_medicao_inicial__escola__codigo_eol"] = escola
+
+    periodos_escolares = query_params.getlist("periodos_escolares[]")
+    if periodos_escolares:
+        filtros["periodo_escolar__uuid__in"] = periodos_escolares
+
+    return filtros
+
+
+def obtem_resultados(mes: str, ano: str, query_params: QueryDict):
+    filtros = _cria_filtros(query_params)
     resultados = {}
     total_frequencia_por_medicao = {}
 
-    medicoes = _obtem_medicoes(mes, ano)
+    medicoes = _obtem_medicoes(mes, ano, filtros)
     for medicao in medicoes:
         resultados = _soma_totais_por_medicao(
             resultados, total_frequencia_por_medicao, medicao

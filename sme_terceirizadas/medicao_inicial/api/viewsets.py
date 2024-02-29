@@ -11,6 +11,7 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from workalendar.america import BrazilSaoPauloCity
@@ -1554,7 +1555,7 @@ class EmpenhoViewSet(ModelViewSet):
 
 class RelatoriosViewSet(ViewSet):
     @action(detail=False, url_name="relatorio-adesao", url_path="relatorio-adesao")
-    def relatorio_adesao(self, request):
+    def relatorio_adesao(self, request: Request):
         query_params = request.query_params
 
         mes_ano = query_params.get("mes_ano")
@@ -1563,6 +1564,6 @@ class RelatoriosViewSet(ViewSet):
 
         mes, ano = mes_ano.split("_")
 
-        resultados = obtem_resultados(mes, ano)
+        resultados = obtem_resultados(mes, ano, query_params)
 
         return Response(data=resultados, status=status.HTTP_200_OK)
