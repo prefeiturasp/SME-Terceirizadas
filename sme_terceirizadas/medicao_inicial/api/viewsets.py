@@ -79,6 +79,7 @@ from .constants import (
     STATUS_RELACAO_DRE_CODAE,
     STATUS_RELACAO_DRE_MEDICAO,
     STATUS_RELACAO_DRE_UE,
+    USUARIOS_VISAO_CODAE,
 )
 from .filters import DiaParaCorrecaoFilter, EmpenhoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
@@ -228,6 +229,8 @@ class SolicitacaoMedicaoInicialViewSet(
             return STATUS_RELACAO_DRE_MEDICAO + ["TODOS_OS_LANCAMENTOS"]
         elif usuario.tipo_usuario == "diretoriaregional":
             return STATUS_RELACAO_DRE + ["TODOS_OS_LANCAMENTOS"]
+        elif usuario.tipo_usuario in USUARIOS_VISAO_CODAE:
+            return STATUS_RELACAO_DRE_CODAE + ["TODOS_OS_LANCAMENTOS"]
         else:
             return (
                 STATUS_RELACAO_DRE_UE
@@ -245,6 +248,9 @@ class SolicitacaoMedicaoInicialViewSet(
 
     def condicao_por_usuario(self, queryset):
         usuario = self.request.user
+
+        if usuario.tipo_usuario in USUARIOS_VISAO_CODAE:
+            return queryset.filter(status__in=STATUS_RELACAO_DRE_CODAE)
         if not (
             usuario.tipo_usuario == "diretoriaregional"
             or usuario.tipo_usuario == "medicao"
@@ -270,6 +276,7 @@ class SolicitacaoMedicaoInicialViewSet(
 
         sumario = []
         usuario = self.request.user
+
         for workflow in self.get_lista_status(usuario):
             todos_lancamentos = workflow == "TODOS_OS_LANCAMENTOS"
             if use_raw:
@@ -1173,6 +1180,9 @@ class MedicaoViewSet(
                 )
                 tipo_alimentacao = self.get_tipo_alimentacao(valor_medicao)
                 faixa_etaria = self.get_faixa_etaria(valor_medicao)
+                infantil_ou_fundamental = valor_medicao.get(
+                    "infantil_ou_fundamental", "N/A"
+                )
                 ValorMedicao.objects.update_or_create(
                     medicao=medicao,
                     dia=valor_medicao.get("dia", ""),
@@ -1181,6 +1191,7 @@ class MedicaoViewSet(
                     categoria_medicao=categoria_medicao_qs.first(),
                     tipo_alimentacao=tipo_alimentacao,
                     faixa_etaria=faixa_etaria,
+                    infantil_ou_fundamental=infantil_ou_fundamental,
                     defaults={
                         "medicao": medicao,
                         "dia": valor_medicao.get("dia", ""),
@@ -1191,6 +1202,7 @@ class MedicaoViewSet(
                         "tipo_alimentacao": tipo_alimentacao,
                         "faixa_etaria": faixa_etaria,
                         "habilitado_correcao": True,
+                        "infantil_ou_fundamental": infantil_ou_fundamental,
                     },
                 )
             medicao.valores_medicao.filter(valor=-1).delete()

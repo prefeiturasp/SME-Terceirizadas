@@ -717,7 +717,10 @@ class HomologacaoProduto(
     ) -> None:
         editais_suspensos = []
         for vinc_prod_edital in vinculos_produto_edital:
-            if str(vinc_prod_edital.edital.uuid) not in editais:
+            if (
+                str(vinc_prod_edital.edital.uuid) not in editais
+                and not vinc_prod_edital.suspenso
+            ):
                 editais_suspensos.append(vinc_prod_edital.edital.numero)
                 vinc_prod_edital.suspenso = True
                 vinc_prod_edital.suspenso_por = usuario
@@ -734,20 +737,24 @@ class HomologacaoProduto(
         array_uuids_vinc = [
             str(value)
             for value in [
-                *vinculos_produto_edital.values_list("edital__uuid", flat=True)
+                *vinculos_produto_edital.filter(suspenso=False).values_list(
+                    "edital__uuid", flat=True
+                )
             ]
         ]
         editais_vinculados = []
         for edital_uuid in editais:
             if edital_uuid not in array_uuids_vinc:
                 edital = Edital.objects.get(uuid=edital_uuid)
-                produto_edital = ProdutoEdital.objects.create(
+                produto_edital, criado = ProdutoEdital.objects.get_or_create(
                     produto=self.produto,
                     edital=edital,
                     tipo_produto=ProdutoEdital.DIETA_ESPECIAL
                     if eh_para_alunos_com_dieta
                     else ProdutoEdital.COMUM,
                 )
+                produto_edital.suspenso = False
+                produto_edital.save()
                 produto_edital.criar_data_hora_vinculo(suspenso=False)
                 editais_vinculados.append(edital.numero)
         if editais_vinculados:

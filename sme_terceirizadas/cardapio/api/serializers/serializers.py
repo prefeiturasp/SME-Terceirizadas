@@ -379,10 +379,13 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializer(
         )
 
         for faixa_etaria in retorno["faixas_etarias"]:
-            uuid_faixa_etaria = faixa_etaria["faixa_etaria"]["uuid"]
-            faixa_etaria["total_alunos_no_periodo"] = qtde_alunos[nome_periodo][
-                uuid_faixa_etaria
-            ]
+            try:
+                uuid_faixa_etaria = faixa_etaria["faixa_etaria"]["uuid"]
+                faixa_etaria["total_alunos_no_periodo"] = qtde_alunos[nome_periodo][
+                    uuid_faixa_etaria
+                ]
+            except KeyError:
+                continue
 
         return retorno
 
