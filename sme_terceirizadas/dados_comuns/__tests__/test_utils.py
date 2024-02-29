@@ -3,37 +3,52 @@ from datetime import date
 import environ
 from freezegun import freeze_time
 
-from ..constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO, obter_dias_uteis_apos_hoje
+from sme_terceirizadas.dieta_especial.models import (
+    LogQuantidadeDietasAutorizadas,
+    LogQuantidadeDietasAutorizadasCEI,
+)
+from sme_terceirizadas.escola.models import LogAlunosMatriculadosPeriodoEscola
+
+from ..constants import (
+    DAQUI_A_SETE_DIAS,
+    DAQUI_A_TRINTA_DIAS,
+    SEM_FILTRO,
+    obter_dias_uteis_apos_hoje,
+)
+from ..models import CentralDeDownload
 from ..utils import (
+    analisa_logs_alunos_matriculados_periodo_escola,
+    analisa_logs_quantidade_dietas_autorizadas,
+    atualiza_central_download,
     eh_email_dev,
     ordena_dias_semana_comeca_domingo,
     queryset_por_data,
     remove_emails_dev,
     subtrai_meses_de_data,
-    update_instance_from_dict
+    update_instance_from_dict,
 )
 
 env = environ.Env()
 
 
-@freeze_time('2019-07-10')
+@freeze_time("2019-07-10")
 def test_obter_dias_uteis_apos(dias_uteis_apos):
     dias, dia_esperado = dias_uteis_apos
     assert obter_dias_uteis_apos_hoje(dias) == dia_esperado
 
 
 class A(object):
-    attribute1 = ''
-    attribute2 = ''
+    attribute1 = ""
+    attribute2 = ""
 
     def __str__(self):
-        return f'{self.attribute1},{self.attribute2}'
+        return f"{self.attribute1},{self.attribute2}"
 
 
 def test_update_instance_from_dict():
     a = A()
-    update_instance_from_dict(a, dict(attribute1='xxx', attribute2='yyy'))
-    assert a.__str__() == 'xxx,yyy'
+    update_instance_from_dict(a, dict(attribute1="xxx", attribute2="yyy"))
+    assert a.__str__() == "xxx,yyy"
 
 
 class Model(object):
@@ -95,18 +110,18 @@ def test_ordena_dias_semana_comeca_domingo():
 
 
 def test_eh_email_dev():
-    assert eh_email_dev('test@admin.com')
-    assert eh_email_dev('12345@dev.prefeitura.sp.gov.br')
-    assert eh_email_dev('zvcxzvc@emailteste.sme.prefeitura.sp.gov.br')
-    assert eh_email_dev('test@example.com') is False
+    assert eh_email_dev("test@admin.com")
+    assert eh_email_dev("12345@dev.prefeitura.sp.gov.br")
+    assert eh_email_dev("zvcxzvc@emailteste.sme.prefeitura.sp.gov.br")
+    assert eh_email_dev("test@example.com") is False
 
 
 def test_remove_emails_dev():
     emails = [
-        'test@admin.com',
-        '12345@dev.prefeitura.sp.gov.br',
-        'zvcxzvc@emailteste.sme.prefeitura.sp.gov.br',
-        'test@example.com'
+        "test@admin.com",
+        "12345@dev.prefeitura.sp.gov.br",
+        "zvcxzvc@emailteste.sme.prefeitura.sp.gov.br",
+        "test@example.com",
     ]
 
     nova_lista = remove_emails_dev(emails, True)
@@ -114,4 +129,48 @@ def test_remove_emails_dev():
 
     nova_lista = remove_emails_dev(emails, False)
     assert len(nova_lista) == 1
-    assert nova_lista[0] == 'test@example.com'
+    assert nova_lista[0] == "test@example.com"
+
+
+def test_analisa_logs_alunos_matriculados_periodo_escola(
+    logs_alunos_matriculados_periodo_escola,
+):
+    analisa_logs_alunos_matriculados_periodo_escola()
+    logs = LogAlunosMatriculadosPeriodoEscola.objects.all()
+    assert logs.count() == 4
+
+
+def test_analisa_logs_quantidade_dietas_autorizadas(
+    logs_quantidade_dietas_autorizadas_escola_comum,
+    logs_quantidade_dietas_autorizadas_escola_cei,
+    logs_quantidade_dietas_autorizadas_escola_cemei,
+):
+    analisa_logs_quantidade_dietas_autorizadas()
+    logs_dietas_comuns = LogQuantidadeDietasAutorizadas.objects.all()
+    assert logs_dietas_comuns.count() == 3
+    logs_dietas_cei = [
+        log
+        for log in LogQuantidadeDietasAutorizadasCEI.objects.all()
+        if log.escola.tipo_unidade.iniciais == "CEI DIRET"
+    ]
+    assert len(logs_dietas_cei) == 4
+    logs_dietas_cemei = [
+        log
+        for log in LogQuantidadeDietasAutorizadasCEI.objects.all()
+        if log.escola.tipo_unidade.iniciais == "CEMEI"
+    ]
+    assert len(logs_dietas_cemei) == 5
+
+
+def test_atualiza_central_download(obj_central_download):
+    identificador_pdf = "relatorio.pdf"
+    arquivo = b"conteudo do arquivo"
+    prefixo = identificador_pdf.split(".")[0]
+
+    atualiza_central_download(obj_central_download, identificador_pdf, arquivo)
+
+    assert prefixo in obj_central_download.arquivo.name
+    assert obj_central_download.arquivo.read() == arquivo
+    assert obj_central_download.status == CentralDeDownload.STATUS_CONCLUIDO
+
+    obj_central_download.arquivo.close()

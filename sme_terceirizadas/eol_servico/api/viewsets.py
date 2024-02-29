@@ -9,30 +9,31 @@ from ..utils import EOLException, EOLServicoSGP
 
 
 class DadosUsuarioEOLCompletoViewSet(ViewSet):
-    lookup_field = 'registro_funcional'
+    lookup_field = "registro_funcional"
     permission_classes = (IsAuthenticated,)
 
     def retrieve(self, request, registro_funcional=None):
         try:
             response_dados_usuario = EOLServicoSGP.get_dados_usuario(registro_funcional)
             if response_dados_usuario.status_code != status.HTTP_200_OK:
-                raise EOLException('Usuário não encontrado')
+                raise EOLException("Usuário não encontrado")
             dados_usuario = response_dados_usuario.json()
             dados_usuario = {
-                'nome': dados_usuario['nome'],
-                'email': dados_usuario['email'],
-                'cpf': dados_usuario['cpf'],
-                'rf': dados_usuario['rf'],
-                'cargo': dados_usuario['cargos'][0]['descricaoCargo'].strip(),
-                'codigo_eol_unidade': dados_usuario['cargos'][0]['codigoUnidade']
+                "nome": dados_usuario["nome"],
+                "email": dados_usuario["email"],
+                "cpf": dados_usuario["cpf"],
+                "rf": dados_usuario["rf"],
+                "cargo": dados_usuario["cargos"][0]["descricaoCargo"].strip(),
+                "codigo_eol_unidade": dados_usuario["cargos"][0]["codigoUnidade"],
+                "nome_escola": dados_usuario["cargos"][0]["descricaoUnidade"],
             }
             return Response(dados_usuario)
         except EOLException as e:
-            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DadosAlunoEOLViewSet(ViewSet):
-    lookup_field = 'codigo_eol'
+    lookup_field = "codigo_eol"
     permission_classes = (IsAuthenticated,)
 
     def retrieve(self, request, codigo_eol=None):
@@ -60,22 +61,22 @@ class DadosAlunoEOLViewSet(ViewSet):
         try:
             aluno: Aluno = Aluno.objects.filter(codigo_eol=codigo_eol).get()
             dados = {
-                'cd_aluno': aluno.codigo_eol,
-                'nm_aluno': aluno.nome,
-                'nm_social_aluno': None,
-                'dt_nascimento_aluno': f'{aluno.data_nascimento.strftime("%Y-%m-%d")}T00:00:00',
-                'cd_sexo_aluno': None,
-                'nm_mae_aluno': None,
-                'nm_pai_aluno': None,
-                'cd_escola': aluno.escola.codigo_eol,
-                'dc_turma_escola': aluno.serie,
+                "cd_aluno": aluno.codigo_eol,
+                "nm_aluno": aluno.nome,
+                "nm_social_aluno": None,
+                "dt_nascimento_aluno": f'{aluno.data_nascimento.strftime("%Y-%m-%d")}T00:00:00',
+                "cd_sexo_aluno": None,
+                "nm_mae_aluno": None,
+                "nm_pai_aluno": None,
+                "cd_escola": aluno.escola.codigo_eol,
+                "dc_turma_escola": aluno.serie,
                 # TODO: investigar e tratar AttributeError para aluno.periodo_escolar.nome
                 # ('NoneType' object has no attribute 'nome')
                 # 'dc_tipo_turno': aluno.periodo_escolar.nome
             }
-            return Response({'detail': dados})
+            return Response({"detail": dados})
         except EOLException as e:
-            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
         except Aluno.DoesNotExist as error:
             # O front está esperando BAD_REQUEST
-            return Response({'detail': f'{error}'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": f"{error}"}, status=status.HTTP_400_BAD_REQUEST)

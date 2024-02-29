@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0007_auto_20201130_1759'),
+        ("logistica", "0007_auto_20201130_1759"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='guia',
-            name='status',
-            field=models.CharField(choices=[('INTEGRADA', 'Integrada'), ('CANCELADA', 'Cancelada')], default='INTEGRADA', max_length=25, verbose_name='Status da guia'),
+            model_name="guia",
+            name="status",
+            field=models.CharField(
+                choices=[("INTEGRADA", "Integrada"), ("CANCELADA", "Cancelada")],
+                default="INTEGRADA",
+                max_length=25,
+                verbose_name="Status da guia",
+            ),
         ),
     ]

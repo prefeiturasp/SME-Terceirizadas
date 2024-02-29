@@ -10,43 +10,92 @@ import sme_terceirizadas.dados_comuns.behaviors
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('produto', '0030_merge_20200610_1536'),
+        ("produto", "0030_merge_20200610_1536"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RespostaAnaliseSensorial',
+            name="RespostaAnaliseSensorial",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('criado_em', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('responsavel_produto', models.CharField(max_length=150)),
-                ('registro_funcional', models.CharField(max_length=10)),
-                ('data', models.DateField()),
-                ('hora', models.TimeField()),
-                ('observacao', models.TextField(blank=True)),
-                ('criado_por', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
-                ('homologacao_de_produto', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='respostas_analise', to='produto.HomologacaoDoProduto')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "criado_em",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Criado em"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("responsavel_produto", models.CharField(max_length=150)),
+                ("registro_funcional", models.CharField(max_length=10)),
+                ("data", models.DateField()),
+                ("hora", models.TimeField()),
+                ("observacao", models.TextField(blank=True)),
+                (
+                    "criado_por",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "homologacao_de_produto",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="respostas_analise",
+                        to="produto.HomologacaoDoProduto",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=(sme_terceirizadas.dados_comuns.behaviors.TemIdentificadorExternoAmigavel, models.Model),
+            bases=(
+                sme_terceirizadas.dados_comuns.behaviors.TemIdentificadorExternoAmigavel,
+                models.Model,
+            ),
         ),
         migrations.CreateModel(
-            name='AnexoRespostaAnaliseSensorial',
+            name="AnexoRespostaAnaliseSensorial",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('nome', models.CharField(blank=True, max_length=255)),
-                ('arquivo', models.FileField(upload_to='')),
-                ('resposta_analise_sensorial', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='anexos', to='produto.RespostaAnaliseSensorial')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("nome", models.CharField(blank=True, max_length=255)),
+                ("arquivo", models.FileField(upload_to="")),
+                (
+                    "resposta_analise_sensorial",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="anexos",
+                        to="produto.RespostaAnaliseSensorial",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

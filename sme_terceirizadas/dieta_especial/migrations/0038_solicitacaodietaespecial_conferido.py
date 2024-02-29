@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0037_auto_20211007_1855'),
+        ("dieta_especial", "0037_auto_20211007_1855"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaodietaespecial',
-            name='conferido',
-            field=models.BooleanField(default=False, verbose_name='Marcar como conferido?'),
+            model_name="solicitacaodietaespecial",
+            name="conferido",
+            field=models.BooleanField(
+                default=False, verbose_name="Marcar como conferido?"
+            ),
         ),
     ]

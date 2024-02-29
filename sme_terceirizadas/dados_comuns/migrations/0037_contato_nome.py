@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0036_auto_20210821_0144'),
+        ("dados_comuns", "0036_auto_20210821_0144"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='contato',
-            name='nome',
-            field=models.CharField(blank=True, max_length=160, verbose_name='Nome'),
+            model_name="contato",
+            name="nome",
+            field=models.CharField(blank=True, max_length=160, verbose_name="Nome"),
         ),
     ]

@@ -5,8 +5,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views import defaults as default_views
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from sme_terceirizadas.cardapio.urls import urlpatterns as cardapio_urls
 from sme_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
@@ -15,10 +19,14 @@ from sme_terceirizadas.eol_servico.urls import urlpatterns as eol_servico_urls
 from sme_terceirizadas.escola.urls import urlpatterns as escola_urls
 from sme_terceirizadas.inclusao_alimentacao.urls import urlpatterns as inclusao_urls
 from sme_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
-from sme_terceirizadas.lancamento_inicial.urls import urlpatterns as lancamento_inicial_urls
+from sme_terceirizadas.lancamento_inicial.urls import (
+    urlpatterns as lancamento_inicial_urls,
+)
 from sme_terceirizadas.logistica.urls import urlpatterns as logistica_urls
 from sme_terceirizadas.medicao_inicial.urls import urlpatterns as medicao_inicial_urls
-from sme_terceirizadas.paineis_consolidados.urls import urlpatterns as paineis_consolidados_urls
+from sme_terceirizadas.paineis_consolidados.urls import (
+    urlpatterns as paineis_consolidados_urls,
+)
 from sme_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_terceirizadas.pre_recebimento.urls import urlpatterns as pre_recebimento_urls
 from sme_terceirizadas.produto.urls import urlpatterns as produto_urls
@@ -30,18 +38,25 @@ env = environ.Env()
 admin.autodiscover()
 admin.site.enable_nav_sidebar = False
 
-urlpatterns = [path('django-des/', include(des_urls)),
-               path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-               path(settings.ADMIN_URL, admin.site.urls),
-               path('api-token-auth/', obtain_jwt_token),
-               path('api-token-refresh/', refresh_jwt_token),
-               path('', include('django_prometheus.urls')),
-               path('docs-swagger/', SpectacularAPIView.as_view(), name='schema'),
-               path('docs-swagger/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-               path('docs-swagger/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc')
-               ] + static(
-    settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-)
+urlpatterns = [
+    path("django-des/", include(des_urls)),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path(settings.ADMIN_URL, admin.site.urls),
+    path("api-token-auth/", TokenObtainPairView.as_view()),
+    path("api-token-refresh/", TokenRefreshView.as_view()),
+    path("", include("django_prometheus.urls")),
+    path("docs-swagger/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "docs-swagger/swagger/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "docs-swagger/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # ADDING ROUTERS FROM ALL APPS
 urlpatterns += comuns_urls
@@ -66,23 +81,23 @@ if settings.DEBUG:
     # these url in browser to see how these error pages look like.
     urlpatterns += [
         path(
-            '400/',
+            "400/",
             default_views.bad_request,
-            kwargs={'exception': Exception('Bad Request!')},
+            kwargs={"exception": Exception("Bad Request!")},
         ),
         path(
-            '403/',
+            "403/",
             default_views.permission_denied,
-            kwargs={'exception': Exception('Permission Denied')},
+            kwargs={"exception": Exception("Permission Denied")},
         ),
         path(
-            '404/',
+            "404/",
             default_views.page_not_found,
-            kwargs={'exception': Exception('Page not Found')},
+            kwargs={"exception": Exception("Page not Found")},
         ),
-        path('500/', default_views.server_error),
+        path("500/", default_views.server_error),
     ]
-    if 'debug_toolbar' in settings.INSTALLED_APPS:
+    if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [path('__debug__/', include(debug_toolbar.urls))] + urlpatterns
+        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns

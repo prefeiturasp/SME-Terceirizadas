@@ -58,6 +58,9 @@
       <td>{{ escola.diretoria_regional.nome }}</td>
     </tr>
   </table>
+  {% if eh_protocolo_dieta_especial %}
+    <div class="mt-3">* Alteração de UE - <b>{{ motivo }}</b></div>
+  {% endif %}
 </header>
 <body>
 {% block conteudo %}

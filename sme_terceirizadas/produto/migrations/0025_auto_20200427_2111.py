@@ -4,22 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0024_auto_20200427_2107'),
+        ("produto", "0024_auto_20200427_2107"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='produto',
-            name='aditivos',
-            field=models.TextField(blank=True, default=''),
+            model_name="produto",
+            name="aditivos",
+            field=models.TextField(blank=True, default=""),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='produto',
-            name='outras_informacoes',
-            field=models.TextField(blank=True, default=''),
+            model_name="produto",
+            name="outras_informacoes",
+            field=models.TextField(blank=True, default=""),
             preserve_default=False,
         ),
     ]

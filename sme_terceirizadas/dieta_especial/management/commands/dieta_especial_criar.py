@@ -6,20 +6,22 @@ from sme_terceirizadas.escola.models import Aluno, Escola
 from sme_terceirizadas.perfil.models import Usuario
 
 faker = Faker()
-fake = Faker('pt-br')
+fake = Faker("pt-br")
 
 
 def criar_dieta(codigo_eol_aluno, codigo_eol_escola):
     aluno = Aluno.objects.filter(codigo_eol=codigo_eol_aluno).first()
     escola_destino = Escola.objects.get(codigo_eol=codigo_eol_escola)
 
-    if escola_destino.codigo_eol == '017981':
-        email = 'escolaemef@admin.com'
-    if escola_destino.codigo_eol == '099791':
-        email = 'escolaemef3@admin.com'
+    if escola_destino.codigo_eol == "017981":
+        email = "escolaemef@admin.com"
+    if escola_destino.codigo_eol == "099791":
+        email = "escolaemef3@admin.com"
 
     criado_por = Usuario.objects.get(email=email)
-    dieta_existe = SolicitacaoDietaEspecial.objects.filter(aluno__codigo_eol=codigo_eol_aluno).first()
+    dieta_existe = SolicitacaoDietaEspecial.objects.filter(
+        aluno__codigo_eol=codigo_eol_aluno
+    ).first()
     if not dieta_existe:
         dieta = SolicitacaoDietaEspecial.objects.create(
             criado_por=criado_por,
@@ -40,17 +42,16 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--aluno', '-a',
-            dest='aluno',
-            help='Informar código EOL do aluno.'
+            "--aluno", "-a", dest="aluno", help="Informar código EOL do aluno."
         )
         parser.add_argument(
-            '--escola', '-e',
-            dest='escola',
-            help='Informar código EOL da escola. Pericles 017981, Plinio 099791'
+            "--escola",
+            "-e",
+            dest="escola",
+            help="Informar código EOL da escola. Pericles 017981, Plinio 099791",
         )
 
     def handle(self, *args, **options):
-        aluno = options['aluno']
-        escola = options['escola']
+        aluno = options["aluno"]
+        escola = options["escola"]
         criar_dieta(aluno, escola)

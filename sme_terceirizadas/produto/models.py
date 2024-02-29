@@ -5,6 +5,7 @@ from datetime import datetime
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
+from django.db.models import Case, QuerySet, When
 from sequences import get_last_value, get_next_value
 
 from ..dados_comuns.behaviors import (
@@ -16,117 +17,180 @@ from ..dados_comuns.behaviors import (
     Nomeavel,
     TemAlteradoEm,
     TemChaveExterna,
-    TemIdentificadorExternoAmigavel
+    TemIdentificadorExternoAmigavel,
 )
 from ..dados_comuns.fluxo_status import (
     FluxoHomologacaoProduto,
     FluxoReclamacaoProduto,
     FluxoSolicitacaoCadastroProduto,
-    HomologacaoProdutoWorkflow
+    HomologacaoProdutoWorkflow,
 )
-from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
-from ..dados_comuns.utils import convert_base64_to_contentfile, cria_copias_fk, cria_copias_m2m
+from ..dados_comuns.models import (
+    AnexoLogSolicitacoesUsuario,
+    LogSolicitacoesUsuario,
+    TemplateMensagem,
+)
+from ..dados_comuns.utils import (
+    convert_base64_to_contentfile,
+    cria_copias_fk,
+    cria_copias_m2m,
+)
 from ..escola.models import Escola
+from ..perfil.models import Usuario
 from ..terceirizada.models import Edital
 
 MAX_NUMERO_PROTOCOLO = 6
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, TemChaveExterna):
-
-    nome = models.CharField('Nome', blank=True, max_length=100, unique=True)
+    nome = models.CharField("Nome", blank=True, max_length=100, unique=True)
 
     def __str__(self):
         return self.nome
 
     class Meta:
-        verbose_name = 'Protocolo de Dieta Especial'
-        verbose_name_plural = 'Protocolos de Dieta Especial'
+        verbose_name = "Protocolo de Dieta Especial"
+        verbose_name_plural = "Protocolos de Dieta Especial"
 
 
 class Fabricante(Nomeavel, TemChaveExterna):
-    item = GenericRelation('ItemCadastro', related_query_name='fabricante')
+    item = GenericRelation("ItemCadastro", related_query_name="fabricante")
 
     def __str__(self):
         return self.nome
 
 
 class Marca(Nomeavel, TemChaveExterna):
-    item = GenericRelation('ItemCadastro', related_query_name='marca')
+    item = GenericRelation("ItemCadastro", related_query_name="marca")
 
     def __str__(self):
         return self.nome
 
 
 class UnidadeMedida(Nomeavel, TemChaveExterna):
-    item = GenericRelation('ItemCadastro', related_query_name='unidade_medida')
+    item = GenericRelation("ItemCadastro", related_query_name="unidade_medida")
 
     def __str__(self):
         return self.nome
 
 
 class EmbalagemProduto(Nomeavel, TemChaveExterna):
-    item = GenericRelation('ItemCadastro', related_query_name='embalagem_produto')
+    item = GenericRelation("ItemCadastro", related_query_name="embalagem_produto")
 
     def __str__(self):
         return self.nome
 
 
 class TipoDeInformacaoNutricional(Nomeavel, TemChaveExterna):
-
     def __str__(self):
         return self.nome
 
 
 class InformacaoNutricional(TemChaveExterna, Nomeavel):
-    tipo_nutricional = models.ForeignKey(TipoDeInformacaoNutricional, on_delete=models.DO_NOTHING)
+    ORDEM_TABELA = [
+        "VALOR ENERGÉTICO",
+        "CARBOIDRATOS TOTAIS",
+        "AÇÚCARES TOTAIS",
+        "AÇÚCARES ADICIONADOS",
+        "PROTEÍNAS",
+        "GORDURAS TOTAIS",
+        "GORDURAS SATURADAS",
+        "GORDURAS TRANS",
+        "FIBRA ALIMENTAR",
+        "SÓDIO",
+    ]
+
+    tipo_nutricional = models.ForeignKey(
+        TipoDeInformacaoNutricional, on_delete=models.DO_NOTHING
+    )
     medida = models.CharField(max_length=10, blank=True)
+    eh_fixo = models.BooleanField("Informação Nutricional Fixa", default=False)
+
+    @property
+    def eh_dependente(self):
+        return self.nome.upper() in [
+            "AÇÚCARES ADICIONADOS",
+            "GORDURAS SATURADAS",
+            "GORDURAS TRANS",
+        ]
+
+    @classmethod
+    def ordenadas(cls):
+        return cls.objects.annotate(
+            ordem_tabela=Case(
+                *[
+                    When(nome=valor, then=pos)
+                    for pos, valor in enumerate(cls.ORDEM_TABELA)
+                ],
+                default=len(cls.ORDEM_TABELA),
+            )
+        ).order_by("ordem_tabela")
 
     def __str__(self):
         return self.nome
 
     class Meta:
-        verbose_name = 'Informação Nutricional'
-        verbose_name_plural = 'Informações Nutricionais'
+        verbose_name = "Informação Nutricional"
+        verbose_name_plural = "Informações Nutricionais"
 
 
 class ImagemDoProduto(TemChaveExterna):
-    produto = models.ForeignKey('Produto', on_delete=models.CASCADE, blank=True)
+    produto = models.ForeignKey("Produto", on_delete=models.CASCADE, blank=True)
     arquivo = models.FileField()
     nome = models.CharField(max_length=100, blank=True)
 
     class Meta:
-        verbose_name = 'Imagem do Produto'
-        verbose_name_plural = 'Imagens do Produto'
+        verbose_name = "Imagem do Produto"
+        verbose_name_plural = "Imagens do Produto"
 
 
-class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel, EhCopia):
-    eh_para_alunos_com_dieta = models.BooleanField('É para alunos com dieta especial', default=False)
+class Produto(
+    Ativavel,
+    CriadoEm,
+    CriadoPor,
+    Nomeavel,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+    EhCopia,
+):
+    eh_para_alunos_com_dieta = models.BooleanField(
+        "É para alunos com dieta especial", default=False
+    )
 
-    protocolos = models.ManyToManyField(ProtocoloDeDietaEspecial,
-                                        related_name='protocolos',
-                                        help_text='Protocolos do produto.',
-                                        blank=True,
-                                        )
+    protocolos = models.ManyToManyField(
+        ProtocoloDeDietaEspecial,
+        related_name="protocolos",
+        help_text="Protocolos do produto.",
+        blank=True,
+    )
 
     marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING, blank=True, null=True)
-    fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING, blank=True, null=True)
-    componentes = models.CharField('Componentes do Produto', blank=True, max_length=5000)
+    fabricante = models.ForeignKey(
+        Fabricante, on_delete=models.DO_NOTHING, blank=True, null=True
+    )
+    componentes = models.CharField(
+        "Componentes do Produto", blank=True, max_length=5000
+    )
 
-    tem_aditivos_alergenicos = models.BooleanField('Tem aditivos alergênicos', default=False)
-    aditivos = models.TextField('Aditivos', blank=True)
+    tem_aditivos_alergenicos = models.BooleanField(
+        "Tem aditivos alergênicos", default=False
+    )
+    aditivos = models.TextField("Aditivos", blank=True)
 
-    tipo = models.CharField('Tipo do Produto', blank=True, max_length=250)
-    embalagem = models.CharField('Embalagem Primária', blank=True, max_length=500)
-    prazo_validade = models.CharField('Prazo de validade', blank=True, max_length=100)
-    info_armazenamento = models.CharField('Informações de Armazenamento',
-                                          blank=True, max_length=500)
-    outras_informacoes = models.TextField('Outras Informações', blank=True)
-    numero_registro = models.CharField('Registro do órgão competente', blank=True, max_length=100)
+    tipo = models.CharField("Tipo do Produto", blank=True, max_length=250)
+    embalagem = models.CharField("Embalagem Primária", blank=True, max_length=500)
+    prazo_validade = models.CharField("Prazo de validade", blank=True, max_length=100)
+    info_armazenamento = models.CharField(
+        "Informações de Armazenamento", blank=True, max_length=500
+    )
+    outras_informacoes = models.TextField("Outras Informações", blank=True)
+    numero_registro = models.CharField(
+        "Registro do órgão competente", blank=True, max_length=100
+    )
 
-    porcao = models.CharField('Porção nutricional', blank=True, max_length=50)
-    unidade_caseira = models.CharField('Unidade nutricional', blank=True, max_length=50)
-    tem_gluten = models.BooleanField('Tem Glúten?', null=True, default=None)
+    porcao = models.CharField("Porção nutricional", blank=True, max_length=50)
+    unidade_caseira = models.CharField("Unidade nutricional", blank=True, max_length=50)
+    tem_gluten = models.BooleanField("Tem Glúten?", null=True, default=None)
 
     @property
     def imagens(self):
@@ -155,45 +219,46 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
         try:
             homologacao = self.homologacao
             log_homologacao = (
-                homologacao.logs
-                .filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO)
-                .order_by('criado_em')
-                .first())
+                homologacao.logs.filter(
+                    status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
+                )
+                .order_by("criado_em")
+                .first()
+            )
             return log_homologacao.criado_em if log_homologacao else None
         except HomologacaoProduto.DoesNotExist:
-            return ''
+            return ""
 
     @classmethod
     def filtrar_por_nome(cls, **kwargs):
-        nome = kwargs.get('nome')
+        nome = kwargs.get("nome")
         return cls.objects.filter(nome__icontains=nome)
 
     @classmethod
     def filtrar_por_marca(cls, **kwargs):
-        nome = kwargs.get('nome')
+        nome = kwargs.get("nome")
         return cls.objects.filter(marca__nome__icontains=nome)
 
     @classmethod
     def filtrar_por_fabricante(cls, **kwargs):
-        nome = kwargs.get('nome')
+        nome = kwargs.get("nome")
         return cls.objects.filter(fabricante__nome__icontains=nome)
 
     def __str__(self):
         return self.nome
 
     class Meta:
-        verbose_name = 'Produto'
-        verbose_name_plural = 'Produtos'
+        verbose_name = "Produto"
+        verbose_name_plural = "Produtos"
 
 
 class ProdutoEdital(TemChaveExterna, CriadoEm):
-
-    COMUM = 'Comum'
-    DIETA_ESPECIAL = 'Dieta especial'
+    COMUM = "Comum"
+    DIETA_ESPECIAL = "Dieta especial"
 
     TIPO_PRODUTO = {
-        COMUM: 'Comum',
-        DIETA_ESPECIAL: 'Dieta especial',
+        COMUM: "Comum",
+        DIETA_ESPECIAL: "Dieta especial",
     }
 
     TIPO_PRODUTO_CHOICES = (
@@ -201,34 +266,87 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
         (DIETA_ESPECIAL, TIPO_PRODUTO[DIETA_ESPECIAL]),
     )
 
-    produto = models.ForeignKey(Produto, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
-    edital = models.ForeignKey(Edital, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
-    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=False, blank=False)  # noqa DJ01
-    outras_informacoes = models.TextField('Outras Informações', blank=True)
+    produto = models.ForeignKey(
+        Produto, null=False, on_delete=models.DO_NOTHING, related_name="vinculos"
+    )
+    edital = models.ForeignKey(
+        Edital, null=False, on_delete=models.DO_NOTHING, related_name="vinculos"
+    )
+    tipo_produto = models.CharField(
+        "tipo de produto",
+        max_length=25,
+        choices=TIPO_PRODUTO_CHOICES,
+        null=False,
+        blank=False,
+    )
+    outras_informacoes = models.TextField("Outras Informações", blank=True)
     ativo = models.BooleanField(default=True)
-    suspenso = models.BooleanField('Esta suspenso?', default=False)
-    suspenso_justificativa = models.CharField('Porque foi suspenso individualmente', blank=True, max_length=500)
-    suspenso_em = models.DateTimeField('Suspenso em', null=True, blank=True)
+    suspenso = models.BooleanField("Esta suspenso?", default=False)
+    suspenso_justificativa = models.CharField(
+        "Porque foi suspenso individualmente", blank=True, max_length=500
+    )
+    suspenso_em = models.DateTimeField("Suspenso em", null=True, blank=True)
     suspenso_por = models.ForeignKey(
-        'perfil.Usuario', on_delete=models.DO_NOTHING, null=True, blank=True
+        "perfil.Usuario", on_delete=models.DO_NOTHING, null=True, blank=True
     )
 
+    def criar_data_hora_vinculo(self, suspenso=False):
+        return DataHoraVinculoProdutoEdital.objects.create(
+            produto_edital=self, suspenso=suspenso
+        )
+
+    def data_hora_mais_proxima(self, data):
+        if data < self.datas_horas_vinculo.first().criado_em.date():
+            return self.datas_horas_vinculo.first()
+        for index, data_hora in enumerate(self.datas_horas_vinculo.all()):
+            if data_hora.criado_em.date() > data:
+                return self.datas_horas_vinculo.all()[index - 1]
+        return self.datas_horas_vinculo.last()
+
     def __str__(self):
-        return f'{self.produto} -- {self.edital.numero}'
+        return f"{self.produto} -- {self.edital.numero}"
 
     class Meta:
-        verbose_name = 'Vinculo entre produto e edital'
-        verbose_name_plural = 'Vinculos entre produtos e editais'
-        unique_together = ('produto', 'edital')
+        verbose_name = "Vinculo entre produto e edital"
+        verbose_name_plural = "Vinculos entre produtos e editais"
+        unique_together = ("produto", "edital")
 
 
-class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
-    TERCEIRIZADA = 'TERCEIRIZADA'
-    LOGISTICA = 'LOGISTICA'
+class DataHoraVinculoProdutoEdital(TemChaveExterna, CriadoEm):
+    produto_edital = models.ForeignKey(
+        ProdutoEdital,
+        null=False,
+        on_delete=models.CASCADE,
+        related_name="datas_horas_vinculo",
+    )
+    suspenso = models.BooleanField("Esta suspenso?", default=False)
+
+    def __str__(self):
+        return (
+            f"{self.produto_edital.produto.nome} - {self.produto_edital.edital.numero} - "
+            f'{"Suspenso" if self.suspenso else "Ativo"} - {self.criado_em.strftime("%d/%m/%Y")}'
+        )
+
+    class Meta:
+        verbose_name = "Data e hora do vínculo"
+        verbose_name_plural = "Datas e horas do vínculo"
+        ordering = ("criado_em",)
+
+
+class NomeDeProdutoEdital(
+    Ativavel,
+    CriadoEm,
+    CriadoPor,
+    Nomeavel,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+):
+    TERCEIRIZADA = "TERCEIRIZADA"
+    LOGISTICA = "LOGISTICA"
 
     TIPO_PRODUTO = {
-        TERCEIRIZADA: 'Terceirizada',
-        LOGISTICA: 'Logistica',
+        TERCEIRIZADA: "Terceirizada",
+        LOGISTICA: "Logistica",
     }
 
     TIPO_PRODUTO_CHOICES = (
@@ -236,14 +354,20 @@ class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExter
         (LOGISTICA, TIPO_PRODUTO[LOGISTICA]),
     )
 
-    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES,
-                                    null=False, blank=False, default=TERCEIRIZADA)
+    tipo_produto = models.CharField(
+        "tipo de produto",
+        max_length=25,
+        choices=TIPO_PRODUTO_CHOICES,
+        null=False,
+        blank=False,
+        default=TERCEIRIZADA,
+    )
 
     class Meta:
-        ordering = ('nome',)
-        unique_together = ('nome', 'tipo_produto')
-        verbose_name = 'Produto proveniente do Edital'
-        verbose_name_plural = 'Produtos provenientes do Edital'
+        ordering = ("nome",)
+        unique_together = ("nome", "tipo_produto")
+        verbose_name = "Produto proveniente do Edital"
+        verbose_name_plural = "Produtos provenientes do Edital"
 
     def __str__(self):
         return self.nome
@@ -254,31 +378,36 @@ class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExter
         return super(NomeDeProdutoEdital, self).clean(*args, **kwargs)
 
 
-class LogNomeDeProdutoEdital(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
+class LogNomeDeProdutoEdital(
+    TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor
+):
     ACAO = (
-        ('a', 'ativar'),
-        ('i', 'inativar'),
+        ("a", "ativar"),
+        ("i", "inativar"),
     )
-    acao = models.CharField('ação', max_length=1, choices=ACAO, null=True, blank=True)  # noqa DJ01
+    acao = models.CharField(
+        "ação", max_length=1, choices=ACAO, null=True, blank=True
+    )  # noqa DJ01
     nome_de_produto_edital = models.ForeignKey(
-        NomeDeProdutoEdital,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        NomeDeProdutoEdital, on_delete=models.SET_NULL, null=True, blank=True
     )
 
     class Meta:
-        ordering = ('-criado_em',)
-        verbose_name = 'Log de Produto proveniente do Edital'
-        verbose_name_plural = 'Log de Produtos provenientes do Edital'
+        ordering = ("-criado_em",)
+        verbose_name = "Log de Produto proveniente do Edital"
+        verbose_name_plural = "Log de Produtos provenientes do Edital"
 
     def __str__(self):
         return self.id_externo
 
 
 class InformacoesNutricionaisDoProduto(TemChaveExterna):
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='informacoes_nutricionais')
-    informacao_nutricional = models.ForeignKey(InformacaoNutricional, on_delete=models.DO_NOTHING)
+    produto = models.ForeignKey(
+        Produto, on_delete=models.CASCADE, related_name="informacoes_nutricionais"
+    )
+    informacao_nutricional = models.ForeignKey(
+        InformacaoNutricional, on_delete=models.DO_NOTHING
+    )
     quantidade_porcao = models.CharField(max_length=10)
     valor_diario = models.CharField(max_length=10)
 
@@ -287,17 +416,27 @@ class InformacoesNutricionaisDoProduto(TemChaveExterna):
         informacao_nutricional = self.informacao_nutricional.nome
         porcao = self.quantidade_porcao
         valor = self.valor_diario
-        return f'{nome_produto} - {informacao_nutricional} => quantidade: {porcao} valor diario: {valor}'
+        return f"{nome_produto} - {informacao_nutricional} => quantidade: {porcao} valor diario: {valor}"
 
     class Meta:
-        verbose_name = 'Informação Nutricional do Produto'
-        verbose_name_plural = 'Informações Nutricionais do Produto'
+        verbose_name = "Informação Nutricional do Produto"
+        verbose_name_plural = "Informações Nutricionais do Produto"
 
 
-class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoProduto,
-                         Logs, TemIdentificadorExternoAmigavel, Ativavel, EhCopia):
-    DESCRICAO = 'Homologação de Produto'
-    produto = models.OneToOneField(Produto, on_delete=models.CASCADE, related_name='homologacao')
+class HomologacaoProduto(
+    TemChaveExterna,
+    CriadoEm,
+    CriadoPor,
+    FluxoHomologacaoProduto,
+    Logs,
+    TemIdentificadorExternoAmigavel,
+    Ativavel,
+    EhCopia,
+):
+    DESCRICAO = "Homologação de Produto"
+    produto = models.OneToOneField(
+        Produto, on_delete=models.CASCADE, related_name="homologacao"
+    )
     necessita_analise_sensorial = models.BooleanField(default=False)
     protocolo_analise_sensorial = models.CharField(max_length=8, blank=True)
     pdf_gerado = models.BooleanField(default=False)
@@ -305,20 +444,24 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
     @property
     def data_cadastro(self):
         if self.status != self.workflow_class.RASCUNHO:
-            log = self.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO).first()
+            log = self.logs.filter(
+                status_evento=LogSolicitacoesUsuario.INICIO_FLUXO
+            ).first()
             if log:
                 return log.criado_em.date()
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.HOMOLOGACAO_PRODUTO)
+        template = TemplateMensagem.objects.get(
+            tipo=TemplateMensagem.HOMOLOGACAO_PRODUTO
+        )
         template_troca = {
-            '@id': self.id_externo,
-            '@criado_em': str(self.criado_em),
-            '@criado_por': str(self.criado_por),
-            '@status': str(self.status),
+            "@id": self.id_externo,
+            "@criado_em": str(self.criado_em),
+            "@criado_por": str(self.criado_por),
+            "@status": str(self.status),
             # TODO: verificar a url padrão do pedido
-            '@link': 'http://teste.com',
+            "@link": "http://teste.com",
         }
         corpo = template.template_html
         for chave, valor in template_troca.items():
@@ -333,12 +476,12 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
             HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
+            HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
         ]:
             intervalo = datetime.today() - self.ultimo_log.criado_em
         else:
             try:
-                penultimo_log = self.logs.order_by('-criado_em')[1]
+                penultimo_log = self.logs.order_by("-criado_em")[1]
                 intervalo = self.ultimo_log.criado_em - penultimo_log.criado_em
             except IndexError:
                 intervalo = datetime.today() - self.ultimo_log.criado_em
@@ -359,40 +502,44 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
     @property
     def data_edital_suspenso_mais_recente(self):
         if self.tem_vinculo_produto_edital_suspenso:
-            return max([v.suspenso_em for v in self.produto.vinculos.all() if v.suspenso])
+            return max(
+                [v.suspenso_em for v in self.produto.vinculos.all() if v.suspenso]
+            )
 
     def gera_protocolo_analise_sensorial(self):
-        id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
-        serial = ''
+        id_sequecial = str(get_next_value("protocolo_analise_sensorial"))
+        serial = ""
         for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
-            serial = serial + '0'
+            serial = serial + "0"
         serial = serial + str(id_sequecial)
-        self.protocolo_analise_sensorial = f'AS{serial}'
+        self.protocolo_analise_sensorial = f"AS{serial}"
         self.necessita_analise_sensorial = True
         self.save()
 
     @classmethod
     def retorna_numero_do_protocolo(cls):
-        id_sequecial = get_last_value('protocolo_analise_sensorial')
-        serial = ''
+        id_sequecial = get_last_value("protocolo_analise_sensorial")
+        serial = ""
         if id_sequecial is None:
-            id_sequecial = '1'
+            id_sequecial = "1"
         else:
-            id_sequecial = str(get_last_value('protocolo_analise_sensorial') + 1)
+            id_sequecial = str(get_last_value("protocolo_analise_sensorial") + 1)
         for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
-            serial = serial + '0'
+            serial = serial + "0"
         serial = serial + str(id_sequecial)
-        return f'AS{serial}'
+        return f"AS{serial}"
 
     @property
     def esta_homologado(self):
         esta_homologado = False
-        for log in self.logs.order_by('-criado_em'):
+        for log in self.logs.order_by("-criado_em"):
             if log.status_evento == LogSolicitacoesUsuario.CODAE_HOMOLOGADO:
                 esta_homologado = True
                 continue
-            elif log.status_evento in [LogSolicitacoesUsuario.CODAE_SUSPENDEU,
-                                       LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO]:
+            elif log.status_evento in [
+                LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO,
+            ]:
                 continue
         return esta_homologado
 
@@ -404,17 +551,17 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
             produto__nome=self.produto.nome,
             produto__marca=self.produto.marca,
             produto__fabricante=self.produto.fabricante,
-            eh_copia=True
+            eh_copia=True,
         ).exists()
 
     def get_original(self):
         if not self.eh_copia:
-            return 'Não é cópia.'
+            return "Não é cópia."
         return HomologacaoProduto.objects.get(
             produto__nome=self.produto.nome,
             produto__marca=self.produto.marca,
             produto__fabricante=self.produto.fabricante,
-            eh_copia=False
+            eh_copia=False,
         )
 
     def transfere_logs_para_original(self):
@@ -433,7 +580,7 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
     @transaction.atomic
     def equaliza_homologacoes_e_se_destroi(self):
         if not self.eh_copia:
-            return 'Não é cópia.'
+            return "Não é cópia."
         original = self.get_original()
         self.transfere_logs_para_original()
         self.transfere_analises_sensoriais_para_original()
@@ -455,14 +602,14 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         return original
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
+        justificativa = kwargs.get("justificativa", "")
         return LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
         )
 
     def cria_copia_produto(self):
@@ -473,13 +620,33 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         produto_copia.uuid = uuid_generator.uuid4()
         produto_copia.eh_copia = True
         produto_copia.save()
-        Produto.objects.filter(id=produto_copia.uuid).update(criado_em=produto.criado_em)
+        Produto.objects.filter(id=produto_copia.uuid).update(
+            criado_em=produto.criado_em
+        )
 
-        campos_fk = ['especificacoes', 'imagemdoproduto_set', 'informacoes_nutricionais', 'vinculos']
+        campos_fk = [
+            "especificacoes",
+            "imagemdoproduto_set",
+            "informacoes_nutricionais",
+            "vinculos",
+        ]
         for campo_fk in campos_fk:
-            cria_copias_fk(produto, campo_fk, 'produto', produto_copia)
+            cria_copias_fk(produto, campo_fk, "produto", produto_copia)
 
-        campos_m2m = ['protocolos', 'substitutos', 'substitutos_protocolo_padrao']
+        for produto_edital in produto.vinculos.all():
+            for data_hora in produto_edital.datas_horas_vinculo.all():
+                data_hora_copia = deepcopy(data_hora)
+                data_hora_copia.id = None
+                data_hora_copia.uuid = uuid_generator.uuid4()
+                data_hora_copia.produto_edital = produto_copia.vinculos.get(
+                    edital=produto_edital.edital
+                )
+                data_hora_copia.save()
+                DataHoraVinculoProdutoEdital.objects.filter(
+                    id=data_hora_copia.id
+                ).update(criado_em=data_hora.criado_em)
+
+        campos_m2m = ["protocolos", "substitutos", "substitutos_protocolo_padrao"]
         for campo_m2m in campos_m2m:
             cria_copias_m2m(produto, campo_m2m, produto_copia)
 
@@ -502,7 +669,9 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
             log_copia.uuid = uuid_generator.uuid4()
             log_copia.uuid_original = hom_copia.uuid
             log_copia.save()
-            LogSolicitacoesUsuario.objects.filter(id=log_copia.id).update(criado_em=log.criado_em)
+            LogSolicitacoesUsuario.objects.filter(id=log_copia.id).update(
+                criado_em=log.criado_em
+            )
 
         return hom_copia
 
@@ -511,31 +680,135 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         hom_copia = self.cria_copia_homologacao_produto(produto_copia)
         return hom_copia
 
+    def cria_log_editais_suspensos(
+        self, justificativa: str, list_editais_suspensos: list, usuario: Usuario
+    ) -> None:
+        numeros_editais_para_justificativa = ", ".join(list_editais_suspensos)
+        justificativa += "<br><br><p>Editais suspensos:</p>"
+        justificativa += f"<p>{numeros_editais_para_justificativa}</p>"
+        LogSolicitacoesUsuario.objects.create(
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            status_evento=LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
+            solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
+            usuario=usuario,
+        )
+
+    def cria_log_editais_vinculados(
+        self, list_editais_vinculados: list, usuario: Usuario
+    ) -> None:
+        numeros_editais_para_justificativa = ", ".join(list_editais_vinculados)
+        justificativa = "<p>Editais vinculados:</p>"
+        justificativa += f"<p>{numeros_editais_para_justificativa}</p>"
+        LogSolicitacoesUsuario.objects.create(
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            status_evento=LogSolicitacoesUsuario.ATIVO_EM_ALGUNS_EDITAIS,
+            solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
+            usuario=usuario,
+        )
+
+    def suspende_editais(
+        self,
+        editais: list,
+        vinculos_produto_edital: QuerySet,
+        usuario: Usuario,
+        justificativa: str,
+    ) -> None:
+        editais_suspensos = []
+        for vinc_prod_edital in vinculos_produto_edital:
+            if (
+                str(vinc_prod_edital.edital.uuid) not in editais
+                and not vinc_prod_edital.suspenso
+            ):
+                editais_suspensos.append(vinc_prod_edital.edital.numero)
+                vinc_prod_edital.suspenso = True
+                vinc_prod_edital.suspenso_por = usuario
+                vinc_prod_edital.suspenso_em = datetime.now()
+                vinc_prod_edital.save()
+                vinc_prod_edital.criar_data_hora_vinculo()
+        if editais_suspensos:
+            self.cria_log_editais_suspensos(justificativa, editais_suspensos, usuario)
+
+    def vincula_editais(
+        self, editais: list, vinculos_produto_edital: QuerySet, usuario: Usuario
+    ) -> None:
+        eh_para_alunos_com_dieta = self.produto.eh_para_alunos_com_dieta
+        array_uuids_vinc = [
+            str(value)
+            for value in [
+                *vinculos_produto_edital.filter(suspenso=False).values_list(
+                    "edital__uuid", flat=True
+                )
+            ]
+        ]
+        editais_vinculados = []
+        for edital_uuid in editais:
+            if edital_uuid not in array_uuids_vinc:
+                edital = Edital.objects.get(uuid=edital_uuid)
+                produto_edital, criado = ProdutoEdital.objects.get_or_create(
+                    produto=self.produto,
+                    edital=edital,
+                    tipo_produto=ProdutoEdital.DIETA_ESPECIAL
+                    if eh_para_alunos_com_dieta
+                    else ProdutoEdital.COMUM,
+                )
+                produto_edital.suspenso = False
+                produto_edital.save()
+                produto_edital.criar_data_hora_vinculo(suspenso=False)
+                editais_vinculados.append(edital.numero)
+        if editais_vinculados:
+            self.cria_log_editais_vinculados(editais_vinculados, usuario)
+
+    def vincula_ou_desvincula_editais(
+        self, editais: list, justificativa: str, usuario: Usuario
+    ) -> None:
+        vinculos_produto_edital = self.produto.vinculos.all()
+        self.suspende_editais(editais, vinculos_produto_edital, usuario, justificativa)
+        self.vincula_editais(editais, vinculos_produto_edital, usuario)
+
     class Meta:
-        ordering = ('-ativo', '-criado_em')
-        verbose_name = 'Homologação de Produto'
-        verbose_name_plural = 'Homologações de Produto'
+        ordering = ("-ativo", "-criado_em")
+        verbose_name = "Homologação de Produto"
+        verbose_name_plural = "Homologações de Produto"
 
     def __str__(self):
-        return f'Homologação #{self.id_externo}'
+        return f"Homologação #{self.id_externo}"
 
 
-class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, CriadoPor,
-                          Logs, TemIdentificadorExternoAmigavel):
-    homologacao_produto = models.ForeignKey('HomologacaoProduto', on_delete=models.CASCADE,
-                                            related_name='reclamacoes', null=True, blank=True)
-    reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)
-    reclamante_cargo = models.CharField('Cargo', max_length=100)
-    reclamante_nome = models.CharField('Nome', max_length=255)
-    reclamacao = models.TextField('Reclamação')
-    escola = models.ForeignKey(Escola, null=True, on_delete=models.PROTECT, related_name='reclamacoes')
-    produto_lote = models.TextField(max_length=255, blank=True, default='')
-    produto_data_validade = models.DateField(auto_now=False, auto_now_add=False, blank=True, null=True)
-    produto_data_fabricacao = models.DateField(auto_now=False, auto_now_add=False, blank=True, null=True)
+class ReclamacaoDeProduto(
+    FluxoReclamacaoProduto,
+    TemChaveExterna,
+    CriadoEm,
+    CriadoPor,
+    Logs,
+    TemIdentificadorExternoAmigavel,
+):
+    homologacao_produto = models.ForeignKey(
+        "HomologacaoProduto",
+        on_delete=models.CASCADE,
+        related_name="reclamacoes",
+        null=True,
+        blank=True,
+    )
+    reclamante_registro_funcional = models.CharField("RF/CRN/CRF", max_length=50)
+    reclamante_cargo = models.CharField("Cargo", max_length=100)
+    reclamante_nome = models.CharField("Nome", max_length=255)
+    reclamacao = models.TextField("Reclamação")
+    escola = models.ForeignKey(
+        Escola, null=True, on_delete=models.PROTECT, related_name="reclamacoes"
+    )
+    produto_lote = models.TextField(max_length=255, blank=True, default="")
+    produto_data_validade = models.DateField(
+        auto_now=False, auto_now_add=False, blank=True, null=True
+    )
+    produto_data_fabricacao = models.DateField(
+        auto_now=False, auto_now_add=False, blank=True, null=True
+    )
 
     def salvar_log_transicao(self, status_evento, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
-        user = kwargs['user']
+        justificativa = kwargs.get("justificativa", "")
+        user = kwargs["user"]
         if user:
             log_transicao = LogSolicitacoesUsuario.objects.create(
                 descricao=str(self),
@@ -543,14 +816,12 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
                 solicitacao_tipo=LogSolicitacoesUsuario.RECLAMACAO_PRODUTO,
                 usuario=user,
                 uuid_original=self.uuid,
-                justificativa=justificativa
+                justificativa=justificativa,
             )
-            for anexo in kwargs.get('anexos', []):
-                arquivo = convert_base64_to_contentfile(anexo.get('base64'))
+            for anexo in kwargs.get("anexos", []):
+                arquivo = convert_base64_to_contentfile(anexo.get("base64"))
                 AnexoLogSolicitacoesUsuario.objects.create(
-                    log=log_transicao,
-                    arquivo=arquivo,
-                    nome=anexo['nome']
+                    log=log_transicao, arquivo=arquivo, nome=anexo["nome"]
                 )
         return log_transicao
 
@@ -559,21 +830,30 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
         return self.log_mais_recente
 
     def __str__(self):
-        return f'Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}'
+        return f"Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}"
 
 
 class AnexoReclamacaoDeProduto(TemChaveExterna):
-    reclamacao_de_produto = models.ForeignKey(ReclamacaoDeProduto, related_name='anexos', on_delete=models.CASCADE)
+    reclamacao_de_produto = models.ForeignKey(
+        ReclamacaoDeProduto, related_name="anexos", on_delete=models.CASCADE
+    )
     nome = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField()
 
     def __str__(self):
-        return f'Anexo {self.uuid} - {self.nome}'
+        return f"Anexo {self.uuid} - {self.nome}"
 
 
-class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
-    homologacao_produto = models.ForeignKey('HomologacaoProduto', on_delete=models.CASCADE,
-                                            related_name='respostas_analise', null=True, blank=True)
+class RespostaAnaliseSensorial(
+    TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor
+):
+    homologacao_produto = models.ForeignKey(
+        "HomologacaoProduto",
+        on_delete=models.CASCADE,
+        related_name="respostas_analise",
+        null=True,
+        blank=True,
+    )
     responsavel_produto = models.CharField(max_length=150)
     registro_funcional = models.CharField(max_length=10)
     data = models.DateField(auto_now=False, auto_now_add=False)
@@ -585,30 +865,50 @@ class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel,
         return self.homologacao_produto.protocolo_analise_sensorial
 
     def __str__(self):
-        return f'Resposta {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
+        return f"Resposta {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}"
 
 
 class AnexoRespostaAnaliseSensorial(TemChaveExterna):
-    resposta_analise_sensorial = models.ForeignKey(RespostaAnaliseSensorial, related_name='anexos',
-                                                   on_delete=models.CASCADE)
+    resposta_analise_sensorial = models.ForeignKey(
+        RespostaAnaliseSensorial, related_name="anexos", on_delete=models.CASCADE
+    )
     nome = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField()
 
     def __str__(self):
-        return f'Anexo {self.uuid} - {self.nome}'
+        return f"Anexo {self.uuid} - {self.nome}"
 
 
-class SolicitacaoCadastroProdutoDieta(FluxoSolicitacaoCadastroProduto, TemChaveExterna,
-                                      TemIdentificadorExternoAmigavel, CriadoEm,
-                                      CriadoPor):
-    solicitacao_dieta_especial = models.ForeignKey('dieta_especial.SolicitacaoDietaEspecial', on_delete=models.CASCADE,
-                                                   related_name='solicitacoes_cadastro_produto')
-    aluno = models.ForeignKey('escola.Aluno', on_delete=models.CASCADE,
-                              related_name='solicitacoes_cadastro_produto', null=True)
-    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE,
-                               related_name='solicitacoes_cadastro_produto', null=True)
-    terceirizada = models.ForeignKey('terceirizada.Terceirizada', on_delete=models.CASCADE,
-                                     related_name='solicitacoes_cadastro_produto', null=True)
+class SolicitacaoCadastroProdutoDieta(
+    FluxoSolicitacaoCadastroProduto,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+    CriadoEm,
+    CriadoPor,
+):
+    solicitacao_dieta_especial = models.ForeignKey(
+        "dieta_especial.SolicitacaoDietaEspecial",
+        on_delete=models.CASCADE,
+        related_name="solicitacoes_cadastro_produto",
+    )
+    aluno = models.ForeignKey(
+        "escola.Aluno",
+        on_delete=models.CASCADE,
+        related_name="solicitacoes_cadastro_produto",
+        null=True,
+    )
+    escola = models.ForeignKey(
+        "escola.Escola",
+        on_delete=models.CASCADE,
+        related_name="solicitacoes_cadastro_produto",
+        null=True,
+    )
+    terceirizada = models.ForeignKey(
+        "terceirizada.Terceirizada",
+        on_delete=models.CASCADE,
+        related_name="solicitacoes_cadastro_produto",
+        null=True,
+    )
     nome_produto = models.CharField(max_length=150)
     marca_produto = models.CharField(max_length=150, blank=True)
     fabricante_produto = models.CharField(max_length=150, blank=True)
@@ -617,17 +917,17 @@ class SolicitacaoCadastroProdutoDieta(FluxoSolicitacaoCadastroProduto, TemChaveE
     justificativa_previsao_cadastro = models.TextField(blank=True)
 
     def __str__(self):
-        return f'Solicitacao cadastro produto {self.nome_produto}'
+        return f"Solicitacao cadastro produto {self.nome_produto}"
 
 
 class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm):
     # Status Choice
-    STATUS_AGUARDANDO_RESPOSTA = 'AGUARDANDO_RESPOSTA'
-    STATUS_RESPONDIDA = 'RESPONDIDA'
+    STATUS_AGUARDANDO_RESPOSTA = "AGUARDANDO_RESPOSTA"
+    STATUS_RESPONDIDA = "RESPONDIDA"
 
     STATUS = {
-        STATUS_AGUARDANDO_RESPOSTA: 'Aguardando resposta',
-        STATUS_RESPONDIDA: 'Respondida',
+        STATUS_AGUARDANDO_RESPOSTA: "Aguardando resposta",
+        STATUS_RESPONDIDA: "Respondida",
     }
 
     STATUS_CHOICES = (
@@ -635,18 +935,27 @@ class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoE
         (STATUS_RESPONDIDA, STATUS[STATUS_RESPONDIDA]),
     )
 
-    homologacao_produto = models.ForeignKey('HomologacaoProduto', on_delete=models.CASCADE,
-                                            related_name='analises_sensoriais', null=True, blank=True)
+    homologacao_produto = models.ForeignKey(
+        "HomologacaoProduto",
+        on_delete=models.CASCADE,
+        related_name="analises_sensoriais",
+        null=True,
+        blank=True,
+    )
 
     # Terceirizada que irá responder a análise
-    terceirizada = models.ForeignKey('terceirizada.Terceirizada', on_delete=models.CASCADE,
-                                     related_name='analises_sensoriais', null=True)
+    terceirizada = models.ForeignKey(
+        "terceirizada.Terceirizada",
+        on_delete=models.CASCADE,
+        related_name="analises_sensoriais",
+        null=True,
+    )
 
     status = models.CharField(
-        'Status da análise',
+        "Status da análise",
         max_length=25,
         choices=STATUS_CHOICES,
-        default=STATUS_AGUARDANDO_RESPOSTA
+        default=STATUS_AGUARDANDO_RESPOSTA,
     )
 
     @property
@@ -654,7 +963,7 @@ class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoE
         return self.homologacao_produto.protocolo_analise_sensorial
 
     def __str__(self):
-        return f'Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
+        return f"Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}"
 
 
 class ItemCadastro(TemChaveExterna, CriadoEm):
@@ -666,16 +975,16 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
     Exemplos: Marca, Fabricante, Unidade de Medida e Embalagem
     """
 
-    MARCA = 'MARCA'
-    FABRICANTE = 'FABRICANTE'
-    UNIDADE_MEDIDA = 'UNIDADE_MEDIDA'
-    EMBALAGEM = 'EMBALAGEM'
+    MARCA = "MARCA"
+    FABRICANTE = "FABRICANTE"
+    UNIDADE_MEDIDA = "UNIDADE_MEDIDA"
+    EMBALAGEM = "EMBALAGEM"
 
     MODELOS = {
-        MARCA: 'Marca',
-        FABRICANTE: 'Fabricante',
-        UNIDADE_MEDIDA: 'Unidade de Medida',
-        EMBALAGEM: 'Embalagem'
+        MARCA: "Marca",
+        FABRICANTE: "Fabricante",
+        UNIDADE_MEDIDA: "Unidade de Medida",
+        EMBALAGEM: "Embalagem",
     }
 
     CHOICES = (
@@ -685,21 +994,20 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
         (EMBALAGEM, MODELOS[EMBALAGEM]),
     )
 
-    CLASSES = {MARCA: Marca, FABRICANTE: Fabricante,
-               UNIDADE_MEDIDA: UnidadeMedida, EMBALAGEM: EmbalagemProduto}
+    CLASSES = {
+        MARCA: Marca,
+        FABRICANTE: Fabricante,
+        UNIDADE_MEDIDA: UnidadeMedida,
+        EMBALAGEM: EmbalagemProduto,
+    }
 
-    tipo = models.CharField(
-        'Tipo',
-        max_length=30,
-        choices=CHOICES
-    )
+    tipo = models.CharField("Tipo", max_length=30, choices=CHOICES)
 
-    content_type = models.ForeignKey(ContentType,
-                                     on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
 
     object_id = models.PositiveIntegerField()
 
-    content_object = GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey("content_type", "object_id")
 
     def __str__(self) -> str:
         return self.content_object.nome
@@ -708,17 +1016,23 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
     def eh_tipo_permitido(cls, tipo: str) -> bool:
         return tipo in [c[0] for c in cls.CHOICES]
 
-    def pode_deletar(self): # noqa C901
+    def pode_deletar(self):  # noqa C901
         from sme_terceirizadas.produto.models import Produto
 
         if self.tipo == self.MARCA:
             return not Produto.objects.filter(marca__pk=self.content_object.pk).exists()
         elif self.tipo == self.FABRICANTE:
-            return not Produto.objects.filter(fabricante__pk=self.content_object.pk).exists()
+            return not Produto.objects.filter(
+                fabricante__pk=self.content_object.pk
+            ).exists()
         elif self.tipo == self.UNIDADE_MEDIDA:
-            return not Produto.objects.filter(especificacoes__unidade_de_medida__pk=self.content_object.pk).exists()
+            return not Produto.objects.filter(
+                especificacoes__unidade_de_medida__pk=self.content_object.pk
+            ).exists()
         elif self.tipo == self.EMBALAGEM:
-            return not Produto.objects.filter(especificacoes__embalagem_produto__pk=self.content_object.pk).exists()
+            return not Produto.objects.filter(
+                especificacoes__embalagem_produto__pk=self.content_object.pk
+            ).exists()
 
         return True
 
@@ -727,7 +1041,7 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
         nome_upper = nome.upper()
 
         if not cls.eh_tipo_permitido(tipo):
-            raise Exception(f'Tipo não permitido: {tipo}')
+            raise Exception(f"Tipo não permitido: {tipo}")
 
         modelo = cls.CLASSES[tipo].objects.create(nome=nome_upper)
 
@@ -740,7 +1054,7 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
         nome_upper = nome.upper()
 
         if not cls.eh_tipo_permitido(tipo):
-            raise Exception(f'Tipo não permitido: {tipo}')
+            raise Exception(f"Tipo não permitido: {tipo}")
 
         modelo = cls.CLASSES[tipo].objects.create(nome=nome_upper)
         return modelo
@@ -763,11 +1077,17 @@ class EspecificacaoProduto(CriadoEm, TemAlteradoEm, TemChaveExterna):
     volume: 1,5, unidade de medida: Litros, embalagem: bag
     """
 
-    volume = models.FloatField('Volume', null=True)
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='especificacoes')
-    unidade_de_medida = models.ForeignKey(UnidadeMedida, on_delete=models.DO_NOTHING, null=True)
-    embalagem_produto = models.ForeignKey(EmbalagemProduto, on_delete=models.DO_NOTHING, null=True)
+    volume = models.FloatField("Volume", null=True)
+    produto = models.ForeignKey(
+        Produto, on_delete=models.CASCADE, related_name="especificacoes"
+    )
+    unidade_de_medida = models.ForeignKey(
+        UnidadeMedida, on_delete=models.DO_NOTHING, null=True
+    )
+    embalagem_produto = models.ForeignKey(
+        EmbalagemProduto, on_delete=models.DO_NOTHING, null=True
+    )
 
     class Meta:
-        verbose_name = 'Especificicação do Produto'
-        verbose_name_plural = 'Especificações do Produto'
+        verbose_name = "Especificicação do Produto"
+        verbose_name_plural = "Especificações do Produto"

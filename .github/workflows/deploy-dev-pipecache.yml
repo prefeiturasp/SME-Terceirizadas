@@ -38,8 +38,8 @@ jobs:
       name: development
     steps:
       - name: Redeploy
-        uses: luizhpriotto/action_images@kubectl-v1.0
+        uses: luizhpriotto/action_images@kubectl-sigpae-v1.0
         env: 
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-sigpae
+          NAMESPACE: sme-sigpae-dev

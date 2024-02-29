@@ -16,7 +16,7 @@ class ProdutoPorParametrosForm(forms.Form):
     data_final = forms.DateField(required=False)
     status = forms.MultipleChoiceField(
         required=False,
-        choices=[(str(state), state) for state in HomologacaoProdutoWorkflow.states]
+        choices=[(str(state), state) for state in HomologacaoProdutoWorkflow.states],
     )
 
 
@@ -31,26 +31,25 @@ class ProdutoPorParametrosFormHomologados(forms.Form):
     data_homologacao = forms.DateField(required=False)
     status = forms.MultipleChoiceField(
         required=False,
-        choices=[(str(state), state) for state in HomologacaoProdutoWorkflow.states]
+        choices=[(str(state), state) for state in HomologacaoProdutoWorkflow.states],
     )
 
 
 class ProdutoJaExisteForm(forms.Form):
-    fabricante = forms.ModelChoiceField(Fabricante.objects.all(), to_field_name='uuid')
-    marca = forms.ModelChoiceField(Marca.objects.all(), to_field_name='uuid')
+    fabricante = forms.ModelChoiceField(Fabricante.objects.all(), to_field_name="uuid")
+    marca = forms.ModelChoiceField(Marca.objects.all(), to_field_name="uuid")
     nome = forms.CharField()
 
 
 class NomeDeProdutoEditalForm(forms.ModelForm):
-
     class Meta:
-        fields = ('nome', 'ativo', 'tipo_produto')
+        fields = ("nome", "ativo", "tipo_produto")
 
     def __init__(self, *args, **kwargs):  # noqa D107
         super().__init__(*args, **kwargs)
-        self.fields['nome'].required = True
-        instance = getattr(self, 'instance', None)
+        self.fields["nome"].required = True
+        instance = getattr(self, "instance", None)
         if instance and instance.pk:
-            self.fields['ativo'].disabled = False
+            self.fields["ativo"].disabled = False
         else:
-            self.fields['ativo'].disabled = True
+            self.fields["ativo"].disabled = True

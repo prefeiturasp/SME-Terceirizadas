@@ -15,7 +15,12 @@ from django.utils.translation import gettext_lazy as _
 from django_prometheus.models import ExportModelOperationsMixin
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
-from ...dados_comuns.behaviors import ArquivoCargaBase, Ativavel, Nomeavel, TemChaveExterna
+from ...dados_comuns.behaviors import (
+    ArquivoCargaBase,
+    Ativavel,
+    Nomeavel,
+    TemChaveExterna,
+)
 from ...dados_comuns.constants import (
     ADMINISTRADOR_CODAE_DILOG_CONTABIL,
     ADMINISTRADOR_CODAE_DILOG_JURIDICO,
@@ -36,14 +41,15 @@ from ...dados_comuns.constants import (
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
     DINUTRE_DIRETORIA,
-    USUARIO_EMPRESA
+    ORGAO_FISCALIZADOR,
+    USUARIO_EMPRESA,
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
 from ...eol_servico.utils import EOLService, EOLServicoSGP
 from ..models import Perfil, Vinculo
 
-log = logging.getLogger('sigpae.usuario')
+log = logging.getLogger("sigpae.usuario")
 
 env = environ.Env()
 base_url = f'{env("REACT_APP_URL")}'
@@ -61,7 +67,7 @@ class CustomUserManager(BaseUserManager):
     def _create_user(self, email, password, **extra_fields):
         """Create and save a User with the given email and password."""
         if not email:
-            raise ValueError('The given email must be set')
+            raise ValueError("The given email must be set")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -70,19 +76,19 @@ class CustomUserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
         """Create and save a regular User with the given email and password."""
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault("is_staff", False)
+        extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
         """Create and save a SuperUser with the given email and password."""
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
 
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(email, password, **extra_fields)
 
@@ -93,77 +99,114 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
     Username and password are required. Other fields are optional.
     """
 
-    email = models.EmailField(_('email address'), blank=True)
+    email = models.EmailField(_("email address"), blank=True)
     is_staff = models.BooleanField(
-        _('staff status'),
+        _("staff status"),
         default=False,
-        help_text=_('Designates whether the user can log into this admin site.'),  # noqa
+        help_text=_(
+            "Designates whether the user can log into this admin site."
+        ),  # noqa
     )
     is_active = models.BooleanField(
-        _('active'),
+        _("active"),
         default=True,
         help_text=_(
-            'Designates whether this user should be treated as active. '
-            'Unselect this instead of deleting accounts.'
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
         ),
     )
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     objects = CustomUserManager()
 
-    EMAIL_FIELD = 'email'
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
+    EMAIL_FIELD = "email"
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
 
     class Meta:
-        verbose_name = 'Usuário'
-        verbose_name_plural = 'Usuários'
+        verbose_name = "Usuário"
+        verbose_name_plural = "Usuários"
         abstract = True
 
     def clean(self):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
 
-    def email_user(self, subject, message, from_email=None, template=None, dados_template=None, html=None, **kwargs):
+    def email_user(
+        self,
+        subject,
+        message,
+        from_email=None,
+        template=None,
+        dados_template=None,
+        html=None,
+        **kwargs,
+    ):
         """Send an email to this user."""
-        envia_email_unico_task.delay(assunto=subject, corpo='', email=self.email, template=template,
-                                     dados_template=dados_template, html=html)
+        envia_email_unico_task.delay(
+            assunto=subject,
+            corpo="",
+            email=self.email,
+            template=template,
+            dados_template=dados_template,
+            html=html,
+        )
 
 
 # TODO: Refatorar classe Usuário para comportar classes Pessoa, Usuário,
 # Nutricionista
-class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUserMixin, CustomAbstractUser,
-              TemChaveExterna):
+class Usuario(
+    ExportModelOperationsMixin("usuario"),
+    SimpleEmailConfirmationUserMixin,
+    CustomAbstractUser,
+    TemChaveExterna,
+):
     """Classe de autenticacao do django, ela tem muitos perfis."""
 
     SME = 0
     PREFEITURA = 1
 
     TIPOS_EMAIL = (
-        (SME, '@sme.prefeitura.sp.gov.br'),
-        (PREFEITURA, '@prefeitura.sp.gov.br')
+        (SME, "@sme.prefeitura.sp.gov.br"),
+        (PREFEITURA, "@prefeitura.sp.gov.br"),
     )
-    nome = models.CharField(_('name'), max_length=150)
-    email = models.EmailField(_('email address'), unique=True)
-    tipo_email = models.PositiveSmallIntegerField(choices=TIPOS_EMAIL,
-                                                  null=True, blank=True)
+    nome = models.CharField(_("name"), max_length=150)
+    email = models.EmailField(_("email address"), unique=True)
+    tipo_email = models.PositiveSmallIntegerField(
+        choices=TIPOS_EMAIL, null=True, blank=True
+    )
     username = models.CharField(max_length=100, unique=True)
 
-    registro_funcional = models.CharField(_('RF'), max_length=7, blank=True, null=True, unique=True,  # noqa DJ01
-                                          validators=[MinLengthValidator(7)])
+    registro_funcional = models.CharField(
+        _("RF"),
+        max_length=7,
+        blank=True,
+        null=True,
+        unique=True,  # noqa DJ01
+        validators=[MinLengthValidator(7)],
+    )
     cargo = models.CharField(max_length=50, blank=True)
 
     # TODO: essew atributow deve pertencer somente a um model Pessoa
-    cpf = models.CharField(_('CPF'), max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
-                           validators=[MinLengthValidator(11)])
-    contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
+    cpf = models.CharField(
+        _("CPF"),
+        max_length=11,
+        blank=True,
+        null=True,
+        unique=True,  # noqa DJ01
+        validators=[MinLengthValidator(11)],
+    )
+    contatos = models.ManyToManyField("dados_comuns.Contato", blank=True)
 
     # TODO: esses atributos devem pertencer somente a um model Nutricionista
-    super_admin_terceirizadas = models.BooleanField('É Administrador por parte das Terceirizadas?',
-                                                    default=False)  # noqa
-    crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True, null=True)  # noqa DJ01
+    super_admin_terceirizadas = models.BooleanField(
+        "É Administrador por parte das Terceirizadas?", default=False
+    )  # noqa
+    crn_numero = models.CharField(
+        "Nutricionista crn", max_length=160, blank=True, null=True
+    )  # noqa DJ01
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []  # type: ignore
 
     def atualizar_cargo(self):
@@ -182,54 +225,89 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     @property
     def vinculo_atual(self):
-        if self.vinculos.filter(Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
-                                Q(data_inicial__isnull=False, data_final=None, ativo=True)).exists():
+        if self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False)
+            | Q(  # noqa W504 esperando ativacao
+                data_inicial__isnull=False, data_final=None, ativo=True
+            )
+        ).exists():
             return self.vinculos.get(
-                Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
-                Q(data_inicial__isnull=False, data_final=None, ativo=True))
+                Q(data_inicial=None, data_final=None, ativo=False)
+                | Q(  # noqa W504 esperando ativacao
+                    data_inicial__isnull=False, data_final=None, ativo=True
+                )
+            )
         return None
 
     @property
     def existe_vinculo_ativo(self):
-        return self.vinculos.filter(Q(data_inicial__isnull=False, data_final=None, ativo=True)).exists()
+        return self.vinculos.filter(
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)
+        ).exists()
 
     @property
     def tipo_usuario(self):  # noqa C901
-        tipo_usuario = 'indefinido'
+        tipo_usuario = "indefinido"
         if self.vinculo_atual:
             tipo_usuario = self.vinculo_atual.content_type.model
-            if tipo_usuario == 'codae':
-                if self.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                      ADMINISTRADOR_CODAE_GABINETE, ADMINISTRADOR_CODAE_DILOG_JURIDICO,
-                                                      ADMINISTRADOR_CODAE_DILOG_CONTABIL,
-                                                      ADMINISTRADOR_REPRESENTANTE_CODAE]:
-                    tipo_usuario = 'logistica_abastecimento'
-                elif self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                        ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]:
-                    tipo_usuario = 'gestao_alimentacao_terceirizada'
-                elif self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_PRODUTO,
-                                                        ADMINISTRADOR_GESTAO_PRODUTO]:
-                    tipo_usuario = 'gestao_produto'
-                elif self.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO,
-                                                        ADMINISTRADOR_SUPERVISAO_NUTRICAO]:
-                    tipo_usuario = 'supervisao_nutricao'
-                elif self.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]:
-                    tipo_usuario = 'nutricao_manifestacao'
+            if tipo_usuario == "codae":
+                if self.vinculo_atual.perfil.nome in [
+                    COORDENADOR_LOGISTICA,
+                    COORDENADOR_CODAE_DILOG_LOGISTICA,
+                    ADMINISTRADOR_CODAE_DILOG_JURIDICO,
+                    ADMINISTRADOR_CODAE_DILOG_CONTABIL,
+                    ADMINISTRADOR_REPRESENTANTE_CODAE,
+                ]:
+                    tipo_usuario = "logistica_abastecimento"
+                elif self.vinculo_atual.perfil.nome in [
+                    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                ]:
+                    tipo_usuario = "gestao_alimentacao_terceirizada"
+                elif self.vinculo_atual.perfil.nome in [
+                    COORDENADOR_GESTAO_PRODUTO,
+                    ADMINISTRADOR_GESTAO_PRODUTO,
+                ]:
+                    tipo_usuario = "gestao_produto"
+                elif self.vinculo_atual.perfil.nome in [
+                    COORDENADOR_SUPERVISAO_NUTRICAO,
+                    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+                ]:
+                    tipo_usuario = "supervisao_nutricao"
+                elif self.vinculo_atual.perfil.nome in [
+                    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO
+                ]:
+                    tipo_usuario = "nutricao_manifestacao"
                 elif self.vinculo_atual.perfil.nome in [ADMINISTRADOR_MEDICAO]:
-                    tipo_usuario = 'medicao'
-                elif self.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
-                                                        DINUTRE_DIRETORIA]:
-                    tipo_usuario = 'pre_recebimento'
+                    tipo_usuario = "medicao"
+                elif self.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_GABINETE]:
+                    tipo_usuario = "codae_gabinete"
+                elif self.vinculo_atual.perfil.nome in [
+                    DILOG_CRONOGRAMA,
+                    DILOG_QUALIDADE,
+                    DILOG_DIRETORIA,
+                    DINUTRE_DIRETORIA,
+                ]:
+                    tipo_usuario = "pre_recebimento"
+                elif self.vinculo_atual.perfil.nome in [ORGAO_FISCALIZADOR]:
+                    tipo_usuario = "orgao_fiscalizador"
                 else:
-                    tipo_usuario = 'dieta_especial'
+                    tipo_usuario = "dieta_especial"
         return tipo_usuario
+
+    @property
+    def eh_parceira(self):
+        return (
+            self.tipo_usuario == "escola" and self.vinculo_atual.instituicao.eh_parceira
+        )
 
     @property
     def eh_empresa(self):
         return (
-            self.vinculo_atual and
-            self.vinculo_atual.content_type.app_label == 'terceirizada' and
-            self.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA]
+            self.vinculo_atual
+            and self.vinculo_atual.content_type.app_label == "terceirizada"
+            and self.vinculo_atual.perfil.nome
+            in [ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA]
         )
 
     @property
@@ -246,48 +324,75 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     @property
     def pode_efetuar_cadastro(self):
-        dados_usuario = EOLService.get_informacoes_usuario(self.registro_funcional)  # noqa
+        dados_usuario = EOLService.get_informacoes_usuario(
+            self.registro_funcional
+        )  # noqa
         diretor_de_escola = False
         for dado in dados_usuario:
-            if dado['cargo'] == 'DIRETOR DE ESCOLA':
+            if dado["cargo"] == "DIRETOR DE ESCOLA":
                 diretor_de_escola = True
                 break
-        vinculo_aguardando_ativacao = self.vinculo_atual.status == Vinculo.STATUS_AGUARDANDO_ATIVACAO
+        vinculo_aguardando_ativacao = (
+            self.vinculo_atual.status == Vinculo.STATUS_AGUARDANDO_ATIVACAO
+        )
         return diretor_de_escola or vinculo_aguardando_ativacao
+
+    @property
+    def cpf_formatado(self):
+        return (
+            f"{self.cpf[:3]}.{self.cpf[3:6]}.{self.cpf[6:9]}-{self.cpf[9:]}"
+            if self.cpf is not None
+            else None
+        )
+
+    @property
+    def cpf_formatado_e_censurado(self):
+        return (
+            f"{self.cpf[:3]}.***.***-{self.cpf[9:]}" if self.cpf is not None else None
+        )
+
+    @property
+    def registro_funcional_censurado(self):
+        return (
+            self.registro_funcional[:2] + "****" + self.registro_funcional[-1]
+            if self.registro_funcional
+            else None
+        )
 
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
-        content = {'uuid': self.uuid,
-                   'confirmation_key': self.confirmation_key}
-        titulo = 'Confirmação de E-mail'
-        template = 'email_cadastro_funcionario.html'
+        content = {"uuid": self.uuid, "confirmation_key": self.confirmation_key}
+        titulo = "Confirmação de E-mail"
+        template = "email_cadastro_funcionario.html"
         dados_template = {
-            'titulo': titulo,
-            'link_cadastro': url_configs('CONFIRMAR_EMAIL', content),
-            'nome': self.nome
+            "titulo": titulo,
+            "link_cadastro": url_configs("CONFIRMAR_EMAIL", content),
+            "nome": self.nome,
         }
         html = render_to_string(template, dados_template)
         self.email_user(
-            subject='Confirme seu e-mail - SIGPAE',
-            message='',
+            subject="Confirme seu e-mail - SIGPAE",
+            message="",
             template=template,
             dados_template=dados_template,
             html=html,
-
         )
 
     def enviar_email_recuperacao_senha(self):
         token_generator = PasswordResetTokenGenerator()
         token = token_generator.make_token(self)
         visao_perfil = self.vinculo_atual.perfil.visao
-        content = {'uuid': self.uuid, 'confirmation_key': token, 'visao': visao_perfil}
-        titulo = 'Recuperação de senha'
-        template = 'recuperar_senha.html'
-        dados_template = {'titulo': titulo, 'link_recuperar_senha': url_configs('RECUPERAR_SENHA', content)}
+        content = {"uuid": self.uuid, "confirmation_key": token, "visao": visao_perfil}
+        titulo = "Recuperação de senha"
+        template = "recuperar_senha.html"
+        dados_template = {
+            "titulo": titulo,
+            "link_recuperar_senha": url_configs("RECUPERAR_SENHA", content),
+        }
         html = render_to_string(template, context=dados_template)
         self.email_user(
-            subject='Email de recuperação de senha - SIGPAE',
-            message='',
+            subject="Email de recuperação de senha - SIGPAE",
+            message="",
             template=template,
             dados_template=dados_template,
             html=html,
@@ -295,17 +400,20 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     def enviar_email_administrador(self):
         self.add_email_if_not_exists(self.email)
-        titulo = '[SIGPAE] Novo cadastro de empresa'
-        template = 'email_cadastro_terceirizada.html'
-        dados_template = {'titulo': titulo, 'link_cadastro': url_configs(
-            'LOGIN_TERCEIRIZADAS', {}), 'nome': self.nome}
+        titulo = "[SIGPAE] Novo cadastro de empresa"
+        template = "email_cadastro_terceirizada.html"
+        dados_template = {
+            "titulo": titulo,
+            "link_cadastro": url_configs("LOGIN_TERCEIRIZADAS", {}),
+            "nome": self.nome,
+        }
         html = render_to_string(template, dados_template)
         self.email_user(
-            subject='[SIGPAE] Novo cadastro de empresa',
-            message='',
+            subject="[SIGPAE] Novo cadastro de empresa",
+            message="",
             template=template,
             dados_template=dados_template,
-            html=html
+            html=html,
         )
 
     @transaction.atomic
@@ -333,35 +441,34 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     def criar_vinculo_administrador(self, instituicao, nome_perfil):
         perfil = Perfil.objects.get(nome=nome_perfil)
         Vinculo.objects.create(
-            instituicao=instituicao,
-            perfil=perfil,
-            usuario=self,
-            ativo=False
+            instituicao=instituicao, perfil=perfil, usuario=self, ativo=False
         )
 
     @classmethod
-    def cria_ou_atualiza_usuario_sigpae(cls, dados_usuario, eh_servidor, existe_core_sso=False):
+    def cria_ou_atualiza_usuario_sigpae(
+        cls, dados_usuario, eh_servidor, existe_core_sso=False
+    ):
         if eh_servidor:
             usuario, criado = Usuario.objects.update_or_create(
-                username=dados_usuario.get('login'),
-                cpf=dados_usuario.get('cpf'),
+                username=dados_usuario.get("login"),
+                cpf=dados_usuario.get("cpf"),
                 defaults={
-                    'email': dados_usuario.get('email'),
-                    'registro_funcional': dados_usuario.get('login'),
-                    'cargo': dados_usuario.get('cargo', ''),
-                    'nome': dados_usuario.get('nome'),
-                    'last_login': datetime.datetime.now() if existe_core_sso else None
-                }
+                    "email": dados_usuario.get("email"),
+                    "registro_funcional": dados_usuario.get("login"),
+                    "cargo": dados_usuario.get("cargo", ""),
+                    "nome": dados_usuario.get("nome"),
+                    "last_login": datetime.datetime.now() if existe_core_sso else None,
+                },
             )
             return usuario
         else:
             usuario, criado = Usuario.objects.update_or_create(
-                username=dados_usuario['cpf'],
-                cpf=dados_usuario.get('cpf'),
+                username=dados_usuario["cpf"],
+                cpf=dados_usuario.get("cpf"),
                 defaults={
-                    'email': dados_usuario.get('email'),
-                    'nome': dados_usuario['nome'],
-                }
+                    "email": dados_usuario.get("email"),
+                    "nome": dados_usuario["nome"],
+                },
             )
             return usuario
 
@@ -370,48 +477,50 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         return usuario is not None
 
     def envia_email_primeiro_acesso_usuario_empresa(self):
-        titulo = 'Credenciais de Primeiro Acesso'
-        template = 'email_primeiro_acesso_usuario_empresa.html'
+        titulo = "Credenciais de Primeiro Acesso"
+        template = "email_primeiro_acesso_usuario_empresa.html"
         dados_template = {
-            'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
-            'senha_provisoria': senha_provisoria + self.cpf[-4:]
+            "titulo": titulo,
+            "url": f"{base_url}/login",
+            "nome": self.nome,
+            "senha_provisoria": senha_provisoria + self.cpf[-4:],
         }
         html = render_to_string(template, dados_template)
         self.email_user(
-            subject='[SIGPAE] Credenciais de Acesso ao SIGPAE',
-            message='',
+            subject="[SIGPAE] Credenciais de Acesso ao SIGPAE",
+            message="",
             template=template,
             dados_template=dados_template,
-            html=html
+            html=html,
         )
 
     def envia_email_primeiro_acesso_usuario_servidor(self):
-        titulo = 'Credenciais de Primeiro Acesso'
-        template = 'email_primeiro_acesso_usuario_servidor.html'
+        titulo = "Credenciais de Primeiro Acesso"
+        template = "email_primeiro_acesso_usuario_servidor.html"
         dados_template = {
-            'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
-            'senha': f'{senha_provisoria}{self.registro_funcional[-4:]}'
+            "titulo": titulo,
+            "url": f"{base_url}/login",
+            "nome": self.nome,
+            "senha": f"{senha_provisoria}{self.registro_funcional[-4:]}",
         }
         html = render_to_string(template, dados_template)
         self.email_user(
-            subject='[SIGPAE] Credenciais de Acesso ao SIGPAE',
-            message='',
+            subject="[SIGPAE] Credenciais de Acesso ao SIGPAE",
+            message="",
             template=template,
             dados_template=dados_template,
-            html=html
+            html=html,
         )
 
     class Meta:
-        ordering = ('-super_admin_terceirizadas',)
+        ordering = ("-super_admin_terceirizadas",)
 
 
 class Cargo(TemChaveExterna, Nomeavel, Ativavel):
-    data_inicial = models.DateField('Data inicial', null=True, blank=True)
-    data_final = models.DateField('Data final', null=True, blank=True)
+    data_inicial = models.DateField("Data inicial", null=True, blank=True)
+    data_final = models.DateField("Data final", null=True, blank=True)
     usuario = models.ForeignKey(
-        Usuario,
-        related_name='cargos',
-        on_delete=models.CASCADE
+        Usuario, related_name="cargos", on_delete=models.CASCADE
     )
 
     def finalizar_cargo(self):
@@ -425,11 +534,11 @@ class Cargo(TemChaveExterna, Nomeavel, Ativavel):
         self.save()
 
     class Meta:
-        verbose_name = 'Cargo'
-        verbose_name_plural = 'Cargos'
+        verbose_name = "Cargo"
+        verbose_name_plural = "Cargos"
 
     def __str__(self):
-        return f'{self.usuario} de {self.data_inicial} até {self.data_final}'
+        return f"{self.usuario} de {self.data_inicial} até {self.data_final}"
 
 
 class PlanilhaDiretorCogestor(models.Model):  # noqa D204
@@ -439,29 +548,25 @@ class PlanilhaDiretorCogestor(models.Model):  # noqa D204
     """
 
     arquivo = models.FileField(blank=True, null=True)  # noqa DJ01
-    criado_em = models.DateTimeField(
-        'criado em',
-        auto_now_add=True,
-        auto_now=False
-    )
+    criado_em = models.DateTimeField("criado em", auto_now_add=True, auto_now=False)
 
     def __str__(self):
         return str(self.arquivo)
 
     class Meta:
-        ordering = ('-criado_em',)
-        verbose_name = 'Planilha Diretor Cogestor'
-        verbose_name_plural = 'Planilhas Diretores Cogestores'
+        ordering = ("-criado_em",)
+        verbose_name = "Planilha Diretor Cogestor"
+        verbose_name_plural = "Planilhas Diretores Cogestores"
 
 
 class ImportacaoPlanilhaUsuarioPerfilEscola(ArquivoCargaBase):
     """Importa dados de planilha de usuários com perfil Escola."""
 
-    resultado = models.FileField(blank=True, default='')
+    resultado = models.FileField(blank=True, default="")
 
     class Meta:
-        verbose_name = 'Arquivo para importação de usuário perfil Escola'
-        verbose_name_plural = 'Arquivos para importação de usuários perfil Escola'
+        verbose_name = "Arquivo para importação de usuário perfil Escola"
+        verbose_name_plural = "Arquivos para importação de usuários perfil Escola"
 
     def __str__(self) -> str:
         return str(self.conteudo)
@@ -470,11 +575,11 @@ class ImportacaoPlanilhaUsuarioPerfilEscola(ArquivoCargaBase):
 class ImportacaoPlanilhaUsuarioPerfilCodae(ArquivoCargaBase):
     """Importa dados de planilha de usuários com perfil Escola."""
 
-    resultado = models.FileField(blank=True, default='')
+    resultado = models.FileField(blank=True, default="")
 
     class Meta:
-        verbose_name = 'Arquivo para importação de usuário perfil Codae'
-        verbose_name_plural = 'Arquivos para importação de usuários perfil Codae'
+        verbose_name = "Arquivo para importação de usuário perfil Codae"
+        verbose_name_plural = "Arquivos para importação de usuários perfil Codae"
 
     def __str__(self) -> str:
         return str(self.conteudo)
@@ -483,11 +588,11 @@ class ImportacaoPlanilhaUsuarioPerfilCodae(ArquivoCargaBase):
 class ImportacaoPlanilhaUsuarioPerfilDre(ArquivoCargaBase):
     """Importa dados de planilha de usuários com perfil Dre."""
 
-    resultado = models.FileField(blank=True, default='')
+    resultado = models.FileField(blank=True, default="")
 
     class Meta:
-        verbose_name = 'Arquivo para importação de usuário perfil Dre'
-        verbose_name_plural = 'Arquivos para importação de usuários perfil Dre'
+        verbose_name = "Arquivo para importação de usuário perfil Dre"
+        verbose_name_plural = "Arquivos para importação de usuários perfil Dre"
 
     def __str__(self) -> str:
         return str(self.conteudo)
@@ -496,11 +601,15 @@ class ImportacaoPlanilhaUsuarioPerfilDre(ArquivoCargaBase):
 class ImportacaoPlanilhaUsuarioServidorCoreSSO(ArquivoCargaBase):
     """Importa dados de planilha de usuários com perfil servidor."""
 
-    resultado = models.FileField(blank=True, default='')
+    resultado = models.FileField(blank=True, default="")
 
     class Meta:
-        verbose_name = 'Arquivo para importação/atualização de usuários servidores no CoreSSO'
-        verbose_name_plural = 'Arquivos para importação/atualização de usuários servidores no CoreSSO'
+        verbose_name = (
+            "Arquivo para importação/atualização de usuários servidores no CoreSSO"
+        )
+        verbose_name_plural = (
+            "Arquivos para importação/atualização de usuários servidores no CoreSSO"
+        )
 
     def __str__(self) -> str:
         return str(self.conteudo)
@@ -509,11 +618,32 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSO(ArquivoCargaBase):
 class ImportacaoPlanilhaUsuarioExternoCoreSSO(ArquivoCargaBase):
     """Importa dados de planilha de usuários com perfil externo."""
 
-    resultado = models.FileField(blank=True, default='')
+    resultado = models.FileField(blank=True, default="")
 
     class Meta:
-        verbose_name = 'Arquivo para importação/atualização de usuários externos no CoreSSO'
-        verbose_name_plural = 'Arquivos para importação/atualização de usuários externos no CoreSSO'
+        verbose_name = (
+            "Arquivo para importação/atualização de usuários externos no CoreSSO"
+        )
+        verbose_name_plural = (
+            "Arquivos para importação/atualização de usuários externos no CoreSSO"
+        )
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ImportacaoPlanilhaUsuarioUEParceiraCoreSSO(ArquivoCargaBase):
+    """Importa dados de planilha de usuários com perfil UE parceira."""
+
+    resultado = models.FileField(blank=True, default="")
+
+    class Meta:
+        verbose_name = (
+            "Arquivo para importação/atualização de usuários UEs parceiras no CoreSSO"
+        )
+        verbose_name_plural = (
+            "Arquivos para importação/atualização de usuários UEs parceiras no CoreSSO"
+        )
 
     def __str__(self) -> str:
         return str(self.conteudo)

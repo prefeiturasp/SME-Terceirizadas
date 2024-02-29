@@ -10,28 +10,58 @@ import sme_terceirizadas.dados_comuns.behaviors
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('produto', '0043_auto_20200827_1527'),
+        ("produto", "0043_auto_20200827_1527"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='NomeDeProdutoEdital',
+            name="NomeDeProdutoEdital",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('ativo', models.BooleanField(default=True, verbose_name='Está ativo?')),
-                ('criado_em', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('criado_por', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "ativo",
+                    models.BooleanField(default=True, verbose_name="Está ativo?"),
+                ),
+                (
+                    "criado_em",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Criado em"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "criado_por",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Produto proveniente do Edital',
-                'verbose_name_plural': 'Produtos provenientes do Edital',
-                'ordering': ('nome',),
+                "verbose_name": "Produto proveniente do Edital",
+                "verbose_name_plural": "Produtos provenientes do Edital",
+                "ordering": ("nome",),
             },
-            bases=(models.Model, sme_terceirizadas.dados_comuns.behaviors.TemIdentificadorExternoAmigavel),
+            bases=(
+                models.Model,
+                sme_terceirizadas.dados_comuns.behaviors.TemIdentificadorExternoAmigavel,
+            ),
         ),
     ]

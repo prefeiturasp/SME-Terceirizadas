@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0048_planilhaatualizacaotipogestaoescola'),
+        ("escola", "0048_planilhaatualizacaotipogestaoescola"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='subprefeitura',
-            name='codigo_eol',
-            field=models.CharField(blank=True, max_length=6, null=True, unique=True, verbose_name='Código EOL'),
+            model_name="subprefeitura",
+            name="codigo_eol",
+            field=models.CharField(
+                blank=True,
+                max_length=6,
+                null=True,
+                unique=True,
+                verbose_name="Código EOL",
+            ),
         ),
     ]

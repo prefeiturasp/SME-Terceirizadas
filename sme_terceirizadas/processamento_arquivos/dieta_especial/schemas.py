@@ -21,10 +21,10 @@ class ArquivoCargaDietaEspecialSchema(BaseModel):
     protocolo_dieta: str
     codigo_categoria_dieta: str
 
-    @validator('codigo_eol_aluno')
+    @validator("codigo_eol_aluno")
     def codigo_eol_aluno_deve_ter_7_digitos(cls, value):
         if len(value) != TAMANHO_CODIGO_EOL_ALUNO:
-            raise ValueError('Codigo eol do aluno deve ter 7 dígitos.')
+            raise ValueError("Codigo eol do aluno deve ter 7 dígitos.")
         return value
 
 
@@ -55,73 +55,73 @@ class ArquivoCargaUsuariosDiretorSchema(BaseModel):
 
     @classmethod
     def formata_documentos(cls, value):
-        return value.replace('.', '').replace('-', '').strip()
+        return value.replace(".", "").replace("-", "").strip()
 
     @classmethod
     def validate_cpf(cls, value):
         value = cls.formata_documentos(value)
 
         if len(value) != TAMANHO_CPF:
-            raise ValueError('CPF deve conter 11 dígitos.')
+            raise ValueError("CPF deve conter 11 dígitos.")
         return value
 
-    @validator('codigo_eol_escola')
+    @validator("codigo_eol_escola")
     def formata_codigo_eol(cls, value):
         if not value:
-            raise ValueError('Codigo eol da escola não pode ser vazio.')
-        return f'{value:0>6}'.strip()
+            raise ValueError("Codigo eol da escola não pode ser vazio.")
+        return f"{value:0>6}".strip()
 
-    @validator('nome_diretor')
+    @validator("nome_diretor")
     def formata_nome_diretor(cls, value):
         if not value:
-            raise ValueError('Nome do diretor não pode ser vazio.')
+            raise ValueError("Nome do diretor não pode ser vazio.")
         return cls.formata_nome(value)
 
-    @validator('rg_diretor')
+    @validator("rg_diretor")
     def formata_rg_diretor(cls, value):
         if not value:
-            raise ValueError('RG do diretor não pode ser vazio.')
+            raise ValueError("RG do diretor não pode ser vazio.")
         return cls.formata_documentos(value)
 
-    @validator('rf_diretor')
+    @validator("rf_diretor")
     def formata_rf_diretor(cls, value):
         if not value:
-            raise ValueError('RF do diretor não pode ser vazio.')
+            raise ValueError("RF do diretor não pode ser vazio.")
         value = cls.formata_documentos(value)
         if len(value) != TAMANHO_RF:
-            raise ValueError('RF deve ter 7 dígitos.')
+            raise ValueError("RF deve ter 7 dígitos.")
         return value
 
-    @validator('cpf_diretor')
+    @validator("cpf_diretor")
     def validate_cpf_diretor(cls, value):
         if not value:
-            raise ValueError('Cpf do diretor não pode ser vazio.')
+            raise ValueError("Cpf do diretor não pode ser vazio.")
         return cls.validate_cpf(value)
 
-    @validator('nome_assistente')
+    @validator("nome_assistente")
     def formata_nome_assistente(cls, value):
         if not value:
-            raise ValueError('Nome do assistente não pode ser vazio.')
+            raise ValueError("Nome do assistente não pode ser vazio.")
         return cls.formata_nome(value)
 
-    @validator('rg_assistente')
+    @validator("rg_assistente")
     def formata_rg_assistente(cls, value):
         if not value:
-            raise ValueError('RG do assistente não pode ser vazio.')
+            raise ValueError("RG do assistente não pode ser vazio.")
         return cls.formata_documentos(value)
 
-    @validator('rf_assistente')
+    @validator("rf_assistente")
     def formata_rf_assistente(cls, value):
         if not value:
-            raise ValueError('RF do assistente não pode ser vazio.')
+            raise ValueError("RF do assistente não pode ser vazio.")
         value = cls.formata_documentos(value)
 
         if len(value) != TAMANHO_RF:
-            raise ValueError('RF deve ter 7 dígitos.')
+            raise ValueError("RF deve ter 7 dígitos.")
         return value
 
-    @validator('cpf_assistente')
+    @validator("cpf_assistente")
     def validate_cpf_assistente(cls, value):
         if not value:
-            raise ValueError('CPF do assistente não pode ser vazio.')
+            raise ValueError("CPF do assistente não pode ser vazio.")
         return cls.validate_cpf(value)

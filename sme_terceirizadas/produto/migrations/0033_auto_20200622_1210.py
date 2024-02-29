@@ -4,21 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0032_merge_20200618_1349'),
+        ("produto", "0032_merge_20200618_1349"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='homologacaodoproduto',
-            name='pdf_gerado',
+            model_name="homologacaodoproduto",
+            name="pdf_gerado",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='homologacaodoproduto',
-            name='protocolo_analise_sensorial',
-            field=models.CharField(blank=True, default='', max_length=8),
+            model_name="homologacaodoproduto",
+            name="protocolo_analise_sensorial",
+            field=models.CharField(blank=True, default="", max_length=8),
             preserve_default=False,
         ),
     ]

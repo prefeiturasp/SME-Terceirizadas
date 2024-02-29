@@ -5,20 +5,33 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0005_auto_20191213_1803'),
+        ("perfil", "0005_auto_20191213_1803"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='usuario',
-            name='cpf',
-            field=models.CharField(blank=True, max_length=11, null=True, unique=True, validators=[django.core.validators.MinLengthValidator(11)], verbose_name='CPF'),
+            model_name="usuario",
+            name="cpf",
+            field=models.CharField(
+                blank=True,
+                max_length=11,
+                null=True,
+                unique=True,
+                validators=[django.core.validators.MinLengthValidator(11)],
+                verbose_name="CPF",
+            ),
         ),
         migrations.AlterField(
-            model_name='usuario',
-            name='registro_funcional',
-            field=models.CharField(blank=True, max_length=7, null=True, unique=True, validators=[django.core.validators.MinLengthValidator(7)], verbose_name='RF'),
+            model_name="usuario",
+            name="registro_funcional",
+            field=models.CharField(
+                blank=True,
+                max_length=7,
+                null=True,
+                unique=True,
+                validators=[django.core.validators.MinLengthValidator(7)],
+                verbose_name="RF",
+            ),
         ),
     ]

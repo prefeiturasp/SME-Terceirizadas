@@ -11,17 +11,19 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--arquivo', '-a',
-            dest='arquivo',
-            help='Informar caminho absoluto do arquivo xlsx.'
+            "--arquivo",
+            "-a",
+            dest="arquivo",
+            help="Informar caminho absoluto do arquivo xlsx.",
         )
         parser.add_argument(
-            '--arquivo_codigos_escolas', '-ace',
-            dest='arquivo_codigos_escolas',
-            help='Informar caminho absoluto do arquivo xlsx.'
+            "--arquivo_codigos_escolas",
+            "-ace",
+            dest="arquivo_codigos_escolas",
+            help="Informar caminho absoluto do arquivo xlsx.",
         )
 
     def handle(self, *args, **options):
-        arquivo = options['arquivo']
-        arquivo_codigos_escolas = options['arquivo_codigos_escolas']
+        arquivo = options["arquivo"]
+        arquivo_codigos_escolas = options["arquivo_codigos_escolas"]
         main(arquivo, arquivo_codigos_escolas)

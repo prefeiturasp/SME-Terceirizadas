@@ -1,0 +1,12 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo%}
+  <p>Olá!</p>
+
+  <p>A <strong>CODAE</strong> solicitou alterações do Layout de Embalagens referente ao<br/>Cronograma Nº <strong>{{ numero_cronograma }}</strong>, em {{ data_solicitacao }}:</p>
+
+  <br/><br/>
+
+  <p><a href="{{ url_layout_embalagens }}">Clique para acessar os detalhes da Solicitação de Correção</a></p>
+{% endblock %}

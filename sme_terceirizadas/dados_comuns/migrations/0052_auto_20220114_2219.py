@@ -4,20 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0051_notificacao_solicitacao_alteracao'),
+        ("dados_comuns", "0051_notificacao_solicitacao_alteracao"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='contato',
-            name='crn_numero',
-            field=models.CharField(blank=True, max_length=160, verbose_name='Nutricionista crn'),
+            model_name="contato",
+            name="crn_numero",
+            field=models.CharField(
+                blank=True, max_length=160, verbose_name="Nutricionista crn"
+            ),
         ),
         migrations.AddField(
-            model_name='contato',
-            name='eh_nutricionista',
-            field=models.BooleanField(default=False, verbose_name='É nutricionista?'),
+            model_name="contato",
+            name="eh_nutricionista",
+            field=models.BooleanField(default=False, verbose_name="É nutricionista?"),
         ),
     ]

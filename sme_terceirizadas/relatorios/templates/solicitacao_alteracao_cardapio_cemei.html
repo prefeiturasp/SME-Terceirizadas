@@ -58,24 +58,29 @@
   </div>
 </div>
 
-<div class="row mx-5 my-2" style="font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; color: #42474A;">
+<div class="row mx-4 my-2">
   <div class="col-12">
-    <p class="my-0"><b>Solicitação de Alteração</b></p>
+    <table class='info-geral-inclusao'>
+      {% for data_intervalo in solicitacao.datas_intervalo.all %}
+        <tr>
+          <th>Tipo de Alteração</th>
+          <th>Dia</th>
+          {% if data_intervalo.cancelado %}
+            <th>Justificativa</th>
+          {% endif %}
+        </tr>
+        <tr class="{% if data_intervalo.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
+          <td>
+            {{ solicitacao.motivo.nome }}
+          </td>
+          <td>{{ data_intervalo.data }}</td>
+          {% if data_intervalo.cancelado %}
+            <td style="text-decoration: none">Justificativa: {{ data_intervalo.cancelado_justificativa }}</td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </table>
   </div>
-  <div class="col-6">
-    <p>Tipo de Alteração:</p>
-    {{motivo}}
-  </div>
-  <div class="col-3">
-    <p>Alterar de:</p>
-    {{data_de}}
-  </div>
-  {% if data_ate is not None %}
-    <div class="col-3">
-      <p> Até o dia:</p>
-      {{data_ate}}
-    </div>
-  {% endif %}
 </div>
 
 <div class="row mx-4 my-2">
@@ -233,6 +238,9 @@
 
   <div class="row mx-5" style="font-size: 14px;">
     {% include "bloco_observacoes.html" %}
+  </div>
+  <div class="row mx-5" style="font-size: 14px;">
+    {% include "bloco_historico_cancelamento_inclusao.html" %}
   </div>
   <div class="row mx-5" style="font-size: 14px;">
     {% include "bloco_historico_questionamento_com_data.html" %}

@@ -4,33 +4,54 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0011_tipounidadeescolar_tem_somente_integral_e_parcial'),
+        ("escola", "0011_tipounidadeescolar_tem_somente_integral_e_parcial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FaixaEtaria',
+            name="FaixaEtaria",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ativo', models.BooleanField(default=True, verbose_name='Está ativo?')),
-                ('inicio', models.PositiveSmallIntegerField()),
-                ('fim', models.PositiveSmallIntegerField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "ativo",
+                    models.BooleanField(default=True, verbose_name="Está ativo?"),
+                ),
+                ("inicio", models.PositiveSmallIntegerField()),
+                ("fim", models.PositiveSmallIntegerField()),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='MudancaFaixasEtarias',
+            name="MudancaFaixasEtarias",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('justificativa', models.TextField(verbose_name='Motivo')),
-                ('faixas_etarias_ativadas', models.ManyToManyField(to='escola.FaixaEtaria')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("justificativa", models.TextField(verbose_name="Motivo")),
+                (
+                    "faixas_etarias_ativadas",
+                    models.ManyToManyField(to="escola.FaixaEtaria"),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

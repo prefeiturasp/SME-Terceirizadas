@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0039_auto_20210915_1622'),
+        ("escola", "0039_auto_20210915_1622"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='logalunosmatriculadosperiodoescola',
-            name='tipo_turma',
-            field=models.CharField(blank=True, choices=[('REGULAR', 1), ('PROGRAMAS', 3)], default='REGULAR', max_length=255),
+            model_name="logalunosmatriculadosperiodoescola",
+            name="tipo_turma",
+            field=models.CharField(
+                blank=True,
+                choices=[("REGULAR", 1), ("PROGRAMAS", 3)],
+                default="REGULAR",
+                max_length=255,
+            ),
         ),
     ]

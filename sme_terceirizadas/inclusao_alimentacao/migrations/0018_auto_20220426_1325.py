@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0017_auto_20220411_1137'),
+        ("inclusao_alimentacao", "0017_auto_20220411_1137"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='inclusaoalimentacaodacei',
-            name='tipos_alimentacao',
-            field=models.ManyToManyField(to='cardapio.TipoAlimentacao'),
+            model_name="inclusaoalimentacaodacei",
+            name="tipos_alimentacao",
+            field=models.ManyToManyField(to="cardapio.TipoAlimentacao"),
         ),
     ]

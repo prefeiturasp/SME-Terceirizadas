@@ -27,6 +27,14 @@
           {% else %}
           <div class="col-3"></div>
           {% endif %}
+          {% if solicitacao.eh_evento_especifico %}
+          <div class="col-12">
+            <p>Descrição do Evento:</p>
+          </div>
+          <div class="col-12">
+            <p style="text-align: justify;"><b>{{inclusao.descricao_evento}}</b></p>
+          </div>
+          {% endif %}
         </div>
         {% endfor %}
       {% endif %}
@@ -118,12 +126,20 @@
               <table>
                 {% if quantidade_aluno.quantidades_emei %}
                   {% for quantidade_emei in quantidade_aluno.quantidades_emei %}
-                  <thead>
-                    <tr>
-                      <th class="text-center">Alunos Matriculados: {{quantidade_emei.quantidade_alunos}}</th>
-                      <th class="text-center">Quantidade: {{quantidade_emei.matriculados_quando_criado}}</th>
-                    </tr>
-                  </thead>
+                    {% if solicitacao.eh_evento_especifico %}
+                      <thead>
+                        <tr>
+                          <th class="text-center">Quantidade: {{quantidade_emei.quantidade_alunos}}</th>
+                        </tr>
+                      </thead>
+                    {% else %}
+                      <thead>
+                        <tr>
+                          <th class="text-center">Alunos Matriculados: {{quantidade_emei.matriculados_quando_criado}}</th>
+                          <th class="text-center">Quantidade: {{quantidade_emei.quantidade_alunos}}</th>
+                        </tr>
+                      </thead>
+                    {% endif %}
                   {% endfor %}
                 {% endif %}
               </table>

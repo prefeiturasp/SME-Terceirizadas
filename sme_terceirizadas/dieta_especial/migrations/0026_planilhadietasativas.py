@@ -4,24 +4,50 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0025_auto_20201219_0530'),
+        ("dieta_especial", "0025_auto_20201219_0530"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PlanilhaDietasAtivas',
+            name="PlanilhaDietasAtivas",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('arquivo', models.FileField(blank=True, help_text='Arquivo com escolas e dietas', null=True, upload_to='')),
-                ('arquivo_unidades_da_rede', models.FileField(blank=True, help_text='Arquivo unidades_da_rede...xlsx', null=True, upload_to='')),
-                ('criado_em', models.DateTimeField(auto_now_add=True, verbose_name='criado em')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "arquivo",
+                    models.FileField(
+                        blank=True,
+                        help_text="Arquivo com escolas e dietas",
+                        null=True,
+                        upload_to="",
+                    ),
+                ),
+                (
+                    "arquivo_unidades_da_rede",
+                    models.FileField(
+                        blank=True,
+                        help_text="Arquivo unidades_da_rede...xlsx",
+                        null=True,
+                        upload_to="",
+                    ),
+                ),
+                (
+                    "criado_em",
+                    models.DateTimeField(auto_now_add=True, verbose_name="criado em"),
+                ),
             ],
             options={
-                'verbose_name': 'Planilha Dieta Ativa',
-                'verbose_name_plural': 'Planilhas Dietas Ativas',
-                'ordering': ('-criado_em',),
+                "verbose_name": "Planilha Dieta Ativa",
+                "verbose_name_plural": "Planilhas Dietas Ativas",
+                "ordering": ("-criado_em",),
             },
         ),
     ]

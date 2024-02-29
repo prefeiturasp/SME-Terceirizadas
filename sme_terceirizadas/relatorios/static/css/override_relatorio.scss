@@ -96,6 +96,11 @@
 
     }
 
+    .tabela-centralizada th.centralizado,
+    .tabela-centralizada td.centralizado {
+      text-align: center;
+    }
+
     tr {
       border-bottom: 1px solid $preto;
 
@@ -504,3 +509,18 @@
     display: inline-block;
   }
 }
+
+.data-extracao {
+  text-align: right;
+  font-size: 12px;
+}
+
+.margem-alternativa {
+  background: white;
+  height: 15px;
+}
+
+.fd-cinza {
+  background: $cinza-claro;
+}
+

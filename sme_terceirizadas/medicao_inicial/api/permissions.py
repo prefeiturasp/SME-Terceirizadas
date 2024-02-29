@@ -3,12 +3,12 @@ from rest_framework import permissions
 from sme_terceirizadas.dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_MEDICAO,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
 )
 
 
 class EhAdministradorMedicaoInicial(permissions.BasePermission):
-    message = 'O seu perfil não tem permissão para criar administradores da codae - gestão alimentação'
+    message = "O seu perfil não tem permissão para criar administradores da codae - gestão alimentação"
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -21,12 +21,18 @@ class EhAdministradorMedicaoInicial(permissions.BasePermission):
 
 
 class EhAdministradorMedicaoInicialOuGestaoAlimentacao(permissions.BasePermission):
-    message = 'O seu perfil não tem permissão para criar administradores da codae - gestão alimentação'
+    message = "O seu perfil não tem permissão para criar administradores da codae - gestão alimentação"
 
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            return usuario.tipo_usuario == 'escola' or usuario.vinculo_atual.perfil.nome in [
-                ADMINISTRADOR_MEDICAO, ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+            return (
+                usuario.tipo_usuario == "escola"
+                or usuario.vinculo_atual.perfil.nome
+                in [
+                    ADMINISTRADOR_MEDICAO,
+                    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                ]
+            )
         return False
