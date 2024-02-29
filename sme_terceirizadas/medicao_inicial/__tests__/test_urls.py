@@ -518,41 +518,48 @@ def test_url_endpoint_medicao_dashboard_escola_com_filtros(
 
 
 def test_url_endpoint_medicao_dashboard_codae(
-    client_autenticado_coordenador_codae, solicitacoes_medicao_inicial
+    client_autenticado_coordenador_codae, solicitacoes_medicao_inicial_codae
 ):
     response = client_autenticado_coordenador_codae.get(
         "/medicao-inicial/solicitacao-medicao-inicial/dashboard/",
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 8
-    assert response.json()["results"][0]["status"] == "MEDICAO_ENVIADA_PELA_UE"
+    assert len(response.json()["results"]) == 5
+    assert response.json()["results"][0]["status"] == "MEDICAO_APROVADA_PELA_DRE"
     assert response.json()["results"][0]["total"] == 2
-    assert response.json()["results"][1]["status"] == "MEDICAO_CORRECAO_SOLICITADA"
-    assert response.json()["results"][1]["total"] == 2
-    assert response.json()["results"][6]["status"] == "MEDICAO_APROVADA_PELA_CODAE"
-    assert response.json()["results"][6]["total"] == 0
-    assert response.json()["results"][7]["status"] == "TODOS_OS_LANCAMENTOS"
-    assert response.json()["results"][7]["total"] == 4
+    assert (
+        response.json()["results"][1]["status"] == "MEDICAO_CORRECAO_SOLICITADA_CODAE"
+    )
+    assert response.json()["results"][1]["total"] == 1
+    assert response.json()["results"][2]["status"] == "MEDICAO_CORRIGIDA_PARA_CODAE"
+    assert response.json()["results"][2]["total"] == 1
+    assert response.json()["results"][3]["status"] == "MEDICAO_APROVADA_PELA_CODAE"
+    assert response.json()["results"][3]["total"] == 1
+    assert response.json()["results"][4]["status"] == "TODOS_OS_LANCAMENTOS"
+    assert response.json()["results"][4]["total"] == 5
 
 
 def test_url_endpoint_medicao_dashboard_codae_com_filtros(
-    client_autenticado_coordenador_codae, solicitacoes_medicao_inicial
+    client_autenticado_coordenador_codae, solicitacoes_medicao_inicial_codae
 ):
     response = client_autenticado_coordenador_codae.get(
-        "/medicao-inicial/solicitacao-medicao-inicial/dashboard/?status=MEDICAO_ENVIADA_PELA_UE",
+        "/medicao-inicial/solicitacao-medicao-inicial/dashboard/?dre=9640fef4-a068-474e-8979-2e1b2654357a",
         content_type="application/json",
     )
-    assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 8
-    assert response.json()["results"][0]["status"] == "MEDICAO_ENVIADA_PELA_UE"
+    assert len(response.json()["results"]) == 5
+    assert response.json()["results"][0]["status"] == "MEDICAO_APROVADA_PELA_DRE"
     assert response.json()["results"][0]["total"] == 2
-    assert response.json()["results"][1]["status"] == "MEDICAO_CORRECAO_SOLICITADA"
-    assert response.json()["results"][1]["total"] == 2
-    assert response.json()["results"][6]["status"] == "MEDICAO_APROVADA_PELA_CODAE"
-    assert response.json()["results"][6]["total"] == 0
-    assert response.json()["results"][7]["status"] == "TODOS_OS_LANCAMENTOS"
-    assert response.json()["results"][7]["total"] == 4
+    assert (
+        response.json()["results"][1]["status"] == "MEDICAO_CORRECAO_SOLICITADA_CODAE"
+    )
+    assert response.json()["results"][1]["total"] == 1
+    assert response.json()["results"][2]["status"] == "MEDICAO_CORRIGIDA_PARA_CODAE"
+    assert response.json()["results"][2]["total"] == 1
+    assert response.json()["results"][3]["status"] == "MEDICAO_APROVADA_PELA_CODAE"
+    assert response.json()["results"][3]["total"] == 1
+    assert response.json()["results"][4]["status"] == "TODOS_OS_LANCAMENTOS"
+    assert response.json()["results"][4]["total"] == 5
 
 
 def test_url_dre_aprova_medicao(
