@@ -3,7 +3,7 @@
 @page {
   size: A4 landscape;
   margin: 0;
-  font-family: 'Roboto';
+  font-family: "Roboto";
 }
 
 @page :nth(n+2) {
@@ -16,8 +16,9 @@
 }
 
 @media print {
-  body, page {
-    font-family: 'Roboto';
+  body,
+  page {
+    font-family: "Roboto";
     margin: 0;
   }
 }
@@ -31,7 +32,7 @@
     height: 37.26px;
   }
   h1 {
-    font-family: 'Roboto';
+    font-family: "Roboto";
     font-style: normal;
     font-weight: 700;
     font-size: 10px;
@@ -46,7 +47,6 @@
     margin-right: 5px;
     content: counter(page) " / " counter(pages);
   }
-
 
   .tabela-cabecalho {
     tr:first-child td:first-child {
@@ -68,7 +68,7 @@
     border-spacing: 0;
     border: solid 0.5px $preto;
     .custom-filtros {
-      font-family: 'Roboto';
+      font-family: "Roboto";
       font-style: normal;
       font-size: 10px;
       line-height: 15px;
@@ -86,7 +86,7 @@
 }
 
 .titulo-body-p1 {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 700;
   font-size: 10px;
@@ -95,7 +95,7 @@
 }
 
 .tipo-contagem {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 700;
   font-size: 10px;
@@ -122,7 +122,7 @@
 }
 
 .tipo-avaliacao {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 700;
   font-size: 10px;
@@ -157,7 +157,7 @@
 .usuario-title {
   padding: 0;
   margin: 0;
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-size: 10px;
 }
@@ -168,7 +168,7 @@
 
 .usuarios {
   .usuario-label {
-    font-family: 'Roboto';
+    font-family: "Roboto";
     font-style: normal;
     font-size: 10px;
     width: 79%;
@@ -180,20 +180,20 @@
   }
 
   .usuario-values {
-    font-family: 'Roboto';
+    font-family: "Roboto";
     font-style: normal;
     font-size: 10px;
     height: 15px;
     padding: 5px;
     border: solid 1px $cinza-input;
     border-radius: 4px 4px 4px 4px;
-    width: 18%
+    width: 18%;
   }
 }
 
 .titulo-assinatura {
   padding: 0;
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-size: 10px;
   color: $cinza-meio-escuro;
@@ -217,7 +217,7 @@
     padding-right: 0;
     span {
       text-align: justify;
-      font-family: 'Roboto';
+      font-family: "Roboto";
       font-style: normal;
       font-weight: 400;
       font-size: 9px;
@@ -227,7 +227,7 @@
 
 .titulo-tabela-observacoes,
 .titulo-tabela-somatorio {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 700;
   font-size: 12px;
@@ -243,7 +243,7 @@
     margin-right: 1%;
     font-size: 10px;
     text-align: center;
-    border: 1px solid #DADADA !important;
+    border: 1px solid #dadada !important;
     border-collapse: separate;
     border-spacing: 0;
     border-top-right-radius: 5px;
@@ -254,8 +254,8 @@
         th {
           height: 25px;
           background-color: $verde-escuro;
-          border-right: solid 1px #DADADA;
-          border-bottom: solid 1px #DADADA;
+          border-right: solid 1px #dadada;
+          border-bottom: solid 1px #dadada;
           padding: 5px;
         }
 
@@ -287,8 +287,8 @@
 
       tr {
         td {
-          border-right: 1px solid #DADADA;
-          border-bottom: 1px solid #DADADA;
+          border-right: 1px solid #dadada;
+          border-bottom: 1px solid #dadada;
           padding: 7px;
         }
 
@@ -300,7 +300,7 @@
 
       tr:last-child {
         td {
-          border-right: 1px solid #DADADA;
+          border-right: 1px solid #dadada;
           border-bottom: none;
           padding: 7px;
         }
@@ -405,7 +405,7 @@ table.tabela-valores-medicao {
   width: 98%;
   margin-left: 1%;
   font-size: 8px;
-  border: 0.5px solid #DADADA;
+  border: 0.5px solid #dadada;
   border-collapse: collapse;
   text-align: center;
 
@@ -438,39 +438,43 @@ table.tabela-valores-medicao {
   }
 
   .cor-periodo-grupo-1 {
-    background-color : #198459
+    background-color: #198459;
   }
 
   .cor-periodo-grupo-2 {
-    background-color : #D06D12
+    background-color: #d06d12;
   }
 
   .cor-periodo-grupo-3 {
-    background-color : #2F80ED
+    background-color: #2f80ed;
   }
 
   .cor-periodo-grupo-4 {
-    background-color : #831d1c
+    background-color: #831d1c;
   }
 
   .cor-periodo-grupo-5 {
-    background-color : #00f7ff
+    background-color: #00f7ff;
   }
 
   .cor-periodo-grupo-6 {
-    background-color : #1F861F
+    background-color: #1f861f;
   }
 
   .cor-periodo-grupo-7 {
-    background-color : #ff0095
+    background-color: #ff0095;
   }
 
   .cor-periodo-grupo-8 {
-    background-color : #9b51e0
+    background-color: #9b51e0;
   }
 
   .cor-periodo-grupo-9 {
-    background-color : #B58B00
+    background-color: #b58b00;
+  }
+
+  .cor-periodo-grupo-10 {
+    background-color: #f87954;
   }
 
   .nao-dia-letivo {
@@ -481,7 +485,7 @@ table.tabela-valores-medicao {
     tr {
       th {
         background-color: $verde;
-        border: 0.5px solid #DADADA;
+        border: 0.5px solid #dadada;
         padding-top: 3px;
         padding-bottom: 3px;
       }
@@ -491,7 +495,7 @@ table.tabela-valores-medicao {
   tbody {
     tr {
       td {
-        border: 0.5px solid #DADADA;
+        border: 0.5px solid #dadada;
         padding-top: 3px;
         padding-bottom: 3px;
       }
@@ -505,7 +509,7 @@ table.tabela-valores-medicao {
       }
       th:last-child {
         border: none;
-        border-bottom: 0.5px solid #DADADA;
+        border-bottom: 0.5px solid #dadada;
         width: 669.5px !important;
         height: 9px !important;
       }
@@ -522,7 +526,7 @@ table.tabela-valores-medicao {
 
       td:last-child {
         border: none;
-        border-bottom: 0.5px solid #DADADA;
+        border-bottom: 0.5px solid #dadada;
         padding-bottom: 3.3px !important;
         height: 19px !important;
         padding-left: 10px;
@@ -539,7 +543,7 @@ table.tabela-valores-medicao {
 }
 
 .info-abaixo-tabela {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 500;
   font-size: 9px;
@@ -549,7 +553,7 @@ table.tabela-valores-medicao {
 }
 
 .hachurado {
-    background-color: #f2f2f2;
+  background-color: #f2f2f2;
 }
 
 .text-center {

@@ -55,8 +55,12 @@ class Command(BaseCommand):
             periodos_faixas = escola.alunos_por_periodo_e_faixa_etaria()
             for periodo, qtdFaixas in periodos_faixas.items():
                 nome_periodo = self._formatar_periodo_eol(periodo)
-                redis_connection.hmset(
-                    f"{REDIS_PREFIX}-{str(escola.uuid)}-{nome_periodo}", dict(qtdFaixas)
+                redis_connection.delete(
+                    f"{REDIS_PREFIX}-{str(escola.uuid)}-{nome_periodo}"
+                )
+                redis_connection.hset(
+                    name=f"{REDIS_PREFIX}-{str(escola.uuid)}-{nome_periodo}",
+                    mapping=dict(qtdFaixas),
                 )
         except Exception as e:
             self.stdout.write(self.style.ERROR(str(e)))
