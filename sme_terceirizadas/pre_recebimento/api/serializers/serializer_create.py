@@ -977,17 +977,17 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         queryset=Fabricante.objects.all(),
         allow_null=True,
     )
-    cnpj_fabricante = serializers.CharField(required=False, allow_blank=True)
-    cep_fabricante = serializers.CharField(required=False, allow_blank=True)
-    endereco_fabricante = serializers.CharField(required=False, allow_blank=True)
-    numero_fabricante = serializers.CharField(required=False, allow_blank=True)
-    complemento_fabricante = serializers.CharField(required=False, allow_blank=True)
-    bairro_fabricante = serializers.CharField(required=False, allow_blank=True)
-    cidade_fabricante = serializers.CharField(required=False, allow_blank=True)
-    estado_fabricante = serializers.CharField(required=False, allow_blank=True)
-    email_fabricante = serializers.CharField(required=False, allow_blank=True)
-    telefone_fabricante = serializers.CharField(required=False, allow_blank=True)
-    prazo_validade = serializers.CharField(required=False, allow_blank=True)
+    cnpj_fabricante = serializers.CharField(required=True, allow_blank=True)
+    cep_fabricante = serializers.CharField(required=True, allow_blank=True)
+    endereco_fabricante = serializers.CharField(required=True, allow_blank=True)
+    numero_fabricante = serializers.CharField(required=True, allow_blank=True)
+    complemento_fabricante = serializers.CharField(required=True, allow_blank=True)
+    bairro_fabricante = serializers.CharField(required=True, allow_blank=True)
+    cidade_fabricante = serializers.CharField(required=True, allow_blank=True)
+    estado_fabricante = serializers.CharField(required=True, allow_blank=True)
+    email_fabricante = serializers.CharField(required=True, allow_blank=True)
+    telefone_fabricante = serializers.CharField(required=True, allow_blank=True)
+    prazo_validade = serializers.CharField(required=True, allow_blank=True)
     numero_registro = serializers.CharField(required=False, allow_blank=True)
     agroecologico = serializers.BooleanField(required=False)
     organico = serializers.BooleanField(required=False)
@@ -996,12 +996,12 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         required=False,
         allow_blank=True,
     )
-    componentes_produto = serializers.CharField(required=False, allow_blank=True)
+    componentes_produto = serializers.CharField(required=True, allow_blank=True)
     alergenicos = serializers.BooleanField(required=False)
-    ingredientes_alergenicos = serializers.CharField(required=False, allow_blank=True)
+    ingredientes_alergenicos = serializers.CharField(required=True, allow_blank=True)
     gluten = serializers.BooleanField(required=False)
     lactose = serializers.BooleanField(required=False)
-    lactose_detalhe = serializers.CharField(required=False, allow_blank=True)
+    lactose_detalhe = serializers.CharField(required=True, allow_blank=True)
     porcao = serializers.FloatField(required=False, allow_null=True)
     unidade_medida_porcao = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -1010,23 +1010,21 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     valor_unidade_caseira = serializers.FloatField(required=False, allow_null=True)
-    unidade_medida_caseira = serializers.CharField(required=False, allow_blank=True)
+    unidade_medida_caseira = serializers.CharField(required=True, allow_blank=True)
     informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaCreateSerializer(
         many=True
     )
     prazo_validade_descongelamento = serializers.CharField(
         required=False, allow_blank=True
     )
-    condicoes_de_conservacao = serializers.CharField(required=False, allow_blank=True)
+    condicoes_de_conservacao = serializers.CharField(required=True, allow_blank=True)
     temperatura_congelamento = serializers.FloatField(required=False, allow_null=True)
     temperatura_veiculo = serializers.FloatField(required=False, allow_null=True)
     condicoes_de_transporte = serializers.CharField(required=False, allow_blank=True)
-    embalagem_primaria = serializers.CharField(required=False, allow_blank=True)
-    embalagem_secundaria = serializers.CharField(required=False, allow_blank=True)
+    embalagem_primaria = serializers.CharField(required=True, allow_blank=True)
+    embalagem_secundaria = serializers.CharField(required=True, allow_blank=True)
     embalagens_de_acordo_com_anexo = serializers.BooleanField(required=False)
-    material_embalagem_primaria = serializers.CharField(
-        required=False, allow_blank=True
-    )
+    material_embalagem_primaria = serializers.CharField(required=True, allow_blank=True)
     produto_eh_liquido = serializers.BooleanField(required=False)
     volume_embalagem_primaria = serializers.FloatField(required=False, allow_null=True)
     unidade_medida_volume_primaria = serializers.SlugRelatedField(
@@ -1073,15 +1071,15 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     )
     variacao_percentual = serializers.FloatField(required=False, allow_null=True)
     sistema_vedacao_embalagem_secundaria = serializers.CharField(
-        required=False, allow_blank=True
+        required=True, allow_blank=True
     )
     rotulo_legivel = serializers.BooleanField(required=False)
-    nome_responsavel_tecnico = serializers.CharField(required=False, allow_blank=True)
-    habilitacao = serializers.CharField(required=False, allow_blank=True)
-    numero_registro_orgao = serializers.CharField(required=False, allow_blank=True)
-    arquivo = serializers.CharField(required=False, allow_blank=True)
-    modo_de_preparo = serializers.CharField(required=False, allow_blank=True)
-    informacoes_adicionais = serializers.CharField(required=False, allow_blank=True)
+    nome_responsavel_tecnico = serializers.CharField(required=True, allow_blank=True)
+    habilitacao = serializers.CharField(required=True, allow_blank=True)
+    numero_registro_orgao = serializers.CharField(required=True, allow_blank=True)
+    arquivo = serializers.CharField(required=True, allow_blank=True)
+    modo_de_preparo = serializers.CharField(required=True, allow_blank=True)
+    informacoes_adicionais = serializers.CharField(required=True, allow_blank=True)
 
     def validate_arquivo(self, value):
         if value and "pdf" not in value:
@@ -1136,7 +1134,7 @@ class FichaTecnicaCreateSerializer(serializers.ModelSerializer):
     email_fabricante = serializers.CharField(required=False, allow_blank=True)
     telefone_fabricante = serializers.CharField(required=False, allow_blank=True)
     prazo_validade = serializers.CharField(required=True)
-    numero_registro = serializers.CharField(required=False)
+    numero_registro = serializers.CharField(required=False, allow_blank=True)
     agroecologico = serializers.BooleanField(required=False)
     organico = serializers.BooleanField(required=False)
     mecanismo_controle = serializers.ChoiceField(
@@ -1162,19 +1160,20 @@ class FichaTecnicaCreateSerializer(serializers.ModelSerializer):
     )
     prazo_validade_descongelamento = serializers.CharField(required=False)
     condicoes_de_conservacao = serializers.CharField(required=True)
-    temperatura_congelamento = serializers.FloatField(required=False)
-    temperatura_veiculo = serializers.FloatField(required=False)
+    temperatura_congelamento = serializers.FloatField(required=False, allow_null=True)
+    temperatura_veiculo = serializers.FloatField(required=False, allow_null=True)
     condicoes_de_transporte = serializers.CharField(required=False)
     embalagem_primaria = serializers.CharField(required=True)
     embalagem_secundaria = serializers.CharField(required=True)
     embalagens_de_acordo_com_anexo = serializers.BooleanField(required=True)
     material_embalagem_primaria = serializers.CharField(required=True)
     produto_eh_liquido = serializers.BooleanField(required=False)
-    volume_embalagem_primaria = serializers.FloatField(required=False)
+    volume_embalagem_primaria = serializers.FloatField(required=False, allow_null=True)
     unidade_medida_volume_primaria = serializers.SlugRelatedField(
         slug_field="uuid",
         required=False,
         queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
     )
     peso_liquido_embalagem_primaria = serializers.FloatField(required=True)
     unidade_medida_primaria = serializers.SlugRelatedField(
