@@ -82,9 +82,7 @@ def _soma_totais_por_medicao(
     medicao: Medicao,
     tipos_alimentacao: List[str],
 ):
-    medicao_nome = (
-        medicao.periodo_escolar.nome if medicao.periodo_escolar else medicao.grupo.nome
-    )
+    medicao_nome = medicao.nome_periodo_grupo
 
     if resultados.get(medicao_nome) is None:
         resultados[medicao_nome] = {}
