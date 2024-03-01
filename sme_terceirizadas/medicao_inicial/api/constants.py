@@ -23,6 +23,16 @@ STATUS_RELACAO_DRE = (
     + STATUS_RELACAO_DRE_CODAE
 )
 
+ALIMENTACOES_LANCAMENTOS_ESPECIAIS = [
+    "2_lanche_4h",
+    "2_lanche_5h",
+    "lanche_extra",
+    "2_refeicao_1_oferta",
+    "repeticao_2_refeicao",
+    "2_sobremesa_1_oferta",
+    "repeticao_2_sobremesa",
+]
+
 ORDEM_NAME_LANCAMENTOS_ESPECIAIS = {
     "2_lanche_4h": 1,
     "2_lanche_5h": 2,
