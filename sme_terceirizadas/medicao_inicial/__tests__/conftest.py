@@ -9,11 +9,14 @@ from sme_terceirizadas.dados_comuns.behaviors import TempoPasseio
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.escola.models import (
     LogAlunosMatriculadosPeriodoEscola,
+    PeriodoEscolar,
     TipoTurma,
 )
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
+    Medicao,
     PermissaoLancamentoEspecial,
+    SolicitacaoMedicaoInicial,
 )
 
 
@@ -376,6 +379,24 @@ def solicitacao_medicao_inicial_valores_cei(escola_cei, categoria_medicao):
         faixa_etaria=faixa_etaria,
     )
     return solicitacao_medicao
+
+
+@pytest.fixture
+def make_solicitacao_medicao_inicial(escola):
+    def handle(mes: int, ano: int, status: str | None = None):
+        tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+        solicitacao_medicao = mommy.make(
+            "SolicitacaoMedicaoInicial",
+            mes=mes,
+            ano=ano,
+            escola=escola,
+            rastro_lote=escola.lote,
+            status=status,
+        )
+        solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+        return solicitacao_medicao
+
+    return handle
 
 
 @pytest.fixture
@@ -2318,3 +2339,31 @@ def empenho(edital, contrato):
         valor_total="100.50",
     )
     return empenho
+
+
+@pytest.fixture
+def make_periodo_escolar():
+    def handle(nome: str):
+        return mommy.make("PeriodoEscolar", nome=nome)
+
+    return handle
+
+
+@pytest.fixture
+def make_medicao():
+    def handle(solicitacao: SolicitacaoMedicaoInicial, periodo_escolar: PeriodoEscolar):
+        return mommy.make(
+            "Medicao",
+            periodo_escolar=periodo_escolar,
+            solicitacao_medicao_inicial=solicitacao,
+        )
+
+    return handle
+
+
+@pytest.fixture
+def make_valores_medicao():
+    def handle(*args, **kwargs):
+        return mommy.make("ValorMedicao", **kwargs)
+
+    return handle

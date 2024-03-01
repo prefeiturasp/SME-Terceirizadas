@@ -11,10 +11,13 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
+
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import obtem_resultados
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
@@ -1576,3 +1579,19 @@ class EmpenhoViewSet(ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return EmpenhoCreateUpdateSerializer
         return EmpenhoSerializer
+
+
+class RelatoriosViewSet(ViewSet):
+    @action(detail=False, url_name="relatorio-adesao", url_path="relatorio-adesao")
+    def relatorio_adesao(self, request: Request):
+        query_params = request.query_params
+
+        mes_ano = query_params.get("mes_ano")
+        if not mes_ano:
+            return Response(data={}, status=status.HTTP_200_OK)
+
+        mes, ano = mes_ano.split("_")
+
+        resultados = obtem_resultados(mes, ano, query_params)
+
+        return Response(data=resultados, status=status.HTTP_200_OK)
