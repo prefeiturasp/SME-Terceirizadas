@@ -69,6 +69,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     AnaliseFichaTecnicaCreateSerializer,
     AnaliseFichaTecnicaRascunhoSerializer,
+    CorrecaoFichaTecnicaSerializer,
     CronogramaCreateSerializer,
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
@@ -1215,6 +1216,23 @@ class FichaTecnicaModelViewSet(
         serializer.save()
 
         return Response(status=HTTP_201_CREATED if analise is None else HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        url_path="correcao-fornecedor",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def correcao_fornecedor(self, request, *args, **kwargs):
+        serializer = CorrecaoFichaTecnicaSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(HTTP_200_OK)
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):
