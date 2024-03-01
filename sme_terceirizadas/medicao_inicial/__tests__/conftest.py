@@ -2373,7 +2373,7 @@ def make_log_matriculados_faixa_etaria_dia(faixa_etaria):
 
 
 @pytest.fixture
-def solicitacao_medicao_inicial_cemei(escola_cemei):
+def solicitacao_medicao_inicial_cemei_simples(escola_cemei):
     tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
     solicitacao_medicao = mommy.make(
         "SolicitacaoMedicaoInicial", mes=4, ano=2023, escola=escola_cemei
