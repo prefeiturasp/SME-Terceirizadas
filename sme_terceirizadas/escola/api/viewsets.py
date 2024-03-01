@@ -98,6 +98,7 @@ from .serializers import (
     DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaListagemSimplissimaComDRESelializer,
+    EscolaParaFiltrosPeriodoEscolarReadOnlySerializer,
     EscolaParaFiltrosReadOnlySerializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
@@ -147,6 +148,7 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
 
 
 class EscolaParaFiltrosViewSet(ListModelMixin, GenericViewSet):
+    lookup_field = "uuid"
     queryset = (
         Escola.objects.select_related("diretoria_regional", "lote", "tipo_unidade")
         .all()
@@ -156,6 +158,14 @@ class EscolaParaFiltrosViewSet(ListModelMixin, GenericViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ["diretoria_regional__uuid"]
     pagination_class = None
+
+    @action(detail=True, url_path="periodos-escolares", url_name="periodos-escolares")
+    def periodos_escolares(self, _, uuid: str):
+        escola = get_object_or_404(Escola, uuid=uuid)
+        serializer = EscolaParaFiltrosPeriodoEscolarReadOnlySerializer(
+            escola.periodos_escolares, many=True
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
