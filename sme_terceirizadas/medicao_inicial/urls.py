@@ -23,6 +23,8 @@ router.register(
 router.register("dias-para-corrigir", viewsets.DiasParaCorrigirViewSet)
 router.register("empenhos", viewsets.EmpenhoViewSet)
 
+router.register("relatorios", viewsets.RelatoriosViewSet, basename="relatorios")
+
 
 urlpatterns = [
     path("medicao-inicial/", include(router.urls)),
