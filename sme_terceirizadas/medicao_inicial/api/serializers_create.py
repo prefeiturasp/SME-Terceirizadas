@@ -72,6 +72,7 @@ from ..validators import (
     validate_solicitacoes_etec_ceu_gestao,
     validate_solicitacoes_programas_e_projetos,
     validate_solicitacoes_programas_e_projetos_ceu_gestao,
+    validate_solicitacoes_programas_e_projetos_emebs,
 )
 
 
@@ -303,6 +304,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             instance, lista_erros
         )
         lista_erros = validate_lancamento_dietas_emebs(instance, lista_erros)
+        lista_erros = validate_solicitacoes_programas_e_projetos_emebs(
+            instance, lista_erros
+        )
 
         if lista_erros:
             raise ValidationError(lista_erros)

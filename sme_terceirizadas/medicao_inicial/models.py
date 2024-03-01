@@ -316,6 +316,7 @@ class ValorMedicao(
 ):
     INFANTIL = "INFANTIL"
     FUNDAMENTAL = "FUNDAMENTAL"
+    NA = "N/A"
 
     valor = models.TextField("Valor do Campo")
     nome_campo = models.CharField(max_length=100)
