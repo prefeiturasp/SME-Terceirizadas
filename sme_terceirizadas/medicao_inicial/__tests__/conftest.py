@@ -8,6 +8,9 @@ from model_mommy import mommy
 from sme_terceirizadas.dados_comuns.behaviors import TempoPasseio
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.escola.models import (
+    DiaCalendario,
+    Escola,
+    FaixaEtaria,
     LogAlunosMatriculadosPeriodoEscola,
     PeriodoEscolar,
     TipoTurma,
@@ -2342,6 +2345,54 @@ def empenho(edital, contrato):
 
 
 @pytest.fixture
+def faixa_etaria():
+    return mommy.make(
+        "FaixaEtaria", inicio=1, fim=4, uuid="1d125c38-ce75-6974-b25d-a4874745b996"
+    )
+
+
+@pytest.fixture
+def make_log_matriculados_faixa_etaria_dia(faixa_etaria):
+    def handle(
+        dia: int,
+        escola: Escola,
+        solicitacao: SolicitacaoMedicaoInicial,
+        periodo_escolar: PeriodoEscolar,
+    ):
+        data = datetime.datetime(int(solicitacao.ano), int(solicitacao.mes), dia).date()
+        mommy.make(
+            "LogAlunosMatriculadosFaixaEtariaDia",
+            escola=escola,
+            data=data,
+            faixa_etaria=faixa_etaria,
+            periodo_escolar=periodo_escolar,
+            quantidade=10,
+        )
+
+    return handle
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_cemei_simples(escola_cemei):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=4, ano=2023, escola=escola_cemei
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def make_dia_letivo():
+    def handle(dia: int, mes: int, ano: int, escola: Escola):
+        data = datetime.datetime(ano, mes, dia).date()
+        return mommy.make(DiaCalendario, escola=escola, data=data, dia_letivo=True)
+
+    return handle
+
+
+@pytest.fixture
 def make_periodo_escolar():
     def handle(nome: str):
         return mommy.make("PeriodoEscolar", nome=nome)
@@ -2354,8 +2405,25 @@ def make_medicao():
     def handle(solicitacao: SolicitacaoMedicaoInicial, periodo_escolar: PeriodoEscolar):
         return mommy.make(
             "Medicao",
-            periodo_escolar=periodo_escolar,
             solicitacao_medicao_inicial=solicitacao,
+            periodo_escolar=periodo_escolar,
+        )
+
+    return handle
+
+
+@pytest.fixture
+def make_valor_medicao_faixa_etaria(categoria_medicao, faixa_etaria):
+    def handle(medicao: Medicao, valor: str, dia: int):
+        return mommy.make(
+            "ValorMedicao",
+            dia=str(dia).rjust(2, "0"),
+            semana="1",
+            nome_campo="frequencia",
+            medicao=medicao,
+            categoria_medicao=categoria_medicao,
+            valor=valor,
+            faixa_etaria=faixa_etaria,
         )
 
     return handle
