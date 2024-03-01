@@ -296,7 +296,6 @@ class LogSolicitacoesUsuario(
         # PRODUTOS
         RECLAMACAO_PRODUTO,
         # DA LOGISTICA ABASTECIMENTO
-        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
         SOLICITACAO_REMESSA_PAPA,
         SOLICITACAO_DE_ALTERACAO_REQUISICAO,
         ABASTECIMENTO_GUIA_DE_REMESSA,
@@ -309,7 +308,7 @@ class LogSolicitacoesUsuario(
         LAYOUT_DE_EMBALAGEM,
         DOCUMENTO_DE_RECEBIMENTO,
         FICHA_TECNICA_DO_PRODUTO,
-    ) = range(25)
+    ) = range(24)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, "Solicitação de kit lanche avulsa"),
@@ -324,7 +323,6 @@ class LogSolicitacoesUsuario(
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, "Solicitação de kit lanche unificada"),
         (HOMOLOGACAO_PRODUTO, "Homologação de Produto"),
         (RECLAMACAO_PRODUTO, "Reclamação de Produto"),
-        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, "Responde Análise Sensorial"),
         (SOLICITACAO_REMESSA_PAPA, "Solicitação de remessa"),
         (SOLICITACAO_DE_ALTERACAO_REQUISICAO, "Solicitação de Ateração de requisição"),
         (ABASTECIMENTO_GUIA_DE_REMESSA, "Abastecimento de guia de remessa"),
