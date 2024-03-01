@@ -2,6 +2,7 @@ import calendar
 import datetime
 
 from django.db.models import Q
+from workalendar.america import BrazilSaoPauloCity
 
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
 
@@ -32,6 +33,8 @@ from .utils import (
     get_periodos_escolares_comuns_com_inclusoes_normais,
     incluir_lanche,
 )
+
+calendario = BrazilSaoPauloCity()
 
 
 def get_lista_dias_letivos(solicitacao, escola):
@@ -2241,6 +2244,28 @@ def build_nomes_campos_alimentacoes_programas_e_projetos(
     return nomes_campos
 
 
+def valida_campo_a_campo_alimentacao_continua(
+    periodo_com_erro, nomes_campos, medicao_programas_projetos, categoria, dia, eh_emebs
+):
+    campos_infantil_ou_fundamental = [ValorMedicao.NA]
+    if eh_emebs:
+        campos_infantil_ou_fundamental = [
+            ValorMedicao.INFANTIL,
+            ValorMedicao.FUNDAMENTAL,
+        ]
+    for nome_campo in nomes_campos:
+        for campo_infantil_ou_fundamental in campos_infantil_ou_fundamental:
+            if not medicao_programas_projetos.valores_medicao.filter(
+                categoria_medicao=categoria,
+                nome_campo=nome_campo,
+                dia=f"{dia:02d}",
+                infantil_ou_fundamental=campo_infantil_ou_fundamental,
+            ).exists():
+                periodo_com_erro = True
+                continue
+    return periodo_com_erro
+
+
 def valida_alimentacoes_solicitacoes_continuas(
     ano,
     mes,
@@ -2249,6 +2274,7 @@ def valida_alimentacoes_solicitacoes_continuas(
     quantidade_dias_mes,
     medicao_programas_projetos,
     eh_ceu_gestao=False,
+    eh_emebs=False,
 ):
     periodo_com_erro = False
     categoria = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
@@ -2257,6 +2283,11 @@ def valida_alimentacoes_solicitacoes_continuas(
     )
 
     for dia in range(1, quantidade_dias_mes + 1):
+        feriados = calendario.holidays(int(ano))
+        if dia in [
+            feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+        ]:
+            continue
         data = datetime.date(year=int(ano), month=int(mes), day=dia)
         dia_semana = data.weekday()
         if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
@@ -2275,18 +2306,37 @@ def valida_alimentacoes_solicitacoes_continuas(
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
-            or not escola.calendario.get(data=data).dia_letivo
+            or not escola.calendario.filter(data=data).first().dia_letivo
         ):
             continue
-        for nome_campo in nomes_campos:
-            if not medicao_programas_projetos.valores_medicao.filter(
-                categoria_medicao=categoria,
-                nome_campo=nome_campo,
-                dia=f"{dia:02d}",
-            ).exists():
-                periodo_com_erro = True
-                continue
+        periodo_com_erro = valida_campo_a_campo_alimentacao_continua(
+            periodo_com_erro,
+            nomes_campos,
+            medicao_programas_projetos,
+            categoria,
+            dia,
+            eh_emebs,
+        )
     return periodo_com_erro
+
+
+def get_inclusoes_continuas_filtradas_emei_cemei(
+    eh_ceu_gestao, medicao_programas_projetos, inclusoes, data, dia_semana
+):
+    if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
+        inclusoes_filtradas = inclusoes.filter(
+            data_inicial__lte=data,
+            data_final__gte=data,
+            quantidades_por_periodo__cancelado=False,
+        )
+    else:
+        inclusoes_filtradas = inclusoes.filter(
+            data_inicial__lte=data,
+            data_final__gte=data,
+            quantidades_por_periodo__cancelado=False,
+            quantidades_por_periodo__dias_semana__icontains=dia_semana,
+        )
+    return inclusoes_filtradas
 
 
 def valida_alimentacoes_solicitacoes_continuas_emei_cemei(
@@ -2305,26 +2355,21 @@ def valida_alimentacoes_solicitacoes_continuas_emei_cemei(
     )
 
     for dia in range(1, quantidade_dias_mes + 1):
+        feriados = calendario.holidays(int(ano))
+        if dia in [
+            feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+        ]:
+            continue
         data = datetime.date(year=int(ano), month=int(mes), day=dia)
         dia_semana = data.weekday()
-        if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
-            inclusoes_filtradas = inclusoes.filter(
-                data_inicial__lte=data,
-                data_final__gte=data,
-                quantidades_por_periodo__cancelado=False,
-            )
-        else:
-            inclusoes_filtradas = inclusoes.filter(
-                data_inicial__lte=data,
-                data_final__gte=data,
-                quantidades_por_periodo__cancelado=False,
-                quantidades_por_periodo__dias_semana__icontains=dia_semana,
-            )
+        inclusoes_filtradas = get_inclusoes_continuas_filtradas_emei_cemei(
+            eh_ceu_gestao, medicao_programas_projetos, inclusoes, data, dia_semana
+        )
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
             or (
-                not escola.calendario.get(data=data).dia_letivo
+                not escola.calendario.filter(data=data).first().dia_letivo
                 and not inclusoes_filtradas.exists()
             )
         ):
@@ -2362,18 +2407,21 @@ def tratar_nomes_campos_periodo_com_erro(
     dia,
     eh_ceu_gestao,
     periodo_com_erro_dieta,
+    infantil_ou_fundamental=ValorMedicao.NA,
 ):
     for nome_campo in nomes_campos:
         if not medicao_programas_projetos.valores_medicao.filter(
             categoria_medicao=categoria,
             nome_campo=nome_campo,
             dia=f"{dia:02d}",
+            infantil_ou_fundamental=infantil_ou_fundamental,
         ).exists():
             if eh_ceu_gestao and not medicao_programas_projetos.valores_medicao.filter(
                 categoria_medicao=categoria,
                 nome_campo="dietas_autorizadas",
                 dia=f"{dia:02d}",
                 valor__gt=0,
+                infantil_ou_fundamental=infantil_ou_fundamental,
             ):
                 continue
             periodo_com_erro_dieta = True
@@ -2405,6 +2453,7 @@ def valida_dietas_solicitacoes_continuas(
     inclusoes,
     medicao_programas_projetos,
     eh_ceu_gestao=False,
+    infantil_ou_fundamental=ValorMedicao.NA,
 ):
     periodo_com_erro_dieta = False
 
@@ -2417,6 +2466,7 @@ def valida_dietas_solicitacoes_continuas(
                 data__year=ano,
                 quantidade__gt=0,
                 periodo_escolar__nome=None,
+                infantil_ou_fundamental=infantil_ou_fundamental,
             )
             .exclude(classificacao__nome="Tipo C")
             .values_list("classificacao", flat=True)
@@ -2434,6 +2484,11 @@ def valida_dietas_solicitacoes_continuas(
             nomes_campos, escola, medicao_programas_projetos
         )
         for dia in range(1, quantidade_dias_mes + 1):
+            feriados = calendario.holidays(int(ano))
+            if dia in [
+                feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+            ]:
+                continue
             data = datetime.date(year=int(ano), month=int(mes), day=dia)
             dia_semana = data.weekday()
             inclusoes_filtradas = inclusoes.filter(
@@ -2445,7 +2500,7 @@ def valida_dietas_solicitacoes_continuas(
             if (
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
-                or not escola.calendario.get(data=data).dia_letivo
+                or not escola.calendario.filter(data=data).first().dia_letivo
             ):
                 continue
             periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
@@ -2455,6 +2510,7 @@ def valida_dietas_solicitacoes_continuas(
                 dia,
                 eh_ceu_gestao,
                 periodo_com_erro_dieta,
+                infantil_ou_fundamental,
             )
     return periodo_com_erro_dieta
 
@@ -2490,6 +2546,11 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
             nomes_campos, classificacao, categorias
         )
         for dia in range(1, quantidade_dias_mes + 1):
+            feriados = calendario.holidays(int(ano))
+            if dia in [
+                feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+            ]:
+                continue
             data = datetime.date(year=int(ano), month=int(mes), day=dia)
             dia_semana = data.weekday()
             inclusoes_filtradas = inclusoes.filter(
@@ -2510,7 +2571,7 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
                 or (
-                    not escola.calendario.get(data=data).dia_letivo
+                    not escola.calendario.filter(data=data).first().dia_letivo
                     and not inclusoes_filtradas.exists()
                 )
                 or not log_do_dia_maior_que_zero.exists()
@@ -2535,6 +2596,7 @@ def validate_solicitacoes_continuas(
     nome_secao,
     valida_dietas,
     eh_ceu_gestao=False,
+    eh_emebs=False,
 ):
     periodo_com_erro_dieta = False
     quantidade_dias_mes = calendar.monthrange(
@@ -2549,17 +2611,40 @@ def validate_solicitacoes_continuas(
         quantidade_dias_mes,
         medicao,
         eh_ceu_gestao,
+        eh_emebs,
     )
     if valida_dietas:
-        periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
-            solicitacao.escola,
-            solicitacao.mes,
-            solicitacao.ano,
-            quantidade_dias_mes,
-            inclusoes,
-            medicao,
-            eh_ceu_gestao,
-        )
+        if not eh_emebs:
+            periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.NA,
+            )
+        else:
+            periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.INFANTIL,
+            ) or valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.FUNDAMENTAL,
+            )
 
     if periodo_com_erro_dieta:
         lista_erros.append(
@@ -2779,6 +2864,24 @@ def validate_solicitacoes_programas_e_projetos_ceu_gestao(solicitacao, lista_err
         medicao_programas_projetos,
         "Programas e Projetos",
         True,
+        True,
+    )
+
+
+def validate_solicitacoes_programas_e_projetos_emebs(solicitacao, lista_erros):
+    inclusoes = get_inclusoes_programas_projetos(solicitacao)
+    medicao_programas_projetos = solicitacao.get_medicao_programas_e_projetos
+    if not inclusoes or not medicao_programas_projetos:
+        return lista_erros
+
+    return validate_solicitacoes_continuas(
+        solicitacao,
+        lista_erros,
+        inclusoes,
+        medicao_programas_projetos,
+        "Programas e Projetos",
+        True,
+        False,
         True,
     )
 
