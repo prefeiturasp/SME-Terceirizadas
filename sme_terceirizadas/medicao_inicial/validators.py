@@ -2227,18 +2227,21 @@ def tratar_nomes_campos_periodo_com_erro(
     dia,
     eh_ceu_gestao,
     periodo_com_erro_dieta,
+    infantil_ou_fundamental=ValorMedicao.NA,
 ):
     for nome_campo in nomes_campos:
         if not medicao_programas_projetos.valores_medicao.filter(
             categoria_medicao=categoria,
             nome_campo=nome_campo,
             dia=f"{dia:02d}",
+            infantil_ou_fundamental=infantil_ou_fundamental,
         ).exists():
             if eh_ceu_gestao and not medicao_programas_projetos.valores_medicao.filter(
                 categoria_medicao=categoria,
                 nome_campo="dietas_autorizadas",
                 dia=f"{dia:02d}",
                 valor__gt=0,
+                infantil_ou_fundamental=infantil_ou_fundamental,
             ):
                 continue
             periodo_com_erro_dieta = True
@@ -2320,6 +2323,71 @@ def valida_dietas_solicitacoes_continuas(
                 dia,
                 eh_ceu_gestao,
                 periodo_com_erro_dieta,
+            )
+    return periodo_com_erro_dieta
+
+
+def valida_dietas_solicitacoes_continuas_emebs(
+    escola,
+    mes,
+    ano,
+    quantidade_dias_mes,
+    inclusoes,
+    medicao_programas_projetos,
+    infantil_ou_fundamental,
+):
+    periodo_com_erro_dieta = False
+
+    categorias = CategoriaMedicao.objects.filter(nome__icontains="dieta")
+    nomes_campos = ["frequencia", "lanche"]
+    ids_categorias_existentes_no_mes = list(
+        set(
+            escola.logs_dietas_autorizadas.filter(
+                data__month=mes,
+                data__year=ano,
+                quantidade__gt=0,
+                periodo_escolar__nome=None,
+                infantil_ou_fundamental=infantil_ou_fundamental,
+            )
+            .exclude(classificacao__nome="Tipo C")
+            .values_list("classificacao", flat=True)
+            .distinct()
+        )
+    )
+
+    classificacoes = ClassificacaoDieta.objects.filter(
+        id__in=ids_categorias_existentes_no_mes
+    )
+    for classificacao in classificacoes:
+        nomes_campos, categoria = get_nomes_campos_categoria(
+            nomes_campos, classificacao, categorias
+        )
+        nomes_campos = incluir_lanche_4h_sol_continuas(
+            nomes_campos, escola, medicao_programas_projetos
+        )
+        for dia in range(1, quantidade_dias_mes + 1):
+            data = datetime.date(year=int(ano), month=int(mes), day=dia)
+            dia_semana = data.weekday()
+            inclusoes_filtradas = inclusoes.filter(
+                data_inicial__lte=data,
+                data_final__gte=data,
+                quantidades_por_periodo__cancelado=False,
+                quantidades_por_periodo__dias_semana__icontains=dia_semana,
+            )
+            if (
+                periodo_com_erro_dieta
+                or not inclusoes_filtradas.exists()
+                or not escola.calendario.get(data=data).dia_letivo
+            ):
+                continue
+            periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
+                nomes_campos,
+                medicao_programas_projetos,
+                categoria,
+                dia,
+                False,
+                periodo_com_erro_dieta,
+                infantil_ou_fundamental,
             )
     return periodo_com_erro_dieta
 
@@ -2418,14 +2486,23 @@ def validate_solicitacoes_continuas(
         eh_emebs,
     )
     if valida_dietas:
-        periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
+        periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas_emebs(
             solicitacao.escola,
             solicitacao.mes,
             solicitacao.ano,
             quantidade_dias_mes,
             inclusoes,
             medicao,
-            eh_ceu_gestao,
+            ValorMedicao.INFANTIL,
+        )
+        periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas_emebs(
+            solicitacao.escola,
+            solicitacao.mes,
+            solicitacao.ano,
+            quantidade_dias_mes,
+            inclusoes,
+            medicao,
+            ValorMedicao.FUNDAMENTAL,
         )
 
     if periodo_com_erro_dieta:
