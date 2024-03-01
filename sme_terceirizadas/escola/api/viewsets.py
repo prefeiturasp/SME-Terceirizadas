@@ -147,7 +147,11 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
 
 
 class EscolaParaFiltrosViewSet(ListModelMixin, GenericViewSet):
-    queryset = Escola.objects.all()
+    queryset = (
+        Escola.objects.select_related("diretoria_regional", "lote", "tipo_unidade")
+        .all()
+        .order_by()
+    )
     serializer_class = EscolaParaFiltrosReadOnlySerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ["diretoria_regional__uuid"]
