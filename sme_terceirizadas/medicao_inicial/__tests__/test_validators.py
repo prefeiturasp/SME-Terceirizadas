@@ -8,6 +8,7 @@ from sme_terceirizadas.medicao_inicial.validators import (
     validate_lancamento_alimentacoes_medicao_cei,
     validate_lancamento_inclusoes_cei,
     validate_lancamento_inclusoes_dietas_emef,
+    validate_medicao_cemei,
     validate_solicitacoes_etec,
     validate_solicitacoes_programas_e_projetos,
 )
@@ -105,3 +106,63 @@ def test_validate_lancamento_alimentacoes_inclusoes_ceu_gestao(
         next((erro for erro in lista_erros if erro["periodo_escolar"] == "TARDE"), None)
         is not None
     )
+
+
+def test_validate_medicao_cei_cemei_periodo_integral_dia_letivo_preenchido(
+    escola_cemei,
+    solicitacao_medicao_inicial_cemei,
+    make_dia_letivo,
+    make_periodo_escolar,
+    make_medicao,
+    make_log_matriculados_faixa_etaria_dia,
+    make_valor_medicao_faixa_etaria,
+):
+    # arrange
+    dia = 1
+    periodo_integral = make_periodo_escolar("INTEGRAL")
+    medicao = make_medicao(solicitacao_medicao_inicial_cemei, periodo_integral)
+    make_dia_letivo(
+        dia,
+        int(solicitacao_medicao_inicial_cemei.mes),
+        int(solicitacao_medicao_inicial_cemei.ano),
+        escola_cemei,
+    )
+    make_log_matriculados_faixa_etaria_dia(
+        dia, escola_cemei, solicitacao_medicao_inicial_cemei, periodo_integral
+    )
+    make_valor_medicao_faixa_etaria(medicao, "1", dia)
+
+    # act
+    lista_erros = validate_medicao_cemei(solicitacao_medicao_inicial_cemei)
+
+    # assert
+    assert len(lista_erros) == 0
+
+
+def test_validate_medicao_cei_cemei_periodo_integral_dia_letivo_nao_preenchido(
+    escola_cemei,
+    solicitacao_medicao_inicial_cemei,
+    make_dia_letivo,
+    make_periodo_escolar,
+    make_medicao,
+    make_log_matriculados_faixa_etaria_dia,
+):
+    # arrange
+    dia = 1
+    periodo_integral = make_periodo_escolar("INTEGRAL")
+    make_medicao(solicitacao_medicao_inicial_cemei, periodo_integral)
+    make_dia_letivo(
+        dia,
+        int(solicitacao_medicao_inicial_cemei.mes),
+        int(solicitacao_medicao_inicial_cemei.ano),
+        escola_cemei,
+    )
+    make_log_matriculados_faixa_etaria_dia(
+        dia, escola_cemei, solicitacao_medicao_inicial_cemei, periodo_integral
+    )
+
+    # act
+    lista_erros = validate_medicao_cemei(solicitacao_medicao_inicial_cemei)
+
+    # assert
+    assert len(lista_erros) == 1

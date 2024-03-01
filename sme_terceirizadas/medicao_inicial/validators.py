@@ -2505,7 +2505,7 @@ def validate_solicitacoes_programas_e_projetos(solicitacao, lista_erros):
 # TODO: adicionar testes unitarios
 def _validate_solicitacoes_programas_e_projetos_emei_cemei(
     solicitacao, lista_erros, medicao
-):  # pragma: no cover
+):
     inclusoes = get_inclusoes_programas_projetos(solicitacao)
 
     if not inclusoes:
@@ -2674,7 +2674,7 @@ def _validate_medicao_cei_cemei(
     categoria_alimentacao,
     dias_nao_letivos,
     inclusoes,
-):  # pragma: no cover
+):
     categorias_dieta = CategoriaMedicao.objects.exclude(
         nome__icontains="ALIMENTAÇÃO"
     ).exclude(nome__icontains="ENTERAL")
@@ -2764,7 +2764,7 @@ def _validate_medicao_emei_cemei(
     mes,
     ano,
     dias_nao_letivos,
-):  # pragma: no cover
+):
     categorias_dieta = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
 
     logs_dietas_autorizadas = LogQuantidadeDietasAutorizadas.objects.filter(
@@ -2811,7 +2811,7 @@ def _validate_medicao_emei_cemei(
 
 
 # TODO: adicionar testes unitarios
-def validate_medicao_cemei(solicitacao):  # pragma: no cover
+def validate_medicao_cemei(solicitacao):
     ano = solicitacao.ano
     mes = solicitacao.mes
     escola = solicitacao.escola
