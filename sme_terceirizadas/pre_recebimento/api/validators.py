@@ -172,7 +172,11 @@ class ServiceValidacaoCorrecaoFichaTecnica:
                 "alergenicos",
                 "gluten",
                 "lactose",
-            ]
+            ],
+            "dependentes": [
+                "ingredientes_alergenicos",
+                "lactose_detalhe",
+            ],
         },
         "conservacao_conferido": {
             "obrigatorios": [
@@ -230,23 +234,49 @@ class ServiceValidacaoCorrecaoFichaTecnica:
                     )
 
     def valida_campos_nao_permitidos_por_collapse(self):
+        campos_nao_permitidos = {}
+        campos_validos = set()
+
         for collapse in self._collapses_com_correcao:
-            campos_obrigatorios_collapse = self._campos_collapses[collapse].get(
-                "obrigatorios", []
+            self._buscar_campos_nao_permitidos_e_validos_por_collapse(
+                collapse, campos_nao_permitidos, campos_validos
             )
 
-            campos_dependentes_collapse = self._campos_collapses[collapse].get(
-                "dependentes", []
-            )
+        self._remover_campos_validos_dos_nao_permitidos(
+            campos_nao_permitidos, campos_validos
+        )
 
-            for attr in self._attrs:
-                if (
+        if campos_nao_permitidos:
+            raise serializers.ValidationError(campos_nao_permitidos)
+
+    def _buscar_campos_nao_permitidos_e_validos_por_collapse(
+        self, collapse, campos_nao_permitidos, campos_validos
+    ):
+        campos_obrigatorios_collapse = self._campos_collapses[collapse].get(
+            "obrigatorios", []
+        )
+
+        campos_dependentes_collapse = self._campos_collapses[collapse].get(
+            "dependentes", []
+        )
+
+        campos_collapse = campos_obrigatorios_collapse + campos_dependentes_collapse
+
+        for attr in self._attrs:
+            if attr not in campos_collapse:
+                campos_nao_permitidos[
                     attr
-                    not in campos_dependentes_collapse + campos_obrigatorios_collapse
-                ):
-                    raise serializers.ValidationError(
-                        {attr: "Este campo não é permitido nesta correção."}
-                    )
+                ] = "Este campo não é permitido nesta correção."
+
+            else:
+                campos_validos.add(attr)
+
+    def _remover_campos_validos_dos_nao_permitidos(
+        self, campos_nao_permitidos, campos_validos
+    ):
+        for campo in campos_nao_permitidos.copy():
+            if campo in campos_validos:
+                campos_nao_permitidos.pop(campo)
 
     def _obter_campos_collapses_por_categoria(self):
         return (

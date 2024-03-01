@@ -139,17 +139,19 @@ def _cria_informacoes_nutricionais(
 
 def limpar_campos_dependentes_ficha_tecnica(instance, validated_data):
     if validated_data.get("organico") is False:
-        setattr(instance, "mecanismo_controle", None)
+        setattr(instance, "mecanismo_controle", "")
 
     if validated_data.get("alergenicos") is False:
-        setattr(instance, "ingredientes_alergenicos", None)
+        setattr(instance, "ingredientes_alergenicos", "")
 
     if validated_data.get("lactose") is False:
-        setattr(instance, "lactose_detalhe", None)
+        setattr(instance, "lactose_detalhe", "")
 
     if validated_data.get("produto_eh_liquido") is False:
         setattr(instance, "volume_embalagem_primaria", None)
         setattr(instance, "unidade_medida_volume_primaria", None)
+
+    instance.save()
 
     return instance
 
