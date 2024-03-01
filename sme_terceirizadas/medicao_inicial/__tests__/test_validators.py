@@ -9,7 +9,7 @@ from sme_terceirizadas.medicao_inicial.validators import (
     validate_lancamento_alimentacoes_medicao_cei,
     validate_lancamento_alimentacoes_medicao_emebs,
     validate_lancamento_inclusoes_cei,
-    validate_lancamento_inclusoes_dietas_emef,
+    validate_lancamento_inclusoes_dietas_emef_emebs,
     validate_medicao_cemei,
     validate_solicitacoes_etec,
     validate_solicitacoes_programas_e_projetos,
@@ -56,7 +56,7 @@ def test_validate_lancamento_inclusoes_dietas_emef(
     solicitacao_medicao_inicial_teste_salvar_logs,
 ):
     lista_erros = []
-    lista_erros = validate_lancamento_inclusoes_dietas_emef(
+    lista_erros = validate_lancamento_inclusoes_dietas_emef_emebs(
         solicitacao_medicao_inicial_teste_salvar_logs, lista_erros
     )
     assert len(lista_erros) == 0
