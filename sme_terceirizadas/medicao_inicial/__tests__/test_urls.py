@@ -1385,6 +1385,60 @@ def test_finaliza_medicao_inicial_salva_logs_cei(
     )
 
 
+def test_finaliza_medicao_inicial_salva_logs_ceu_gestao(
+    client_autenticado_da_escola_ceu_gestao,
+    solicitacao_medicao_inicial_varios_valores_ceu_gestao,
+):
+    tipos_contagem = (
+        solicitacao_medicao_inicial_varios_valores_ceu_gestao.tipos_contagem_alimentacao.all()
+    )
+    tipos_contagem_uuids = tipos_contagem.values_list("uuid", flat=True)
+    tipos_contagem_uuids = [str(uuid) for uuid in tipos_contagem_uuids]
+    data_update = {
+        "escola": str(
+            solicitacao_medicao_inicial_varios_valores_ceu_gestao.escola.uuid
+        ),
+        "tipo_contagem_alimentacoes[]": tipos_contagem_uuids,
+        "com_ocorrencias": False,
+        "finaliza_medicao": True,
+    }
+    response = client_autenticado_da_escola_ceu_gestao.patch(
+        f"/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_varios_valores_ceu_gestao.uuid}/",
+        content_type="application/json",
+        data=json.dumps(data_update),
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == [
+        {
+            "erro": "Restam dias a serem lançados nas alimentações.",
+            "periodo_escolar": "TARDE",
+        }
+    ]
+
+
+def test_finaliza_medicao_inicial_salva_logs_emebs(
+    client_autenticado_da_escola_emebs,
+    solicitacao_medicao_inicial_varios_valores_emebs,
+):
+    tipos_contagem = (
+        solicitacao_medicao_inicial_varios_valores_emebs.tipos_contagem_alimentacao.all()
+    )
+    tipos_contagem_uuids = tipos_contagem.values_list("uuid", flat=True)
+    tipos_contagem_uuids = [str(uuid) for uuid in tipos_contagem_uuids]
+    data_update = {
+        "escola": str(solicitacao_medicao_inicial_varios_valores_emebs.escola.uuid),
+        "tipo_contagem_alimentacoes[]": tipos_contagem_uuids,
+        "com_ocorrencias": False,
+        "finaliza_medicao": True,
+    }
+    response = client_autenticado_da_escola_emebs.patch(
+        f"/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_varios_valores_emebs.uuid}/",
+        content_type="application/json",
+        data=json.dumps(data_update),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_salva_valores_medicao_inicial_cemei(
     client_autenticado_da_escola_cemei, escola_cemei, solicitacao_medicao_inicial_cemei
 ):
