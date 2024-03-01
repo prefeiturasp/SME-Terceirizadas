@@ -413,15 +413,31 @@ class SolicitacaoMedicaoInicialViewSet(
         ],
     )
     def meses_anos(self, request):
-        query_set = self.condicao_por_usuario(self.get_queryset())
-        meses_anos = query_set.values_list("mes", "ano").distinct()
-        meses_anos_unicos = []
         qs_solicitacao_medicao = SolicitacaoMedicaoInicial.objects.all()
-        if isinstance(request.user.vinculo_atual.instituicao, DiretoriaRegional):
+        query_set = self.condicao_por_usuario(self.get_queryset())
+
+        if (
+            isinstance(request.user.vinculo_atual.instituicao, DiretoriaRegional)
+            or request.user.tipo_usuario in USUARIOS_VISAO_CODAE
+        ):
             qs_solicitacao_medicao = query_set
-        q_status = request.query_params.get("status")
-        if q_status:
-            qs_solicitacao_medicao = qs_solicitacao_medicao.filter(status=q_status)
+
+        filtros = {}
+
+        if request.query_params.get("status"):
+            filtros["status"] = request.query_params.get("status")
+
+        if request.query_params.get("dre"):
+            filtros["escola__diretoria_regional__uuid"] = request.query_params.get(
+                "dre"
+            )
+
+        if filtros:
+            qs_solicitacao_medicao = qs_solicitacao_medicao.filter(**filtros)
+
+        meses_anos = qs_solicitacao_medicao.values_list("mes", "ano").distinct()
+        meses_anos_unicos = []
+
         for mes_ano in meses_anos:
             status_ = (
                 qs_solicitacao_medicao.filter(mes=mes_ano[0], ano=mes_ano[1])
