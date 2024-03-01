@@ -4,8 +4,10 @@ from sme_terceirizadas.medicao_inicial.utils import get_lista_dias_inclusoes_ceu
 from sme_terceirizadas.medicao_inicial.validators import (
     valida_medicoes_inexistentes_cei,
     valida_medicoes_inexistentes_ceu_gestao,
+    valida_medicoes_inexistentes_emebs,
     validate_lancamento_alimentacoes_inclusoes_ceu_gestao,
     validate_lancamento_alimentacoes_medicao_cei,
+    validate_lancamento_alimentacoes_medicao_emebs,
     validate_lancamento_inclusoes_cei,
     validate_lancamento_inclusoes_dietas_emef,
     validate_medicao_cemei,
@@ -166,3 +168,23 @@ def test_validate_medicao_cei_cemei_periodo_integral_dia_letivo_nao_preenchido(
 
     # assert
     assert len(lista_erros) == 1
+
+
+def test_valida_medicoes_inexistentes_emebs(
+    solicitacao_medicao_inicial_varios_valores_emebs,
+):
+    lista_erros = []
+    lista_erros = valida_medicoes_inexistentes_emebs(
+        solicitacao_medicao_inicial_varios_valores_emebs, lista_erros
+    )
+    assert len(lista_erros) == 0
+
+
+def test_validate_lancamento_alimentacoes_medicao_emebs(
+    solicitacao_medicao_inicial_varios_valores_emebs,
+):
+    lista_erros = []
+    lista_erros = validate_lancamento_alimentacoes_medicao_emebs(
+        solicitacao_medicao_inicial_varios_valores_emebs, lista_erros
+    )
+    assert len(lista_erros) == 0

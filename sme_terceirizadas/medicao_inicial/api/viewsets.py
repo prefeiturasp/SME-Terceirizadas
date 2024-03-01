@@ -11,10 +11,13 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
+
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import obtem_resultados
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
@@ -413,15 +416,31 @@ class SolicitacaoMedicaoInicialViewSet(
         ],
     )
     def meses_anos(self, request):
-        query_set = self.condicao_por_usuario(self.get_queryset())
-        meses_anos = query_set.values_list("mes", "ano").distinct()
-        meses_anos_unicos = []
         qs_solicitacao_medicao = SolicitacaoMedicaoInicial.objects.all()
-        if isinstance(request.user.vinculo_atual.instituicao, DiretoriaRegional):
+        query_set = self.condicao_por_usuario(self.get_queryset())
+
+        if (
+            isinstance(request.user.vinculo_atual.instituicao, DiretoriaRegional)
+            or request.user.tipo_usuario in USUARIOS_VISAO_CODAE
+        ):
             qs_solicitacao_medicao = query_set
-        q_status = request.query_params.get("status")
-        if q_status:
-            qs_solicitacao_medicao = qs_solicitacao_medicao.filter(status=q_status)
+
+        filtros = {}
+
+        if request.query_params.get("status"):
+            filtros["status"] = request.query_params.get("status")
+
+        if request.query_params.get("dre"):
+            filtros["escola__diretoria_regional__uuid"] = request.query_params.get(
+                "dre"
+            )
+
+        if filtros:
+            qs_solicitacao_medicao = qs_solicitacao_medicao.filter(**filtros)
+
+        meses_anos = qs_solicitacao_medicao.values_list("mes", "ano").distinct()
+        meses_anos_unicos = []
+
         for mes_ano in meses_anos:
             status_ = (
                 qs_solicitacao_medicao.filter(mes=mes_ano[0], ano=mes_ano[1])
@@ -1560,3 +1579,19 @@ class EmpenhoViewSet(ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return EmpenhoCreateUpdateSerializer
         return EmpenhoSerializer
+
+
+class RelatoriosViewSet(ViewSet):
+    @action(detail=False, url_name="relatorio-adesao", url_path="relatorio-adesao")
+    def relatorio_adesao(self, request: Request):
+        query_params = request.query_params
+
+        mes_ano = query_params.get("mes_ano")
+        if not mes_ano:
+            return Response(data={}, status=status.HTTP_200_OK)
+
+        mes, ano = mes_ano.split("_")
+
+        resultados = obtem_resultados(mes, ano, query_params)
+
+        return Response(data=resultados, status=status.HTTP_200_OK)
