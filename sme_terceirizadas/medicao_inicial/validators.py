@@ -2424,25 +2424,37 @@ def validate_solicitacoes_continuas(
         eh_emebs,
     )
     if valida_dietas:
-        periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
-            solicitacao.escola,
-            solicitacao.mes,
-            solicitacao.ano,
-            quantidade_dias_mes,
-            inclusoes,
-            medicao,
-            False,
-            ValorMedicao.INFANTIL,
-        ) or valida_dietas_solicitacoes_continuas(
-            solicitacao.escola,
-            solicitacao.mes,
-            solicitacao.ano,
-            quantidade_dias_mes,
-            inclusoes,
-            medicao,
-            False,
-            ValorMedicao.FUNDAMENTAL,
-        )
+        if not eh_emebs:
+            periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.NA,
+            )
+        else:
+            periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.INFANTIL,
+            ) or valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.FUNDAMENTAL,
+            )
 
     if periodo_com_erro_dieta:
         lista_erros.append(
