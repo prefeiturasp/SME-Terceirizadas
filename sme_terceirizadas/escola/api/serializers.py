@@ -239,8 +239,6 @@ class EscolaParaFiltrosReadOnlySerializer(serializers.Serializer):
     diretoria_regional = EscolaParaFiltrosDiretoriaRegionalReadOnlySerializer()
     tipo_unidade = EscolaParaFiltrosTipoUnidadeReadOnlySerializer()
     lote = EscolaParaFiltrosLoteReadOnlySerializer()
-    periodos_escolares = EscolaParaFiltrosPeriodoEscolarReadOnlySerializer(many=True)
-    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
 
 
 class EscolaEolSimplesSerializer(serializers.ModelSerializer):
