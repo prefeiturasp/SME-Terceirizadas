@@ -29,6 +29,7 @@ from ...dados_comuns.constants import (
 )
 from ...dados_comuns.permissions import (
     PermissaoParaCriarUsuarioComCoresso,
+    PermissaoParaListarVinculosAtivos,
     UsuarioPodeAlterarVinculo,
     UsuarioPodeFinalizarVinculo,
     UsuarioSuperCodae,
@@ -282,7 +283,7 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
         methods=["GET"],
         url_path="vinculos-ativos",
-        permission_classes=(PermissaoParaCriarUsuarioComCoresso,),
+        permission_classes=(PermissaoParaListarVinculosAtivos,),
     )
     def lista_vinculos_ativos(self, request):
         usuario = request.user

@@ -296,6 +296,7 @@ class LogSolicitacoesUsuario(
         # PRODUTOS
         RECLAMACAO_PRODUTO,
         # DA LOGISTICA ABASTECIMENTO
+        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
         SOLICITACAO_REMESSA_PAPA,
         SOLICITACAO_DE_ALTERACAO_REQUISICAO,
         ABASTECIMENTO_GUIA_DE_REMESSA,
@@ -308,7 +309,7 @@ class LogSolicitacoesUsuario(
         LAYOUT_DE_EMBALAGEM,
         DOCUMENTO_DE_RECEBIMENTO,
         FICHA_TECNICA_DO_PRODUTO,
-    ) = range(24)
+    ) = range(25)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, "Solicitação de kit lanche avulsa"),
