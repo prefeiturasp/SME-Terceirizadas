@@ -5353,6 +5353,7 @@ class FichaTecnicaDoProdutoWorkflow(xwf_models.Workflow):
         ("inicia_fluxo", RASCUNHO, ENVIADA_PARA_ANALISE),
         ("gpcodae_aprova", ENVIADA_PARA_ANALISE, APROVADA),
         ("gpcodae_envia_para_correcao", ENVIADA_PARA_ANALISE, ENVIADA_PARA_CORRECAO),
+        ("fornecedor_corrige", ENVIADA_PARA_CORRECAO, ENVIADA_PARA_ANALISE),
     )
 
     initial_state = RASCUNHO
@@ -5386,6 +5387,15 @@ class FluxoFichaTecnicaDoProduto(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(
                 status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_CORRECAO,
+                usuario=user,
+            )
+
+    @xworkflows.after_transition("fornecedor_corrige")
+    def _fornecedor_corrige_hook(self, *args, **kwargs):
+        user = kwargs["user"]
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE,
                 usuario=user,
             )
 
