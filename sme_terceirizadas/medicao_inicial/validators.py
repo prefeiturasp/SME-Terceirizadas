@@ -2,6 +2,7 @@ import calendar
 import datetime
 
 from django.db.models import Q
+from workalendar.america import BrazilSaoPauloCity
 
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
 
@@ -32,6 +33,8 @@ from .utils import (
     get_periodos_escolares_comuns_com_inclusoes_normais,
     incluir_lanche,
 )
+
+calendario = BrazilSaoPauloCity()
 
 
 def get_lista_dias_letivos(solicitacao, escola):
@@ -2280,6 +2283,11 @@ def valida_alimentacoes_solicitacoes_continuas(
     )
 
     for dia in range(1, quantidade_dias_mes + 1):
+        feriados = calendario.holidays(int(ano))
+        if dia in [
+            feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+        ]:
+            continue
         data = datetime.date(year=int(ano), month=int(mes), day=dia)
         dia_semana = data.weekday()
         if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
@@ -2298,7 +2306,7 @@ def valida_alimentacoes_solicitacoes_continuas(
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
-            or not escola.calendario.get(data=data).dia_letivo
+            or not escola.calendario.filter(data=data).first().dia_letivo
         ):
             continue
         periodo_com_erro = valida_campo_a_campo_alimentacao_continua(
@@ -2310,6 +2318,25 @@ def valida_alimentacoes_solicitacoes_continuas(
             eh_emebs,
         )
     return periodo_com_erro
+
+
+def get_inclusoes_continuas_filtradas_emei_cemei(
+    eh_ceu_gestao, medicao_programas_projetos, inclusoes, data, dia_semana
+):
+    if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
+        inclusoes_filtradas = inclusoes.filter(
+            data_inicial__lte=data,
+            data_final__gte=data,
+            quantidades_por_periodo__cancelado=False,
+        )
+    else:
+        inclusoes_filtradas = inclusoes.filter(
+            data_inicial__lte=data,
+            data_final__gte=data,
+            quantidades_por_periodo__cancelado=False,
+            quantidades_por_periodo__dias_semana__icontains=dia_semana,
+        )
+    return inclusoes_filtradas
 
 
 def valida_alimentacoes_solicitacoes_continuas_emei_cemei(
@@ -2328,26 +2355,21 @@ def valida_alimentacoes_solicitacoes_continuas_emei_cemei(
     )
 
     for dia in range(1, quantidade_dias_mes + 1):
+        feriados = calendario.holidays(int(ano))
+        if dia in [
+            feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+        ]:
+            continue
         data = datetime.date(year=int(ano), month=int(mes), day=dia)
         dia_semana = data.weekday()
-        if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
-            inclusoes_filtradas = inclusoes.filter(
-                data_inicial__lte=data,
-                data_final__gte=data,
-                quantidades_por_periodo__cancelado=False,
-            )
-        else:
-            inclusoes_filtradas = inclusoes.filter(
-                data_inicial__lte=data,
-                data_final__gte=data,
-                quantidades_por_periodo__cancelado=False,
-                quantidades_por_periodo__dias_semana__icontains=dia_semana,
-            )
+        inclusoes_filtradas = get_inclusoes_continuas_filtradas_emei_cemei(
+            eh_ceu_gestao, medicao_programas_projetos, inclusoes, data, dia_semana
+        )
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
             or (
-                not escola.calendario.get(data=data).dia_letivo
+                not escola.calendario.filter(data=data).first().dia_letivo
                 and not inclusoes_filtradas.exists()
             )
         ):
@@ -2462,6 +2484,11 @@ def valida_dietas_solicitacoes_continuas(
             nomes_campos, escola, medicao_programas_projetos
         )
         for dia in range(1, quantidade_dias_mes + 1):
+            feriados = calendario.holidays(int(ano))
+            if dia in [
+                feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+            ]:
+                continue
             data = datetime.date(year=int(ano), month=int(mes), day=dia)
             dia_semana = data.weekday()
             inclusoes_filtradas = inclusoes.filter(
@@ -2473,7 +2500,7 @@ def valida_dietas_solicitacoes_continuas(
             if (
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
-                or not escola.calendario.get(data=data).dia_letivo
+                or not escola.calendario.filter(data=data).first().dia_letivo
             ):
                 continue
             periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
@@ -2519,6 +2546,11 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
             nomes_campos, classificacao, categorias
         )
         for dia in range(1, quantidade_dias_mes + 1):
+            feriados = calendario.holidays(int(ano))
+            if dia in [
+                feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+            ]:
+                continue
             data = datetime.date(year=int(ano), month=int(mes), day=dia)
             dia_semana = data.weekday()
             inclusoes_filtradas = inclusoes.filter(
@@ -2539,7 +2571,7 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
                 or (
-                    not escola.calendario.get(data=data).dia_letivo
+                    not escola.calendario.filter(data=data).first().dia_letivo
                     and not inclusoes_filtradas.exists()
                 )
                 or not log_do_dia_maior_que_zero.exists()
