@@ -107,6 +107,7 @@ from .serializers import (
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
     SubprefeituraSerializerSimples,
+    TipoAlimentacaoSerializer,
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer,
 )
@@ -165,6 +166,12 @@ class EscolaParaFiltrosViewSet(ListModelMixin, GenericViewSet):
         serializer = EscolaParaFiltrosPeriodoEscolarReadOnlySerializer(
             escola.periodos_escolares, many=True
         )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, url_path="tipos-alimentacao", url_name="tipos-alimentacao")
+    def tipos_alimentacao(self, _, uuid: str):
+        escola = get_object_or_404(Escola, uuid=uuid)
+        serializer = TipoAlimentacaoSerializer(escola.tipos_alimentacao, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
