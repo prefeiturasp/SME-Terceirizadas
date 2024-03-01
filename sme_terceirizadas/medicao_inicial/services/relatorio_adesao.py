@@ -18,7 +18,7 @@ def _obtem_medicoes(mes: str, ano: str, filtros: dict):
             solicitacao_medicao_inicial__escola__tipo_unidade__iniciais__in=[
                 "CEI",
                 "CEI DIRET",
-                "CEI CEI INDIR",
+                "CEI INDIR",
                 "CEI CEU",
                 "CCI",
                 "CCI/CIPS",
