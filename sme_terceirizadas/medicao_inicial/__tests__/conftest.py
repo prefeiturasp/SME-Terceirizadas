@@ -570,7 +570,11 @@ def solicitacao_medicao_inicial_varios_valores_emebs(escola_emebs, categoria_med
     periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
     periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
     solicitacao_medicao = mommy.make(
-        "SolicitacaoMedicaoInicial", mes=12, ano=2023, escola=escola_emebs
+        "SolicitacaoMedicaoInicial",
+        mes=12,
+        ano=2023,
+        escola=escola_emebs,
+        uuid="da921e20-50f9-41ae-b2dc-4311d47029e8",
     )
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao_manha = mommy.make(
@@ -588,6 +592,14 @@ def solicitacao_medicao_inicial_varios_valores_emebs(escola_emebs, categoria_med
     )
     categoria_dieta_b = mommy.make("CategoriaMedicao", nome="DIETA ESPECIAL - TIPO B")
     tipos_turmas = ["INFANTIL", "FUNDAMENTAL"]
+
+    for dia in range(1, 15):
+        mommy.make(
+            "DiaCalendario",
+            escola=escola_emebs,
+            data=f"2023-12-{dia:02d}",
+            dia_letivo=True,
+        )
 
     for dia in ["01", "02", "03", "04", "05"]:
         for tipo_turma in tipos_turmas:
@@ -625,7 +637,11 @@ def solicitacao_medicao_inicial_varios_valores_ceu_gestao(
     periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
     periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
     solicitacao_medicao = mommy.make(
-        "SolicitacaoMedicaoInicial", mes=12, ano=2023, escola=escola_ceu_gestao
+        "SolicitacaoMedicaoInicial",
+        mes=12,
+        ano=2023,
+        escola=escola_ceu_gestao,
+        uuid="416a47af-6022-4866-989f-9707b2213bfc",
     )
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao_manha = mommy.make(
@@ -2041,6 +2057,50 @@ def client_autenticado_da_escola_cemei(client, django_user_model, escola_cemei):
         "Vinculo",
         usuario=usuario,
         instituicao=escola_cemei,
+        perfil=perfil_diretor,
+        data_inicial=hoje,
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola_ceu_gestao(
+    client, django_user_model, escola_ceu_gestao
+):
+    email = "user@escola_ceu_gestao.com"
+    password = "admin@123"
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
+    usuario = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="123456"
+    )
+    hoje = datetime.date.today()
+    mommy.make(
+        "Vinculo",
+        usuario=usuario,
+        instituicao=escola_ceu_gestao,
+        perfil=perfil_diretor,
+        data_inicial=hoje,
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola_emebs(client, django_user_model, escola_emebs):
+    email = "user@escola_emebs.com"
+    password = "admin@123"
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
+    usuario = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="123456"
+    )
+    hoje = datetime.date.today()
+    mommy.make(
+        "Vinculo",
+        usuario=usuario,
+        instituicao=escola_emebs,
         perfil=perfil_diretor,
         data_inicial=hoje,
         ativo=True,
