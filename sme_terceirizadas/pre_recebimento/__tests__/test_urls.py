@@ -3325,6 +3325,7 @@ def test_url_ficha_tecnica_correcao_fornecedor(
     )
     ficha = analise.ficha_tecnica
     payload_correcao = {
+        "password": constants.DJANGO_ADMIN_PASSWORD,
         "embalagem_primaria": fake.pystr(max_chars=150),
         "embalagem_secundaria": fake.pystr(max_chars=150),
     }
@@ -3354,9 +3355,12 @@ def test_url_ficha_tecnica_correcao_fornecedor_validate_status(
     )
     ficha = analise.ficha_tecnica
 
+    payload_correcao = {"password": constants.DJANGO_ADMIN_PASSWORD}
+
     response = client_autenticado_fornecedor.patch(
         f"/ficha-tecnica/{ficha.uuid}/correcao-fornecedor/",
         content_type="application/json",
+        data=json.dumps(payload_correcao),
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -3379,7 +3383,10 @@ def test_url_ficha_tecnica_correcao_fornecedor_validate_campos_pereciveis(
         conservacao_conferido=False,
     )
     ficha = analise.ficha_tecnica
-    payload_correcao = {"condicoes_de_conservacao": fake.pystr(max_chars=150)}
+    payload_correcao = {
+        "password": constants.DJANGO_ADMIN_PASSWORD,
+        "condicoes_de_conservacao": fake.pystr(max_chars=150),
+    }
 
     response = client_autenticado_fornecedor.patch(
         f"/ficha-tecnica/{ficha.uuid}/correcao-fornecedor/",
@@ -3412,7 +3419,9 @@ def test_url_ficha_tecnica_correcao_fornecedor_validate_campos_nao_pereciveis(
     ficha = analise.ficha_tecnica
 
     # Testa campo obrigatório
-    payload_correcao = {}
+    payload_correcao = {
+        "password": constants.DJANGO_ADMIN_PASSWORD,
+    }
     response = client_autenticado_fornecedor.patch(
         f"/ficha-tecnica/{ficha.uuid}/correcao-fornecedor/",
         content_type="application/json",
@@ -3428,6 +3437,7 @@ def test_url_ficha_tecnica_correcao_fornecedor_validate_campos_nao_pereciveis(
 
     # Testa campo não permitido
     payload_correcao = {
+        "password": constants.DJANGO_ADMIN_PASSWORD,
         "condicoes_de_conservacao": fake.pystr(max_chars=150),
         "produto_eh_liquido": False,
     }
