@@ -45,7 +45,7 @@ fake = Faker("pt_BR")
 
 
 def test_rascunho_cronograma_create_ok(
-    client_autenticado_codae_dilog,
+    client_autenticado_dilog_cronograma,
     contrato,
     empresa,
     unidade_medida_logistica,
@@ -82,7 +82,7 @@ def test_rascunho_cronograma_create_ok(
         "custo_unitario_produto": custo_unitario_produto,
     }
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_dilog_cronograma.post(
         "/cronogramas/", content_type="application/json", data=json.dumps(payload)
     )
 
@@ -2657,7 +2657,7 @@ def test_calendario_cronograma_list_not_authorized(client_autenticado):
 
 
 def test_rascunho_ficha_tecnica_list_metodo_nao_permitido(
-    client_autenticado_fornecedor, ficha_tecnica_factory
+    client_autenticado_fornecedor,
 ):
     url = "/rascunho-ficha-tecnica/"
     response = client_autenticado_fornecedor.get(url)
@@ -2796,7 +2796,7 @@ def test_ficha_tecnica_validate_pereciveis(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["non_field_errors"] == [
-        "É obrigatório fornecer um valor para atributo mecanismo_controle quando o produto for orgânico."
+        "É obrigatório fornecer um valor para o atributo mecanismo_controle quando o produto for orgânico."
     ]
 
     # testa validação dos atributos dependentes alergenicos e ingredientes_alergenicos
@@ -2811,7 +2811,7 @@ def test_ficha_tecnica_validate_pereciveis(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["non_field_errors"] == [
-        "É obrigatório fornecer um valor para atributo ingredientes_alergenicos quando o produto for alergênico."
+        "É obrigatório fornecer um valor para o atributo ingredientes_alergenicos quando o produto for alergênico."
     ]
 
     # testa validação dos atributos dependentes lactose e lactose_detalhe
@@ -2826,7 +2826,7 @@ def test_ficha_tecnica_validate_pereciveis(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["non_field_errors"] == [
-        "É obrigatório fornecer um valor para atributo lactose_detalhe quando o produto possuir lactose."
+        "É obrigatório fornecer um valor para o atributo lactose_detalhe quando o produto possuir lactose."
     ]
 
 
@@ -3308,3 +3308,148 @@ def test_url_ficha_tecnica_analise_gpcodae_validate(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert not AnaliseFichaTecnica.objects.exists()
+
+
+def test_url_ficha_tecnica_correcao_fornecedor(
+    client_autenticado_fornecedor,
+    django_user_model,
+    analise_ficha_tecnica_factory,
+):
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    analise = analise_ficha_tecnica_factory.create(
+        ficha_tecnica__empresa=empresa,
+        ficha_tecnica__status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        armazenamento_conferido=False,
+        armazenamento_correcoes=fake.pystr(max_chars=150),
+    )
+    ficha = analise.ficha_tecnica
+    payload_correcao = {
+        "password": constants.DJANGO_ADMIN_PASSWORD,
+        "embalagem_primaria": fake.pystr(max_chars=150),
+        "embalagem_secundaria": fake.pystr(max_chars=150),
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f"/ficha-tecnica/{ficha.uuid}/correcao-fornecedor/",
+        content_type="application/json",
+        data=json.dumps(payload_correcao),
+    )
+
+    ficha.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE
+
+
+def test_url_ficha_tecnica_correcao_fornecedor_validate_status(
+    client_autenticado_fornecedor,
+    django_user_model,
+    analise_ficha_tecnica_factory,
+):
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    analise = analise_ficha_tecnica_factory.create(
+        ficha_tecnica__empresa=empresa,
+        ficha_tecnica__status=FichaTecnicaDoProdutoWorkflow.APROVADA,
+    )
+    ficha = analise.ficha_tecnica
+
+    payload_correcao = {"password": constants.DJANGO_ADMIN_PASSWORD}
+
+    response = client_autenticado_fornecedor.patch(
+        f"/ficha-tecnica/{ficha.uuid}/correcao-fornecedor/",
+        content_type="application/json",
+        data=json.dumps(payload_correcao),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "status": [f"Não é possível corrigir uma Ficha no status {ficha.status}"]
+    }
+
+
+def test_url_ficha_tecnica_correcao_fornecedor_validate_campos_pereciveis(
+    client_autenticado_fornecedor,
+    django_user_model,
+    analise_ficha_tecnica_factory,
+):
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    analise = analise_ficha_tecnica_factory.create(
+        ficha_tecnica__empresa=empresa,
+        ficha_tecnica__categoria=FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        ficha_tecnica__status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        conservacao_conferido=False,
+    )
+    ficha = analise.ficha_tecnica
+    payload_correcao = {
+        "password": constants.DJANGO_ADMIN_PASSWORD,
+        "condicoes_de_conservacao": fake.pystr(max_chars=150),
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f"/ficha-tecnica/{ficha.uuid}/correcao-fornecedor/",
+        content_type="application/json",
+        data=json.dumps(payload_correcao),
+    )
+
+    ficha.refresh_from_db()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "prazo_validade_descongelamento": ["Este campo é obrigatório."]
+    }
+    assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO
+
+
+def test_url_ficha_tecnica_correcao_fornecedor_validate_campos_nao_pereciveis(
+    client_autenticado_fornecedor,
+    django_user_model,
+    analise_ficha_tecnica_factory,
+):
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    analise = analise_ficha_tecnica_factory.create(
+        ficha_tecnica__empresa=empresa,
+        ficha_tecnica__categoria=FichaTecnicaDoProduto.CATEGORIA_NAO_PERECIVEIS,
+        ficha_tecnica__status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        conservacao_conferido=False,
+    )
+    ficha = analise.ficha_tecnica
+
+    # Testa campo obrigatório
+    payload_correcao = {
+        "password": constants.DJANGO_ADMIN_PASSWORD,
+    }
+    response = client_autenticado_fornecedor.patch(
+        f"/ficha-tecnica/{ficha.uuid}/correcao-fornecedor/",
+        content_type="application/json",
+        data=json.dumps(payload_correcao),
+    )
+    ficha.refresh_from_db()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "condicoes_de_conservacao": ["Este campo é obrigatório."]
+    }
+    assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO
+
+    # Testa campo não permitido
+    payload_correcao = {
+        "password": constants.DJANGO_ADMIN_PASSWORD,
+        "condicoes_de_conservacao": fake.pystr(max_chars=150),
+        "produto_eh_liquido": False,
+    }
+    response = client_autenticado_fornecedor.patch(
+        f"/ficha-tecnica/{ficha.uuid}/correcao-fornecedor/",
+        content_type="application/json",
+        data=json.dumps(payload_correcao),
+    )
+    ficha.refresh_from_db()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "produto_eh_liquido": ["Este campo não é permitido nesta correção."]
+    }
+    assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO

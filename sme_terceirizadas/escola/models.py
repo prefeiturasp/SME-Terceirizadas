@@ -21,6 +21,7 @@ from ..cardapio.models import (
     AlteracaoCardapioCEMEI,
     GrupoSuspensaoAlimentacao,
     InversaoCardapio,
+    TipoAlimentacao,
 )
 from ..dados_comuns.behaviors import (
     AcessoModuloMedicaoInicial,
@@ -508,8 +509,18 @@ class Escola(
     )
 
     @property
+    def tipos_alimentacao(self):
+        return TipoAlimentacao.objects.filter(
+            uuid__in=self.tipo_unidade.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar_set.values_list(
+                "tipos_alimentacao__uuid", flat=True
+            )
+            .exclude(tipos_alimentacao__nome__isnull=True)
+            .distinct()
+        )
+
+    @property
     def eh_parceira(self):
-        return self.tipo_gestao.nome == "PARCEIRA"
+        return self.tipo_gestao and self.tipo_gestao.nome == "PARCEIRA"
 
     @property
     def quantidade_alunos(self):

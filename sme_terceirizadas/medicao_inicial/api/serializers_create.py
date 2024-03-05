@@ -52,16 +52,19 @@ from ..utils import log_alteracoes_escola_corrige_periodo
 from ..validators import (
     valida_medicoes_inexistentes_cei,
     valida_medicoes_inexistentes_ceu_gestao,
+    valida_medicoes_inexistentes_emebs,
     validate_lancamento_alimentacoes_inclusoes_ceu_gestao,
     validate_lancamento_alimentacoes_medicao,
     validate_lancamento_alimentacoes_medicao_cei,
+    validate_lancamento_alimentacoes_medicao_emebs,
     validate_lancamento_dietas_cei,
+    validate_lancamento_dietas_emebs,
     validate_lancamento_dietas_emef,
     validate_lancamento_dietas_inclusoes_ceu_gestao,
     validate_lancamento_inclusoes,
     validate_lancamento_inclusoes_cei,
     validate_lancamento_inclusoes_dietas_cei,
-    validate_lancamento_inclusoes_dietas_emef,
+    validate_lancamento_inclusoes_dietas_emef_emebs,
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
     validate_medicao_cemei,
@@ -69,6 +72,7 @@ from ..validators import (
     validate_solicitacoes_etec_ceu_gestao,
     validate_solicitacoes_programas_e_projetos,
     validate_solicitacoes_programas_e_projetos_ceu_gestao,
+    validate_solicitacoes_programas_e_projetos_emebs,
 )
 
 
@@ -213,7 +217,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_lancamento_alimentacoes_medicao(instance, lista_erros)
         lista_erros = validate_lancamento_inclusoes(instance, lista_erros)
         lista_erros = validate_lancamento_dietas_emef(instance, lista_erros)
-        lista_erros = validate_lancamento_inclusoes_dietas_emef(instance, lista_erros)
+        lista_erros = validate_lancamento_inclusoes_dietas_emef_emebs(
+            instance, lista_erros
+        )
         lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
         lista_erros = validate_lanche_emergencial(instance, lista_erros)
         lista_erros = validate_solicitacoes_etec(instance, lista_erros)
@@ -280,6 +286,33 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_solicitacoes_etec_ceu_gestao(instance, lista_erros)
         lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
         lista_erros = validate_lanche_emergencial(instance, lista_erros)
+
+        if lista_erros:
+            raise ValidationError(lista_erros)
+
+    def valida_finalizar_medicao_emebs(
+        self, instance: SolicitacaoMedicaoInicial
+    ) -> None:
+        if (
+            not instance.escola.eh_emebs
+            or instance.status
+            != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+        ):
+            return
+
+        lista_erros = []
+        lista_erros = valida_medicoes_inexistentes_emebs(instance, lista_erros)
+        lista_erros = validate_lancamento_alimentacoes_medicao_emebs(
+            instance, lista_erros
+        )
+        lista_erros = validate_lancamento_inclusoes(instance, lista_erros, True)
+        lista_erros = validate_lancamento_dietas_emebs(instance, lista_erros)
+        lista_erros = validate_lancamento_inclusoes_dietas_emef_emebs(
+            instance, lista_erros, True
+        )
+        lista_erros = validate_solicitacoes_programas_e_projetos_emebs(
+            instance, lista_erros
+        )
 
         if lista_erros:
             raise ValidationError(lista_erros)
@@ -926,6 +959,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             self.valida_finalizar_medicao_cemei(instance)
             self.valida_finalizar_medicao_cei(instance)
             self.valida_finalizar_medicao_ceu_gestao(instance)
+            self.valida_finalizar_medicao_emebs(instance)
             instance.ue_envia(user=self.context["request"].user)
             if hasattr(instance, "ocorrencia"):
                 instance.ocorrencia.ue_envia(

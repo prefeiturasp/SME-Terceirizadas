@@ -6,6 +6,7 @@ from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
 
 from sme_terceirizadas.dados_comuns.constants import (
+    ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_EMPRESA,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_PRODUTO,
@@ -151,6 +152,13 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles(BaseServiceDashboar
             CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
             CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE,
         ],
+        ADMINISTRADOR_CODAE_GABINETE: [
+            CronogramaAlteracaoWorkflow.EM_ANALISE,
+            CronogramaAlteracaoWorkflow.APROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.REPROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE,
+        ],
     }
 
 
@@ -171,6 +179,11 @@ class ServiceDashboardLayoutEmbalagem(BaseServiceDashboard):
             LayoutDeEmbalagemWorkflow.APROVADO,
             LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         ],
+        ADMINISTRADOR_CODAE_GABINETE: [
+            LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+            LayoutDeEmbalagemWorkflow.APROVADO,
+            LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+        ],
     }
 
 
@@ -186,6 +199,16 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
         ],
+        DILOG_CRONOGRAMA: [
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+        ],
+        ADMINISTRADOR_CODAE_GABINETE: [
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+        ],
     }
 
 
@@ -197,6 +220,11 @@ class ServiceDashboardFichaTecnica(BaseServiceDashboard):
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            FichaTecnicaDoProdutoWorkflow.APROVADA,
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        ],
+        ADMINISTRADOR_CODAE_GABINETE: [
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             FichaTecnicaDoProdutoWorkflow.APROVADA,
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,

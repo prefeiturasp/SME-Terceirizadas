@@ -30,6 +30,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaListarEntregas,
     PermissaoParaVisualizarGuiasComOcorrencias,
     UsuarioCodaeDilog,
+    UsuarioCODAEGabinete,
     UsuarioDilog,
     UsuarioDilogOuDistribuidor,
     UsuarioDilogOuDistribuidorOuEscolaAbastecimento,
@@ -227,7 +228,9 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ["list"]:
-            self.permission_classes = [UsuarioDilogOuDistribuidor]
+            self.permission_classes = [
+                UsuarioDilogOuDistribuidor | UsuarioCODAEGabinete
+            ]
         return super(SolicitacaoModelViewSet, self).get_permissions()
 
     def get_queryset(self):
@@ -745,7 +748,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         detail=False,
         methods=["GET"],
         url_path="exporta-excel-visao-analitica",
-        permission_classes=[UsuarioDilogOuDistribuidor],
+        permission_classes=[UsuarioDilogOuDistribuidor | UsuarioCODAEGabinete],
     )
     def gerar_excel(self, request):
         user = self.request.user
@@ -1041,7 +1044,9 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=["GET"],
         url_path="relatorio-guia-remessa",
-        permission_classes=[UsuarioDilogOuDistribuidorOuEscolaAbastecimento],
+        permission_classes=[
+            UsuarioDilogOuDistribuidorOuEscolaAbastecimento | UsuarioCODAEGabinete
+        ],
     )
     def relatorio_guia_de_remessa(self, request, uuid=None):
         guia = self.get_object()

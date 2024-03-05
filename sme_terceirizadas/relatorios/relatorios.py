@@ -17,13 +17,17 @@ from ..escola.constants import (
 from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
+from ..medicao_inicial.models import ValorMedicao
 from ..medicao_inicial.utils import (
+    build_lista_campos_observacoes,
     build_tabela_relatorio_consolidado,
     build_tabela_somatorio_body,
     build_tabela_somatorio_body_cei,
+    build_tabela_somatorio_dietas_body,
     build_tabelas_relatorio_medicao,
     build_tabelas_relatorio_medicao_cei,
     build_tabelas_relatorio_medicao_cemei,
+    build_tabelas_relatorio_medicao_emebs,
 )
 from ..relatorios.utils import (
     html_to_pdf_cancelada,
@@ -594,9 +598,12 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
         escola = solicitacao.escola_destino
     substituicao_ordenada = solicitacao.substituicoes.order_by("alimento__nome")
 
+    referencia = "unidade" if escola.eh_parceira else "empresa"
+
     html_string = render_to_string(
         "solicitacao_dieta_especial_protocolo.html",
         {
+            "referencia": referencia,
             "escola": escola,
             "solicitacao": solicitacao,
             "substituicoes": substituicao_ordenada,
@@ -607,9 +614,11 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             "foto_aluno": solicitacao.aluno.foto_aluno_base64,
             "eh_protocolo_dieta_especial": solicitacao.tipo_solicitacao
             == "ALTERACAO_UE",
-            "motivo": solicitacao.motivo_alteracao_ue.nome.split(" - ")[1]
-            if solicitacao.motivo_alteracao_ue
-            else None,
+            "motivo": (
+                solicitacao.motivo_alteracao_ue.nome.split(" - ")[1]
+                if solicitacao.motivo_alteracao_ue
+                else None
+            ),
         },
     )
     if request:
@@ -1083,9 +1092,9 @@ def produtos_suspensos_por_edital(produtos, data_final, nome_edital, filtros):
             "produtos": produtos,
             "total": len(produtos),
             "hoje": datetime.date.today().strftime("%d/%m/%Y"),
-            "data_final": data_final
-            if data_final
-            else datetime.date.today().strftime("%d/%m/%Y"),
+            "data_final": (
+                data_final if data_final else datetime.date.today().strftime("%d/%m/%Y")
+            ),
             "nome_edital": nome_edital,
             "filtros": filtros,
         },
@@ -1317,75 +1326,52 @@ def relatorio_geral_dieta_especial_pdf(form, queryset, user):
     return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
 
 
-def get_total_refeicoes_por_periodo(tabelas):
-    dict_periodos_total_refeicoes = {}
+def get_total_por_periodo(tabelas, campo):
+    dict_periodos_total_campo = {}
     for tabela in tabelas:
-        if "total_refeicoes_pagamento" in tabela["nomes_campos"]:
-            idx_total_refeicoes_pagamento = tabela["nomes_campos"].index(
-                "total_refeicoes_pagamento"
-            )
-            periodos = tabela["periodos"]
-            periodo = tabela["periodos"][0]
-            if len(periodos) > 1:
-                len_periodos = tabela["len_periodos"]
-                for idx, len_periodo in enumerate(len_periodos):
-                    if idx_total_refeicoes_pagamento <= sum(
-                        v for v in len_periodos[: (idx + 1)]
-                    ):
-                        periodo = tabela["periodos"][idx]
-            dict_periodos_total_refeicoes[periodo] = tabela["valores_campos"][-1][
-                idx_total_refeicoes_pagamento + 1
-            ]
-    return dict_periodos_total_refeicoes
+        periodos = tabela["periodos"]
+        nomes_campos = tabela["nomes_campos"]
+
+        if campo in nomes_campos:
+            indices_campos = get_indices_campo(nomes_campos, campo)
+
+            for indice_campo in indices_campos:
+                periodo = get_periodo(periodos, indice_campo, tabela["len_periodos"])
+                dict_periodos_total_campo[periodo] = tabela["valores_campos"][-1][
+                    indice_campo + 1
+                ]
+    return dict_periodos_total_campo
 
 
-def get_total_sobremesas_por_periodo(tabelas):
-    dict_periodos_total_sobremesas = {}
-    for tabela in tabelas:
-        if "total_sobremesas_pagamento" in tabela["nomes_campos"]:
-            idx_total_sobremesas_pagamento = tabela["nomes_campos"].index(
-                "total_sobremesas_pagamento"
-            )
-            periodos = tabela["periodos"]
-            periodo = tabela["periodos"][0]
-            if len(periodos) > 1:
-                len_periodos = tabela["len_periodos"]
-                for idx, len_periodo in enumerate(len_periodos):
-                    if idx_total_sobremesas_pagamento <= sum(
-                        v for v in len_periodos[: (idx + 1)]
-                    ):
-                        periodo = tabela["periodos"][idx]
-            dict_periodos_total_sobremesas[periodo] = tabela["valores_campos"][-1][
-                idx_total_sobremesas_pagamento + 1
-            ]
-    return dict_periodos_total_sobremesas
+def get_indices_campo(nomes_campos, campo):
+    return [i for i, nome_campo in enumerate(nomes_campos) if nome_campo == campo]
+
+
+def get_periodo(periodos, indice_campo, len_periodos):
+    if len(periodos) > 1:
+        for idx, _ in enumerate(len_periodos):
+            if indice_campo < sum([v for v in len_periodos[: (idx + 1)]]):
+                return periodos[idx]
+    return periodos[0]
 
 
 def relatorio_solicitacao_medicao_por_escola(solicitacao):
     tabelas = build_tabelas_relatorio_medicao(solicitacao)
-    dict_total_refeicoes = get_total_refeicoes_por_periodo(tabelas)
-    dict_total_sobremesas = get_total_sobremesas_por_periodo(tabelas)
+    dict_total_refeicoes = get_total_por_periodo(tabelas, "total_refeicoes_pagamento")
+    dict_total_sobremesas = get_total_por_periodo(tabelas, "total_sobremesas_pagamento")
     tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
         "nome", flat=True
     )
     tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
-    tabela_observacoes = list(
-        solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
-        .values_list(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-            "valores_medicao__valor",
-            "grupo__nome",
-        )
-        .order_by(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-        )
-    )
+    tabela_observacoes = build_lista_campos_observacoes(solicitacao)
     tabela_somatorio = build_tabela_somatorio_body(
         solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
+    tabela_somatorio_dietas_tipo_a = build_tabela_somatorio_dietas_body(
+        solicitacao, "TIPO A"
+    )
+    tabela_somatorio_dietas_tipo_b = build_tabela_somatorio_dietas_body(
+        solicitacao, "TIPO B"
     )
     html_string = render_to_string(
         "relatorio_solicitacao_medicao_por_escola.html",
@@ -1401,6 +1387,8 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
             "tabelas": tabelas,
             "tabela_observacoes": tabela_observacoes,
             "tabela_somatorio": tabela_somatorio,
+            "tabela_somatorio_dietas_tipo_a": tabela_somatorio_dietas_tipo_a,
+            "tabela_somatorio_dietas_tipo_b": tabela_somatorio_dietas_tipo_b,
         },
     )
 
@@ -1414,21 +1402,7 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
         "nome", flat=True
     )
     tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
-    tabela_observacoes = list(
-        solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
-        .values_list(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-            "valores_medicao__valor",
-            "grupo__nome",
-        )
-        .order_by(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-        )
-    )
+    tabela_observacoes = build_lista_campos_observacoes(solicitacao)
     html_string = render_to_string(
         "relatorio_solicitacao_medicao_por_escola_cei.html",
         {
@@ -1451,8 +1425,8 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
 
 def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
     tabelas = build_tabelas_relatorio_medicao_cemei(solicitacao)
-    dict_total_refeicoes = get_total_refeicoes_por_periodo(tabelas)
-    dict_total_sobremesas = get_total_sobremesas_por_periodo(tabelas)
+    dict_total_refeicoes = get_total_por_periodo(tabelas, "total_refeicoes_pagamento")
+    dict_total_sobremesas = get_total_por_periodo(tabelas, "total_sobremesas_pagamento")
     tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
         "nome", flat=True
     )
@@ -1462,22 +1436,7 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
         solicitacao, dict_total_refeicoes, dict_total_sobremesas
     )
 
-    observacoes = list(
-        solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
-        .values_list(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-            "valores_medicao__valor",
-            "grupo__nome",
-        )
-        .order_by(
-            "valores_medicao__dia",
-            "grupo__nome",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-        )
-    )
+    observacoes = build_lista_campos_observacoes(solicitacao)
 
     tabela_observacoes_cei = []
     tabela_observacoes_infantil = []
@@ -1504,6 +1463,86 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
         },
     )
 
+    return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
+
+
+def relatorio_solicitacao_medicao_por_escola_emebs(solicitacao):
+    tabelas = build_tabelas_relatorio_medicao_emebs(solicitacao)
+
+    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
+        "nome", flat=True
+    )
+    tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
+
+    tabela_observacoes_infantil = build_lista_campos_observacoes(
+        solicitacao, ValorMedicao.INFANTIL
+    )
+
+    tabela_observacoes_fundamental = build_lista_campos_observacoes(
+        solicitacao, ValorMedicao.FUNDAMENTAL
+    )
+
+    dict_total_refeicoes = get_total_por_periodo(tabelas, "total_refeicoes_pagamento")
+    dict_total_sobremesas = get_total_por_periodo(tabelas, "total_sobremesas_pagamento")
+
+    tabela_somatorio_infantil = build_tabela_somatorio_body(
+        solicitacao,
+        dict_total_refeicoes,
+        dict_total_sobremesas,
+        ValorMedicao.INFANTIL,
+    )
+
+    tabela_somatorio_dietas_tipo_a_infantil = build_tabela_somatorio_dietas_body(
+        solicitacao,
+        "TIPO A",
+        ValorMedicao.INFANTIL,
+    )
+    tabela_somatorio_dietas_tipo_b_infantil = build_tabela_somatorio_dietas_body(
+        solicitacao,
+        "TIPO B",
+        ValorMedicao.INFANTIL,
+    )
+
+    tabela_somatorio_fundamental = build_tabela_somatorio_body(
+        solicitacao,
+        dict_total_refeicoes,
+        dict_total_sobremesas,
+        ValorMedicao.FUNDAMENTAL,
+    )
+
+    tabela_somatorio_dietas_tipo_a_fundamental = build_tabela_somatorio_dietas_body(
+        solicitacao,
+        "TIPO A",
+        ValorMedicao.FUNDAMENTAL,
+    )
+    tabela_somatorio_dietas_tipo_b_fundamental = build_tabela_somatorio_dietas_body(
+        solicitacao,
+        "TIPO B",
+        ValorMedicao.FUNDAMENTAL,
+    )
+
+    html_string = render_to_string(
+        "relatorio_solicitacao_medicao_por_escola_emebs.html",
+        {
+            "solicitacao": solicitacao,
+            "tipos_contagem_alimentacao": tipos_contagem_alimentacao,
+            "responsaveis": solicitacao.responsaveis.all(),
+            "assinatura_escola": solicitacao.assinatura_ue,
+            "assinatura_dre": solicitacao.assinatura_dre,
+            "quantidade_dias_mes": range(
+                1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+            ),
+            "tabelas": tabelas,
+            "tabela_observacoes_infantil": tabela_observacoes_infantil,
+            "tabela_observacoes_fundamental": tabela_observacoes_fundamental,
+            "tabela_somatorio_infantil": tabela_somatorio_infantil,
+            "tabela_somatorio_dietas_tipo_a_infantil": tabela_somatorio_dietas_tipo_a_infantil,
+            "tabela_somatorio_dietas_tipo_b_infantil": tabela_somatorio_dietas_tipo_b_infantil,
+            "tabela_somatorio_fundamental": tabela_somatorio_fundamental,
+            "tabela_somatorio_dietas_tipo_a_fundamental": tabela_somatorio_dietas_tipo_a_fundamental,
+            "tabela_somatorio_dietas_tipo_b_fundamental": tabela_somatorio_dietas_tipo_b_fundamental,
+        },
+    )
     return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
 
 

@@ -69,6 +69,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     AnaliseFichaTecnicaCreateSerializer,
     AnaliseFichaTecnicaRascunhoSerializer,
+    CorrecaoFichaTecnicaSerializer,
     CronogramaCreateSerializer,
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
@@ -1098,18 +1099,6 @@ class FichaTecnicaModelViewSet(
             request, *args, **kwargs
         ) or super().update(request, *args, **kwargs)
 
-    def _verificar_autenticidade_usuario(self, request, *args, **kwargs):
-        usuario = request.user
-        password = request.data.pop("password", "")
-
-        if not usuario.verificar_autenticidade(password):
-            return Response(
-                {
-                    "Senha inválida": "em caso de esquecimento de senha, solicite a recuperação e tente novamente."
-                },
-                status=HTTP_401_UNAUTHORIZED,
-            )
-
     @action(
         detail=False,
         methods=["GET"],
@@ -1155,7 +1144,7 @@ class FichaTecnicaModelViewSet(
         detail=True,
         methods=["GET"],
         url_path="detalhar-com-analise",
-        permission_classes=(PermissaoParaAnalisarFichaTecnica,),
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
     )
     def detalhar_com_analise(self, request, **kwargs):
         return Response(
@@ -1215,6 +1204,40 @@ class FichaTecnicaModelViewSet(
         serializer.save()
 
         return Response(status=HTTP_201_CREATED if analise is None else HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        url_path="correcao-fornecedor",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def correcao_fornecedor(self, request, *args, **kwargs):
+        return self._verificar_autenticidade_usuario(
+            request, *args, **kwargs
+        ) or self._processa_correcao(request, *args, **kwargs)
+
+    def _processa_correcao(self, request, *args, **kwargs):
+        serializer = CorrecaoFichaTecnicaSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(HTTP_200_OK)
+
+    def _verificar_autenticidade_usuario(self, request, *args, **kwargs):
+        usuario = request.user
+        password = request.data.pop("password", "")
+
+        if not usuario.verificar_autenticidade(password):
+            return Response(
+                {
+                    "Senha inválida": "em caso de esquecimento de senha, solicite a recuperação e tente novamente."
+                },
+                status=HTTP_401_UNAUTHORIZED,
+            )
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):

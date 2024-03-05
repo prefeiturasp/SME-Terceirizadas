@@ -8,10 +8,14 @@ from sme_terceirizadas.medicao_inicial.utils import (
     build_dict_relacao_categorias_e_campos_cei,
     build_headers_tabelas,
     build_headers_tabelas_cei,
+    build_headers_tabelas_emebs,
+    build_lista_campos_observacoes,
     build_row_primeira_tabela,
     build_tabela_somatorio_body,
+    build_tabela_somatorio_dietas_body,
     build_tabelas_relatorio_medicao,
     build_tabelas_relatorio_medicao_cemei,
+    build_tabelas_relatorio_medicao_emebs,
     get_lista_categorias_campos,
     get_lista_categorias_campos_cei,
     get_lista_dias_letivos,
@@ -26,6 +30,13 @@ from sme_terceirizadas.medicao_inicial.utils import (
     get_somatorio_tarde,
     get_somatorio_total_tabela,
     tratar_valores,
+)
+
+from .data import (
+    HEADERS_TABELAS_EMEBS,
+    OBSERVACOES_FUNDAMENTAL_EMEBS,
+    OBSERVACOES_INFANTIL_EMEBS,
+    TABELAS_EMEBS,
 )
 
 pytestmark = pytest.mark.django_db
@@ -179,6 +190,13 @@ def test_build_headers_tabelas_cei(
             "categoria_values": defaultdict(int, {"ALIMENTAÇÃO": 2}),
         },
     ]
+
+
+def test_build_headers_tabelas_emebs(solicitacao_medicao_inicial_varios_valores_emebs):
+    assert (
+        build_headers_tabelas_emebs(solicitacao_medicao_inicial_varios_valores_emebs)
+        == HEADERS_TABELAS_EMEBS
+    )
 
 
 def test_get_lista_dias_letivos(solicitacao_medicao_inicial_varios_valores):
@@ -495,6 +513,31 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
             },
         },
     ]
+
+
+def test_build_tabelas_relatorio_medicao_emebs(
+    solicitacao_medicao_inicial_varios_valores_emebs,
+):
+    assert (
+        build_tabelas_relatorio_medicao_emebs(
+            solicitacao_medicao_inicial_varios_valores_emebs
+        )
+        == TABELAS_EMEBS
+    )
+
+
+def test_build_lista_campos_observacoes_emebs(
+    solicitacao_medicao_inicial_varios_valores_emebs,
+):
+    observacoes_infantil = build_lista_campos_observacoes(
+        solicitacao_medicao_inicial_varios_valores_emebs, "INFANTIL"
+    )
+    assert observacoes_infantil == OBSERVACOES_INFANTIL_EMEBS
+
+    observacoes_fundamental = build_lista_campos_observacoes(
+        solicitacao_medicao_inicial_varios_valores_emebs, "FUNDAMENTAL"
+    )
+    assert observacoes_fundamental == OBSERVACOES_FUNDAMENTAL_EMEBS
 
 
 def test_utils_get_lista_categorias_campos(medicao_solicitacoes_alimentacao):
@@ -821,6 +864,24 @@ def test_utils_build_tabela_somatorio_body(
         ["Kit Lanche", 50, 50, 50, 50, 50, 250, 50, 50, 100],
         ["Sobremesa", 100, 100, 100, 100, 50, 450, 100, 100, 200],
         ["Lanche Emergencial", 50, 50, 50, 50, 50, 250, 50, 50, 100],
+    ]
+
+
+def test_utils_build_tabela_somatorio_dietas_body(
+    solicitacao_medicao_inicial_dietas,
+):
+    assert build_tabela_somatorio_dietas_body(
+        solicitacao_medicao_inicial_dietas, "TIPO A"
+    ) == [
+        ["Lanche", " - ", 20, 20, 20, 60, "Lanche", 20],
+        ["Lanche 4h", " - ", 20, 20, 20, 60, "Lanche 4h", 20],
+        ["Refeição", " - ", 20, 20, 20, 60, "Refeição", 20],
+    ]
+    assert build_tabela_somatorio_dietas_body(
+        solicitacao_medicao_inicial_dietas, "TIPO B"
+    ) == [
+        ["Lanche", " - ", 20, 20, 20, 60, "Lanche", 20],
+        ["Lanche 4h", " - ", 20, 20, 20, 60, "Lanche 4h", 20],
     ]
 
 
