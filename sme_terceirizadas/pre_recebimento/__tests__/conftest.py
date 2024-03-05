@@ -735,6 +735,7 @@ def payload_ficha_tecnica_pereciveis(
         "componentes_produto": fake.pystr(max_chars=250),
         "alergenicos": True,
         "ingredientes_alergenicos": fake.pystr(max_chars=150),
+        "gluten": True,
         "lactose": True,
         "lactose_detalhe": fake.pystr(max_chars=150),
         "porcao": fake.random_number() / 100,

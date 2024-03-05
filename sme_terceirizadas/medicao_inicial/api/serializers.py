@@ -101,11 +101,15 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     alunos_periodo_parcial = AlunoPeriodoParcialSimplesSerializer(many=True)
     historico = serializers.SerializerMethodField()
+    escola_eh_emebs = serializers.SerializerMethodField()
 
     def get_historico(self, obj):
         if not obj.historico:
             return None
         return json.loads(obj.historico)
+
+    def get_escola_eh_emebs(self, obj):
+        return obj.escola.eh_emebs
 
     class Meta:
         model = SolicitacaoMedicaoInicial

@@ -42,8 +42,16 @@ from ..helpers import (
     cria_programacao_de_cronograma,
     cria_tipos_de_documentos,
     cria_tipos_de_embalagens,
+    gerar_nova_analise_ficha_tecnica,
+    limpar_campos_dependentes_ficha_tecnica,
 )
-from ..validators import contrato_pertence_a_empresa
+from ..validators import (
+    ServiceValidacaoCorrecaoFichaTecnica,
+    contrato_pertence_a_empresa,
+    valida_campos_dependentes_ficha_tecnica,
+    valida_campos_nao_pereciveis_ficha_tecnica,
+    valida_campos_pereciveis_ficha_tecnica,
+)
 
 
 class ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(serializers.ModelSerializer):
@@ -965,7 +973,7 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     )
     fabricante = serializers.SlugRelatedField(
         slug_field="uuid",
-        required=True,
+        required=False,
         queryset=Fabricante.objects.all(),
         allow_null=True,
     )
@@ -990,18 +998,18 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     )
     componentes_produto = serializers.CharField(required=True, allow_blank=True)
     alergenicos = serializers.BooleanField(required=False)
-    ingredientes_alergenicos = serializers.CharField(required=False, allow_blank=True)
+    ingredientes_alergenicos = serializers.CharField(required=True, allow_blank=True)
     gluten = serializers.BooleanField(required=False)
     lactose = serializers.BooleanField(required=False)
-    lactose_detalhe = serializers.CharField(required=False, allow_blank=True)
-    porcao = serializers.FloatField(required=True, allow_null=True)
+    lactose_detalhe = serializers.CharField(required=True, allow_blank=True)
+    porcao = serializers.FloatField(required=False, allow_null=True)
     unidade_medida_porcao = serializers.SlugRelatedField(
         slug_field="uuid",
-        required=True,
+        required=False,
         queryset=UnidadeMedida.objects.all(),
         allow_null=True,
     )
-    valor_unidade_caseira = serializers.FloatField(required=True, allow_null=True)
+    valor_unidade_caseira = serializers.FloatField(required=False, allow_null=True)
     unidade_medida_caseira = serializers.CharField(required=True, allow_blank=True)
     informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaCreateSerializer(
         many=True
@@ -1026,38 +1034,38 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     peso_liquido_embalagem_primaria = serializers.FloatField(
-        required=True, allow_null=True
+        required=False, allow_null=True
     )
     unidade_medida_primaria = serializers.SlugRelatedField(
         slug_field="uuid",
-        required=True,
+        required=False,
         queryset=UnidadeMedida.objects.all(),
         allow_null=True,
     )
     peso_liquido_embalagem_secundaria = serializers.FloatField(
-        required=True, allow_null=True
+        required=False, allow_null=True
     )
     unidade_medida_secundaria = serializers.SlugRelatedField(
         slug_field="uuid",
-        required=True,
+        required=False,
         queryset=UnidadeMedida.objects.all(),
         allow_null=True,
     )
     peso_embalagem_primaria_vazia = serializers.FloatField(
-        required=True, allow_null=True
+        required=False, allow_null=True
     )
     unidade_medida_primaria_vazia = serializers.SlugRelatedField(
         slug_field="uuid",
-        required=True,
+        required=False,
         queryset=UnidadeMedida.objects.all(),
         allow_null=True,
     )
     peso_embalagem_secundaria_vazia = serializers.FloatField(
-        required=True, allow_null=True
+        required=False, allow_null=True
     )
     unidade_medida_secundaria_vazia = serializers.SlugRelatedField(
         slug_field="uuid",
-        required=True,
+        required=False,
         queryset=UnidadeMedida.objects.all(),
         allow_null=True,
     )
@@ -1111,20 +1119,22 @@ class FichaTecnicaCreateSerializer(serializers.ModelSerializer):
         queryset=Terceirizada.objects.all(),
     )
     fabricante = serializers.SlugRelatedField(
-        slug_field="uuid", required=True, queryset=Fabricante.objects.all()
+        slug_field="uuid",
+        required=True,
+        queryset=Fabricante.objects.all(),
     )
-    cnpj_fabricante = serializers.CharField(required=True, allow_blank=True)
-    cep_fabricante = serializers.CharField(required=True, allow_blank=True)
-    endereco_fabricante = serializers.CharField(required=True, allow_blank=True)
-    numero_fabricante = serializers.CharField(required=True, allow_blank=True)
-    complemento_fabricante = serializers.CharField(required=True, allow_blank=True)
-    bairro_fabricante = serializers.CharField(required=True, allow_blank=True)
-    cidade_fabricante = serializers.CharField(required=True, allow_blank=True)
-    estado_fabricante = serializers.CharField(required=True, allow_blank=True)
-    email_fabricante = serializers.CharField(required=True, allow_blank=True)
-    telefone_fabricante = serializers.CharField(required=True, allow_blank=True)
+    cnpj_fabricante = serializers.CharField(required=False, allow_blank=True)
+    cep_fabricante = serializers.CharField(required=False, allow_blank=True)
+    endereco_fabricante = serializers.CharField(required=False, allow_blank=True)
+    numero_fabricante = serializers.CharField(required=False, allow_blank=True)
+    complemento_fabricante = serializers.CharField(required=False, allow_blank=True)
+    bairro_fabricante = serializers.CharField(required=False, allow_blank=True)
+    cidade_fabricante = serializers.CharField(required=False, allow_blank=True)
+    estado_fabricante = serializers.CharField(required=False, allow_blank=True)
+    email_fabricante = serializers.CharField(required=False, allow_blank=True)
+    telefone_fabricante = serializers.CharField(required=False, allow_blank=True)
     prazo_validade = serializers.CharField(required=True)
-    numero_registro = serializers.CharField(required=False)
+    numero_registro = serializers.CharField(required=False, allow_blank=True)
     agroecologico = serializers.BooleanField(required=False)
     organico = serializers.BooleanField(required=False)
     mecanismo_controle = serializers.ChoiceField(
@@ -1133,10 +1143,10 @@ class FichaTecnicaCreateSerializer(serializers.ModelSerializer):
     )
     componentes_produto = serializers.CharField(required=True)
     alergenicos = serializers.BooleanField(required=True)
-    ingredientes_alergenicos = serializers.CharField(required=False)
-    gluten = serializers.BooleanField(required=False)
+    ingredientes_alergenicos = serializers.CharField(required=False, allow_blank=True)
+    gluten = serializers.BooleanField(required=True)
     lactose = serializers.BooleanField(required=True)
-    lactose_detalhe = serializers.CharField(required=False)
+    lactose_detalhe = serializers.CharField(required=False, allow_blank=True)
     porcao = serializers.FloatField(required=True)
     unidade_medida_porcao = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -1150,19 +1160,20 @@ class FichaTecnicaCreateSerializer(serializers.ModelSerializer):
     )
     prazo_validade_descongelamento = serializers.CharField(required=False)
     condicoes_de_conservacao = serializers.CharField(required=True)
-    temperatura_congelamento = serializers.FloatField(required=False)
-    temperatura_veiculo = serializers.FloatField(required=False)
+    temperatura_congelamento = serializers.FloatField(required=False, allow_null=True)
+    temperatura_veiculo = serializers.FloatField(required=False, allow_null=True)
     condicoes_de_transporte = serializers.CharField(required=False)
     embalagem_primaria = serializers.CharField(required=True)
     embalagem_secundaria = serializers.CharField(required=True)
     embalagens_de_acordo_com_anexo = serializers.BooleanField(required=True)
     material_embalagem_primaria = serializers.CharField(required=True)
     produto_eh_liquido = serializers.BooleanField(required=False)
-    volume_embalagem_primaria = serializers.FloatField(required=False)
+    volume_embalagem_primaria = serializers.FloatField(required=False, allow_null=True)
     unidade_medida_volume_primaria = serializers.SlugRelatedField(
         slug_field="uuid",
         required=False,
         queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
     )
     peso_liquido_embalagem_primaria = serializers.FloatField(required=True)
     unidade_medida_primaria = serializers.SlugRelatedField(
@@ -1195,67 +1206,18 @@ class FichaTecnicaCreateSerializer(serializers.ModelSerializer):
     habilitacao = serializers.CharField(required=True)
     numero_registro_orgao = serializers.CharField(required=True)
     arquivo = serializers.CharField(required=True)
-    modo_de_preparo = serializers.CharField(required=True, allow_blank=True)
-    informacoes_adicionais = serializers.CharField(required=True, allow_blank=True)
+    modo_de_preparo = serializers.CharField(required=False, allow_blank=True)
+    informacoes_adicionais = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, attrs):
         if attrs.get("categoria") == FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS:
-            self._validate_pereciveis(attrs)
+            valida_campos_pereciveis_ficha_tecnica(attrs)
         else:
-            self._validate_nao_pereciveis(attrs)
+            valida_campos_nao_pereciveis_ficha_tecnica(attrs)
 
-        self._validate_campos_comuns(attrs)
+        valida_campos_dependentes_ficha_tecnica(attrs)
 
         return attrs
-
-    def _validate_pereciveis(self, attrs):
-        attrs_obrigatorios_pereciveis = {
-            "numero_registro",
-            "agroecologico",
-            "organico",
-            "prazo_validade_descongelamento",
-            "temperatura_congelamento",
-            "temperatura_veiculo",
-            "condicoes_de_transporte",
-            "variacao_percentual",
-        }
-
-        if not attrs_obrigatorios_pereciveis.issubset(attrs.keys()):
-            raise serializers.ValidationError(
-                "Fichas Técnicas de Produtos PERECÍVEIS exigem que sejam forncecidos valores para os campos"
-                + " numero_registro, agroecologico, organico, prazo_validade_descongelamento, temperatura_congelamento"
-                + ", temperatura_veiculo, condicoes_de_transporte e variacao_percentual."
-            )
-
-        if attrs.get("organico") and not attrs.get("mecanismo_controle"):
-            raise serializers.ValidationError(
-                "É obrigatório fornecer um valor para atributo mecanismo_controle quando o produto for orgânico."
-            )
-
-    def _validate_nao_pereciveis(self, attrs):
-        if attrs.get("produto_eh_liquido") is None:
-            raise serializers.ValidationError(
-                "Fichas Técnicas de Produtos NÃO PERECÍVEIS exigem que sejam forncecidos valores para o campo produto_eh_liquido"
-            )
-
-        if attrs.get("produto_eh_liquido") and (
-            attrs.get("volume_embalagem_primaria") is None
-            or attrs.get("unidade_medida_volume_primaria") is None
-        ):
-            raise serializers.ValidationError(
-                "É obrigatório fornecer um valor para os atributos volume_embalagem_primaria e unidade_medida_volume_primaria quando o produto for líquido."
-            )
-
-    def _validate_campos_comuns(self, attrs):
-        if attrs.get("alergenicos") and not attrs.get("ingredientes_alergenicos"):
-            raise serializers.ValidationError(
-                "É obrigatório fornecer um valor para atributo ingredientes_alergenicos quando o produto for alergênico."
-            )
-
-        if attrs.get("lactose") and not attrs.get("lactose_detalhe"):
-            raise serializers.ValidationError(
-                "É obrigatório fornecer um valor para atributo lactose_detalhe quando o produto possuir lactose."
-            )
 
     def validate_embalagens_de_acordo_com_anexo(self, value):
         if not value:
@@ -1482,3 +1444,100 @@ class AnaliseFichaTecnicaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnaliseFichaTecnica
         exclude = ("id", "ficha_tecnica")
+
+
+class CorrecaoFichaTecnicaSerializer(serializers.ModelSerializer):
+    produto = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=NomeDeProdutoEdital.objects.all(),
+    )
+    marca = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=Marca.objects.all(),
+    )
+    empresa = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=Terceirizada.objects.all(),
+    )
+    fabricante = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=Fabricante.objects.all(),
+    )
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaCreateSerializer(
+        many=True,
+        required=False,
+    )
+    unidade_medida_porcao = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=UnidadeMedida.objects.all(),
+    )
+    unidade_medida_volume_primaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=UnidadeMedida.objects.all(),
+    )
+    unidade_medida_primaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=UnidadeMedida.objects.all(),
+    )
+    unidade_medida_secundaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=UnidadeMedida.objects.all(),
+    )
+    unidade_medida_primaria_vazia = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=UnidadeMedida.objects.all(),
+    )
+    unidade_medida_secundaria_vazia = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=UnidadeMedida.objects.all(),
+    )
+
+    def validate(self, attrs):
+        service_validacao = ServiceValidacaoCorrecaoFichaTecnica(self.instance, attrs)
+
+        service_validacao.valida_status_enviada_para_correcao()
+        service_validacao.valida_campos_obrigatorios_por_collapse()
+        service_validacao.valida_campos_nao_permitidos_por_collapse()
+
+        valida_campos_dependentes_ficha_tecnica(attrs)
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        user = self.context["request"].user
+        instance = atualiza_ficha_tecnica(instance, validated_data)
+        instance = limpar_campos_dependentes_ficha_tecnica(instance, validated_data)
+
+        instance.fornecedor_corrige(user=user)
+
+        gerar_nova_analise_ficha_tecnica(instance)
+
+        return instance
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = "__all__"
+        extra_kwargs = {
+            field: {"required": False}
+            for field in FichaTecnicaDoProduto._meta.get_fields()
+        }

@@ -2,6 +2,7 @@ import calendar
 import datetime
 
 from django.db.models import Q
+from workalendar.america import BrazilSaoPauloCity
 
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
 
@@ -15,6 +16,7 @@ from ..escola.models import (
     DiaCalendario,
     FaixaEtaria,
     LogAlunosMatriculadosFaixaEtariaDia,
+    LogAlunosMatriculadosPeriodoEscola,
 )
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -22,6 +24,7 @@ from ..inclusao_alimentacao.models import (
     InclusaoDeAlimentacaoCEMEI,
 )
 from ..paineis_consolidados.models import SolicitacoesEscola
+from .api.constants import ALIMENTACOES_LANCAMENTOS_ESPECIAIS
 from .models import CategoriaMedicao, PermissaoLancamentoEspecial, ValorMedicao
 from .utils import (
     agrupa_permissoes_especiais_por_dia,
@@ -30,6 +33,8 @@ from .utils import (
     get_periodos_escolares_comuns_com_inclusoes_normais,
     incluir_lanche,
 )
+
+calendario = BrazilSaoPauloCity()
 
 
 def get_lista_dias_letivos(solicitacao, escola):
@@ -345,9 +350,7 @@ def build_nomes_campos_dietas_emef(escola, categoria, medicao):
     tipos_alimentacao = list(
         VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
             tipo_unidade_escolar=escola.tipo_unidade,
-            periodo_escolar__in=escola.periodos_escolares(
-                medicao.solicitacao_medicao_inicial.ano
-            ),
+            periodo_escolar=medicao.periodo_escolar,
         )
         .values_list("tipos_alimentacao__nome", flat=True)
         .distinct()
@@ -421,7 +424,7 @@ def build_nomes_campos_dietas_emei_cemei(medicao, categoria):
     return nomes_campos
 
 
-def get_nomes_campos_emef_dietas(inclusoes, escola, categoria, medicao):
+def get_nomes_campos_emef_emebs_dietas(inclusoes, escola, categoria, medicao):
     if inclusoes:
         return build_nomes_campos_inclusoes_dietas_emef(
             escola, categoria, inclusoes, medicao
@@ -430,7 +433,89 @@ def get_nomes_campos_emef_dietas(inclusoes, escola, categoria, medicao):
         return build_nomes_campos_dietas_emef(escola, categoria, medicao)
 
 
-def validate_lancamento_alimentacoes_medicao_emef_dietas(
+def validate_lancamento_alimentacoes_inclusoes_emebs_dietas(
+    nomes_campos,
+    lista_erros,
+    medicao,
+    logs_,
+    ano,
+    mes,
+    dia,
+    categoria,
+    classificacoes,
+    valores_medicao_,
+    escola,
+    periodo_com_erro,
+):
+    DATA_INDEX = 0
+    PERIODO_ESCOLAR_ID_INDEX = 1
+    QUANTIDADE_INDEX = 2
+    CLASSIFICACAO_ID_INDEX = 3
+    INFANTIL_OU_FUNDAMENTAL_INDEX = 4
+
+    NOME_CAMPO_INDEX = 0
+    CATEGORIA_MEDICAO_ID_INDEX = 1
+    DIA_ID = 2
+    INFANTIL_OU_FUNDAMENTAL_VALOR_INDEX = 3
+
+    tipos_alunos = (
+        LogQuantidadeDietasAutorizadas.objects.filter(
+            escola=escola,
+            data__year=ano,
+            data__month=mes,
+            periodo_escolar=medicao.periodo_escolar,
+        )
+        .exclude(Q(quantidade=0) | Q(infantil_ou_fundamental="N/A"))
+        .values_list("infantil_ou_fundamental", flat=True)
+    )
+    tipos_alunos = list(set(tipos_alunos))
+    for tipo_aluno in tipos_alunos:
+        for nome_campo in nomes_campos:
+            if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                continue
+            quantidade = 0
+            for classificacao in classificacoes:
+                log = next(
+                    (
+                        log_
+                        for log_ in logs_
+                        if (
+                            log_[DATA_INDEX]
+                            == datetime.date(int(ano), int(mes), int(dia))
+                            and (
+                                log_[PERIODO_ESCOLAR_ID_INDEX]
+                                == medicao.periodo_escolar.id
+                                if medicao.periodo_escolar
+                                else None
+                            )
+                            and log_[CLASSIFICACAO_ID_INDEX] == classificacao.id
+                            and log_[INFANTIL_OU_FUNDAMENTAL_INDEX] == tipo_aluno
+                        )
+                    ),
+                    None,
+                )
+                quantidade += log[QUANTIDADE_INDEX] if log else 0
+            if quantidade == 0:
+                continue
+            valor_medicao = next(
+                (
+                    valor_medicao_
+                    for valor_medicao_ in valores_medicao_
+                    if (
+                        valor_medicao_[NOME_CAMPO_INDEX] == nome_campo
+                        and valor_medicao_[CATEGORIA_MEDICAO_ID_INDEX] == categoria.id
+                        and valor_medicao_[DIA_ID] == f"{dia:02d}"
+                        and valor_medicao_[INFANTIL_OU_FUNDAMENTAL_VALOR_INDEX]
+                        == tipo_aluno
+                    )
+                ),
+                None,
+            )
+            periodo_com_erro = checa_valor_medicao(valor_medicao, periodo_com_erro)
+    return periodo_com_erro
+
+
+def validate_lancamento_alimentacoes_medicao_emef_emebs_dietas(
     lista_erros,
     medicao,
     logs_,
@@ -443,6 +528,7 @@ def validate_lancamento_alimentacoes_medicao_emef_dietas(
     valores_medicao_,
     escola,
     inclusoes=None,
+    eh_emebs=False,
 ):
     DATA_INDEX = 0
     PERIODO_ESCOLAR_ID_INDEX = 1
@@ -453,45 +539,64 @@ def validate_lancamento_alimentacoes_medicao_emef_dietas(
     CATEGORIA_MEDICAO_ID_INDEX = 1
     DIA_ID = 2
 
-    nomes_campos = get_nomes_campos_emef_dietas(inclusoes, escola, categoria, medicao)
-    for nome_campo in nomes_campos:
-        if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
-            continue
-        quantidade = 0
-        for classificacao in classificacoes:
-            log = next(
-                (
-                    log_
-                    for log_ in logs_
-                    if (
-                        log_[DATA_INDEX] == datetime.date(int(ano), int(mes), int(dia))
-                        and (
-                            log_[PERIODO_ESCOLAR_ID_INDEX] == medicao.periodo_escolar.id
-                            if medicao.periodo_escolar
-                            else None
+    nomes_campos = get_nomes_campos_emef_emebs_dietas(
+        inclusoes, escola, categoria, medicao
+    )
+    if eh_emebs:
+        periodo_com_erro = validate_lancamento_alimentacoes_inclusoes_emebs_dietas(
+            nomes_campos,
+            lista_erros,
+            medicao,
+            logs_,
+            ano,
+            mes,
+            dia,
+            categoria,
+            classificacoes,
+            valores_medicao_,
+            escola,
+            periodo_com_erro,
+        )
+    else:
+        for nome_campo in nomes_campos:
+            if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                continue
+            quantidade = 0
+            for classificacao in classificacoes:
+                log = next(
+                    (
+                        log_
+                        for log_ in logs_
+                        if (
+                            log_[DATA_INDEX]
+                            == datetime.date(int(ano), int(mes), int(dia))
+                            and (
+                                log_[PERIODO_ESCOLAR_ID_INDEX]
+                                == medicao.periodo_escolar.id
+                                if medicao.periodo_escolar
+                                else None
+                            )
+                            and log_[CLASSIFICACAO_ID_INDEX] == classificacao.id
                         )
-                        and log_[CLASSIFICACAO_ID_INDEX] == classificacao.id
+                    ),
+                    None,
+                )
+                quantidade += log[QUANTIDADE_INDEX] if log else 0
+            if quantidade == 0:
+                continue
+            valor_medicao = next(
+                (
+                    valor_medicao_
+                    for valor_medicao_ in valores_medicao_
+                    if (
+                        valor_medicao_[NOME_CAMPO_INDEX] == nome_campo
+                        and valor_medicao_[CATEGORIA_MEDICAO_ID_INDEX] == categoria.id
+                        and valor_medicao_[DIA_ID] == f"{dia:02d}"
                     )
                 ),
                 None,
             )
-            quantidade += log[QUANTIDADE_INDEX] if log else 0
-        if quantidade == 0:
-            continue
-        valor_medicao = next(
-            (
-                valor_medicao_
-                for valor_medicao_ in valores_medicao_
-                if (
-                    valor_medicao_[NOME_CAMPO_INDEX] == nome_campo
-                    and valor_medicao_[CATEGORIA_MEDICAO_ID_INDEX] == categoria.id
-                    and valor_medicao_[DIA_ID] == f"{dia:02d}"
-                )
-            ),
-            None,
-        )
-        if not valor_medicao:
-            periodo_com_erro = True
+            periodo_com_erro = checa_valor_medicao(valor_medicao, periodo_com_erro)
     return periodo_com_erro
 
 
@@ -741,28 +846,71 @@ def validate_lancamento_alimentacoes_medicao_cei_cemei(
     return lista_erros
 
 
+def buscar_valores_lancamento_inclusoes_emebs(
+    inclusao, solicitacao, categoria_medicao, lista_erros, periodo_com_erro
+):
+    tipos_alunos = (
+        LogAlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=solicitacao.escola,
+            criado_em__year=solicitacao.ano,
+            criado_em__month=solicitacao.mes,
+            periodo_escolar__nome=inclusao["periodo_escolar"],
+        )
+        .exclude(Q(quantidade_alunos=0) | Q(infantil_ou_fundamental="N/A"))
+        .values_list("infantil_ou_fundamental", flat=True)
+    )
+    tipos_alunos = list(set(tipos_alunos))
+    for tipo_aluno in tipos_alunos:
+        for nome_campo in inclusao["linhas_da_tabela"]:
+            valores_da_medicao = ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao,
+                nome_campo=nome_campo,
+                medicao__periodo_escolar__nome=inclusao["periodo_escolar"],
+                dia=inclusao["dia"],
+                categoria_medicao=categoria_medicao,
+                infantil_ou_fundamental=tipo_aluno,
+            ).exclude(valor=None)
+            if not valores_da_medicao:
+                valor_observacao = ValorMedicao.objects.filter(
+                    medicao__solicitacao_medicao_inicial=solicitacao,
+                    nome_campo="observacao",
+                    medicao__periodo_escolar__nome=inclusao["periodo_escolar"],
+                    dia=inclusao["dia"],
+                    categoria_medicao=categoria_medicao,
+                    infantil_ou_fundamental=tipo_aluno,
+                ).exclude(valor=None)
+                if not valor_observacao:
+                    periodo_com_erro = True
+    return periodo_com_erro
+
+
 def buscar_valores_lancamento_inclusoes(
-    inclusao, solicitacao, categoria_medicao, lista_erros
+    inclusao, solicitacao, categoria_medicao, lista_erros, eh_emebs=False
 ):
     periodo_com_erro = False
-    for nome_campo in inclusao["linhas_da_tabela"]:
-        valores_da_medicao = ValorMedicao.objects.filter(
-            medicao__solicitacao_medicao_inicial=solicitacao,
-            nome_campo=nome_campo,
-            medicao__periodo_escolar__nome=inclusao["periodo_escolar"],
-            dia=inclusao["dia"],
-            categoria_medicao=categoria_medicao,
-        ).exclude(valor=None)
-        if not valores_da_medicao:
-            valor_observacao = ValorMedicao.objects.filter(
+    if eh_emebs:
+        periodo_com_erro = buscar_valores_lancamento_inclusoes_emebs(
+            inclusao, solicitacao, categoria_medicao, lista_erros, periodo_com_erro
+        )
+    else:
+        for nome_campo in inclusao["linhas_da_tabela"]:
+            valores_da_medicao = ValorMedicao.objects.filter(
                 medicao__solicitacao_medicao_inicial=solicitacao,
-                nome_campo="observacao",
+                nome_campo=nome_campo,
                 medicao__periodo_escolar__nome=inclusao["periodo_escolar"],
                 dia=inclusao["dia"],
                 categoria_medicao=categoria_medicao,
             ).exclude(valor=None)
-            if not valor_observacao:
-                periodo_com_erro = True
+            if not valores_da_medicao:
+                valor_observacao = ValorMedicao.objects.filter(
+                    medicao__solicitacao_medicao_inicial=solicitacao,
+                    nome_campo="observacao",
+                    medicao__periodo_escolar__nome=inclusao["periodo_escolar"],
+                    dia=inclusao["dia"],
+                    categoria_medicao=categoria_medicao,
+                ).exclude(valor=None)
+                if not valor_observacao:
+                    periodo_com_erro = True
     if periodo_com_erro:
         lista_erros.append(
             {
@@ -843,20 +991,8 @@ def buscar_valores_lancamento_dietas_inclusoes(
 
 
 def get_alimentacoes_permitidas(solicitacao, escola, periodo_escolar):
-    permissoes_especiais = PermissaoLancamentoEspecial.objects.filter(
-        Q(
-            data_inicial__month__lte=int(solicitacao.mes),
-            data_inicial__year=int(solicitacao.ano),
-            data_final=None,
-        )
-        | Q(
-            data_inicial__month__lte=int(solicitacao.mes),
-            data_inicial__year=int(solicitacao.ano),
-            data_final__month=int(solicitacao.mes),
-            data_final__year=int(solicitacao.ano),
-        ),
-        escola=escola,
-        periodo_escolar=periodo_escolar,
+    permissoes_especiais = get_permissoes_especiais_da_solicitacao(
+        solicitacao, escola, periodo_escolar
     )
     alimentacoes_permitidas = list(
         set(
@@ -883,8 +1019,7 @@ def get_permissoes_especiais_da_solicitacao(solicitacao, escola, periodo_escolar
         | Q(
             data_inicial__month__lte=int(solicitacao.mes),
             data_inicial__year=int(solicitacao.ano),
-            data_final__month=int(solicitacao.mes),
-            data_final__year=int(solicitacao.ano),
+            data_final__year__gte=int(solicitacao.ano),
         ),
         escola=escola,
         periodo_escolar=periodo_escolar,
@@ -910,7 +1045,7 @@ def get_alimentacoes_permitidas_emei_cemei(permissoes_especiais):
     return alimentacoes_permitidas
 
 
-def validate_lancamento_inclusoes(solicitacao, lista_erros):
+def validate_lancamento_inclusoes(solicitacao, lista_erros, eh_emebs=False):
     escola = solicitacao.escola
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
     list_inclusoes = []
@@ -957,7 +1092,7 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
             )
     for inclusao in list_inclusoes:
         lista_erros = buscar_valores_lancamento_inclusoes(
-            inclusao, solicitacao, categoria_medicao, lista_erros
+            inclusao, solicitacao, categoria_medicao, lista_erros, eh_emebs
         )
     return erros_unicos(lista_erros)
 
@@ -1097,7 +1232,7 @@ def get_inclusoes_filtradas_cei_cemei(inclusoes, dia, mes, ano, medicao):
     return inclusoes_.distinct()
 
 
-def get_inclusoes_filtradas_emef(inclusoes, dia, mes, ano, medicao):
+def get_inclusoes_filtradas_emef_emebs(inclusoes, dia, mes, ano, medicao):
     inclusoes_ = inclusoes.filter(
         inclusoes_normais__data=datetime.date(int(ano), int(mes), int(dia)),
         inclusoes_normais__cancelado=False,
@@ -1228,7 +1363,7 @@ def get_lista_erros_inclusoes_cei_cemei(
     return lista_erros
 
 
-def get_lista_erros_inclusoes_dietas_emef(
+def get_lista_erros_inclusoes_dietas_emef_emebs(
     dias_nao_letivos,
     solicitacao,
     lista_erros,
@@ -1237,6 +1372,7 @@ def get_lista_erros_inclusoes_dietas_emef(
     ano,
     categoria,
     logs,
+    eh_emebs=False,
 ):
     logs_ = list(
         set(
@@ -1245,6 +1381,7 @@ def get_lista_erros_inclusoes_dietas_emef(
                 "periodo_escolar_id",
                 "quantidade",
                 "classificacao_id",
+                "infantil_ou_fundamental",
             ).distinct()
         )
     )
@@ -1257,28 +1394,34 @@ def get_lista_erros_inclusoes_dietas_emef(
                         "nome_campo",
                         "categoria_medicao_id",
                         "dia",
+                        "infantil_ou_fundamental",
                     )
                 )
             )
             periodo_com_erro = False
             if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
                 continue
-            inclusoes_ = get_inclusoes_filtradas_emef(inclusoes, dia, mes, ano, medicao)
+            inclusoes_ = get_inclusoes_filtradas_emef_emebs(
+                inclusoes, dia, mes, ano, medicao
+            )
             if not inclusoes_.exists():
                 continue
-            periodo_com_erro = validate_lancamento_alimentacoes_medicao_emef_dietas(
-                lista_erros,
-                medicao,
-                logs_,
-                ano,
-                mes,
-                dia,
-                categoria,
-                classificacoes,
-                periodo_com_erro,
-                valores_medicao_,
-                solicitacao.escola,
-                inclusoes_,
+            periodo_com_erro = (
+                validate_lancamento_alimentacoes_medicao_emef_emebs_dietas(
+                    lista_erros,
+                    medicao,
+                    logs_,
+                    ano,
+                    mes,
+                    dia,
+                    categoria,
+                    classificacoes,
+                    periodo_com_erro,
+                    valores_medicao_,
+                    solicitacao.escola,
+                    inclusoes_,
+                    eh_emebs,
+                )
             )
             if periodo_com_erro:
                 lista_erros.append(
@@ -1516,7 +1659,9 @@ def validate_lancamento_inclusoes_cei(solicitacao, lista_erros):
     return lista_erros
 
 
-def validate_lancamento_inclusoes_dietas_emef(solicitacao, lista_erros):
+def validate_lancamento_inclusoes_dietas_emef_emebs(
+    solicitacao, lista_erros, eh_emebs=False
+):
     escola = solicitacao.escola
     mes = solicitacao.mes
     ano = solicitacao.ano
@@ -1538,7 +1683,7 @@ def validate_lancamento_inclusoes_dietas_emef(solicitacao, lista_erros):
     )
     categorias = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
     for categoria in categorias:
-        lista_erros = get_lista_erros_inclusoes_dietas_emef(
+        lista_erros = get_lista_erros_inclusoes_dietas_emef_emebs(
             dias_nao_letivos,
             solicitacao,
             lista_erros,
@@ -1547,6 +1692,7 @@ def validate_lancamento_inclusoes_dietas_emef(solicitacao, lista_erros):
             ano,
             categoria,
             logs,
+            eh_emebs,
         )
     return lista_erros
 
@@ -1714,18 +1860,20 @@ def validate_lancamento_dietas_emef(solicitacao, lista_erros):
                 periodo_com_erro = False
                 if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
                     continue
-                periodo_com_erro = validate_lancamento_alimentacoes_medicao_emef_dietas(
-                    lista_erros,
-                    medicao,
-                    logs_,
-                    ano,
-                    mes,
-                    dia,
-                    categoria,
-                    classificacoes,
-                    periodo_com_erro,
-                    valores_medicao_,
-                    escola,
+                periodo_com_erro = (
+                    validate_lancamento_alimentacoes_medicao_emef_emebs_dietas(
+                        lista_erros,
+                        medicao,
+                        logs_,
+                        ano,
+                        mes,
+                        dia,
+                        categoria,
+                        classificacoes,
+                        periodo_com_erro,
+                        valores_medicao_,
+                        escola,
+                    )
                 )
                 if periodo_com_erro:
                     lista_erros.append(
@@ -2094,6 +2242,28 @@ def build_nomes_campos_alimentacoes_programas_e_projetos(
     return nomes_campos
 
 
+def valida_campo_a_campo_alimentacao_continua(
+    periodo_com_erro, nomes_campos, medicao_programas_projetos, categoria, dia, eh_emebs
+):
+    campos_infantil_ou_fundamental = [ValorMedicao.NA]
+    if eh_emebs:
+        campos_infantil_ou_fundamental = [
+            ValorMedicao.INFANTIL,
+            ValorMedicao.FUNDAMENTAL,
+        ]
+    for nome_campo in nomes_campos:
+        for campo_infantil_ou_fundamental in campos_infantil_ou_fundamental:
+            if not medicao_programas_projetos.valores_medicao.filter(
+                categoria_medicao=categoria,
+                nome_campo=nome_campo,
+                dia=f"{dia:02d}",
+                infantil_ou_fundamental=campo_infantil_ou_fundamental,
+            ).exists():
+                periodo_com_erro = True
+                continue
+    return periodo_com_erro
+
+
 def valida_alimentacoes_solicitacoes_continuas(
     ano,
     mes,
@@ -2102,6 +2272,7 @@ def valida_alimentacoes_solicitacoes_continuas(
     quantidade_dias_mes,
     medicao_programas_projetos,
     eh_ceu_gestao=False,
+    eh_emebs=False,
 ):
     periodo_com_erro = False
     categoria = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
@@ -2110,6 +2281,11 @@ def valida_alimentacoes_solicitacoes_continuas(
     )
 
     for dia in range(1, quantidade_dias_mes + 1):
+        feriados = calendario.holidays(int(ano))
+        if dia in [
+            feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+        ]:
+            continue
         data = datetime.date(year=int(ano), month=int(mes), day=dia)
         dia_semana = data.weekday()
         if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
@@ -2128,18 +2304,37 @@ def valida_alimentacoes_solicitacoes_continuas(
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
-            or not escola.calendario.get(data=data).dia_letivo
+            or not escola.calendario.filter(data=data).first().dia_letivo
         ):
             continue
-        for nome_campo in nomes_campos:
-            if not medicao_programas_projetos.valores_medicao.filter(
-                categoria_medicao=categoria,
-                nome_campo=nome_campo,
-                dia=f"{dia:02d}",
-            ).exists():
-                periodo_com_erro = True
-                continue
+        periodo_com_erro = valida_campo_a_campo_alimentacao_continua(
+            periodo_com_erro,
+            nomes_campos,
+            medicao_programas_projetos,
+            categoria,
+            dia,
+            eh_emebs,
+        )
     return periodo_com_erro
+
+
+def get_inclusoes_continuas_filtradas_emei_cemei(
+    eh_ceu_gestao, medicao_programas_projetos, inclusoes, data, dia_semana
+):
+    if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
+        inclusoes_filtradas = inclusoes.filter(
+            data_inicial__lte=data,
+            data_final__gte=data,
+            quantidades_por_periodo__cancelado=False,
+        )
+    else:
+        inclusoes_filtradas = inclusoes.filter(
+            data_inicial__lte=data,
+            data_final__gte=data,
+            quantidades_por_periodo__cancelado=False,
+            quantidades_por_periodo__dias_semana__icontains=dia_semana,
+        )
+    return inclusoes_filtradas
 
 
 def valida_alimentacoes_solicitacoes_continuas_emei_cemei(
@@ -2158,26 +2353,21 @@ def valida_alimentacoes_solicitacoes_continuas_emei_cemei(
     )
 
     for dia in range(1, quantidade_dias_mes + 1):
+        feriados = calendario.holidays(int(ano))
+        if dia in [
+            feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+        ]:
+            continue
         data = datetime.date(year=int(ano), month=int(mes), day=dia)
         dia_semana = data.weekday()
-        if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
-            inclusoes_filtradas = inclusoes.filter(
-                data_inicial__lte=data,
-                data_final__gte=data,
-                quantidades_por_periodo__cancelado=False,
-            )
-        else:
-            inclusoes_filtradas = inclusoes.filter(
-                data_inicial__lte=data,
-                data_final__gte=data,
-                quantidades_por_periodo__cancelado=False,
-                quantidades_por_periodo__dias_semana__icontains=dia_semana,
-            )
+        inclusoes_filtradas = get_inclusoes_continuas_filtradas_emei_cemei(
+            eh_ceu_gestao, medicao_programas_projetos, inclusoes, data, dia_semana
+        )
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
             or (
-                not escola.calendario.get(data=data).dia_letivo
+                not escola.calendario.filter(data=data).first().dia_letivo
                 and not inclusoes_filtradas.exists()
             )
         ):
@@ -2215,23 +2405,42 @@ def tratar_nomes_campos_periodo_com_erro(
     dia,
     eh_ceu_gestao,
     periodo_com_erro_dieta,
+    infantil_ou_fundamental=ValorMedicao.NA,
 ):
     for nome_campo in nomes_campos:
         if not medicao_programas_projetos.valores_medicao.filter(
             categoria_medicao=categoria,
             nome_campo=nome_campo,
             dia=f"{dia:02d}",
+            infantil_ou_fundamental=infantil_ou_fundamental,
         ).exists():
             if eh_ceu_gestao and not medicao_programas_projetos.valores_medicao.filter(
                 categoria_medicao=categoria,
                 nome_campo="dietas_autorizadas",
                 dia=f"{dia:02d}",
                 valor__gt=0,
+                infantil_ou_fundamental=infantil_ou_fundamental,
             ):
                 continue
             periodo_com_erro_dieta = True
             continue
     return periodo_com_erro_dieta
+
+
+def incluir_lanche_4h_sol_continuas(nomes_campos, escola, medicao):
+    tipos_alimentacao = list(
+        VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            tipo_unidade_escolar=escola.tipo_unidade,
+            periodo_escolar__in=escola.periodos_escolares(
+                medicao.solicitacao_medicao_inicial.ano
+            ),
+        )
+        .values_list("tipos_alimentacao__nome", flat=True)
+        .distinct()
+    )
+    if "Lanche 4h" in tipos_alimentacao and "lanche_4h" not in nomes_campos:
+        nomes_campos.append("lanche_4h")
+    return nomes_campos
 
 
 def valida_dietas_solicitacoes_continuas(
@@ -2242,6 +2451,7 @@ def valida_dietas_solicitacoes_continuas(
     inclusoes,
     medicao_programas_projetos,
     eh_ceu_gestao=False,
+    infantil_ou_fundamental=ValorMedicao.NA,
 ):
     periodo_com_erro_dieta = False
 
@@ -2250,7 +2460,11 @@ def valida_dietas_solicitacoes_continuas(
     ids_categorias_existentes_no_mes = list(
         set(
             escola.logs_dietas_autorizadas.filter(
-                data__month=mes, data__year=ano, quantidade__gt=0
+                data__month=mes,
+                data__year=ano,
+                quantidade__gt=0,
+                periodo_escolar__nome=None,
+                infantil_ou_fundamental=infantil_ou_fundamental,
             )
             .exclude(classificacao__nome="Tipo C")
             .values_list("classificacao", flat=True)
@@ -2264,7 +2478,15 @@ def valida_dietas_solicitacoes_continuas(
         nomes_campos, categoria = get_nomes_campos_categoria(
             nomes_campos, classificacao, categorias
         )
+        nomes_campos = incluir_lanche_4h_sol_continuas(
+            nomes_campos, escola, medicao_programas_projetos
+        )
         for dia in range(1, quantidade_dias_mes + 1):
+            feriados = calendario.holidays(int(ano))
+            if dia in [
+                feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+            ]:
+                continue
             data = datetime.date(year=int(ano), month=int(mes), day=dia)
             dia_semana = data.weekday()
             inclusoes_filtradas = inclusoes.filter(
@@ -2276,7 +2498,7 @@ def valida_dietas_solicitacoes_continuas(
             if (
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
-                or not escola.calendario.get(data=data).dia_letivo
+                or not escola.calendario.filter(data=data).first().dia_letivo
             ):
                 continue
             periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
@@ -2286,6 +2508,7 @@ def valida_dietas_solicitacoes_continuas(
                 dia,
                 eh_ceu_gestao,
                 periodo_com_erro_dieta,
+                infantil_ou_fundamental,
             )
     return periodo_com_erro_dieta
 
@@ -2321,6 +2544,11 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
             nomes_campos, classificacao, categorias
         )
         for dia in range(1, quantidade_dias_mes + 1):
+            feriados = calendario.holidays(int(ano))
+            if dia in [
+                feriado[0].day for feriado in feriados if feriado[0].month == int(mes)
+            ]:
+                continue
             data = datetime.date(year=int(ano), month=int(mes), day=dia)
             dia_semana = data.weekday()
             inclusoes_filtradas = inclusoes.filter(
@@ -2341,7 +2569,7 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
                 or (
-                    not escola.calendario.get(data=data).dia_letivo
+                    not escola.calendario.filter(data=data).first().dia_letivo
                     and not inclusoes_filtradas.exists()
                 )
                 or not log_do_dia_maior_que_zero.exists()
@@ -2366,6 +2594,7 @@ def validate_solicitacoes_continuas(
     nome_secao,
     valida_dietas,
     eh_ceu_gestao=False,
+    eh_emebs=False,
 ):
     periodo_com_erro_dieta = False
     quantidade_dias_mes = calendar.monthrange(
@@ -2380,17 +2609,40 @@ def validate_solicitacoes_continuas(
         quantidade_dias_mes,
         medicao,
         eh_ceu_gestao,
+        eh_emebs,
     )
     if valida_dietas:
-        periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
-            solicitacao.escola,
-            solicitacao.mes,
-            solicitacao.ano,
-            quantidade_dias_mes,
-            inclusoes,
-            medicao,
-            eh_ceu_gestao,
-        )
+        if not eh_emebs:
+            periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.NA,
+            )
+        else:
+            periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.INFANTIL,
+            ) or valida_dietas_solicitacoes_continuas(
+                solicitacao.escola,
+                solicitacao.mes,
+                solicitacao.ano,
+                quantidade_dias_mes,
+                inclusoes,
+                medicao,
+                False,
+                ValorMedicao.FUNDAMENTAL,
+            )
 
     if periodo_com_erro_dieta:
         lista_erros.append(
@@ -2483,7 +2735,7 @@ def validate_solicitacoes_programas_e_projetos(solicitacao, lista_erros):
 # TODO: adicionar testes unitarios
 def _validate_solicitacoes_programas_e_projetos_emei_cemei(
     solicitacao, lista_erros, medicao
-):  # pragma: no cover
+):
     inclusoes = get_inclusoes_programas_projetos(solicitacao)
 
     if not inclusoes:
@@ -2614,6 +2866,24 @@ def validate_solicitacoes_programas_e_projetos_ceu_gestao(solicitacao, lista_err
     )
 
 
+def validate_solicitacoes_programas_e_projetos_emebs(solicitacao, lista_erros):
+    inclusoes = get_inclusoes_programas_projetos(solicitacao)
+    medicao_programas_projetos = solicitacao.get_medicao_programas_e_projetos
+    if not inclusoes or not medicao_programas_projetos:
+        return lista_erros
+
+    return validate_solicitacoes_continuas(
+        solicitacao,
+        lista_erros,
+        inclusoes,
+        medicao_programas_projetos,
+        "Programas e Projetos",
+        True,
+        False,
+        True,
+    )
+
+
 def valida_medicao_etec_inexistente_ceu_gestao(solicitacao, lista_erros):
     inclusoes = get_inclusoes_etec(solicitacao)
     if not inclusoes:
@@ -2652,7 +2922,7 @@ def _validate_medicao_cei_cemei(
     categoria_alimentacao,
     dias_nao_letivos,
     inclusoes,
-):  # pragma: no cover
+):
     categorias_dieta = CategoriaMedicao.objects.exclude(
         nome__icontains="ALIMENTAÇÃO"
     ).exclude(nome__icontains="ENTERAL")
@@ -2742,7 +3012,7 @@ def _validate_medicao_emei_cemei(
     mes,
     ano,
     dias_nao_letivos,
-):  # pragma: no cover
+):
     categorias_dieta = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
 
     logs_dietas_autorizadas = LogQuantidadeDietasAutorizadas.objects.filter(
@@ -2789,7 +3059,7 @@ def _validate_medicao_emei_cemei(
 
 
 # TODO: adicionar testes unitarios
-def validate_medicao_cemei(solicitacao):  # pragma: no cover
+def validate_medicao_cemei(solicitacao):
     ano = solicitacao.ano
     mes = solicitacao.mes
     escola = solicitacao.escola
@@ -2853,3 +3123,311 @@ def validate_medicao_cemei(solicitacao):  # pragma: no cover
             )
 
     return lista_erros
+
+
+def valida_medicoes_inexistentes_emebs(solicitacao, lista_erros):
+    for periodo_escolar_nome in solicitacao.escola.periodos_escolares_com_alunos:
+        if not solicitacao.medicoes.filter(
+            periodo_escolar__nome=periodo_escolar_nome
+        ).exists():
+            lista_erros.append(
+                {
+                    "periodo_escolar": periodo_escolar_nome,
+                    "erro": "Restam dias a serem lançados nas alimentações.",
+                }
+            )
+    return lista_erros
+
+
+def validate_lancamento_alimentacoes_medicao_emebs(solicitacao, lista_erros):
+    escola = solicitacao.escola
+    tipo_unidade = escola.tipo_unidade
+    categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
+    dias_letivos = get_lista_dias_letivos(solicitacao, escola)
+    for periodo_escolar in escola.periodos_escolares(solicitacao.ano):
+        alimentacoes_permitidas = get_alimentacoes_permitidas(
+            solicitacao, escola, periodo_escolar
+        )
+        vinculo = (
+            VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get(
+                tipo_unidade_escolar=tipo_unidade, periodo_escolar=periodo_escolar
+            )
+        )
+        alimentacoes_vinculadas = vinculo.tipos_alimentacao.exclude(
+            nome="Lanche Emergencial"
+        )
+        alimentacoes_vinculadas = list(
+            set(alimentacoes_vinculadas.values_list("nome", flat=True))
+        )
+        alimentacoes = alimentacoes_vinculadas + alimentacoes_permitidas
+        linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
+        lista_erros = buscar_valores_lancamento_alimentacoes_emebs(
+            linhas_da_tabela,
+            solicitacao,
+            periodo_escolar,
+            dias_letivos,
+            categoria_medicao,
+            lista_erros,
+        )
+    return erros_unicos(lista_erros)
+
+
+def buscar_valores_lancamento_alimentacoes_emebs(
+    linhas_da_tabela,
+    solicitacao,
+    periodo_escolar,
+    dias_letivos,
+    categoria_medicao,
+    lista_erros,
+):
+    periodo_com_erro = False
+    tipos_alunos = (
+        LogAlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=solicitacao.escola,
+            criado_em__year=solicitacao.ano,
+            criado_em__month=solicitacao.mes,
+            periodo_escolar=periodo_escolar,
+        )
+        .exclude(Q(quantidade_alunos=0) | Q(infantil_ou_fundamental="N/A"))
+        .values_list("infantil_ou_fundamental", flat=True)
+    )
+    tipos_alunos = list(set(tipos_alunos))
+    for tipo_aluno in tipos_alunos:
+        for nome_campo in linhas_da_tabela:
+            valores_da_medicao = (
+                ValorMedicao.objects.filter(
+                    medicao__solicitacao_medicao_inicial=solicitacao,
+                    nome_campo=nome_campo,
+                    medicao__periodo_escolar=periodo_escolar,
+                    dia__in=dias_letivos,
+                    categoria_medicao=categoria_medicao,
+                    infantil_ou_fundamental=tipo_aluno,
+                )
+                .exclude(valor=None)
+                .values_list("dia", flat=True)
+            )
+            valores_da_medicao = list(set(valores_da_medicao))
+            dias_matriculados_zero = ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao,
+                nome_campo="matriculados",
+                medicao__periodo_escolar=periodo_escolar,
+                dia__in=dias_letivos,
+                categoria_medicao=categoria_medicao,
+                infantil_ou_fundamental=tipo_aluno,
+                valor=0,
+            )
+            permissoes_especiais = get_permissoes_especiais_da_solicitacao(
+                solicitacao, solicitacao.escola, periodo_escolar
+            )
+            permissoes_especiais_agrupadas_por_dia = (
+                agrupa_permissoes_especiais_por_dia(
+                    permissoes_especiais, solicitacao.mes, solicitacao.ano
+                )
+            )
+            if len(valores_da_medicao) != (
+                len(dias_letivos)
+                - (0 if nome_campo == "matriculados" else len(dias_matriculados_zero))
+            ):
+                diferenca = list(set(dias_letivos) - set(valores_da_medicao))
+                for dia_sem_preenchimento in diferenca:
+                    valor_matriculados = ValorMedicao.objects.filter(
+                        medicao__solicitacao_medicao_inicial=solicitacao,
+                        nome_campo="matriculados",
+                        medicao__periodo_escolar=periodo_escolar,
+                        dia=dia_sem_preenchimento,
+                        categoria_medicao=categoria_medicao,
+                        infantil_ou_fundamental=tipo_aluno,
+                    ).first()
+                    if nome_campo in ALIMENTACOES_LANCAMENTOS_ESPECIAIS and (
+                        (
+                            not permissoes_especiais_agrupadas_por_dia.get(
+                                dia_sem_preenchimento
+                            )
+                        )
+                        or (valor_matriculados and valor_matriculados.valor == "0")
+                    ):
+                        continue
+                    valor_observacao = ValorMedicao.objects.filter(
+                        medicao__solicitacao_medicao_inicial=solicitacao,
+                        nome_campo="observacao",
+                        medicao__periodo_escolar=periodo_escolar,
+                        dia=dia_sem_preenchimento,
+                        categoria_medicao=categoria_medicao,
+                        infantil_ou_fundamental=tipo_aluno,
+                    ).exclude(valor=None)
+                    periodo_com_erro = checa_valor_observacao(
+                        valor_observacao, periodo_com_erro
+                    )
+    return checa_periodo_com_erro(periodo_com_erro, lista_erros, periodo_escolar)
+
+
+def checa_periodo_com_erro(periodo_com_erro, lista_erros, periodo_escolar):
+    if periodo_com_erro:
+        lista_erros.append(
+            {
+                "periodo_escolar": periodo_escolar.nome,
+                "erro": "Restam dias a serem lançados nas alimentações.",
+            }
+        )
+    return lista_erros
+
+
+def checa_valor_observacao(valor_observacao, periodo_com_erro):
+    if not valor_observacao:
+        periodo_com_erro = True
+    return periodo_com_erro
+
+
+def validate_lancamento_dietas_emebs(solicitacao, lista_erros):
+    ano = solicitacao.ano
+    mes = solicitacao.mes
+    escola = solicitacao.escola
+    categorias = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
+    logs = escola.logs_dietas_autorizadas.filter(data__month=mes, data__year=ano)
+    logs_ = list(
+        set(
+            logs.values_list(
+                "data",
+                "periodo_escolar_id",
+                "quantidade",
+                "classificacao_id",
+                "infantil_ou_fundamental",
+            ).distinct()
+        )
+    )
+    dias_letivos = list(
+        DiaCalendario.objects.filter(
+            escola=escola, data__month=mes, data__year=ano, dia_letivo=True
+        ).values_list("data__day", flat=True)
+    )
+    for categoria in categorias:
+        classificacoes = get_classificacoes_dietas(categoria)
+        for dia in dias_letivos:
+            for medicao in solicitacao.medicoes.all():
+                valores_medicao_ = list(
+                    set(
+                        medicao.valores_medicao.values_list(
+                            "nome_campo",
+                            "categoria_medicao_id",
+                            "dia",
+                            "infantil_ou_fundamental",
+                        )
+                    )
+                )
+                periodo_com_erro = False
+                if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                    continue
+                periodo_com_erro = (
+                    validate_lancamento_alimentacoes_medicao_emebs_dietas(
+                        lista_erros,
+                        medicao,
+                        logs_,
+                        ano,
+                        mes,
+                        dia,
+                        categoria,
+                        classificacoes,
+                        periodo_com_erro,
+                        valores_medicao_,
+                        escola,
+                    )
+                )
+                if periodo_com_erro:
+                    lista_erros.append(
+                        {
+                            "periodo_escolar": medicao.periodo_escolar.nome,
+                            "erro": "Restam dias a serem lançados nas dietas.",
+                        }
+                    )
+    return lista_erros
+
+
+def validate_lancamento_alimentacoes_medicao_emebs_dietas(
+    lista_erros,
+    medicao,
+    logs_,
+    ano,
+    mes,
+    dia,
+    categoria,
+    classificacoes,
+    periodo_com_erro,
+    valores_medicao_,
+    escola,
+    inclusoes=None,
+):
+    DATA_INDEX = 0
+    PERIODO_ESCOLAR_ID_INDEX = 1
+    QUANTIDADE_INDEX = 2
+    CLASSIFICACAO_ID_INDEX = 3
+    INFANTIL_OU_FUNDAMENTAL_INDEX = 4
+
+    NOME_CAMPO_INDEX = 0
+    CATEGORIA_MEDICAO_ID_INDEX = 1
+    DIA_ID = 2
+    INFANTIL_OU_FUNDAMENTAL_VALOR_INDEX = 3
+
+    nomes_campos = get_nomes_campos_emef_emebs_dietas(
+        inclusoes, escola, categoria, medicao
+    )
+    tipos_alunos = (
+        LogQuantidadeDietasAutorizadas.objects.filter(
+            escola=escola,
+            data__year=ano,
+            data__month=mes,
+            periodo_escolar=medicao.periodo_escolar,
+        )
+        .exclude(Q(quantidade=0) | Q(infantil_ou_fundamental="N/A"))
+        .values_list("infantil_ou_fundamental", flat=True)
+    )
+    tipos_alunos = list(set(tipos_alunos))
+    for tipo_aluno in tipos_alunos:
+        for nome_campo in nomes_campos:
+            if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                continue
+            quantidade = 0
+            for classificacao in classificacoes:
+                log = next(
+                    (
+                        log_
+                        for log_ in logs_
+                        if (
+                            log_[DATA_INDEX]
+                            == datetime.date(int(ano), int(mes), int(dia))
+                            and (
+                                log_[PERIODO_ESCOLAR_ID_INDEX]
+                                == medicao.periodo_escolar.id
+                                if medicao.periodo_escolar
+                                else None
+                            )
+                            and log_[CLASSIFICACAO_ID_INDEX] == classificacao.id
+                            and log_[INFANTIL_OU_FUNDAMENTAL_INDEX] == tipo_aluno
+                        )
+                    ),
+                    None,
+                )
+                quantidade += log[QUANTIDADE_INDEX] if log else 0
+            if quantidade == 0:
+                continue
+            valor_medicao = next(
+                (
+                    valor_medicao_
+                    for valor_medicao_ in valores_medicao_
+                    if (
+                        valor_medicao_[NOME_CAMPO_INDEX] == nome_campo
+                        and valor_medicao_[CATEGORIA_MEDICAO_ID_INDEX] == categoria.id
+                        and valor_medicao_[DIA_ID] == f"{dia:02d}"
+                        and valor_medicao_[INFANTIL_OU_FUNDAMENTAL_VALOR_INDEX]
+                        == tipo_aluno
+                    )
+                ),
+                None,
+            )
+            periodo_com_erro = checa_valor_medicao(valor_medicao, periodo_com_erro)
+    return periodo_com_erro
+
+
+def checa_valor_medicao(valor_medicao, periodo_com_erro):
+    if not valor_medicao:
+        periodo_com_erro = True
+    return periodo_com_erro

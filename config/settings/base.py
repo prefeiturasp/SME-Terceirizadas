@@ -82,6 +82,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
     "corsheaders",
+    "daphne",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

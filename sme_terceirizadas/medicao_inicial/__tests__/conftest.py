@@ -8,12 +8,18 @@ from model_mommy import mommy
 from sme_terceirizadas.dados_comuns.behaviors import TempoPasseio
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.escola.models import (
+    DiaCalendario,
+    Escola,
+    FaixaEtaria,
     LogAlunosMatriculadosPeriodoEscola,
+    PeriodoEscolar,
     TipoTurma,
 )
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
+    Medicao,
     PermissaoLancamentoEspecial,
+    SolicitacaoMedicaoInicial,
 )
 
 
@@ -219,6 +225,29 @@ def escola_cemei():
 
 
 @pytest.fixture
+def escola_emebs():
+    terceirizada = mommy.make("Terceirizada")
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL TESTE",
+    )
+    lote = mommy.make(
+        "Lote", terceirizada=terceirizada, diretoria_regional=diretoria_regional
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="EMEBS")
+    return mommy.make(
+        "Escola",
+        nome="EMEBS TESTE",
+        lote=lote,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade_escolar,
+        codigo_eol="000329",
+    )
+
+
+@pytest.fixture
 def escola_ceu_gestao():
     terceirizada = mommy.make("Terceirizada")
     lote = mommy.make("Lote", terceirizada=terceirizada)
@@ -353,6 +382,24 @@ def solicitacao_medicao_inicial_valores_cei(escola_cei, categoria_medicao):
         faixa_etaria=faixa_etaria,
     )
     return solicitacao_medicao
+
+
+@pytest.fixture
+def make_solicitacao_medicao_inicial(escola):
+    def handle(mes: int, ano: int, status: str | None = None):
+        tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+        solicitacao_medicao = mommy.make(
+            "SolicitacaoMedicaoInicial",
+            mes=mes,
+            ano=ano,
+            escola=escola,
+            rastro_lote=escola.lote,
+            status=status,
+        )
+        solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+        return solicitacao_medicao
+
+    return handle
 
 
 @pytest.fixture
@@ -542,6 +589,68 @@ def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
 
 
 @pytest.fixture
+def solicitacao_medicao_inicial_varios_valores_emebs(escola_emebs, categoria_medicao):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=12,
+        ano=2023,
+        escola=escola_emebs,
+        uuid="da921e20-50f9-41ae-b2dc-4311d47029e8",
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_manha = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_manha,
+    )
+    medicao_tarde = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_tarde,
+    )
+    categoria_dieta_a = mommy.make(
+        "CategoriaMedicao", nome="DIETA ESPECIAL - TIPO A ENTERAL"
+    )
+    categoria_dieta_b = mommy.make("CategoriaMedicao", nome="DIETA ESPECIAL - TIPO B")
+    tipos_turmas = ["INFANTIL", "FUNDAMENTAL"]
+
+    for dia in range(1, 15):
+        mommy.make(
+            "DiaCalendario",
+            escola=escola_emebs,
+            data=f"2023-12-{dia:02d}",
+            dia_letivo=True,
+        )
+
+    for dia in ["01", "02", "03", "04", "05"]:
+        for tipo_turma in tipos_turmas:
+            for campo in ["lanche", "refeicao", "sobremesa", "observacoes"]:
+                for categoria in [
+                    categoria_medicao,
+                    categoria_dieta_a,
+                    categoria_dieta_b,
+                ]:
+                    for medicao_ in [medicao_manha, medicao_tarde]:
+                        mommy.make(
+                            "ValorMedicao",
+                            dia=dia,
+                            nome_campo=campo,
+                            medicao=medicao_,
+                            categoria_medicao=categoria,
+                            valor=(
+                                "10"
+                                if campo != "observacoes"
+                                else f"observação {tipo_turma} dia {dia}"
+                            ),
+                            infantil_ou_fundamental=tipo_turma,
+                        )
+    return solicitacao_medicao
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial_varios_valores_ceu_gestao(
     escola_ceu_gestao,
     categoria_medicao,
@@ -552,10 +661,14 @@ def solicitacao_medicao_inicial_varios_valores_ceu_gestao(
     periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
     periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
     solicitacao_medicao = mommy.make(
-        "SolicitacaoMedicaoInicial", mes=12, ano=2023, escola=escola_ceu_gestao
+        "SolicitacaoMedicaoInicial",
+        mes=12,
+        ano=2023,
+        escola=escola_ceu_gestao,
+        uuid="416a47af-6022-4866-989f-9707b2213bfc",
     )
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
-    medicao = mommy.make(
+    medicao_manha = mommy.make(
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_manha,
@@ -572,7 +685,7 @@ def solicitacao_medicao_inicial_varios_valores_ceu_gestao(
             "sobremesa",
         ]:
             for categoria in [categoria_medicao, categoria_dieta_a, categoria_dieta_b]:
-                for medicao_ in [medicao]:
+                for medicao_ in [medicao_manha]:
                     mommy.make(
                         "ValorMedicao",
                         dia=dia,
@@ -802,6 +915,79 @@ def solicitacao_medicao_inicial_com_valores_repeticao(escola, categoria_medicao)
                     categoria_medicao=categoria_medicao,
                     valor="25",
                 )
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_dietas(
+    escola, categoria_medicao_dieta_a, categoria_medicao_dieta_b
+):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_noite = mommy.make("PeriodoEscolar", nome="NOITE")
+    grupo_programas_e_projetos = mommy.make("GrupoMedicao", nome="Programas e Projetos")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=4, ano=2023, escola=escola
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_manha = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_manha,
+    )
+    medicao_tarde = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_tarde,
+    )
+    medicao_integral = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_integral,
+    )
+    medicao_noite = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_noite,
+    )
+    medicao_programas_e_projetos = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        grupo=grupo_programas_e_projetos,
+    )
+    for categoria in [categoria_medicao_dieta_a, categoria_medicao_dieta_b]:
+        campos = [
+            "lanche",
+            "lanche_4h",
+        ]
+        if "TIPO A" in categoria.nome:
+            campos.append("refeicao")
+        for dia in ["10", "11"]:
+            for campo in campos:
+                for medicao_ in [
+                    medicao_tarde,
+                    medicao_integral,
+                    medicao_noite,
+                    medicao_programas_e_projetos,
+                ]:
+                    mommy.make(
+                        "ValorMedicao",
+                        dia=dia,
+                        nome_campo=campo,
+                        medicao=medicao_,
+                        categoria_medicao=categoria,
+                        valor="10",
+                    )
+        mommy.make(
+            "ValorMedicao",
+            dia="10",
+            nome_campo="lanche",
+            medicao=medicao_manha,
+            categoria_medicao=categoria_medicao_dieta_a,
+            valor="0",
+        )
     return solicitacao_medicao
 
 
@@ -1372,6 +1558,101 @@ def solicitacoes_medicao_inicial(escola):
 
 
 @pytest.fixture
+def solicitacoes_medicao_inicial_codae(escola):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    s1 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=4,
+        ano=2022,
+        escola=escola,
+        status="MEDICAO_APROVADA_PELA_DRE",
+    )
+    s1.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s2 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=7,
+        ano=2023,
+        escola=escola,
+        status="MEDICAO_APROVADA_PELA_DRE",
+    )
+    s2.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s3 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=2,
+        ano=2023,
+        escola=escola,
+        status="MEDICAO_CORRECAO_SOLICITADA_CODAE",
+    )
+    s3.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s4 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=12,
+        ano=2023,
+        escola=escola,
+        status="MEDICAO_CORRIGIDA_PARA_CODAE",
+    )
+    s4.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s5 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=3,
+        ano=2023,
+        escola=escola,
+        status="MEDICAO_APROVADA_PELA_CODAE",
+    )
+    s5.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s6 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=2,
+        ano=2024,
+        escola=escola,
+        status="MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE",
+    )
+    s6.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s1.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s2.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s3.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s4.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s5.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s6.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial_sem_arquivo(escola):
     tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas COloridas")
     solicitacao_medicao = mommy.make(
@@ -1809,6 +2090,50 @@ def client_autenticado_da_escola_cemei(client, django_user_model, escola_cemei):
 
 
 @pytest.fixture
+def client_autenticado_da_escola_ceu_gestao(
+    client, django_user_model, escola_ceu_gestao
+):
+    email = "user@escola_ceu_gestao.com"
+    password = "admin@123"
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
+    usuario = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="123456"
+    )
+    hoje = datetime.date.today()
+    mommy.make(
+        "Vinculo",
+        usuario=usuario,
+        instituicao=escola_ceu_gestao,
+        perfil=perfil_diretor,
+        data_inicial=hoje,
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola_emebs(client, django_user_model, escola_emebs):
+    email = "user@escola_emebs.com"
+    password = "admin@123"
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
+    usuario = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="123456"
+    )
+    hoje = datetime.date.today()
+    mommy.make(
+        "Vinculo",
+        usuario=usuario,
+        instituicao=escola_emebs,
+        perfil=perfil_diretor,
+        data_inicial=hoje,
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_adm_da_escola(client, django_user_model, escola):
     email = "user@escola_adm.com"
     password = "admin@1234"
@@ -2017,3 +2342,96 @@ def empenho(edital, contrato):
         valor_total="100.50",
     )
     return empenho
+
+
+@pytest.fixture
+def faixa_etaria():
+    return mommy.make(
+        "FaixaEtaria", inicio=1, fim=4, uuid="1d125c38-ce75-6974-b25d-a4874745b996"
+    )
+
+
+@pytest.fixture
+def make_log_matriculados_faixa_etaria_dia(faixa_etaria):
+    def handle(
+        dia: int,
+        escola: Escola,
+        solicitacao: SolicitacaoMedicaoInicial,
+        periodo_escolar: PeriodoEscolar,
+    ):
+        data = datetime.datetime(int(solicitacao.ano), int(solicitacao.mes), dia).date()
+        mommy.make(
+            "LogAlunosMatriculadosFaixaEtariaDia",
+            escola=escola,
+            data=data,
+            faixa_etaria=faixa_etaria,
+            periodo_escolar=periodo_escolar,
+            quantidade=10,
+        )
+
+    return handle
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_cemei_simples(escola_cemei):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=4, ano=2023, escola=escola_cemei
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def make_dia_letivo():
+    def handle(dia: int, mes: int, ano: int, escola: Escola):
+        data = datetime.datetime(ano, mes, dia).date()
+        return mommy.make(DiaCalendario, escola=escola, data=data, dia_letivo=True)
+
+    return handle
+
+
+@pytest.fixture
+def make_periodo_escolar():
+    def handle(nome: str):
+        return mommy.make("PeriodoEscolar", nome=nome)
+
+    return handle
+
+
+@pytest.fixture
+def make_medicao():
+    def handle(solicitacao: SolicitacaoMedicaoInicial, periodo_escolar: PeriodoEscolar):
+        return mommy.make(
+            "Medicao",
+            solicitacao_medicao_inicial=solicitacao,
+            periodo_escolar=periodo_escolar,
+        )
+
+    return handle
+
+
+@pytest.fixture
+def make_valor_medicao_faixa_etaria(categoria_medicao, faixa_etaria):
+    def handle(medicao: Medicao, valor: str, dia: int):
+        return mommy.make(
+            "ValorMedicao",
+            dia=str(dia).rjust(2, "0"),
+            semana="1",
+            nome_campo="frequencia",
+            medicao=medicao,
+            categoria_medicao=categoria_medicao,
+            valor=valor,
+            faixa_etaria=faixa_etaria,
+        )
+
+    return handle
+
+
+@pytest.fixture
+def make_valores_medicao():
+    def handle(*args, **kwargs):
+        return mommy.make("ValorMedicao", **kwargs)
+
+    return handle
