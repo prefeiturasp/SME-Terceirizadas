@@ -520,7 +520,7 @@ class Escola(
 
     @property
     def eh_parceira(self):
-        return self.tipo_gestao.nome == "PARCEIRA"
+        return self.tipo_gestao and self.tipo_gestao.nome == "PARCEIRA"
 
     @property
     def quantidade_alunos(self):

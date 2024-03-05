@@ -598,9 +598,12 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
         escola = solicitacao.escola_destino
     substituicao_ordenada = solicitacao.substituicoes.order_by("alimento__nome")
 
+    referencia = "unidade" if escola.eh_parceira else "empresa"
+
     html_string = render_to_string(
         "solicitacao_dieta_especial_protocolo.html",
         {
+            "referencia": referencia,
             "escola": escola,
             "solicitacao": solicitacao,
             "substituicoes": substituicao_ordenada,
