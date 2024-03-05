@@ -350,9 +350,7 @@ def build_nomes_campos_dietas_emef(escola, categoria, medicao):
     tipos_alimentacao = list(
         VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
             tipo_unidade_escolar=escola.tipo_unidade,
-            periodo_escolar__in=escola.periodos_escolares(
-                medicao.solicitacao_medicao_inicial.ano
-            ),
+            periodo_escolar=medicao.periodo_escolar,
         )
         .values_list("tipos_alimentacao__nome", flat=True)
         .distinct()
