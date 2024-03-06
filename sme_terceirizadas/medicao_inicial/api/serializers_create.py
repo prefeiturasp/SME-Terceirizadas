@@ -32,6 +32,7 @@ from sme_terceirizadas.escola.models import (
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    ClausulaDeDesconto,
     DiaSobremesaDoce,
     Empenho,
     GrupoMedicao,
@@ -1198,4 +1199,14 @@ class EmpenhoCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Empenho
+        fields = "__all__"
+
+
+class ClausulaDeDescontoCreateUpdateSerializer(serializers.ModelSerializer):
+    edital = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Edital.objects.all()
+    )
+
+    class Meta:
+        model = ClausulaDeDesconto
         fields = "__all__"

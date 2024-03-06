@@ -505,3 +505,24 @@ class Empenho(TemChaveExterna, CriadoEm, TemAlteradoEm):
         verbose_name = "Empenho"
         verbose_name_plural = "Empenhos"
         ordering = ["-alterado_em"]
+
+
+class ClausulaDeDesconto(TemChaveExterna, CriadoEm, TemAlteradoEm):
+    edital = models.ForeignKey(
+        "terceirizada.Edital",
+        on_delete=models.CASCADE,
+        related_name="clausula_desconto",
+    )
+    numero_clausula = models.CharField("Número da Cláusula", max_length=100)
+    item_clausula = models.CharField("Item da Cláusula", max_length=100)
+    porcentagem_desconto = models.DecimalField(max_digits=6, decimal_places=2)
+    descricao = models.TextField("Descrição")
+
+    def __str__(self):
+        return f"Edital: {self.edital.numero} - Cláusula {self.numero_clausula} - Item {self.item_clausula}"
+
+    class Meta:
+        verbose_name = "Cláusula de Desconto"
+        verbose_name_plural = "Cláusulas de Descontos"
+        ordering = ["-alterado_em"]
+        unique_together = ("edital", "numero_clausula", "item_clausula")
