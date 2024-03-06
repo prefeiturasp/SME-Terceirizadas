@@ -511,7 +511,7 @@ class ClausulaDeDesconto(TemChaveExterna, CriadoEm, TemAlteradoEm):
     edital = models.ForeignKey(
         "terceirizada.Edital",
         on_delete=models.CASCADE,
-        related_name="clausula_desconto",
+        related_name="clausulas_desconto",
     )
     numero_clausula = models.CharField("Número da Cláusula", max_length=100)
     item_clausula = models.CharField("Item da Cláusula", max_length=100)
