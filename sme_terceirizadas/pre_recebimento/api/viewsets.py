@@ -858,7 +858,7 @@ class LayoutDeEmbalagemModelViewSet(
         user = self.request.user
         if user.eh_fornecedor:
             return LayoutDeEmbalagem.objects.filter(
-                cronograma__empresa=user.vinculo_atual.instituicao
+                ficha_tecnica__empresa=user.vinculo_atual.instituicao
             ).order_by("-criado_em")
         return LayoutDeEmbalagem.objects.all().order_by("-criado_em")
 
@@ -1119,14 +1119,54 @@ class FichaTecnicaModelViewSet(
     @action(
         detail=False,
         methods=["GET"],
+        url_path="lista-simples",
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
+    )
+    def lista_simples(self, request, **kwargs):
+        usuario = self.request.user
+
+        qs = (
+            self.get_queryset().filter(empresa=usuario.vinculo_atual.instituicao)
+            if usuario.eh_empresa
+            else self.get_queryset()
+        )
+
+        qs = qs.exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO)
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=False,
+        methods=["GET"],
         url_path="lista-simples-sem-cronograma",
-        permission_classes=(PermissaoParaCriarCronograma,),
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
     )
     def lista_simples_sem_cronograma(self, request, **kwargs):
         qs = (
             self.get_queryset()
             .exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO)
             .exclude(cronograma__isnull=False)
+        )
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-simples-sem-layout-embalagem",
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
+    )
+    def lista_simples_sem_layout_embalagem(self, request, **kwargs):
+        usuario = self.request.user
+
+        qs = (
+            self.get_queryset().filter(empresa=usuario.vinculo_atual.instituicao)
+            if usuario.eh_empresa
+            else self.get_queryset()
+        )
+
+        qs = qs.exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO).exclude(
+            layout_embalagem__isnull=False
         )
 
         return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
