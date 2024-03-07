@@ -333,14 +333,6 @@ def get_assinatura_codae(logs):
     ).last()
 
 
-@register.simple_tag
-def get_sim_ou_nao(booleano):
-    if booleano is True:
-        return "SIM"
-    elif booleano is False:
-        return "NÃO"
-
-
 @register.filter
 def existe_inclusao_cancelada(solicitacao):
     status_ = (

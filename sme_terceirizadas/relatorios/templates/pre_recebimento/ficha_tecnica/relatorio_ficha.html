@@ -88,7 +88,7 @@
           <div class="row pb-3">
             <div class="col-4">
               O Produto é orgânico?
-              <span class="font-weight-bold"> {% get_sim_ou_nao ficha.organico %}</span> 
+              <span class="font-weight-bold"> {{ ficha.organico |yesno:"SIM,NÃO" }}</span> 
             </div>
             {% if ficha.organico %}
             <div class="col-8">
@@ -106,7 +106,7 @@
         <div class="row pb-3">
           <div class="col-12">
             O Produto contém ou pode conter ingredientes/aditivos alergênicos?
-            <span class="font-weight-bold"> {% get_sim_ou_nao ficha.alergenicos %}</span> 
+            <span class="font-weight-bold"> {{ ficha.alergenicos |yesno:"SIM,NÃO" }}</span> 
           </div>
         </div>
 
@@ -122,13 +122,13 @@
         <div class="row pb-3">
           <div class="col-12">
             O Produto contém glúten? Indicar conforme Lei Federal Nº 10.674/03, Anvisa.
-            <span class="font-weight-bold"> {% get_sim_ou_nao ficha.gluten %}</span> 
+            <span class="font-weight-bold"> {{ ficha.gluten |yesno:"SIM,NÃO" }}</span> 
           </div>
         </div>
 
         <div class="row pb-3">
           <div class="col-12">O Produto contém lactose?
-            <span class="font-weight-bold"> {% get_sim_ou_nao ficha.lactose %}</span> 
+            <span class="font-weight-bold"> {{ ficha.lactose |yesno:"SIM,NÃO" }}</span> 
           </div>
         </div>
 
