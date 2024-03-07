@@ -47,6 +47,7 @@ from ...escola.models import (
 from ..models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    ClausulaDeDesconto,
     DiaParaCorrigir,
     DiaSobremesaDoce,
     Empenho,
@@ -86,6 +87,7 @@ from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     AlimentacaoLancamentoEspecialSerializer,
     CategoriaMedicaoSerializer,
+    ClausulaDeDescontoSerializer,
     DiaParaCorrigirSerializer,
     DiaSobremesaDoceSerializer,
     EmpenhoSerializer,
@@ -98,6 +100,7 @@ from .serializers import (
     ValorMedicaoSerializer,
 )
 from .serializers_create import (
+    ClausulaDeDescontoCreateUpdateSerializer,
     DiaSobremesaDoceCreateManySerializer,
     EmpenhoCreateUpdateSerializer,
     MedicaoCreateUpdateSerializer,
@@ -1595,3 +1598,16 @@ class RelatoriosViewSet(ViewSet):
         resultados = obtem_resultados(mes, ano, query_params)
 
         return Response(data=resultados, status=status.HTTP_200_OK)
+
+
+class ClausulaDeDescontoViewSet(ModelViewSet):
+    lookup_field = "uuid"
+    permission_classes = [UsuarioCODAEGestaoAlimentacao]
+    queryset = ClausulaDeDesconto.objects.all()
+    serializer_class = ClausulaDeDescontoSerializer
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return ClausulaDeDescontoCreateUpdateSerializer
+        return ClausulaDeDescontoSerializer

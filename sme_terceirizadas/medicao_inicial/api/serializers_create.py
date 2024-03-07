@@ -32,6 +32,7 @@ from sme_terceirizadas.escola.models import (
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    ClausulaDeDesconto,
     DiaSobremesaDoce,
     Empenho,
     GrupoMedicao,
@@ -1116,27 +1117,68 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 mes = int(instance.solicitacao_medicao_inicial.mes)
                 ano = int(instance.solicitacao_medicao_inicial.ano)
                 semana = ValorMedicao.get_week_of_month(ano, mes, dia)
-                ValorMedicao.objects.update_or_create(
-                    medicao=instance,
-                    dia=valor_medicao.get("dia", ""),
-                    semana=semana,
-                    nome_campo=valor_medicao.get("nome_campo", ""),
-                    categoria_medicao=valor_medicao.get("categoria_medicao", ""),
-                    tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
-                    faixa_etaria=valor_medicao.get("faixa_etaria", None),
-                    infantil_ou_fundamental=infantil_ou_fundamental,
-                    defaults={
-                        "medicao": instance,
-                        "dia": valor_medicao.get("dia", ""),
-                        "semana": semana,
-                        "valor": valor_medicao.get("valor", ""),
-                        "nome_campo": valor_medicao.get("nome_campo", ""),
-                        "categoria_medicao": valor_medicao.get("categoria_medicao", ""),
-                        "tipo_alimentacao": valor_medicao.get("tipo_alimentacao", None),
-                        "faixa_etaria": valor_medicao.get("faixa_etaria", None),
-                        "infantil_ou_fundamental": infantil_ou_fundamental,
-                    },
-                )
+                try:
+                    ValorMedicao.objects.update_or_create(
+                        medicao=instance,
+                        dia=valor_medicao.get("dia", ""),
+                        semana=semana,
+                        nome_campo=valor_medicao.get("nome_campo", ""),
+                        categoria_medicao=valor_medicao.get("categoria_medicao", ""),
+                        tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
+                        faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                        infantil_ou_fundamental=infantil_ou_fundamental,
+                        defaults={
+                            "medicao": instance,
+                            "dia": valor_medicao.get("dia", ""),
+                            "semana": semana,
+                            "valor": valor_medicao.get("valor", ""),
+                            "nome_campo": valor_medicao.get("nome_campo", ""),
+                            "categoria_medicao": valor_medicao.get(
+                                "categoria_medicao", ""
+                            ),
+                            "tipo_alimentacao": valor_medicao.get(
+                                "tipo_alimentacao", None
+                            ),
+                            "faixa_etaria": valor_medicao.get("faixa_etaria", None),
+                            "infantil_ou_fundamental": infantil_ou_fundamental,
+                        },
+                    )
+                except ValorMedicao.MultipleObjectsReturned:
+                    ValorMedicao.objects.filter(
+                        medicao=instance,
+                        dia=valor_medicao.get("dia", ""),
+                        semana=semana,
+                        nome_campo=valor_medicao.get("nome_campo", ""),
+                        categoria_medicao=valor_medicao.get("categoria_medicao", ""),
+                        tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
+                        faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                        infantil_ou_fundamental=infantil_ou_fundamental,
+                    ).first().delete()
+                    ValorMedicao.objects.update_or_create(
+                        medicao=instance,
+                        dia=valor_medicao.get("dia", ""),
+                        semana=semana,
+                        nome_campo=valor_medicao.get("nome_campo", ""),
+                        categoria_medicao=valor_medicao.get("categoria_medicao", ""),
+                        tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
+                        faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                        infantil_ou_fundamental=infantil_ou_fundamental,
+                        defaults={
+                            "medicao": instance,
+                            "dia": valor_medicao.get("dia", ""),
+                            "semana": semana,
+                            "valor": valor_medicao.get("valor", ""),
+                            "nome_campo": valor_medicao.get("nome_campo", ""),
+                            "categoria_medicao": valor_medicao.get(
+                                "categoria_medicao", ""
+                            ),
+                            "tipo_alimentacao": valor_medicao.get(
+                                "tipo_alimentacao", None
+                            ),
+                            "faixa_etaria": valor_medicao.get("faixa_etaria", None),
+                            "infantil_ou_fundamental": infantil_ou_fundamental,
+                        },
+                    )
         eh_observacao = self.context["request"].data.get(
             "eh_observacao",
         )
@@ -1198,4 +1240,14 @@ class EmpenhoCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Empenho
+        fields = "__all__"
+
+
+class ClausulaDeDescontoCreateUpdateSerializer(serializers.ModelSerializer):
+    edital = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Edital.objects.all()
+    )
+
+    class Meta:
+        model = ClausulaDeDesconto
         fields = "__all__"
