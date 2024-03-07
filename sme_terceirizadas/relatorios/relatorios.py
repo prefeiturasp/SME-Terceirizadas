@@ -404,7 +404,7 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao):  # noqa C901
     )
 
 
-def relatorio_dieta_especial_conteudo(solicitacao):
+def relatorio_dieta_especial_conteudo(solicitacao, request=None):
     if solicitacao.tipo_solicitacao == "COMUM":
         escola = solicitacao.rastro_escola
     else:
@@ -423,6 +423,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
     else:
         fluxo = constants.FLUXO_DIETA_ESPECIAL
     eh_importado = solicitacao.eh_importado
+    usuario = request.user
     html_string = render_to_string(
         "solicitacao_dieta_especial.html",
         {
@@ -435,6 +436,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             "logs": formata_logs(logs),
             "eh_importado": eh_importado,
             "foto_aluno": solicitacao.aluno.foto_aluno_base64,
+            "tipo_usuario": usuario.tipo_usuario if usuario else None,
         },
     )
     return html_string
@@ -576,7 +578,7 @@ def relatorio_guia_de_remessa(guias, is_async=False):  # noqa C901
 
 
 def relatorio_dieta_especial(request, solicitacao):
-    html_string = relatorio_dieta_especial_conteudo(solicitacao)
+    html_string = relatorio_dieta_especial_conteudo(solicitacao, request)
     return html_to_pdf_response(
         html_string, f"dieta_especial_{solicitacao.id_externo}.pdf"
     )
