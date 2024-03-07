@@ -423,6 +423,11 @@ def relatorio_dieta_especial_conteudo(solicitacao):
     else:
         fluxo = constants.FLUXO_DIETA_ESPECIAL
     eh_importado = solicitacao.eh_importado
+    log_cancelamento = [
+        log
+        for log in logs
+        if log.status_evento == LogSolicitacoesUsuario.ESCOLA_CANCELOU
+    ]
     html_string = render_to_string(
         "solicitacao_dieta_especial.html",
         {
@@ -435,6 +440,9 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             "logs": formata_logs(logs),
             "eh_importado": eh_importado,
             "foto_aluno": solicitacao.aluno.foto_aluno_base64,
+            "justificativa_cancelamento": (
+                log_cancelamento[0].justificativa if log_cancelamento else None
+            ),
         },
     )
     return html_string
