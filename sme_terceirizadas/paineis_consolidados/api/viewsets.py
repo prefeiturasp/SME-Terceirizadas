@@ -226,6 +226,38 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         solicitacoes = MoldeConsolidado.solicitacoes_detalhadas(solicitacoes, request)
         return Response(dict(data=solicitacoes, status=HTTP_200_OK))
 
+    def filtro_geral_totalizadores(self, request, model, queryset, map_filtros_=None):
+        tipo_doc = request.data.get("tipos_solicitacao", [])
+        unidades_educacionais = request.data.get("unidades_educacionais", [])
+        lotes = request.data.get("lotes", [])
+        terceirizada = request.data.get("terceirizada", [])
+        tipos_unidade = request.data.get("tipos_unidade", [])
+        periodo_datas = {
+            "data_evento": request.data.get("de", None),
+            "data_evento_fim": request.data.get("ate", None),
+        }
+
+        queryset = model.busca_periodo_de_datas(
+            queryset,
+            data_evento=periodo_datas["data_evento"],
+            data_evento_fim=periodo_datas["data_evento_fim"],
+        )
+        if not map_filtros_:
+            map_filtros = {
+                "lote_uuid__in": lotes,
+                "escola_uuid__in": unidades_educacionais,
+                "terceirizada_uuid": terceirizada,
+                "tipo_doc__in": tipo_doc,
+                "escola_tipo_unidade_uuid__in": tipos_unidade,
+            }
+        else:
+            map_filtros = map_filtros_
+        filtros = {
+            key: value for key, value in map_filtros.items() if value not in [None, []]
+        }
+        queryset = queryset.filter(**filtros)
+        return queryset
+
     def totalizador_rede_municipal(self, request, queryset, list_cards_totalizadores):
         tipo_doc = request.data.get("tipos_solicitacao", [])
         unidades_educacionais = request.data.get("unidades_educacionais", [])
@@ -280,22 +312,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         if nenhum_filtro:
             return list_cards_totalizadores
 
-        queryset = model.busca_periodo_de_datas(
-            queryset,
-            data_evento=periodo_datas["data_evento"],
-            data_evento_fim=periodo_datas["data_evento_fim"],
-        )
-        map_filtros = {
-            "lote_uuid__in": lotes,
-            "escola_uuid__in": unidades_educacionais,
-            "terceirizada_uuid": terceirizada,
-            "tipo_doc__in": tipo_doc,
-            "escola_tipo_unidade_uuid__in": tipos_unidade,
-        }
-        filtros = {
-            key: value for key, value in map_filtros.items() if value not in [None, []]
-        }
-        queryset = queryset.filter(**filtros).order_by("escola_nome")
+        queryset = self.filtro_geral_totalizadores(request, model, queryset)
         list_cards_totalizadores.append(
             {"Total": self.count_query_set_sem_duplicados(queryset)}
         )
@@ -307,28 +324,19 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         lotes = request.data.get("lotes", [])
         terceirizada = request.data.get("terceirizada", [])
         tipos_unidade = request.data.get("tipos_unidade", [])
-        periodo_datas = {
-            "data_evento": request.data.get("de", None),
-            "data_evento_fim": request.data.get("ate", None),
-        }
 
         if not lotes or unidades_educacionais:
             return list_cards_totalizadores
 
-        queryset = model.busca_periodo_de_datas(
-            queryset,
-            data_evento=periodo_datas["data_evento"],
-            data_evento_fim=periodo_datas["data_evento_fim"],
-        )
         map_filtros = {
             "terceirizada_uuid": terceirizada,
             "tipo_doc__in": tipo_doc,
             "escola_tipo_unidade_uuid__in": tipos_unidade,
         }
-        filtros = {
-            key: value for key, value in map_filtros.items() if value not in [None, []]
-        }
-        queryset = queryset.filter(**filtros).order_by("escola_nome")
+        queryset = self.filtro_geral_totalizadores(
+            request, model, queryset, map_filtros
+        )
+
         for lote_uuid in lotes:
             lote_nome = Lote.objects.get(uuid=lote_uuid).nome
             list_cards_totalizadores.append(
@@ -341,32 +349,11 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return list_cards_totalizadores
 
     def totalizador_periodo(self, request, model, queryset, list_cards_totalizadores):
-        tipo_doc = request.data.get("tipos_solicitacao", [])
-        unidades_educacionais = request.data.get("unidades_educacionais", [])
-        lotes = request.data.get("lotes", [])
-        terceirizada = request.data.get("terceirizada", [])
-        tipos_unidade = request.data.get("tipos_unidade", [])
+        queryset = self.filtro_geral_totalizadores(request, model, queryset)
         periodo_datas = {
             "data_evento": request.data.get("de", None),
             "data_evento_fim": request.data.get("ate", None),
         }
-
-        queryset = model.busca_periodo_de_datas(
-            queryset,
-            data_evento=periodo_datas["data_evento"],
-            data_evento_fim=periodo_datas["data_evento_fim"],
-        )
-        map_filtros = {
-            "lote_uuid__in": lotes,
-            "escola_uuid__in": unidades_educacionais,
-            "terceirizada_uuid": terceirizada,
-            "tipo_doc__in": tipo_doc,
-            "escola_tipo_unidade_uuid__in": tipos_unidade,
-        }
-        filtros = {
-            key: value for key, value in map_filtros.items() if value not in [None, []]
-        }
-        queryset = queryset.filter(**filtros).order_by("escola_nome")
 
         if periodo_datas["data_evento"] and not periodo_datas["data_evento_fim"]:
             list_cards_totalizadores.append(
@@ -387,7 +374,8 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         elif periodo_datas["data_evento"] and periodo_datas["data_evento_fim"]:
             list_cards_totalizadores.append(
                 {
-                    f"Período: {periodo_datas['data_evento']} até {periodo_datas['data_evento_fim']}": self.count_query_set_sem_duplicados(
+                    f"Período: {periodo_datas['data_evento']} até "
+                    f"{periodo_datas['data_evento_fim']}": self.count_query_set_sem_duplicados(
                         queryset
                     )
                 }
