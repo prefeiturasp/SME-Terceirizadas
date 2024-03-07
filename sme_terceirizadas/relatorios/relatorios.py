@@ -29,6 +29,7 @@ from ..medicao_inicial.utils import (
     build_tabelas_relatorio_medicao_cemei,
     build_tabelas_relatorio_medicao_emebs,
 )
+from ..pre_recebimento.api.helpers import retorna_status_ficha_tecnica
 from ..relatorios.utils import (
     html_to_pdf_cancelada,
     html_to_pdf_file,
@@ -1634,4 +1635,20 @@ def get_pdf_cronograma(request, cronograma):
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"cronogram_{cronograma.numero}.pdf",
+    )
+
+
+def get_pdf_ficha_tecnica(request, ficha):
+    html_string = render_to_string(
+        "pre_recebimento/ficha_tecnica/ficha_tecnica.html",
+        {
+            "ficha": ficha,
+            "empresa": ficha.empresa,
+            "status_ficha": retorna_status_ficha_tecnica(ficha.status),
+        },
+    )
+    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    return html_to_pdf_response(
+        html_string.replace("dt_file", data_arquivo),
+        f"ficha_tecnica_{ficha.numero}.pdf",
     )
