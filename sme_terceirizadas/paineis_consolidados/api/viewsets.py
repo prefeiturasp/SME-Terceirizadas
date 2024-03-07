@@ -107,6 +107,10 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     @classmethod
+    def count_query_set_sem_duplicados(self, query_set):
+        return len(set(query_set.values_list("uuid", flat=True)))
+
+    @classmethod
     def remove_duplicados_do_query_set(self, query_set):
         """_remove_duplicados_do_query_set é criado por não ser possível juntar order_by e distinct na mesma query."""
         # TODO: se alguém descobrir como ordenar a query e tirar os uuids
@@ -222,6 +226,140 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         solicitacoes = MoldeConsolidado.solicitacoes_detalhadas(solicitacoes, request)
         return Response(dict(data=solicitacoes, status=HTTP_200_OK))
 
+    def totalizador_rede_municipal(self, request, queryset, list_cards_totalizadores):
+        tipo_doc = request.data.get("tipos_solicitacao", [])
+        unidades_educacionais = request.data.get("unidades_educacionais", [])
+        lotes = request.data.get("lotes", [])
+        terceirizada = request.data.get("terceirizada", [])
+        tipos_unidade = request.data.get("tipos_unidade", [])
+        periodo_datas = {
+            "data_evento": request.data.get("de", None),
+            "data_evento_fim": request.data.get("ate", None),
+        }
+
+        nenhum_filtro = (
+            not tipo_doc
+            and not unidades_educacionais
+            and not lotes
+            and not terceirizada
+            and not tipos_unidade
+            and not periodo_datas["data_evento"]
+            and not periodo_datas["data_evento_fim"]
+        )
+        if nenhum_filtro:
+            list_cards_totalizadores.append(
+                {
+                    "Rede Municipal de Educação": self.count_query_set_sem_duplicados(
+                        queryset
+                    )
+                }
+            )
+        return list_cards_totalizadores
+
+    def totalizador_total(self, request, model, queryset, list_cards_totalizadores):
+        tipo_doc = request.data.get("tipos_solicitacao", [])
+        unidades_educacionais = request.data.get("unidades_educacionais", [])
+        lotes = request.data.get("lotes", [])
+        terceirizada = request.data.get("terceirizada", [])
+        tipos_unidade = request.data.get("tipos_unidade", [])
+        periodo_datas = {
+            "data_evento": request.data.get("de", None),
+            "data_evento_fim": request.data.get("ate", None),
+        }
+
+        nenhum_filtro = (
+            not tipo_doc
+            and not unidades_educacionais
+            and not lotes
+            and not terceirizada
+            and not tipos_unidade
+            and not periodo_datas["data_evento"]
+            and not periodo_datas["data_evento_fim"]
+        )
+
+        if nenhum_filtro:
+            return list_cards_totalizadores
+
+        queryset = model.busca_periodo_de_datas(
+            queryset,
+            data_evento=periodo_datas["data_evento"],
+            data_evento_fim=periodo_datas["data_evento_fim"],
+        )
+        map_filtros = {
+            "lote_uuid__in": lotes,
+            "escola_uuid__in": unidades_educacionais,
+            "terceirizada_uuid": terceirizada,
+            "tipo_doc__in": tipo_doc,
+            "escola_tipo_unidade_uuid__in": tipos_unidade,
+        }
+        filtros = {
+            key: value for key, value in map_filtros.items() if value not in [None, []]
+        }
+        queryset = queryset.filter(**filtros).order_by("escola_nome")
+        list_cards_totalizadores.append(
+            {"Total": self.count_query_set_sem_duplicados(queryset)}
+        )
+        return list_cards_totalizadores
+
+    def totalizador_periodo(self, request, model, queryset, list_cards_totalizadores):
+        periodo_datas = {
+            "data_evento": request.data.get("de", None),
+            "data_evento_fim": request.data.get("ate", None),
+        }
+
+        queryset = model.busca_periodo_de_datas(
+            queryset,
+            data_evento=periodo_datas["data_evento"],
+            data_evento_fim=periodo_datas["data_evento_fim"],
+        ).distinct()
+
+        if periodo_datas["data_evento"] and not periodo_datas["data_evento_fim"]:
+            list_cards_totalizadores.append(
+                {
+                    f"Período: a partir de {periodo_datas['data_evento']}": self.count_query_set_sem_duplicados(
+                        queryset
+                    )
+                }
+            )
+        elif not periodo_datas["data_evento"] and periodo_datas["data_evento_fim"]:
+            list_cards_totalizadores.append(
+                {
+                    f"Período: até {periodo_datas['data_evento_fim']}": self.count_query_set_sem_duplicados(
+                        queryset
+                    )
+                }
+            )
+        elif periodo_datas["data_evento"] and periodo_datas["data_evento_fim"]:
+            list_cards_totalizadores.append(
+                {
+                    f"Período: {periodo_datas['data_evento']} até {periodo_datas['data_evento_fim']}": self.count_query_set_sem_duplicados(
+                        queryset
+                    )
+                }
+            )
+        return list_cards_totalizadores
+
+    def filtrar_solicitacoes_para_relatorio_cards_totalizadores(self, request, model):
+        list_cards_totalizadores = []
+
+        status = request.data.get("status", None)
+        instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
+        queryset = model.map_queryset_por_status(
+            status, instituicao_uuid=instituicao_uuid
+        )
+
+        list_cards_totalizadores = self.totalizador_rede_municipal(
+            request, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = self.totalizador_total(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = self.totalizador_periodo(
+            request, model, queryset, list_cards_totalizadores
+        )
+
+        return list_cards_totalizadores
+
     def filtrar_solicitacoes_para_relatorio(self, request, model):
         status = request.data.get("status", None)
         instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
@@ -275,6 +413,27 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
                     queryset[offset : offset + limit], many=True
                 ).data,
                 "count": len(queryset),
+            },
+            status=HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="filtrar-solicitacoes-ga-cards-totalizadores",
+        permission_classes=(IsAuthenticated,),
+    )
+    def filtrar_solicitacoes_ga_cards_totalizadores(self, request):
+        # queryset por status
+        instituicao = request.user.vinculo_atual.instituicao
+        lista_cards_totalizadores = (
+            self.filtrar_solicitacoes_para_relatorio_cards_totalizadores(
+                request, MoldeConsolidado.classe_por_tipo_usuario(instituicao.__class__)
+            )
+        )
+        return Response(
+            data={
+                "results": lista_cards_totalizadores,
             },
             status=HTTP_200_OK,
         )
