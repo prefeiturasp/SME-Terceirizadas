@@ -418,6 +418,10 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA
         ).exists():
             fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO
+        elif solicitacao.logs.filter(
+            status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU
+        ).exists():
+            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_CANCELADO
         else:
             fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
     else:
