@@ -191,15 +191,18 @@ def test_solicitacao_alteracao_cronograma_queryset_filtrar_por_status(
 def test_layout_de_embalagem_instance_model(layout_de_embalagem):
     model = layout_de_embalagem
     assert isinstance(model, LayoutDeEmbalagem)
-    assert model.cronograma
+    assert model.ficha_tecnica
     assert model.observacoes
 
 
 def test_layout_de_embalagem_srt_model(layout_de_embalagem):
-    numero_cronograma = layout_de_embalagem.cronograma.numero
-    nome_produto_ficha = layout_de_embalagem.cronograma.ficha_tecnica.produto.nome
+    numero_ficha = layout_de_embalagem.ficha_tecnica.numero
+    produto_ficha = layout_de_embalagem.ficha_tecnica.produto.nome
 
-    assert str(layout_de_embalagem) == f"{numero_cronograma} - {nome_produto_ficha}"
+    assert (
+        str(layout_de_embalagem)
+        == f"Layout de Embalagens {numero_ficha} - {produto_ficha}"
+    )
 
 
 def test_layout_de_embalagem_meta_modelo(layout_de_embalagem):

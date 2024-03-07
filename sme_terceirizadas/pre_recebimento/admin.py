@@ -82,8 +82,8 @@ class TipoEmbalagemLayoutInline(NestedStackedInline):
 
 class LayoutDeEmbalagemAdmin(NestedModelAdmin):
     form = ArquivoForm
-    list_display = ("get_cronograma", "get_produto", "criado_em")
-    search_fields = ("cronograma__numero", "produto__nome")
+    list_display = ("__str__", "get_ficha_tecnica", "get_produto", "criado_em")
+    search_fields = ("ficha_tecnica__numero", "produto__nome")
     readonly_fields = ("uuid",)
     inlines = [
         TipoEmbalagemLayoutInline,
@@ -91,16 +91,16 @@ class LayoutDeEmbalagemAdmin(NestedModelAdmin):
 
     def get_produto(self, obj):
         try:
-            return obj.cronograma.ficha_tecnica.produto.nome
+            return obj.ficha_tecnica.produto.nome
         except AttributeError:
             return ""
 
     get_produto.short_description = "Produto"
 
-    def get_cronograma(self, obj):
-        return obj.cronograma.numero
+    def get_ficha_tecnica(self, obj):
+        return obj.ficha_tecnica.numero if obj.ficha_tecnica else ""
 
-    get_cronograma.short_description = "Cronograma"
+    get_ficha_tecnica.short_description = "Ficha Técnica"
 
 
 class ArquivoDoTipoDeDocumentoInline(NestedStackedInline):
