@@ -1213,6 +1213,12 @@ class SolicitacoesEscola(MoldeConsolidado):
                     status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
                     status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
                     escola_uuid=escola_uuid,
+                )
+                | Q(
+                    tipo_solicitacao_dieta="CANCELAMENTO_DIETA",
+                    status_atual=DietaEspecialWorkflow.ESCOLA_CANCELOU,
+                    status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                    escola_uuid=escola_uuid,
                 ),
                 tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
             )
