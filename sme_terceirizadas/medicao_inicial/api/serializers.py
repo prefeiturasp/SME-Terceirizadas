@@ -20,6 +20,7 @@ from sme_terceirizadas.escola.api.serializers import (
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    ClausulaDeDesconto,
     DiaParaCorrigir,
     DiaSobremesaDoce,
     Empenho,
@@ -32,6 +33,9 @@ from sme_terceirizadas.medicao_inicial.models import (
     ValorMedicao,
 )
 from sme_terceirizadas.perfil.api.serializers import UsuarioSerializer
+from sme_terceirizadas.terceirizada.api.serializers.serializers import (
+    EditalSimplesSerializer,
+)
 
 
 class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
@@ -258,4 +262,12 @@ class EmpenhoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Empenho
+        exclude = ("id", "criado_em", "alterado_em")
+
+
+class ClausulaDeDescontoSerializer(serializers.ModelSerializer):
+    edital = EditalSimplesSerializer()
+
+    class Meta:
+        model = ClausulaDeDesconto
         exclude = ("id", "criado_em", "alterado_em")

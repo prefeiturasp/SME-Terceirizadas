@@ -5,6 +5,7 @@ from django.contrib import admin
 from .models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    ClausulaDeDesconto,
     DiaSobremesaDoce,
     Empenho,
     GrupoMedicao,
@@ -141,4 +142,12 @@ class EmpenhoAdmin(admin.ModelAdmin):
     list_display = ("__str__", "contrato", "edital", "status", "alterado_em")
     search_fields = ("numero",)
     list_filter = ("alterado_em", "status")
+    ordering = ("-alterado_em",)
+
+
+@admin.register(ClausulaDeDesconto)
+class ClausulaDeDescontoAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "porcentagem_desconto", "criado_em", "alterado_em")
+    search_fields = ("edital__numero", "numero_clausula", "item_clausula")
+    list_filter = ("alterado_em",)
     ordering = ("-alterado_em",)
