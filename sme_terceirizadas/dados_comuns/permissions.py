@@ -593,6 +593,7 @@ class UsuarioDilogOuDistribuidor(BasePermission):
                     COORDENADOR_LOGISTICA,
                     COORDENADOR_CODAE_DILOG_LOGISTICA,
                     ADMINISTRADOR_CODAE_GABINETE,
+                    DILOG_DIRETORIA,
                 ]
                 or usuario.eh_distribuidor
             )
