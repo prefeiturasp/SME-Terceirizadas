@@ -151,4 +151,33 @@ def obtem_resultados(mes: str, ano: str, query_params: QueryDict):
 
 
 def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
-    pass
+    import pandas as pd
+
+    colunas = [
+        "Tipo de Alimentação",
+        "Total de Alimentações Servidas",
+        "Número Total de Frequência",
+        "% de Adesão",
+    ]
+
+    for periodo, refeicoes in resultados.items():
+        linhas = [
+            [refeicao, *totais.values()] for refeicao, totais in refeicoes.items()
+        ]
+        df = pd.DataFrame(data=linhas, columns=colunas)
+        total_servido = df[colunas[1]].sum()
+        total_frequencia = df[colunas[2]].sum()
+        totais = pd.DataFrame(
+            data=[
+                [
+                    "TOTAL",
+                    total_servido,
+                    total_frequencia,
+                    round(total_servido / total_frequencia, 4),
+                ]
+            ],
+            columns=colunas,
+        )
+        df = pd.concat([df, totais], ignore_index=True)
+        df[colunas[-1]] = df[colunas[-1]].map("{:.2%}".format)
+        print(df)
