@@ -72,10 +72,13 @@ def _atualiza_total_frequencia_e_adesao_para_cada_tipo_de_alimentacao(
     for tipo_alimentacao in resultados[medicao_nome].keys():
         tipo_alimentacao_totais = resultados[medicao_nome][tipo_alimentacao]
         tipo_alimentacao_totais["total_frequencia"] = total_frequencia
-        tipo_alimentacao_totais["total_adesao"] = round(
-            tipo_alimentacao_totais["total_servido"] / total_frequencia,
-            4,
-        )
+        try:
+            tipo_alimentacao_totais["total_adesao"] = round(
+                tipo_alimentacao_totais["total_servido"] / total_frequencia,
+                4,
+            )
+        except ZeroDivisionError:
+            tipo_alimentacao_totais["total_adesao"] = 0
 
     return resultados
 
