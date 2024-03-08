@@ -13,6 +13,13 @@
   </style>
 
   <div class="conteudo tabela-sem-borda">
+    {% if justificativa_cancelamento %}
+    <div class="bloco-pescritor-dieta-especial">
+      <h5>Justificativa do Cancelamento</h5>
+      {{justificativa_cancelamento|safe}}
+      <hr/>
+    </div>
+    {% endif %}
     {% include "bloco_fluxo_status_homologacao.html" with eh_importado=solicitacao.eh_importado %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="bloco-pescritor-dieta-especial">

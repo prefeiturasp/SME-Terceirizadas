@@ -491,12 +491,15 @@ class SolicitacaoDietaEspecialViewSet(
             solicitacao.ativo = False
             solicitacao.save()
             if solicitacao.tipo_solicitacao == "CANCELAMENTO_DIETA":
-                solicitacao.dieta_alterada.ativo = False
-                solicitacao.dieta_alterada.cancelar_pedido(
-                    user=request.user,
-                    justificativa=solicitacao.logs.first().justificativa,
-                    alta_medica=True,
-                )
+                if request.user.tipo_usuario == "escola":
+                    solicitacao.dieta_alterada.ativo = True
+                else:
+                    solicitacao.dieta_alterada.ativo = False
+                    solicitacao.dieta_alterada.cancelar_pedido(
+                        user=request.user,
+                        justificativa=solicitacao.logs.first().justificativa,
+                        alta_medica=True,
+                    )
                 solicitacao.dieta_alterada.save()
             if solicitacao.tipo_solicitacao == "ALTERACAO_UE":
                 solicitacao.dieta_alterada.ativo = True

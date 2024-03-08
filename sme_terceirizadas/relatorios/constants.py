@@ -77,3 +77,18 @@ FLUXO_DIETA_ESPECIAL_INATIVACAO = [
     },
     {"titulo": "CODAE", "status": "", "criado_em": "", "usuario": None},
 ]
+
+FLUXO_DIETA_ESPECIAL_INATIVACAO_CANCELADO = [
+    {
+        "titulo": "Escola solicitou cancelamento",
+        "status": "",
+        "criado_em": "",
+        "usuario": None,
+    },
+    {
+        "titulo": "Escola cancelou",
+        "status": "",
+        "criado_em": "",
+        "usuario": None,
+    },
+]

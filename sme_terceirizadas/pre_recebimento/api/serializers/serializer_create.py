@@ -417,27 +417,32 @@ class TipoDeEmbalagemDeLayoutCreateSerializer(serializers.ModelSerializer):
 
 
 class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
-    cronograma = serializers.UUIDField(required=False)
+    ficha_tecnica = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=FichaTecnicaDoProduto.objects.all(),
+        required=True,
+    )
     tipos_de_embalagens = TipoDeEmbalagemDeLayoutCreateSerializer(
         many=True, required=False
     )
     observacoes = serializers.CharField(required=False)
 
-    def validate_cronograma(self, value):
-        if value is not None:
-            cronograma = Cronograma.objects.filter(uuid=value)
-            if not cronograma:
-                raise serializers.ValidationError("Cronograma não existe")
+    def validate_ficha_tecnica(self, value):
+        if (
+            value is not None
+            and value.status == FichaTecnicaDoProduto.workflow_class.RASCUNHO
+        ):
+            raise serializers.ValidationError(
+                "Não é possível vincular com Ficha Técnica em rascunho."
+            )
+
         return value
 
     def create(self, validated_data):
         user = self.context["request"].user
 
-        uuid_cronograma = validated_data.pop("cronograma", None)
         tipos_de_embalagens = validated_data.pop("tipos_de_embalagens", [])
-        cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
         layout_de_embalagem = LayoutDeEmbalagem.objects.create(
-            cronograma=cronograma,
             **validated_data,
         )
         cria_tipos_de_embalagens(tipos_de_embalagens, layout_de_embalagem)
