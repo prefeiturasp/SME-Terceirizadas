@@ -405,7 +405,7 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao):  # noqa C901
     )
 
 
-def relatorio_dieta_especial_conteudo(solicitacao):
+def relatorio_dieta_especial_conteudo(solicitacao, request=None):
     if solicitacao.tipo_solicitacao == "COMUM":
         escola = solicitacao.rastro_escola
     else:
@@ -433,6 +433,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
         for log in logs
         if log.status_evento == LogSolicitacoesUsuario.ESCOLA_CANCELOU
     ]
+    usuario = request.user
     html_string = render_to_string(
         "solicitacao_dieta_especial.html",
         {
@@ -448,6 +449,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             "justificativa_cancelamento": (
                 log_cancelamento[0].justificativa if log_cancelamento else None
             ),
+            "tipo_usuario": usuario.tipo_usuario if usuario else None,
         },
     )
     return html_string
@@ -589,7 +591,7 @@ def relatorio_guia_de_remessa(guias, is_async=False):  # noqa C901
 
 
 def relatorio_dieta_especial(request, solicitacao):
-    html_string = relatorio_dieta_especial_conteudo(solicitacao)
+    html_string = relatorio_dieta_especial_conteudo(solicitacao, request)
     return html_to_pdf_response(
         html_string, f"dieta_especial_{solicitacao.id_externo}.pdf"
     )
