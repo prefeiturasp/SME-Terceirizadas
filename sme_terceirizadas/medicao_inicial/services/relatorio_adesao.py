@@ -148,3 +148,7 @@ def obtem_resultados(mes: str, ano: str, query_params: QueryDict):
         )
 
     return resultados
+
+
+def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
+    pass
