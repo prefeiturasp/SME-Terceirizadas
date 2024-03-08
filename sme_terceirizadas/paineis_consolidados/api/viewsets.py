@@ -307,11 +307,13 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             and not lotes
             and not terceirizada
             and not tipos_unidade
-            and not periodo_datas["data_evento"]
-            and not periodo_datas["data_evento_fim"]
         )
 
-        if nenhum_filtro:
+        if (
+            nenhum_filtro
+            or periodo_datas["data_evento"]
+            or periodo_datas["data_evento_fim"]
+        ):
             return list_cards_totalizadores
 
         queryset = self.filtro_geral_totalizadores(request, model, queryset)
@@ -511,6 +513,9 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         list_cards_totalizadores = self.totalizador_total(
             request, model, queryset, list_cards_totalizadores
         )
+        list_cards_totalizadores = self.totalizador_periodo(
+            request, model, queryset, list_cards_totalizadores
+        )
         list_cards_totalizadores = self.totalizador_lote(
             request, model, queryset, list_cards_totalizadores
         )
@@ -521,9 +526,6 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             request, model, queryset, list_cards_totalizadores
         )
         list_cards_totalizadores = self.totalizador_unidade_educacional(
-            request, model, queryset, list_cards_totalizadores
-        )
-        list_cards_totalizadores = self.totalizador_periodo(
             request, model, queryset, list_cards_totalizadores
         )
 
