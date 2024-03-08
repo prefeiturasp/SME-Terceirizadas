@@ -228,6 +228,8 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def filtro_geral_totalizadores(self, request, model, queryset, map_filtros_=None):
         tipo_doc = request.data.get("tipos_solicitacao", [])
+        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
+
         unidades_educacionais = request.data.get("unidades_educacionais", [])
         lotes = request.data.get("lotes", [])
         terceirizada = request.data.get("terceirizada", [])
@@ -320,6 +322,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def totalizador_lote(self, request, model, queryset, list_cards_totalizadores):
         tipo_doc = request.data.get("tipos_solicitacao", [])
+        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
         unidades_educacionais = request.data.get("unidades_educacionais", [])
         lotes = request.data.get("lotes", [])
         terceirizada = request.data.get("terceirizada", [])
@@ -329,8 +332,9 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             return list_cards_totalizadores
 
         map_filtros = {
-            "terceirizada_uuid": terceirizada,
             "tipo_doc__in": tipo_doc,
+            "escola_uuid__in": unidades_educacionais,
+            "terceirizada_uuid": terceirizada,
             "escola_tipo_unidade_uuid__in": tipos_unidade,
         }
         queryset = self.filtro_geral_totalizadores(
@@ -338,10 +342,45 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
         for lote_uuid in lotes:
-            lote_nome = Lote.objects.get(uuid=lote_uuid).nome
+            lote = Lote.objects.get(uuid=lote_uuid)
             list_cards_totalizadores.append(
                 {
-                    lote_nome: self.count_query_set_sem_duplicados(
+                    f"{lote.nome} - {lote.diretoria_regional.nome if lote.diretoria_regional else 'sem DRE'}": self.count_query_set_sem_duplicados(
+                        queryset.filter(lote_uuid=lote_uuid)
+                    )
+                }
+            )
+        return list_cards_totalizadores
+
+    def totalizador_tipo_solicitacao(
+        self, request, model, queryset, list_cards_totalizadores
+    ):
+        tipo_doc = request.data.get("tipos_solicitacao", [])
+        lotes = request.data.get("lotes", [])
+        terceirizada = request.data.get("terceirizada", [])
+        tipos_unidade = request.data.get("tipos_unidade", [])
+        unidades_educacionais = request.data.get("unidades_educacionais", [])
+
+        if not tipo_doc:
+            return list_cards_totalizadores
+
+        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
+
+        map_filtros = {
+            "lote_uuid__in": lotes,
+            "escola_uuid__in": unidades_educacionais,
+            "terceirizada_uuid": terceirizada,
+            "escola_tipo_unidade_uuid__in": tipos_unidade,
+        }
+        queryset = self.filtro_geral_totalizadores(
+            request, model, queryset, map_filtros
+        )
+
+        for lote_uuid in lotes:
+            lote = Lote.objects.get(uuid=lote_uuid)
+            list_cards_totalizadores.append(
+                {
+                    f"{lote.nome} - {lote.diretoria_regional.nome if lote.diretoria_regional else 'sem DRE'}": self.count_query_set_sem_duplicados(
                         queryset.filter(lote_uuid=lote_uuid)
                     )
                 }
@@ -398,6 +437,9 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             request, model, queryset, list_cards_totalizadores
         )
         list_cards_totalizadores = self.totalizador_lote(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = self.totalizador_tipo_solicitacao(
             request, model, queryset, list_cards_totalizadores
         )
         list_cards_totalizadores = self.totalizador_periodo(
