@@ -31,7 +31,7 @@ from ...dieta_especial.api.serializers import (
     SolicitacaoDietaEspecialSerializer,
 )
 from ...dieta_especial.models import SolicitacaoDietaEspecial
-from ...escola.models import Escola, Lote, PeriodoEscolar
+from ...escola.models import Escola, Lote, PeriodoEscolar, TipoUnidadeEscolar
 from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
 from ...kit_lanche.models import SolicitacaoKitLancheUnificada
 from ...medicao_inicial.models import SolicitacaoMedicaoInicial
@@ -398,6 +398,40 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             )
         return list_cards_totalizadores
 
+    def totalizador_tipo_unidade(
+        self, request, model, queryset, list_cards_totalizadores
+    ):
+        tipo_doc = request.data.get("tipos_solicitacao", [])
+        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
+        unidades_educacionais = request.data.get("unidades_educacionais", [])
+        lotes = request.data.get("lotes", [])
+        terceirizada = request.data.get("terceirizada", [])
+        tipos_unidade = request.data.get("tipos_unidade", [])
+
+        if not tipos_unidade or unidades_educacionais:
+            return list_cards_totalizadores
+
+        map_filtros = {
+            "lote_uuid__in": lotes,
+            "tipo_doc__in": tipo_doc,
+            "terceirizada_uuid": terceirizada,
+            "escola_tipo_unidade_uuid__in": tipos_unidade,
+        }
+        queryset = self.filtro_geral_totalizadores(
+            request, model, queryset, map_filtros
+        )
+
+        for tipo_unidade_uuid in tipos_unidade:
+            tipo_unidade = TipoUnidadeEscolar.objects.get(uuid=tipo_unidade_uuid)
+            list_cards_totalizadores.append(
+                {
+                    tipo_unidade.iniciais: self.count_query_set_sem_duplicados(
+                        queryset.filter(escola_tipo_unidade_uuid=tipo_unidade_uuid)
+                    )
+                }
+            )
+        return list_cards_totalizadores
+
     def totalizador_periodo(self, request, model, queryset, list_cards_totalizadores):
         queryset = self.filtro_geral_totalizadores(request, model, queryset)
         periodo_datas = {
@@ -451,6 +485,9 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             request, model, queryset, list_cards_totalizadores
         )
         list_cards_totalizadores = self.totalizador_tipo_solicitacao(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = self.totalizador_tipo_unidade(
             request, model, queryset, list_cards_totalizadores
         )
         list_cards_totalizadores = self.totalizador_periodo(
