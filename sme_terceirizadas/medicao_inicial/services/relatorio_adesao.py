@@ -1,5 +1,7 @@
+import os
 from typing import List
 
+import pandas as pd
 from django.http import QueryDict
 
 from sme_terceirizadas.medicao_inicial.models import Medicao, ValorMedicao
@@ -150,9 +152,38 @@ def obtem_resultados(mes: str, ano: str, query_params: QueryDict):
     return resultados
 
 
-def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
-    import pandas as pd
+def _insere_tabela_periodo_na_planilha(
+    aba, periodo, refeicoes, colunas, proxima_linha, writer
+):
+    linhas = [[refeicao, *totais.values()] for refeicao, totais in refeicoes.items()]
 
+    df = pd.DataFrame(data=linhas, columns=colunas)
+
+    total_servido = df[colunas[1]].sum()
+    total_frequencia = df[colunas[2]].sum()
+
+    totais = pd.DataFrame(
+        data=[
+            [
+                "TOTAL",
+                total_servido,
+                total_frequencia,
+                round(total_servido / total_frequencia, 4),
+            ]
+        ],
+        columns=colunas,
+    )
+
+    df = pd.concat([df, totais], ignore_index=True)
+
+    df[colunas[-1]] = df[colunas[-1]].map("{:.2%}".format)
+
+    df.to_excel(writer, sheet_name=aba, startrow=proxima_linha, index=False)
+
+    return df
+
+
+def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
     colunas = [
         "Tipo de Alimentação",
         "Total de Alimentações Servidas",
@@ -160,24 +191,33 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
         "% de Adesão",
     ]
 
-    for periodo, refeicoes in resultados.items():
-        linhas = [
-            [refeicao, *totais.values()] for refeicao, totais in refeicoes.items()
-        ]
-        df = pd.DataFrame(data=linhas, columns=colunas)
-        total_servido = df[colunas[1]].sum()
-        total_frequencia = df[colunas[2]].sum()
-        totais = pd.DataFrame(
-            data=[
-                [
-                    "TOTAL",
-                    total_servido,
-                    total_frequencia,
-                    round(total_servido / total_frequencia, 4),
-                ]
-            ],
-            columns=colunas,
-        )
-        df = pd.concat([df, totais], ignore_index=True)
-        df[colunas[-1]] = df[colunas[-1]].map("{:.2%}".format)
-        print(df)
+    path = os.path.join(os.path.dirname(__file__), nome_arquivo)
+
+    with pd.ExcelWriter(path) as writer:
+        aba = "Relatorio de Adesao"
+        proxima_linha = 0
+        for periodo, refeicoes in resultados.items():
+            df = _insere_tabela_periodo_na_planilha(
+                aba, periodo, refeicoes, colunas, proxima_linha, writer
+            )
+            proxima_linha += len(df.index) + 1
+
+            workbook = writer.book
+            worksheet = writer.sheets[aba]
+
+            linha_header_format = workbook.add_format(
+                {"bold": True, "bg_color": "#77DD77"}
+            )
+            linha_total_format = workbook.add_format(
+                {"bold": True, "bg_color": "#CCCCCC"}
+            )
+
+            worksheet.write_row(
+                proxima_linha - len(df.index) - 1,
+                0,
+                df.columns.values,
+                linha_header_format,
+            )
+            worksheet.write_row(
+                proxima_linha - 1, 0, df.iloc[-1].values, linha_total_format
+            )
