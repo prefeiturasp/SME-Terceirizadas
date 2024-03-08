@@ -364,8 +364,6 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         if not tipo_doc:
             return list_cards_totalizadores
 
-        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
-
         map_filtros = {
             "lote_uuid__in": lotes,
             "escola_uuid__in": unidades_educacionais,
@@ -376,12 +374,25 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             request, model, queryset, map_filtros
         )
 
-        for lote_uuid in lotes:
-            lote = Lote.objects.get(uuid=lote_uuid)
+        de_para_tipos_solicitacao = {
+            "INC_ALIMENTA": "Inclusão de Alimentação",
+            "ALT_CARDAPIO": "Alteração do tipo de Alimentação",
+            "KIT_LANCHE_UNIFICADO": "Kit Lanche Unificado",
+            "KIT_LANCHE_AVULSA": "Kit Lanche Passeio",
+            "INV_CARDAPIO": "Inversão de dia de Cardápio",
+            "SUSP_ALIMENTACAO": "Suspensão de Alimentação",
+        }
+
+        for tipo_solicitacao in tipo_doc:
+            tipos_solicitacao_filtrar = model.map_queryset_por_tipo_doc(
+                [tipo_solicitacao]
+            )
             list_cards_totalizadores.append(
                 {
-                    f"{lote.nome} - {lote.diretoria_regional.nome if lote.diretoria_regional else 'sem DRE'}": self.count_query_set_sem_duplicados(
-                        queryset.filter(lote_uuid=lote_uuid)
+                    de_para_tipos_solicitacao[
+                        tipo_solicitacao
+                    ]: self.count_query_set_sem_duplicados(
+                        queryset.filter(tipo_doc__in=tipos_solicitacao_filtrar)
                     )
                 }
             )
