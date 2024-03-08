@@ -432,6 +432,36 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             )
         return list_cards_totalizadores
 
+    def totalizador_unidade_educacional(
+        self, request, model, queryset, list_cards_totalizadores
+    ):
+        tipo_doc = request.data.get("tipos_solicitacao", [])
+        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
+        unidades_educacionais = request.data.get("unidades_educacionais", [])
+        terceirizada = request.data.get("terceirizada", [])
+
+        if not unidades_educacionais:
+            return list_cards_totalizadores
+
+        map_filtros = {
+            "tipo_doc__in": tipo_doc,
+            "terceirizada_uuid": terceirizada,
+        }
+        queryset = self.filtro_geral_totalizadores(
+            request, model, queryset, map_filtros
+        )
+
+        for unidade_educacional_uuid in unidades_educacionais:
+            escola = Escola.objects.get(uuid=unidade_educacional_uuid)
+            list_cards_totalizadores.append(
+                {
+                    escola.nome: self.count_query_set_sem_duplicados(
+                        queryset.filter(escola_uuid=unidade_educacional_uuid)
+                    )
+                }
+            )
+        return list_cards_totalizadores
+
     def totalizador_periodo(self, request, model, queryset, list_cards_totalizadores):
         queryset = self.filtro_geral_totalizadores(request, model, queryset)
         periodo_datas = {
@@ -488,6 +518,9 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             request, model, queryset, list_cards_totalizadores
         )
         list_cards_totalizadores = self.totalizador_tipo_unidade(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = self.totalizador_unidade_educacional(
             request, model, queryset, list_cards_totalizadores
         )
         list_cards_totalizadores = self.totalizador_periodo(
