@@ -25,12 +25,15 @@
         {{ logs|get_element_by_index:forloop.counter0|get_attribute:'criado_em' }}
         <br/>
         <span>
-                  {% if eh_importado|check_importada %}
-                  RF: {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'registro_funcional' }}
-                  <br/>
-                  {% endif %}
-                  {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'nome' }}
-                </span>
+          {% if logs|get_element_by_index:forloop.counter0|get_attribute:'status_evento_explicacao' == 'CODAE negou' and tipo_usuario|check_tipo_usuario %}
+          {% else %}
+            {% if eh_importado|check_importada %}
+            RF: {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'registro_funcional' }}
+            <br/>
+            {% endif %}
+            {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'nome' }}
+          {% endif %}
+        </span>
         {% endif %}
       </li>
       {% endfor %}

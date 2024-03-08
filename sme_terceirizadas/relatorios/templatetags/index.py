@@ -603,3 +603,16 @@ def build_headers_faixas_etarias(tabela):
         else:
             html_output.append(f'<th class="faixa-etaria" colspan="2">{faixa}</th>')
     return "".join(html_output)
+
+
+@register.filter
+def check_tipo_usuario(tipo_usuario):
+    return tipo_usuario in [
+        constants.TIPO_USUARIO_ESCOLA,
+        constants.TIPO_USUARIO_DIRETORIA_REGIONAL,
+        constants.TIPO_USUARIO_TERCEIRIZADA,
+        constants.TIPO_USUARIO_NUTRISUPERVISOR,
+        constants.TIPO_USUARIO_NUTRIMANIFESTACAO,
+        constants.TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+        constants.TIPO_USUARIO_CODAE_GABINETE,
+    ]
