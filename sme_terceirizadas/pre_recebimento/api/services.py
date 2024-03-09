@@ -239,6 +239,11 @@ class ServiceDashboardFichaTecnica(BaseServiceDashboard):
             FichaTecnicaDoProdutoWorkflow.APROVADA,
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
         ],
+        DILOG_DIRETORIA: [
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            FichaTecnicaDoProdutoWorkflow.APROVADA,
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        ],
     }
 
 
