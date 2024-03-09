@@ -214,6 +214,11 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
         ],
+        DILOG_DIRETORIA: [
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+        ],
     }
 
 
