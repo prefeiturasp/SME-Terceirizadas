@@ -1203,6 +1203,7 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
