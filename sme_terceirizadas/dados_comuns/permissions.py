@@ -804,6 +804,7 @@ class PermissaoParaDashboardLayoutEmbalagem(BasePermission):
         DILOG_QUALIDADE,
         COORDENADOR_GESTAO_PRODUTO,
         ADMINISTRADOR_CODAE_GABINETE,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
