@@ -827,6 +827,7 @@ class PermissaoParaDashboardDocumentosDeRecebimento(BasePermission):
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_CRONOGRAMA,
         ADMINISTRADOR_CODAE_GABINETE,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
