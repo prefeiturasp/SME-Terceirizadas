@@ -253,6 +253,22 @@ def _formata_numeros_linha_total(workbook, worksheet, proxima_linha, colunas, df
         )
 
 
+def _ajusta_layout_colunas(worksheet, colunas):
+    worksheet.set_column(0, len(colunas) - 1, 30)
+
+
+def _formata_numeros_colunas_total_servido_e_frequencia(workbook, worksheet):
+    formatacao = workbook.add_format({"num_format": "#,##0.00"})
+
+    worksheet.set_column(1, 2, None, formatacao)
+
+
+def _formata_numeros_coluna_total_adesao(workbook, worksheet, colunas):
+    formatacao = workbook.add_format({"num_format": "0.00%"})
+
+    worksheet.set_column(len(colunas) - 1, len(colunas) - 1, None, formatacao)
+
+
 def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
     colunas = [
         "Tipo de Alimentação",
@@ -295,13 +311,6 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
 
             proxima_linha += quantidade_de_linhas_em_branco_apos_tabela
 
-        worksheet.set_column(0, len(colunas) - 1, 30)
-        worksheet.set_column(
-            1, 2, None, workbook.add_format({"num_format": "#,##0.00"})
-        )
-        worksheet.set_column(
-            len(colunas) - 1,
-            len(colunas) - 1,
-            None,
-            workbook.add_format({"num_format": "0.00%"}),
-        )
+        _ajusta_layout_colunas(worksheet, colunas)
+        _formata_numeros_colunas_total_servido_e_frequencia(workbook, worksheet)
+        _formata_numeros_coluna_total_adesao(workbook, worksheet, colunas)
