@@ -548,6 +548,7 @@ class PermissaoParaListarVinculosAtivos(BasePermission):
                 ADMINISTRADOR_REPRESENTANTE_CODAE,
                 COORDENADOR_SUPERVISAO_NUTRICAO,
                 ADMINISTRADOR_CODAE_GABINETE,
+                DILOG_DIRETORIA,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, Escola)
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]
