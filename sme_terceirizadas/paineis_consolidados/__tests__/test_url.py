@@ -692,3 +692,91 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_lotes(
     assert "Rede Municipal de Educação" not in keys
     assert {"Total": 5} in results
     assert {f"{escola.lote.nome} - {escola.lote.diretoria_regional.nome}": 5} in results
+
+
+def test_filtrar_solicitacoes_ga_cards_totalizadores_unidade_educacional(
+    client_autenticado_codae_gestao_alimentacao,
+    escola,
+    solicitacoes_kit_lanche_autorizadas,
+    inclusoes_normais,
+):
+    data = {"status": "AUTORIZADOS", "unidades_educacionais": [escola.uuid]}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    results = response.json()["results"]
+    keys = [list(dict_.keys())[0] for dict_ in results]
+
+    assert "Rede Municipal de Educação" not in keys
+    assert {"Total": 5} in results
+    assert {escola.nome: 5} in results
+
+
+def test_filtrar_solicitacoes_ga_cards_totalizadores_periodo_de(
+    client_autenticado_codae_gestao_alimentacao,
+    escola,
+    solicitacoes_kit_lanche_autorizadas,
+    inclusoes_normais,
+):
+    data = {"status": "AUTORIZADOS", "de": "01/01/2020"}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    results = response.json()["results"]
+    keys = [list(dict_.keys())[0] for dict_ in results]
+
+    assert "Rede Municipal de Educação" not in keys
+    assert "Total" not in keys
+    assert {"Período: a partir de 01/01/2020": 2} in results
+
+
+def test_filtrar_solicitacoes_ga_cards_totalizadores_periodo_ate(
+    client_autenticado_codae_gestao_alimentacao,
+    escola,
+    solicitacoes_kit_lanche_autorizadas,
+    inclusoes_normais,
+):
+    data = {"status": "AUTORIZADOS", "ate": "01/01/2024"}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    results = response.json()["results"]
+    keys = [list(dict_.keys())[0] for dict_ in results]
+
+    assert "Rede Municipal de Educação" not in keys
+    assert "Total" not in keys
+    assert {"Período: até 01/01/2024": 5} in results
+
+
+def test_filtrar_solicitacoes_ga_cards_totalizadores_periodo_de_ate(
+    client_autenticado_codae_gestao_alimentacao,
+    escola,
+    solicitacoes_kit_lanche_autorizadas,
+    inclusoes_normais,
+):
+    data = {"status": "AUTORIZADOS", "de": "01/01/2017", "ate": "01/01/2024"}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    results = response.json()["results"]
+    keys = [list(dict_.keys())[0] for dict_ in results]
+
+    assert "Rede Municipal de Educação" not in keys
+    assert "Total" not in keys
+    assert {"Período: 01/01/2017 até 01/01/2024": 5} in results
