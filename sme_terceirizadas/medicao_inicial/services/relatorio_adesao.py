@@ -4,6 +4,8 @@ from typing import List
 import pandas as pd
 from django.http import QueryDict
 
+from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
+from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, Lote
 from sme_terceirizadas.medicao_inicial.models import Medicao, ValorMedicao
 
 
@@ -14,7 +16,7 @@ def _obtem_medicoes(mes: str, ano: str, filtros: dict):
             solicitacao_medicao_inicial__mes=mes,
             solicitacao_medicao_inicial__ano=ano,
             solicitacao_medicao_inicial__status="MEDICAO_APROVADA_PELA_CODAE",
-            **filtros
+            **filtros,
         )
         .exclude(
             solicitacao_medicao_inicial__escola__tipo_unidade__iniciais__in=[
@@ -179,6 +181,38 @@ def _insere_tabela_periodo_na_planilha(aba, refeicoes, colunas, proxima_linha, w
     return df
 
 
+def _formata_filtros(query_params: QueryDict):
+    mes, ano = query_params.get("mes_ano").split("_")
+    filtros = f"{converte_numero_em_mes(int(mes))} - {ano}"
+
+    dre_uuid = query_params.get("diretoria_regional")
+    if dre_uuid:
+        dre = DiretoriaRegional.objects.filter(uuid=dre_uuid).first()
+        filtros += f" | {dre.nome}"
+
+    lotes_uuid = query_params.getlist("lotes[]")
+    if lotes_uuid:
+        lotes = Lote.objects.filter(uuid__in=lotes_uuid).values_list("nome", flat=True)
+        filtros += f" | {', '.join(lotes)}"
+
+    escola_codigo_eol, *_ = query_params.get("escola").split("-")
+    if escola_codigo_eol:
+        escola = Escola.objects.filter(codigo_eol=escola_codigo_eol.strip()).first()
+        filtros += f" | {escola.nome}"
+
+    return filtros
+
+
+def _preenche_linha_dos_filtros_selecionados(
+    worksheet,
+    query_params: QueryDict,
+    colunas: List[str],
+):
+    filtros = _formata_filtros(query_params)
+
+    worksheet.merge_range(1, 0, 1, len(colunas) - 1, filtros.upper())
+
+
 def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
     colunas = [
         "Tipo de Alimentação",
@@ -194,13 +228,15 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
         proxima_linha = 3  # 3 linhas em branco para o cabecalho
         quantidade_de_linhas_em_branco_apos_tabela = 2
 
+        workbook = writer.book
+        worksheet = workbook.add_worksheet(aba)
+
+        _preenche_linha_dos_filtros_selecionados(worksheet, query_params, colunas)
+
         for periodo, refeicoes in resultados.items():
             df = _insere_tabela_periodo_na_planilha(
                 aba, refeicoes, colunas, proxima_linha, writer
             )
-
-            workbook = writer.book
-            worksheet = writer.sheets[aba]
 
             worksheet.merge_range(
                 proxima_linha - 1,
@@ -240,6 +276,7 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
                 )
 
             proxima_linha += quantidade_de_linhas_em_branco_apos_tabela
+
         worksheet.set_column(0, len(colunas) - 1, 30)
         worksheet.set_column(
             1, 2, None, workbook.add_format({"num_format": "#,##0.00"})
