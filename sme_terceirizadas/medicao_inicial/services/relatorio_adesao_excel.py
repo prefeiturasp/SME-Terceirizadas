@@ -75,6 +75,7 @@ def _preenche_titulo(workbook, worksheet, colunas):
 
 
 def _preenche_linha_dos_filtros_selecionados(
+    workbook,
     worksheet,
     query_params: QueryDict,
     colunas: List[str],
@@ -82,6 +83,7 @@ def _preenche_linha_dos_filtros_selecionados(
     filtros = _formata_filtros(query_params)
 
     worksheet.merge_range(1, 0, 1, len(colunas) - 1, filtros.upper())
+    worksheet.set_row(1, 30, workbook.add_format({"align": "vcenter"}))
 
 
 def _preenche_data_do_relatorio(worksheet, colunas):
@@ -169,7 +171,9 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
         worksheet = workbook.add_worksheet(aba)
 
         _preenche_titulo(workbook, worksheet, colunas)
-        _preenche_linha_dos_filtros_selecionados(worksheet, query_params, colunas)
+        _preenche_linha_dos_filtros_selecionados(
+            workbook, worksheet, query_params, colunas
+        )
         _preenche_data_do_relatorio(worksheet, colunas)
 
         for periodo, refeicoes in resultados.items():
