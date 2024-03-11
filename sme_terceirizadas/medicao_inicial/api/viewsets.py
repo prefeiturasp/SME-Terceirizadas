@@ -17,9 +17,9 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import (
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import obtem_resultados
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_excel import (
     gera_relatorio_adesao_xlsx,
-    obtem_resultados,
 )
 
 from ...cardapio.models import TipoAlimentacao

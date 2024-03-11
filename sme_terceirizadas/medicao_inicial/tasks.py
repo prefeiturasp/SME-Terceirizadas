@@ -6,7 +6,7 @@ from celery import shared_task
 from dateutil.relativedelta import relativedelta
 from PyPDF4 import PdfFileMerger
 
-from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import (
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_excel import (
     gera_relatorio_adesao_xlsx,
 )
 
