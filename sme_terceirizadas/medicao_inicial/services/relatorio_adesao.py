@@ -228,6 +228,14 @@ def _preenche_linha_do_periodo(
     )
 
 
+def _ajusta_layout_header(workbook, worksheet, proxima_linha, df):
+    formatacao = workbook.add_format({"bold": True, "bg_color": "#77DD77"})
+
+    worksheet.write_row(
+        proxima_linha - len(df.index) - 1, 0, df.columns.values, formatacao
+    )
+
+
 def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
     colunas = [
         "Tipo de Alimentação",
@@ -263,16 +271,7 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
 
             proxima_linha += len(df.index) + 1
 
-            formatacao_linha_header = workbook.add_format(
-                {"bold": True, "bg_color": "#77DD77"}
-            )
-
-            worksheet.write_row(
-                proxima_linha - len(df.index) - 1,
-                0,
-                df.columns.values,
-                formatacao_linha_header,
-            )
+            _ajusta_layout_header(workbook, worksheet, proxima_linha, df)
 
             for index, value in enumerate(df.iloc[-1].values):
                 formatacao_linha_total = {"bold": True, "bg_color": "#CCCCCC"}
