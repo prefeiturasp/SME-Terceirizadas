@@ -6,7 +6,7 @@ from ...dados_comuns.utils import remove_tags_html_from_string
 from ...escola.models import Escola, TipoUnidadeEscolar
 from ...kit_lanche.api.serializers.serializers import EscolaQuantidadeSerializerSimples
 from ..models import SolicitacoesCODAE
-from ..utils import get_dias_inclusao
+from ..utils.utils import get_dias_inclusao
 
 
 class SolicitacoesSerializer(serializers.ModelSerializer):
