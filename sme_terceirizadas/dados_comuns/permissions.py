@@ -618,6 +618,7 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
                         COORDENADOR_CODAE_DILOG_LOGISTICA,
                         ADMINISTRADOR_CODAE_DILOG_JURIDICO,
                         DILOG_QUALIDADE,
+                        DILOG_DIRETORIA,
                     ]
                 )
                 or usuario.eh_distribuidor
