@@ -61,9 +61,13 @@ def totalizador_rede_municipal(request, queryset, list_cards_totalizadores):
         and not periodo_datas["data_evento_fim"]
     )
     if nenhum_filtro:
-        list_cards_totalizadores.append(
-            {"Rede Municipal de Educação": count_query_set_sem_duplicados(queryset)}
+        key = (
+            "Total"
+            if request.user.tipo_usuario
+            in ["escola", "diretoriaregional", "terceirizada"]
+            else "Rede Municipal de Educação"
         )
+        list_cards_totalizadores.append({key: count_query_set_sem_duplicados(queryset)})
     return list_cards_totalizadores
 
 
@@ -185,7 +189,6 @@ def totalizador_tipo_unidade(request, model, queryset, list_cards_totalizadores)
         "lote_uuid__in": lotes,
         "tipo_doc__in": tipo_doc,
         "terceirizada_uuid": terceirizada,
-        "escola_tipo_unidade_uuid__in": tipos_unidade,
     }
     queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros)
 
