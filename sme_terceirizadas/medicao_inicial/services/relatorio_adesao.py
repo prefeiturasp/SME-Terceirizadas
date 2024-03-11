@@ -191,15 +191,27 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
 
     with pd.ExcelWriter(path) as writer:
         aba = "Relatorio de Adesao"
-        proxima_linha = 0
+        proxima_linha = 3  # 3 linhas em branco para o cabecalho
+        quantidade_de_linhas_em_branco_apos_tabela = 2
+
         for periodo, refeicoes in resultados.items():
             df = _insere_tabela_periodo_na_planilha(
                 aba, refeicoes, colunas, proxima_linha, writer
             )
-            proxima_linha += len(df.index) + 1
 
             workbook = writer.book
             worksheet = writer.sheets[aba]
+
+            worksheet.merge_range(
+                proxima_linha - 1,
+                0,
+                proxima_linha - 1,
+                len(colunas) - 1,
+                periodo.upper(),
+                workbook.add_format({"bold": True, "font_color": "#006400"}),
+            )
+
+            proxima_linha += len(df.index) + 1
 
             formatacao_linha_header = workbook.add_format(
                 {"bold": True, "bg_color": "#77DD77"}
@@ -226,6 +238,8 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
                     [value],
                     workbook.add_format(formatacao_linha_total),
                 )
+
+            proxima_linha += quantidade_de_linhas_em_branco_apos_tabela
         worksheet.set_column(0, len(colunas) - 1, 30)
         worksheet.set_column(
             1, 2, None, workbook.add_format({"num_format": "#,##0.00"})
