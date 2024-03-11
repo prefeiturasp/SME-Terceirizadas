@@ -124,20 +124,26 @@ def _ajusta_layout_header(workbook, worksheet, proxima_linha, df):
 
 
 def _formata_numeros_linha_total(workbook, worksheet, proxima_linha, colunas, df):
+    linha = proxima_linha - 1
     for index, value in enumerate(df.iloc[-1].values):
-        formatacao_linha_total = {"bold": True, "bg_color": "#CCCCCC"}
+        formatacao = {
+            "bold": True,
+            "bg_color": "#EFECEC",
+        }
 
         if index == len(colunas) - 1:
-            formatacao_linha_total["num_format"] = "0.00%"
+            formatacao["num_format"] = "0.00%"
         else:
-            formatacao_linha_total["num_format"] = "#,##0.00"
+            formatacao["num_format"] = "#,##0.00"
 
-        worksheet.write_row(
-            proxima_linha - 1,
-            index,
-            [value],
-            workbook.add_format(formatacao_linha_total),
-        )
+        formatacao = workbook.add_format(formatacao)
+        formatacao.set_align("center")
+        formatacao.set_align("vcenter")
+        formatacao.set_border()
+
+        worksheet.write_row(linha, index, [value], formatacao)
+
+    worksheet.set_row(linha, 25)
 
 
 def _ajusta_layout_colunas(worksheet, colunas):
