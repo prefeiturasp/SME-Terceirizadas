@@ -670,3 +670,25 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_tipos_unidade(
     assert "Rede Municipal de Educação" not in keys
     assert {"Total": 5} in results
     assert {escola.tipo_unidade.iniciais: 5} in results
+
+
+def test_filtrar_solicitacoes_ga_cards_totalizadores_lotes(
+    client_autenticado_codae_gestao_alimentacao,
+    escola,
+    solicitacoes_kit_lanche_autorizadas,
+    inclusoes_normais,
+):
+    data = {"status": "AUTORIZADOS", "lotes": [escola.lote.uuid]}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    results = response.json()["results"]
+    keys = [list(dict_.keys())[0] for dict_ in results]
+
+    assert "Rede Municipal de Educação" not in keys
+    assert {"Total": 5} in results
+    assert {f"{escola.lote.nome} - {escola.lote.diretoria_regional.nome}": 5} in results

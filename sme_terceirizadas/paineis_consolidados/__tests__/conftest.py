@@ -109,6 +109,7 @@ def solicitacoes_kit_lanche(escola):
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
         rastro_escola=escola,
+        rastro_lote=escola.lote,
         uuid="ac0b6f5b-36b0-47d2-99a2-3bc9825b31fb",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -124,6 +125,7 @@ def solicitacoes_kit_lanche(escola):
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
         rastro_escola=escola,
+        rastro_lote=escola.lote,
         uuid="d15f17d5-d4c5-47f5-a09a-55677dbc65bf",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -139,6 +141,7 @@ def solicitacoes_kit_lanche(escola):
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
         rastro_escola=escola,
+        rastro_lote=escola.lote,
         uuid="c9715ddb-7e95-4156-91a5-c60c8621806b",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -154,6 +157,7 @@ def solicitacoes_kit_lanche(escola):
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
         rastro_escola=escola,
+        rastro_lote=escola.lote,
         uuid="8827b394-ef39-4757-8136-6e09d5c7c486",
     )
     return (
@@ -720,6 +724,7 @@ def inclusoes_normais(
         status="CODAE_AUTORIZADO",
         rastro_escola=escola,
         rastro_dre=escola.diretoria_regional,
+        rastro_lote=escola.lote,
         uuid="a4639e26-f4fd-43e9-a8cc-2d0da995c8ef",
     )
     mommy.make(
