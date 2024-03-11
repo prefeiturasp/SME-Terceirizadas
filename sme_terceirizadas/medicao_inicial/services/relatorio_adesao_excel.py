@@ -86,7 +86,7 @@ def _preenche_linha_dos_filtros_selecionados(
     worksheet.set_row(1, 30, workbook.add_format({"align": "vcenter"}))
 
 
-def _preenche_data_do_relatorio(worksheet, colunas):
+def _preenche_data_do_relatorio(workbook, worksheet, colunas):
     worksheet.merge_range(
         2,
         0,
@@ -94,6 +94,7 @@ def _preenche_data_do_relatorio(worksheet, colunas):
         len(colunas) - 1,
         "Data: " + datetime.now().date().strftime("%d/%m/%Y"),
     )
+    worksheet.set_row(2, 25, workbook.add_format({"align": "vcenter"}))
 
 
 def _preenche_linha_do_periodo(
@@ -174,7 +175,7 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
         _preenche_linha_dos_filtros_selecionados(
             workbook, worksheet, query_params, colunas
         )
-        _preenche_data_do_relatorio(worksheet, colunas)
+        _preenche_data_do_relatorio(workbook, worksheet, colunas)
 
         for periodo, refeicoes in resultados.items():
             df = _insere_tabela_periodo_na_planilha(
