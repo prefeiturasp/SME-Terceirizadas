@@ -236,6 +236,23 @@ def _ajusta_layout_header(workbook, worksheet, proxima_linha, df):
     )
 
 
+def _formata_numeros_linha_total(workbook, worksheet, proxima_linha, colunas, df):
+    for index, value in enumerate(df.iloc[-1].values):
+        formatacao_linha_total = {"bold": True, "bg_color": "#CCCCCC"}
+
+        if index == len(colunas) - 1:
+            formatacao_linha_total["num_format"] = "0.00%"
+        else:
+            formatacao_linha_total["num_format"] = "#,##0.00"
+
+        worksheet.write_row(
+            proxima_linha - 1,
+            index,
+            [value],
+            workbook.add_format(formatacao_linha_total),
+        )
+
+
 def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
     colunas = [
         "Tipo de Alimentação",
@@ -272,21 +289,9 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
             proxima_linha += len(df.index) + 1
 
             _ajusta_layout_header(workbook, worksheet, proxima_linha, df)
-
-            for index, value in enumerate(df.iloc[-1].values):
-                formatacao_linha_total = {"bold": True, "bg_color": "#CCCCCC"}
-
-                if index == len(colunas) - 1:
-                    formatacao_linha_total["num_format"] = "0.00%"
-                else:
-                    formatacao_linha_total["num_format"] = "#,##0.00"
-
-                worksheet.write_row(
-                    proxima_linha - 1,
-                    index,
-                    [value],
-                    workbook.add_format(formatacao_linha_total),
-                )
+            _formata_numeros_linha_total(
+                workbook, worksheet, proxima_linha, colunas, df
+            )
 
             proxima_linha += quantidade_de_linhas_em_branco_apos_tabela
 
