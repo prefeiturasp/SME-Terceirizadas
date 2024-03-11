@@ -30,6 +30,7 @@ from ..medicao_inicial.utils import (
     build_tabelas_relatorio_medicao_emebs,
 )
 from ..pre_recebimento.api.helpers import retorna_status_ficha_tecnica
+from ..pre_recebimento.models import InformacoesNutricionaisFichaTecnica
 from ..relatorios.utils import (
     html_to_pdf_cancelada,
     html_to_pdf_file,
@@ -1641,12 +1642,16 @@ def get_pdf_cronograma(request, cronograma):
 
 
 def get_pdf_ficha_tecnica(request, ficha):
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnica.objects.filter(
+        ficha_tecnica=ficha
+    )
     html_string = render_to_string(
         "pre_recebimento/ficha_tecnica/ficha_tecnica.html",
         {
             "ficha": ficha,
             "empresa": ficha.empresa,
             "status_ficha": retorna_status_ficha_tecnica(ficha.status),
+            "tabela": list(informacoes_nutricionais),
         },
     )
     data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
