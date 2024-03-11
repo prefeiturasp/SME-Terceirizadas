@@ -5,6 +5,7 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
+from sme_terceirizadas.dados_comuns.models import CentralDeDownload
 from sme_terceirizadas.medicao_inicial.models import (
     DiaParaCorrigir,
     DiaSobremesaDoce,
@@ -1602,3 +1603,27 @@ def test_url_endpoint_empenho(client_autenticado_coordenador_codae, edital, cont
     assert response.json()["results"][0]["tipo_reajuste"] == None
     assert response.json()["results"][0]["status"] == "ATIVO"
     assert response.json()["results"][0]["valor_total"] == "1050.99"
+
+
+def test_url_endpoint_relatorio_adesao_exportar_xlsx(
+    client_autenticado_coordenador_codae,
+):
+    # arrange
+    mes = "03"
+    ano = "2024"
+
+    response = client_autenticado_coordenador_codae.get(
+        f"/medicao-inicial/relatorios/relatorio-adesao/exportar-xlsx/?mes_ano={mes}_{ano}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_relatorio_adesao_exportar_xlsx_sem_mes_ano(
+    client_autenticado_coordenador_codae,
+):
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/relatorios/relatorio-adesao/exportar-xlsx/"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
