@@ -100,7 +100,9 @@ def _preenche_data_do_relatorio(workbook, worksheet, colunas):
 def _preenche_linha_do_periodo(
     workbook, worksheet, proxima_linha: int, periodo: str, colunas: List[str]
 ):
-    formatacao = workbook.add_format({"bold": True, "font_color": "#006400"})
+    formatacao = workbook.add_format(
+        {"bold": True, "font_color": "#006400", "align": "vcenter"}
+    )
 
     worksheet.merge_range(
         proxima_linha - 1,
@@ -110,6 +112,7 @@ def _preenche_linha_do_periodo(
         periodo.upper(),
         formatacao,
     )
+    worksheet.set_row(proxima_linha - 1, 25, workbook.add_format({"align": "vcenter"}))
 
 
 def _ajusta_layout_header(workbook, worksheet, proxima_linha, df):
