@@ -203,6 +203,22 @@ def _formata_filtros(query_params: QueryDict):
     return filtros
 
 
+def _preenche_titulo(workbook, worksheet, colunas):
+    formatacao = workbook.add_format({"bold": True, "bg_color": "#C1F2B0"})
+    formatacao.set_align("center")
+    formatacao.set_align("vcenter")
+
+    worksheet.merge_range(
+        0,
+        0,
+        0,
+        len(colunas) - 1,
+        "Relatório de Adesão das Alimentações Servidas",
+        formatacao,
+    )
+    worksheet.set_row(0, 40)
+
+
 def _preenche_linha_dos_filtros_selecionados(
     worksheet,
     query_params: QueryDict,
@@ -229,7 +245,7 @@ def _preenche_linha_do_periodo(
 
 
 def _ajusta_layout_header(workbook, worksheet, proxima_linha, df):
-    formatacao = workbook.add_format({"bold": True, "bg_color": "#77DD77"})
+    formatacao = workbook.add_format({"bold": True, "bg_color": "#A5DD9B"})
 
     worksheet.write_row(
         proxima_linha - len(df.index) - 1, 0, df.columns.values, formatacao
@@ -287,6 +303,7 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
         workbook = writer.book
         worksheet = workbook.add_worksheet(aba)
 
+        _preenche_titulo(workbook, worksheet, colunas)
         _preenche_linha_dos_filtros_selecionados(worksheet, query_params, colunas)
 
         for periodo, refeicoes in resultados.items():
