@@ -2435,3 +2435,8 @@ def make_valores_medicao():
         return mommy.make("ValorMedicao", **kwargs)
 
     return handle
+
+
+@pytest.fixture
+def usuario(django_user_model):
+    return mommy.make(django_user_model)
