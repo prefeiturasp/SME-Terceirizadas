@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from typing import List
 
 import pandas as pd
@@ -229,6 +230,16 @@ def _preenche_linha_dos_filtros_selecionados(
     worksheet.merge_range(1, 0, 1, len(colunas) - 1, filtros.upper())
 
 
+def _preenche_data_do_relatorio(worksheet, colunas):
+    worksheet.merge_range(
+        2,
+        0,
+        2,
+        len(colunas) - 1,
+        "Data: " + datetime.now().date().strftime("%d/%m/%Y"),
+    )
+
+
 def _preenche_linha_do_periodo(
     workbook, worksheet, proxima_linha: int, periodo: str, colunas: List[str]
 ):
@@ -297,7 +308,7 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
 
     with pd.ExcelWriter(path) as writer:
         aba = "Relatorio de Adesao"
-        proxima_linha = 3  # 3 linhas em branco para o cabecalho
+        proxima_linha = 4  # 4 linhas em branco para o cabecalho
         quantidade_de_linhas_em_branco_apos_tabela = 2
 
         workbook = writer.book
@@ -305,6 +316,7 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
 
         _preenche_titulo(workbook, worksheet, colunas)
         _preenche_linha_dos_filtros_selecionados(worksheet, query_params, colunas)
+        _preenche_data_do_relatorio(worksheet, colunas)
 
         for periodo, refeicoes in resultados.items():
             df = _insere_tabela_periodo_na_planilha(
