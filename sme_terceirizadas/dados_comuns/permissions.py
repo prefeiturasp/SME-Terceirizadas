@@ -648,6 +648,7 @@ class PermissaoParaListarEntregas(BasePermission):
                         ADMINISTRADOR_CODAE_DILOG_CONTABIL,
                         ADMINISTRADOR_CODAE_DILOG_JURIDICO,
                         ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+                        DILOG_DIRETORIA,
                     ]
                 )
                 or usuario.eh_distribuidor
