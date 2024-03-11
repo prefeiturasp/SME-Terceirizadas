@@ -152,9 +152,7 @@ def obtem_resultados(mes: str, ano: str, query_params: QueryDict):
     return resultados
 
 
-def _insere_tabela_periodo_na_planilha(
-    aba, periodo, refeicoes, colunas, proxima_linha, writer
-):
+def _insere_tabela_periodo_na_planilha(aba, refeicoes, colunas, proxima_linha, writer):
     linhas = [[refeicao, *totais.values()] for refeicao, totais in refeicoes.items()]
 
     df = pd.DataFrame(data=linhas, columns=colunas)
@@ -176,8 +174,6 @@ def _insere_tabela_periodo_na_planilha(
 
     df = pd.concat([df, totais], ignore_index=True)
 
-    df[colunas[-1]] = df[colunas[-1]].map("{:.2%}".format)
-
     df.to_excel(writer, sheet_name=aba, startrow=proxima_linha, index=False)
 
     return df
@@ -198,26 +194,45 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
         proxima_linha = 0
         for periodo, refeicoes in resultados.items():
             df = _insere_tabela_periodo_na_planilha(
-                aba, periodo, refeicoes, colunas, proxima_linha, writer
+                aba, refeicoes, colunas, proxima_linha, writer
             )
             proxima_linha += len(df.index) + 1
 
             workbook = writer.book
             worksheet = writer.sheets[aba]
 
-            linha_header_format = workbook.add_format(
+            formatacao_linha_header = workbook.add_format(
                 {"bold": True, "bg_color": "#77DD77"}
-            )
-            linha_total_format = workbook.add_format(
-                {"bold": True, "bg_color": "#CCCCCC"}
             )
 
             worksheet.write_row(
                 proxima_linha - len(df.index) - 1,
                 0,
                 df.columns.values,
-                linha_header_format,
+                formatacao_linha_header,
             )
-            worksheet.write_row(
-                proxima_linha - 1, 0, df.iloc[-1].values, linha_total_format
-            )
+
+            for index, value in enumerate(df.iloc[-1].values):
+                formatacao_linha_total = {"bold": True, "bg_color": "#CCCCCC"}
+
+                if index == len(colunas) - 1:
+                    formatacao_linha_total["num_format"] = "0.00%"
+                else:
+                    formatacao_linha_total["num_format"] = "#,##0.00"
+
+                worksheet.write_row(
+                    proxima_linha - 1,
+                    index,
+                    [value],
+                    workbook.add_format(formatacao_linha_total),
+                )
+        worksheet.set_column(0, len(colunas) - 1, 30)
+        worksheet.set_column(
+            1, 2, None, workbook.add_format({"num_format": "#,##0.00"})
+        )
+        worksheet.set_column(
+            len(colunas) - 1,
+            len(colunas) - 1,
+            None,
+            workbook.add_format({"num_format": "0.00%"}),
+        )
