@@ -9,7 +9,7 @@ from model_mommy import mommy
 from ...cardapio.models import AlteracaoCardapio, SuspensaoAlimentacaoDaCEI
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ...dados_comuns.models import TemplateMensagem
+from ...dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...inclusao_alimentacao.models import (
     DiasMotivosInclusaoDeAlimentacaoCEI,
@@ -108,6 +108,7 @@ def solicitacoes_kit_lanche(escola):
         quantidade_alunos=300,
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
+        rastro_escola=escola,
         uuid="ac0b6f5b-36b0-47d2-99a2-3bc9825b31fb",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -122,6 +123,7 @@ def solicitacoes_kit_lanche(escola):
         quantidade_alunos=300,
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
+        rastro_escola=escola,
         uuid="d15f17d5-d4c5-47f5-a09a-55677dbc65bf",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -136,6 +138,7 @@ def solicitacoes_kit_lanche(escola):
         quantidade_alunos=300,
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
+        rastro_escola=escola,
         uuid="c9715ddb-7e95-4156-91a5-c60c8621806b",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -150,6 +153,7 @@ def solicitacoes_kit_lanche(escola):
         quantidade_alunos=300,
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
+        rastro_escola=escola,
         uuid="8827b394-ef39-4757-8136-6e09d5c7c486",
     )
     return (
@@ -157,6 +161,52 @@ def solicitacoes_kit_lanche(escola):
         solicitacao_kit_lanche_avulsa_2,
         solicitacao_kit_lanche_avulsa_3,
         solicitacao_kit_lanche_avulsa_4,
+    )
+
+
+@pytest.fixture
+def solicitacoes_kit_lanche_autorizadas(solicitacoes_kit_lanche):
+    (
+        solicitacao_kit_lanche_avulsa_1,
+        solicitacao_kit_lanche_avulsa_2,
+        solicitacao_kit_lanche_avulsa_3,
+        solicitacao_kit_lanche_avulsa_4,
+    ) = solicitacoes_kit_lanche
+
+    solicitacao_kit_lanche_avulsa_1.status = "CODAE_AUTORIZADO"
+    solicitacao_kit_lanche_avulsa_1.save()
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=solicitacao_kit_lanche_avulsa_1.uuid,
+        status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+    )
+
+    solicitacao_kit_lanche_avulsa_2.status = "CODAE_AUTORIZADO"
+    solicitacao_kit_lanche_avulsa_2.save()
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=solicitacao_kit_lanche_avulsa_2.uuid,
+        status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+    )
+
+    solicitacao_kit_lanche_avulsa_3.status = "CODAE_AUTORIZADO"
+    solicitacao_kit_lanche_avulsa_3.save()
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=solicitacao_kit_lanche_avulsa_3.uuid,
+        status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+    )
+
+    solicitacao_kit_lanche_avulsa_4.status = "CODAE_AUTORIZADO"
+    solicitacao_kit_lanche_avulsa_4.save()
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=solicitacao_kit_lanche_avulsa_4.uuid,
+        status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
     )
 
 
