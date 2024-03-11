@@ -223,12 +223,6 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             sumario["total"] += 1
         return sumario
 
-    def _retorna_data_ou_falso(self, date_text):
-        try:
-            return datetime.datetime.strptime(date_text, "%d-%m-%Y")
-        except ValueError:
-            return False
-
     @action(detail=False, methods=["GET"], url_path="solicitacoes-detalhadas")
     def solicitacoes_detalhadas(self, request):
         solicitacoes = request.query_params.getlist("solicitacoes[]", None)
