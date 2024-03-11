@@ -1251,3 +1251,10 @@ class ClausulaDeDescontoCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClausulaDeDesconto
         fields = "__all__"
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=("edital", "numero_clausula", "item_clausula"),
+                message="Já existe uma cláusula cadastrada para este edital com o mesmo número e item de cláusula.",
+            )
+        ]

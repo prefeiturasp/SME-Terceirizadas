@@ -1,0 +1,292 @@
+{% include 'relatorio_base.html' %}
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<body>
+  <div class="page-container">
+
+    <div class="d-flex justify-content-between content">
+      <div id="pregao">
+        <div class="title">
+          N° do Pregão Eletrônico/Chamada Pública:
+        </div>
+        <h4 class="title titulo-secao">
+          {{ ficha.pregao_chamada_publica }}
+        </h4>
+      </div>
+      <div id="status">
+        <div class="title pb-2">
+          Status da Ficha Técnica
+        </div>
+        <div class="card-barra-status">
+          <span class="px-2">{{status_ficha}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="dados_fabricante">
+      <h5 class="title titulo-secao separator">PRODUTO E FABRICANTE </h5>
+
+      <div class="content">
+        <div class="row pb-3">
+          <div class="col-12">Produto: <span class="font-weight-bold"> {{ficha.produto.nome}}</span> </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-6">Marca: <span class="font-weight-bold"> {{ficha.marca.nome}}</span> </div>
+          <div class="col-6">Fabricante: <span class="font-weight-bold"> {{ficha.fabricante.nome}}</span> </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-12">
+            Endereço: 
+            <span class="font-weight-bold"> 
+              {{ficha.endereco_fabricante}}, {{ficha.numero_fabricante}} - {{ficha.bairro_fabricante}} - {{ficha.cidade_fabricante}} - {{ficha.estado_fabricante}}
+              - CEP: {{ficha.cep_fabricante}}
+            </span> 
+          </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-6">CNPJ: <span class="font-weight-bold"> {{ficha.cnpj_fabricante}}</span> </div>
+          <div class="col-6">Telefone: <span class="font-weight-bold"> {{ficha.telefone_fabricante}}</span> </div>
+          
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-12">E-mail: <span class="font-weight-bold"> {{ficha.email_fabricante}}</span> </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dados_produto">
+      <h5 class="title titulo-secao separator">DETALHES DO PRODUTO</h5>
+
+      <div class="content">
+
+        <div class="row pb-3">
+          <div class="col-12">Prazo de Validade: <span class="font-weight-bold"> {{ficha.prazo_validade}}</span> </div>
+        </div>
+
+        {% if ficha.categoria == "PERECIVEIS" %}
+          <div class="row pb-3">
+            <div class="col-12">
+              Nº do Registro do Rótulo do Produto e Nome do Órgão Competente:
+              <span class="font-weight-bold"> {{ficha.numero_registro}}</span> 
+            </div>
+          </div>
+
+          <div class="row pb-3">
+            <div class="col-12">
+              O Produto é agroecológico?
+              <span class="font-weight-bold"> {{ ficha.agroecologico|yesno:"SIM,NÃO"}}</span> 
+            </div>
+          </div>
+
+          <div class="row pb-3">
+            <div class="col-4">
+              O Produto é orgânico?
+              <span class="font-weight-bold"> {{ ficha.organico |yesno:"SIM,NÃO" }}</span> 
+            </div>
+            {% if ficha.organico %}
+            <div class="col-8">
+              Qual é o mecanismo de controle?
+              <span class="font-weight-bold"> {{ficha.mecanismo_controle}}</span> 
+            </div>
+          {% endif %}
+          </div>
+        {% endif %}
+
+        <div class="row pb-3">
+          <div class="col-12">Componentes do Produto: <span class="font-weight-bold"> {{ficha.componentes_produto}}</span> </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-12">
+            O Produto contém ou pode conter ingredientes/aditivos alergênicos?
+            <span class="font-weight-bold"> {{ ficha.alergenicos |yesno:"SIM,NÃO" }}</span> 
+          </div>
+        </div>
+
+        {% if ficha.alergenicos %}
+          <div class="row pb-3">
+            <div class="col-12">
+              Quais ingredientes/aditivos alergênicos? Indicar conforme a RDC Nº727/22, Anvisa.
+              <span class="font-weight-bold"> {{ ficha.ingredientes_alergenicos }}</span> 
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="row pb-3">
+          <div class="col-12">
+            O Produto contém glúten? Indicar conforme Lei Federal Nº 10.674/03, Anvisa.
+            <span class="font-weight-bold"> {{ ficha.gluten |yesno:"SIM,NÃO" }}</span> 
+          </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-12">O Produto contém lactose?
+            <span class="font-weight-bold"> {{ ficha.lactose |yesno:"SIM,NÃO" }}</span> 
+          </div>
+        </div>
+
+        {% if ficha.lactose %}
+          <div class="row pb-3">
+            <div class="col-12">
+              Detalhar: Indicar conforme a RDC Nº 727/22, Anvisa.
+              <span class="font-weight-bold"> {{ ficha.lactose_detalhe }}</span> 
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+
+    </div>
+
+    <div id="dados_nutricionais">
+      <h5 class="title titulo-secao separator">INFORMAÇÕES NUTRICIONAIS</h5>
+
+      <div class="content">
+        <div class="row pb-3">
+          <div class="col-6">
+            Porção: 
+            <span class="font-weight-bold"> 
+              {{ficha.porcao}} {{ficha.unidade_medida_porcao.nome}}
+            </span>
+          </div>
+          <div class="col-6">
+            Unidade Caseira: 
+            <span class="font-weight-bold"> 
+              {{ficha.valor_unidade_caseira}} {{ficha.unidade_medida_caseira}}
+            </span>
+          </div>
+        </div>
+
+        <div class="table-responsive-sm">
+          <table class="table table-lg table-bordered table-cronograma">
+            <thead>
+              <tr>
+                <th scope="col">Informação Nutricional</th>
+                <th scope="col">Quantidade por 100g</th>
+                <th scope="col">Quantidade por porção</th>
+                <th scope="col">%VD(*)</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for info in tabela %}
+              <tr>
+
+                <td class="{% if info.informacao_nutricional.eh_dependente %} pl-3 {%endif%}">
+                  {{info.informacao_nutricional.nome}}
+                </td>
+                <td>{{info.quantidade_por_100g}} {{info.informacao_nutricional.medida}}</td>
+                <td>
+                  {{info.quantidade_porcao}} {{info.informacao_nutricional.medida}}
+                  {% if info.informacao_nutricional.tipo_nutricional.nome == "CALORIA" %}
+                    =
+                    {{ info.quantidade_porcao | multiply:4.2 }} kJ
+                  {% endif %}
+                </td>
+                <td>{{info.valor_diario}}%</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          <div class="rodape-tabela">
+            <div>* % Valores Diários com base em uma dieta de 2.000kcal ou 8.400kJ. Seus Valores Diários podem ser maiores ou menores dependendo de suas necessidades energéticas.            </div>
+            <div>** VD não estabelecidos.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dados_conservacao">
+      <h5 class="title titulo-secao separator">CONSERVACAO</h5>
+
+      <div class="content">
+        {% if ficha.categoria == "PERECIVEIS" %}
+          <div class="row pb-3">
+            <div class="col-12">
+              Prazo de validade após o descongelamento e mantido sob refrigeração: 
+              <span class="font-weight-bold"> 
+                {{ficha.prazo_validade_descongelamento}}
+              </span>
+            </div>
+          </div>
+        {% endif %}
+        <div class="row pb-3">
+          <div class="col-12">
+            Condições de conservação e Prazo máximo para consumo após a abertura da embalagem primária: 
+            <span class="font-weight-bold"> 
+              {{ficha.condicoes_de_conservacao}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if ficha.categoria == "PERECIVEIS" %}
+      <div id="dados_transporte">
+        <h5 class="title titulo-secao separator">TEMPERATURA E TRANSPORTE</h5>
+
+        <div class="content">
+          
+
+          <div class="row pb-3">
+            <div class="col-12">
+              Temperatura de Congelamento do Produto: 
+              <span class="font-weight-bold"> 
+                {{ficha.temperatura_congelamento}}
+              </span>
+            </div>
+          </div>
+
+          
+          <div class="row pb-3">
+            <div class="col-12">
+              Temperatura Interna do Veículo para Transporte: 
+              <span class="font-weight-bold"> 
+                {{ficha.temperatura_veiculo}}
+              </span>
+            </div>
+          </div>
+
+          
+          <div class="row pb-3">
+            <div class="col-12">
+              Condições de Transporte: 
+              <span class="font-weight-bold"> 
+                {{ficha.condicoes_de_transporte}}
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    {% endif %}
+
+    <div id="dados_conservacao">
+      <h5 class="title titulo-secao separator">ARMAZENAMENTO</h5>
+
+      <div class="content">
+        <div class="row pb-3">
+          <div class="col-6">
+            Embalagem Primária: 
+            <span class="font-weight-bold"> 
+              {{ficha.embalagem_primaria}}
+            </span>
+          </div>
+          <div class="col-6">
+            Embalagem Secundária: 
+            <span class="font-weight-bold"> 
+              {{ficha.embalagem_secundaria}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

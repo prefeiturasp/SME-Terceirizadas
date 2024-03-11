@@ -29,6 +29,8 @@ from ..medicao_inicial.utils import (
     build_tabelas_relatorio_medicao_cemei,
     build_tabelas_relatorio_medicao_emebs,
 )
+from ..pre_recebimento.api.helpers import retorna_status_ficha_tecnica
+from ..pre_recebimento.models import InformacoesNutricionaisFichaTecnica
 from ..relatorios.utils import (
     html_to_pdf_cancelada,
     html_to_pdf_file,
@@ -404,7 +406,7 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao):  # noqa C901
     )
 
 
-def relatorio_dieta_especial_conteudo(solicitacao):
+def relatorio_dieta_especial_conteudo(solicitacao, request=None):
     if solicitacao.tipo_solicitacao == "COMUM":
         escola = solicitacao.rastro_escola
     else:
@@ -432,6 +434,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
         for log in logs
         if log.status_evento == LogSolicitacoesUsuario.ESCOLA_CANCELOU
     ]
+    usuario = request.user
     html_string = render_to_string(
         "solicitacao_dieta_especial.html",
         {
@@ -447,6 +450,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             "justificativa_cancelamento": (
                 log_cancelamento[0].justificativa if log_cancelamento else None
             ),
+            "tipo_usuario": usuario.tipo_usuario if usuario else None,
         },
     )
     return html_string
@@ -588,7 +592,7 @@ def relatorio_guia_de_remessa(guias, is_async=False):  # noqa C901
 
 
 def relatorio_dieta_especial(request, solicitacao):
-    html_string = relatorio_dieta_especial_conteudo(solicitacao)
+    html_string = relatorio_dieta_especial_conteudo(solicitacao, request)
     return html_to_pdf_response(
         html_string, f"dieta_especial_{solicitacao.id_externo}.pdf"
     )
@@ -1634,4 +1638,24 @@ def get_pdf_cronograma(request, cronograma):
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"cronogram_{cronograma.numero}.pdf",
+    )
+
+
+def get_pdf_ficha_tecnica(request, ficha):
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnica.objects.filter(
+        ficha_tecnica=ficha
+    )
+    html_string = render_to_string(
+        "pre_recebimento/ficha_tecnica/ficha_tecnica.html",
+        {
+            "ficha": ficha,
+            "empresa": ficha.empresa,
+            "status_ficha": retorna_status_ficha_tecnica(ficha.status),
+            "tabela": list(informacoes_nutricionais),
+        },
+    )
+    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    return html_to_pdf_response(
+        html_string.replace("dt_file", data_arquivo),
+        f"ficha_tecnica_{ficha.numero}.pdf",
     )

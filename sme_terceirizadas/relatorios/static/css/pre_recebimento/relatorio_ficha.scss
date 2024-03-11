@@ -1,0 +1,36 @@
+@import "../variaveis";
+
+@page :nth(n+2) {
+  margin-top: 5.9cm !important;
+  padding-top: 1cm !important;
+}
+
+@page :nth(1) {
+  margin-top: 0.3cm !important;
+  padding-top: 6.4cm !important;
+}
+
+.titulo-secao{
+  font-size: 15px;
+  color: $verde-escuro;
+}
+
+.separator{
+  background: #F5F5F5;
+  padding: 1em 1.6em;
+}
+
+.page-container {
+  padding-right: 0em;
+  padding-left: 0em;
+  font-size: 13px;
+}
+
+.content{
+  padding-right: 2em;
+  padding-left: 2em;
+}
+
+.rodape-tabela{
+  font-size: 11px;
+}
