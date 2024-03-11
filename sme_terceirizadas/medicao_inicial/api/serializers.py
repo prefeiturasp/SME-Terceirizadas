@@ -33,6 +33,9 @@ from sme_terceirizadas.medicao_inicial.models import (
     ValorMedicao,
 )
 from sme_terceirizadas.perfil.api.serializers import UsuarioSerializer
+from sme_terceirizadas.terceirizada.api.serializers.serializers import (
+    EditalSimplesSerializer,
+)
 
 
 class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
@@ -263,7 +266,7 @@ class EmpenhoSerializer(serializers.ModelSerializer):
 
 
 class ClausulaDeDescontoSerializer(serializers.ModelSerializer):
-    edital = serializers.CharField(source="edital.numero")
+    edital = EditalSimplesSerializer()
 
     class Meta:
         model = ClausulaDeDesconto
