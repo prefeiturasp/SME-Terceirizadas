@@ -116,11 +116,14 @@ def _preenche_linha_do_periodo(
 
 
 def _ajusta_layout_header(workbook, worksheet, proxima_linha, df):
+    linha = proxima_linha - len(df.index) - 1
     formatacao = workbook.add_format({"bold": True, "bg_color": "#A5DD9B"})
+    formatacao.set_align("center")
+    formatacao.set_align("vcenter")
+    formatacao.set_border()
 
-    worksheet.write_row(
-        proxima_linha - len(df.index) - 1, 0, df.columns.values, formatacao
-    )
+    worksheet.write_row(linha, 0, df.columns.values, formatacao)
+    worksheet.set_row(linha, 25)
 
 
 def _formata_numeros_linha_total(workbook, worksheet, proxima_linha, colunas, df):
