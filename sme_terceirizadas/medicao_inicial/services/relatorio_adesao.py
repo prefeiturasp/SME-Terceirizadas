@@ -213,6 +213,21 @@ def _preenche_linha_dos_filtros_selecionados(
     worksheet.merge_range(1, 0, 1, len(colunas) - 1, filtros.upper())
 
 
+def _preenche_linha_do_periodo(
+    workbook, worksheet, proxima_linha: int, periodo: str, colunas: List[str]
+):
+    formatacao = workbook.add_format({"bold": True, "font_color": "#006400"})
+
+    worksheet.merge_range(
+        proxima_linha - 1,
+        0,
+        proxima_linha - 1,
+        len(colunas) - 1,
+        periodo.upper(),
+        formatacao,
+    )
+
+
 def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
     colunas = [
         "Tipo de Alimentação",
@@ -238,13 +253,12 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
                 aba, refeicoes, colunas, proxima_linha, writer
             )
 
-            worksheet.merge_range(
-                proxima_linha - 1,
-                0,
-                proxima_linha - 1,
-                len(colunas) - 1,
-                periodo.upper(),
-                workbook.add_format({"bold": True, "font_color": "#006400"}),
+            _preenche_linha_do_periodo(
+                workbook,
+                worksheet,
+                proxima_linha,
+                periodo,
+                colunas,
             )
 
             proxima_linha += len(df.index) + 1
