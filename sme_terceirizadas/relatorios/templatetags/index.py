@@ -616,3 +616,8 @@ def check_tipo_usuario(tipo_usuario):
         constants.TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
         constants.TIPO_USUARIO_CODAE_GABINETE,
     ]
+
+
+@register.filter
+def multiply(valor, multiplicador):
+    return round(int(valor) * multiplicador)
