@@ -72,7 +72,18 @@ def _preenche_titulo(workbook, worksheet, colunas):
         "Relatório de Adesão das Alimentações Servidas",
         formatacao,
     )
-    worksheet.set_row(0, 40)
+    worksheet.set_row(0, 50)
+    worksheet.insert_image(
+        0,
+        0,
+        "sme_terceirizadas/relatorios/static/images/logo-sigpae.png",
+        {
+            "x_offset": 50,
+            "y_offset": 5,
+            "x_scale": 0.08,
+            "y_scale": 0.08,
+        },
+    )
 
 
 def _preenche_linha_dos_filtros_selecionados(
