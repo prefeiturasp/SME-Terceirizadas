@@ -83,7 +83,7 @@ from .constants import (
     STATUS_RELACAO_DRE_UE,
     USUARIOS_VISAO_CODAE,
 )
-from .filters import DiaParaCorrecaoFilter, EmpenhoFilter
+from .filters import ClausulaDeDescontoFilter, DiaParaCorrecaoFilter, EmpenhoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     AlimentacaoLancamentoEspecialSerializer,
@@ -1645,6 +1645,8 @@ class ClausulaDeDescontoViewSet(ModelViewSet):
     permission_classes = [UsuarioCODAEGestaoAlimentacao]
     queryset = ClausulaDeDesconto.objects.all()
     serializer_class = ClausulaDeDescontoSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ClausulaDeDescontoFilter
     pagination_class = CustomPagination
 
     def get_serializer_class(self):

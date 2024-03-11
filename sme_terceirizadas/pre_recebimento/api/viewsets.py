@@ -135,7 +135,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 
 from ...dados_comuns.api.paginations import DefaultPagination
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...relatorios.relatorios import get_pdf_cronograma
+from ...relatorios.relatorios import get_pdf_cronograma, get_pdf_ficha_tecnica
 from ..models.cronograma import FichaTecnicaDoProduto
 from .validators import valida_parametros_calendario
 
@@ -1278,6 +1278,11 @@ class FichaTecnicaModelViewSet(
                 },
                 status=HTTP_401_UNAUTHORIZED,
             )
+
+    @action(detail=True, methods=["GET"], url_path="gerar-pdf-ficha")
+    def gerar_pdf_ficha(self, request, uuid=None):
+        ficha = self.get_object()
+        return get_pdf_ficha_tecnica(request, ficha)
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):
