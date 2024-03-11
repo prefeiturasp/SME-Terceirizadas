@@ -50,8 +50,9 @@ def _formata_filtros(query_params: QueryDict):
         lotes = Lote.objects.filter(uuid__in=lotes_uuid).values_list("nome", flat=True)
         filtros += f" | {', '.join(lotes)}"
 
-    escola_codigo_eol, *_ = query_params.get("escola").split("-")
+    escola_codigo_eol = query_params.get("escola")
     if escola_codigo_eol:
+        escola_codigo_eol, *_ = escola_codigo_eol.split("-")
         escola = Escola.objects.filter(codigo_eol=escola_codigo_eol.strip()).first()
         filtros += f" | {escola.nome}"
 
@@ -137,7 +138,7 @@ def _formata_numeros_linha_total(workbook, worksheet, proxima_linha, colunas, df
         if index == len(colunas) - 1:
             formatacao["num_format"] = "0.00%"
         else:
-            formatacao["num_format"] = "#,##0.00"
+            formatacao["num_format"] = "#,##0"
 
         formatacao = workbook.add_format(formatacao)
         formatacao.set_align("center")
@@ -154,7 +155,7 @@ def _ajusta_layout_colunas(worksheet, colunas):
 
 
 def _formata_numeros_colunas_total_servido_e_frequencia(workbook, worksheet):
-    formatacao = workbook.add_format({"num_format": "#,##0.00"})
+    formatacao = workbook.add_format({"num_format": "#,##0"})
 
     worksheet.set_column(1, 2, None, formatacao)
 
