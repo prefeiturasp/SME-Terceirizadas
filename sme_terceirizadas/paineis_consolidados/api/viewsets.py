@@ -31,7 +31,7 @@ from ...dieta_especial.api.serializers import (
     SolicitacaoDietaEspecialSerializer,
 )
 from ...dieta_especial.models import SolicitacaoDietaEspecial
-from ...escola.models import Escola, Lote, PeriodoEscolar, TipoUnidadeEscolar
+from ...escola.models import Escola, PeriodoEscolar
 from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
 from ...kit_lanche.models import SolicitacaoKitLancheUnificada
 from ...medicao_inicial.models import SolicitacaoMedicaoInicial
@@ -60,7 +60,16 @@ from ..tasks import (
     gera_pdf_relatorio_solicitacoes_alimentacao_async,
     gera_xls_relatorio_solicitacoes_alimentacao_async,
 )
-from ..utils import (
+from ..utils.totalizadores_relatorio_ga import (
+    totalizador_lote,
+    totalizador_periodo,
+    totalizador_rede_municipal,
+    totalizador_tipo_solicitacao,
+    totalizador_tipo_unidade,
+    totalizador_total,
+    totalizador_unidade_educacional,
+)
+from ..utils.utils import (
     formata_resultado_inclusoes_etec_autorizadas,
     get_numero_alunos_alteracao_alimentacao,
     tratar_append_return_dict,
@@ -107,11 +116,11 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     @classmethod
-    def count_query_set_sem_duplicados(self, query_set):
+    def count_query_set_sem_duplicados(cls, query_set):
         return len(set(query_set.values_list("uuid", flat=True)))
 
     @classmethod
-    def remove_duplicados_do_query_set(self, query_set):
+    def remove_duplicados_do_query_set(cls, query_set):
         """_remove_duplicados_do_query_set é criado por não ser possível juntar order_by e distinct na mesma query."""
         # TODO: se alguém descobrir como ordenar a query e tirar os uuids
         # repetidos, por favor melhore
@@ -226,278 +235,6 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         solicitacoes = MoldeConsolidado.solicitacoes_detalhadas(solicitacoes, request)
         return Response(dict(data=solicitacoes, status=HTTP_200_OK))
 
-    def filtro_geral_totalizadores(self, request, model, queryset, map_filtros_=None):
-        tipo_doc = request.data.get("tipos_solicitacao", [])
-        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
-
-        unidades_educacionais = request.data.get("unidades_educacionais", [])
-        lotes = request.data.get("lotes", [])
-        terceirizada = request.data.get("terceirizada", [])
-        tipos_unidade = request.data.get("tipos_unidade", [])
-        periodo_datas = {
-            "data_evento": request.data.get("de", None),
-            "data_evento_fim": request.data.get("ate", None),
-        }
-
-        queryset = model.busca_periodo_de_datas(
-            queryset,
-            data_evento=periodo_datas["data_evento"],
-            data_evento_fim=periodo_datas["data_evento_fim"],
-        )
-        if not map_filtros_:
-            map_filtros = {
-                "lote_uuid__in": lotes,
-                "escola_uuid__in": unidades_educacionais,
-                "terceirizada_uuid": terceirizada,
-                "tipo_doc__in": tipo_doc,
-                "escola_tipo_unidade_uuid__in": tipos_unidade,
-            }
-        else:
-            map_filtros = map_filtros_
-        filtros = {
-            key: value for key, value in map_filtros.items() if value not in [None, []]
-        }
-        queryset = queryset.filter(**filtros)
-        return queryset
-
-    def totalizador_rede_municipal(self, request, queryset, list_cards_totalizadores):
-        tipo_doc = request.data.get("tipos_solicitacao", [])
-        unidades_educacionais = request.data.get("unidades_educacionais", [])
-        lotes = request.data.get("lotes", [])
-        terceirizada = request.data.get("terceirizada", [])
-        tipos_unidade = request.data.get("tipos_unidade", [])
-        periodo_datas = {
-            "data_evento": request.data.get("de", None),
-            "data_evento_fim": request.data.get("ate", None),
-        }
-
-        nenhum_filtro = (
-            not tipo_doc
-            and not unidades_educacionais
-            and not lotes
-            and not terceirizada
-            and not tipos_unidade
-            and not periodo_datas["data_evento"]
-            and not periodo_datas["data_evento_fim"]
-        )
-        if nenhum_filtro:
-            list_cards_totalizadores.append(
-                {
-                    "Rede Municipal de Educação": self.count_query_set_sem_duplicados(
-                        queryset
-                    )
-                }
-            )
-        return list_cards_totalizadores
-
-    def totalizador_total(self, request, model, queryset, list_cards_totalizadores):
-        tipo_doc = request.data.get("tipos_solicitacao", [])
-        unidades_educacionais = request.data.get("unidades_educacionais", [])
-        lotes = request.data.get("lotes", [])
-        terceirizada = request.data.get("terceirizada", [])
-        tipos_unidade = request.data.get("tipos_unidade", [])
-        periodo_datas = {
-            "data_evento": request.data.get("de", None),
-            "data_evento_fim": request.data.get("ate", None),
-        }
-
-        nenhum_filtro = (
-            not tipo_doc
-            and not unidades_educacionais
-            and not lotes
-            and not terceirizada
-            and not tipos_unidade
-        )
-
-        if (
-            nenhum_filtro
-            or periodo_datas["data_evento"]
-            or periodo_datas["data_evento_fim"]
-        ):
-            return list_cards_totalizadores
-
-        queryset = self.filtro_geral_totalizadores(request, model, queryset)
-        list_cards_totalizadores.append(
-            {"Total": self.count_query_set_sem_duplicados(queryset)}
-        )
-        return list_cards_totalizadores
-
-    def totalizador_lote(self, request, model, queryset, list_cards_totalizadores):
-        tipo_doc = request.data.get("tipos_solicitacao", [])
-        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
-        unidades_educacionais = request.data.get("unidades_educacionais", [])
-        lotes = request.data.get("lotes", [])
-        terceirizada = request.data.get("terceirizada", [])
-        tipos_unidade = request.data.get("tipos_unidade", [])
-
-        if not lotes or unidades_educacionais:
-            return list_cards_totalizadores
-
-        map_filtros = {
-            "tipo_doc__in": tipo_doc,
-            "escola_uuid__in": unidades_educacionais,
-            "terceirizada_uuid": terceirizada,
-            "escola_tipo_unidade_uuid__in": tipos_unidade,
-        }
-        queryset = self.filtro_geral_totalizadores(
-            request, model, queryset, map_filtros
-        )
-
-        for lote_uuid in lotes:
-            lote = Lote.objects.get(uuid=lote_uuid)
-            list_cards_totalizadores.append(
-                {
-                    f"{lote.nome} - {lote.diretoria_regional.nome if lote.diretoria_regional else 'sem DRE'}": self.count_query_set_sem_duplicados(
-                        queryset.filter(lote_uuid=lote_uuid)
-                    )
-                }
-            )
-        return list_cards_totalizadores
-
-    def totalizador_tipo_solicitacao(
-        self, request, model, queryset, list_cards_totalizadores
-    ):
-        tipo_doc = request.data.get("tipos_solicitacao", [])
-        lotes = request.data.get("lotes", [])
-        terceirizada = request.data.get("terceirizada", [])
-        tipos_unidade = request.data.get("tipos_unidade", [])
-        unidades_educacionais = request.data.get("unidades_educacionais", [])
-
-        if not tipo_doc:
-            return list_cards_totalizadores
-
-        map_filtros = {
-            "lote_uuid__in": lotes,
-            "escola_uuid__in": unidades_educacionais,
-            "terceirizada_uuid": terceirizada,
-            "escola_tipo_unidade_uuid__in": tipos_unidade,
-        }
-        queryset = self.filtro_geral_totalizadores(
-            request, model, queryset, map_filtros
-        )
-
-        de_para_tipos_solicitacao = {
-            "INC_ALIMENTA": "Inclusão de Alimentação",
-            "ALT_CARDAPIO": "Alteração do tipo de Alimentação",
-            "KIT_LANCHE_UNIFICADO": "Kit Lanche Unificado",
-            "KIT_LANCHE_AVULSA": "Kit Lanche Passeio",
-            "INV_CARDAPIO": "Inversão de dia de Cardápio",
-            "SUSP_ALIMENTACAO": "Suspensão de Alimentação",
-        }
-
-        for tipo_solicitacao in tipo_doc:
-            tipos_solicitacao_filtrar = model.map_queryset_por_tipo_doc(
-                [tipo_solicitacao]
-            )
-            list_cards_totalizadores.append(
-                {
-                    de_para_tipos_solicitacao[
-                        tipo_solicitacao
-                    ]: self.count_query_set_sem_duplicados(
-                        queryset.filter(tipo_doc__in=tipos_solicitacao_filtrar)
-                    )
-                }
-            )
-        return list_cards_totalizadores
-
-    def totalizador_tipo_unidade(
-        self, request, model, queryset, list_cards_totalizadores
-    ):
-        tipo_doc = request.data.get("tipos_solicitacao", [])
-        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
-        unidades_educacionais = request.data.get("unidades_educacionais", [])
-        lotes = request.data.get("lotes", [])
-        terceirizada = request.data.get("terceirizada", [])
-        tipos_unidade = request.data.get("tipos_unidade", [])
-
-        if not tipos_unidade or unidades_educacionais:
-            return list_cards_totalizadores
-
-        map_filtros = {
-            "lote_uuid__in": lotes,
-            "tipo_doc__in": tipo_doc,
-            "terceirizada_uuid": terceirizada,
-            "escola_tipo_unidade_uuid__in": tipos_unidade,
-        }
-        queryset = self.filtro_geral_totalizadores(
-            request, model, queryset, map_filtros
-        )
-
-        for tipo_unidade_uuid in tipos_unidade:
-            tipo_unidade = TipoUnidadeEscolar.objects.get(uuid=tipo_unidade_uuid)
-            list_cards_totalizadores.append(
-                {
-                    tipo_unidade.iniciais: self.count_query_set_sem_duplicados(
-                        queryset.filter(escola_tipo_unidade_uuid=tipo_unidade_uuid)
-                    )
-                }
-            )
-        return list_cards_totalizadores
-
-    def totalizador_unidade_educacional(
-        self, request, model, queryset, list_cards_totalizadores
-    ):
-        tipo_doc = request.data.get("tipos_solicitacao", [])
-        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
-        unidades_educacionais = request.data.get("unidades_educacionais", [])
-        terceirizada = request.data.get("terceirizada", [])
-
-        if not unidades_educacionais:
-            return list_cards_totalizadores
-
-        map_filtros = {
-            "tipo_doc__in": tipo_doc,
-            "terceirizada_uuid": terceirizada,
-        }
-        queryset = self.filtro_geral_totalizadores(
-            request, model, queryset, map_filtros
-        )
-
-        for unidade_educacional_uuid in unidades_educacionais:
-            escola = Escola.objects.get(uuid=unidade_educacional_uuid)
-            list_cards_totalizadores.append(
-                {
-                    escola.nome: self.count_query_set_sem_duplicados(
-                        queryset.filter(escola_uuid=unidade_educacional_uuid)
-                    )
-                }
-            )
-        return list_cards_totalizadores
-
-    def totalizador_periodo(self, request, model, queryset, list_cards_totalizadores):
-        queryset = self.filtro_geral_totalizadores(request, model, queryset)
-        periodo_datas = {
-            "data_evento": request.data.get("de", None),
-            "data_evento_fim": request.data.get("ate", None),
-        }
-
-        if periodo_datas["data_evento"] and not periodo_datas["data_evento_fim"]:
-            list_cards_totalizadores.append(
-                {
-                    f"Período: a partir de {periodo_datas['data_evento']}": self.count_query_set_sem_duplicados(
-                        queryset
-                    )
-                }
-            )
-        elif not periodo_datas["data_evento"] and periodo_datas["data_evento_fim"]:
-            list_cards_totalizadores.append(
-                {
-                    f"Período: até {periodo_datas['data_evento_fim']}": self.count_query_set_sem_duplicados(
-                        queryset
-                    )
-                }
-            )
-        elif periodo_datas["data_evento"] and periodo_datas["data_evento_fim"]:
-            list_cards_totalizadores.append(
-                {
-                    f"Período: {periodo_datas['data_evento']} até "
-                    f"{periodo_datas['data_evento_fim']}": self.count_query_set_sem_duplicados(
-                        queryset
-                    )
-                }
-            )
-        return list_cards_totalizadores
-
     def filtrar_solicitacoes_para_relatorio_cards_totalizadores(self, request, model):
         list_cards_totalizadores = []
 
@@ -507,25 +244,25 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             status, instituicao_uuid=instituicao_uuid
         )
 
-        list_cards_totalizadores = self.totalizador_rede_municipal(
+        list_cards_totalizadores = totalizador_rede_municipal(
             request, queryset, list_cards_totalizadores
         )
-        list_cards_totalizadores = self.totalizador_total(
+        list_cards_totalizadores = totalizador_total(
             request, model, queryset, list_cards_totalizadores
         )
-        list_cards_totalizadores = self.totalizador_periodo(
+        list_cards_totalizadores = totalizador_periodo(
             request, model, queryset, list_cards_totalizadores
         )
-        list_cards_totalizadores = self.totalizador_lote(
+        list_cards_totalizadores = totalizador_lote(
             request, model, queryset, list_cards_totalizadores
         )
-        list_cards_totalizadores = self.totalizador_tipo_solicitacao(
+        list_cards_totalizadores = totalizador_tipo_solicitacao(
             request, model, queryset, list_cards_totalizadores
         )
-        list_cards_totalizadores = self.totalizador_tipo_unidade(
+        list_cards_totalizadores = totalizador_tipo_unidade(
             request, model, queryset, list_cards_totalizadores
         )
-        list_cards_totalizadores = self.totalizador_unidade_educacional(
+        list_cards_totalizadores = totalizador_unidade_educacional(
             request, model, queryset, list_cards_totalizadores
         )
 
