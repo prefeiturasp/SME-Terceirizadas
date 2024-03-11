@@ -241,8 +241,8 @@ def exporta_relatorio_adesao_para_xlsx(user, nome_arquivo, resultados, query_par
         user=user, identificador=nome_arquivo
     )
     try:
-        xlsx = gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params)
-        atualiza_central_download(obj_central_download, nome_arquivo, xlsx)
+        arquivo = gera_relatorio_adesao_xlsx(resultados, query_params)
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
 

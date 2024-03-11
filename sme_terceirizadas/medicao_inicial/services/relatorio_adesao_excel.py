@@ -1,9 +1,8 @@
-import os
+import io
 from datetime import datetime
 from typing import List
 
 import pandas as pd
-from django.http import QueryDict
 
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
 from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, Lote
@@ -36,7 +35,7 @@ def _insere_tabela_periodo_na_planilha(aba, refeicoes, colunas, proxima_linha, w
     return df
 
 
-def _formata_filtros(query_params: QueryDict):
+def _formata_filtros(query_params: dict):
     mes, ano = query_params.get("mes_ano").split("_")
     filtros = f"{converte_numero_em_mes(int(mes))} - {ano}"
 
@@ -45,7 +44,7 @@ def _formata_filtros(query_params: QueryDict):
         dre = DiretoriaRegional.objects.filter(uuid=dre_uuid).first()
         filtros += f" | {dre.nome}"
 
-    lotes_uuid = query_params.getlist("lotes[]")
+    lotes_uuid = query_params.get("lotes")
     if lotes_uuid:
         lotes = Lote.objects.filter(uuid__in=lotes_uuid).values_list("nome", flat=True)
         filtros += f" | {', '.join(lotes)}"
@@ -89,7 +88,7 @@ def _preenche_titulo(workbook, worksheet, colunas):
 def _preenche_linha_dos_filtros_selecionados(
     workbook,
     worksheet,
-    query_params: QueryDict,
+    query_params: dict,
     colunas: List[str],
 ):
     filtros = _formata_filtros(query_params)
@@ -185,7 +184,7 @@ def _formata_numeros_coluna_total_adesao(workbook, worksheet, colunas):
     worksheet.set_column(len(colunas) - 1, len(colunas) - 1, None, formatacao)
 
 
-def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
+def gera_relatorio_adesao_xlsx(resultados, query_params):
     colunas = [
         "Tipo de Alimentação",
         "Total de Alimentações Servidas",
@@ -193,10 +192,10 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
         "% de Adesão",
     ]
 
-    path = os.path.join(os.path.dirname(__file__), nome_arquivo)
+    file = io.BytesIO()
 
-    with pd.ExcelWriter(path) as writer:
-        aba = "Relatorio de Adesao"
+    with pd.ExcelWriter(file, engine="xlsxwriter") as writer:
+        aba = "Relatório de Adesão"
         proxima_linha = 4  # 4 linhas em branco para o cabecalho
         quantidade_de_linhas_em_branco_apos_tabela = 2
 
@@ -234,3 +233,5 @@ def gera_relatorio_adesao_xlsx(nome_arquivo, resultados, query_params):
         _ajusta_layout_colunas(workbook, worksheet, colunas)
         _formata_numeros_colunas_total_servido_e_frequencia(workbook, worksheet)
         _formata_numeros_coluna_total_adesao(workbook, worksheet, colunas)
+
+    return file.getvalue()

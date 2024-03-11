@@ -18,9 +18,6 @@ from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
 from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import obtem_resultados
-from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_excel import (
-    gera_relatorio_adesao_xlsx,
-)
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
@@ -61,7 +58,8 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao,
 )
-from ..tasks import (  # exporta_relatorio_adesao_para_xlsx,
+from ..tasks import (
+    exporta_relatorio_adesao_para_xlsx,
     gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
     gera_pdf_relatorio_unificado_async,
 )
@@ -1624,14 +1622,17 @@ class RelatoriosViewSet(ViewSet):
 
         resultados = obtem_resultados(mes, ano, query_params)
 
-        # exporta_relatorio_adesao_para_xlsx.delay(
-        #     user=request.user.get_username(),
-        #     nome_arquivo="relatorio-adesao.xlsx",
-        #     resultados=resultados,
-        #     query_params=query_params,
-        # )
+        query_params_dict = query_params.dict()
 
-        gera_relatorio_adesao_xlsx("relatorio-adesao.xlsx", resultados, query_params)
+        if query_params.get("lotes[]"):
+            query_params_dict["lotes"] = query_params.getlist("lotes[]")
+
+        exporta_relatorio_adesao_para_xlsx.delay(
+            user=request.user.get_username(),
+            nome_arquivo="relatorio-adesao.xlsx",
+            resultados=resultados,
+            query_params=query_params_dict,
+        )
 
         return Response(
             data={"detail": "Solicitação de geração de arquivo recebida com sucesso."},
