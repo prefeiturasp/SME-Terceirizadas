@@ -426,6 +426,10 @@ class SolicitacaoMedicaoInicialViewSet(
         if (
             isinstance(request.user.vinculo_atual.instituicao, DiretoriaRegional)
             or request.user.tipo_usuario in USUARIOS_VISAO_CODAE
+            or (
+                request.query_params.get("eh_relatorio_adesao")
+                and request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA
+            )
         ):
             qs_solicitacao_medicao = query_set
 
