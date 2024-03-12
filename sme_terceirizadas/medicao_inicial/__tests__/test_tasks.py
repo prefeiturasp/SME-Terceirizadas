@@ -3,19 +3,23 @@ from unittest.mock import Mock, patch
 
 import pytest
 from dateutil.relativedelta import relativedelta
+from django.http import QueryDict
 from django.test import TestCase
 
+from sme_terceirizadas.dados_comuns.models import CentralDeDownload
 from sme_terceirizadas.escola.models import AlunoPeriodoParcial
 from sme_terceirizadas.medicao_inicial.models import (
     Responsavel,
     SolicitacaoMedicaoInicial,
 )
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import obtem_resultados
 from sme_terceirizadas.medicao_inicial.tasks import (
     buscar_solicitacao_mes_anterior,
     copiar_alunos_periodo_parcial,
     copiar_responsaveis,
     cria_solicitacao_medicao_inicial_mes_atual,
     criar_nova_solicitacao,
+    exporta_relatorio_adesao_para_xlsx,
     gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
     gera_pdf_relatorio_unificado_async,
     solicitacao_medicao_atual_existe,
@@ -188,3 +192,54 @@ def test_copiar_alunos_periodo_parcial(escola_cei, aluno):
 
     assert solicitacao_destino.alunos_periodo_parcial.count() == 1
     assert solicitacao_destino.alunos_periodo_parcial.first().aluno == aluno
+
+
+@pytest.mark.django_db
+def test_exporta_relatorio_adesao_para_xlsx(
+    usuario,
+    categoria_medicao,
+    tipo_alimentacao_refeicao,
+    make_solicitacao_medicao_inicial,
+    make_medicao,
+    make_valores_medicao,
+    make_periodo_escolar,
+):
+    # arrange
+    mes = "03"
+    ano = "2024"
+    solicitacao = make_solicitacao_medicao_inicial(
+        mes, ano, "MEDICAO_APROVADA_PELA_CODAE"
+    )
+    periodo_escolar = make_periodo_escolar("MANHA")
+    medicao = make_medicao(solicitacao, periodo_escolar)
+
+    valores = range(1, 6)
+
+    for x in valores:
+        make_valores_medicao(
+            medicao=medicao,
+            categoria_medicao=categoria_medicao,
+            valor=str(x).rjust(2, "0"),
+            tipo_alimentacao=tipo_alimentacao_refeicao,
+        )
+        make_valores_medicao(
+            medicao=medicao,
+            categoria_medicao=categoria_medicao,
+            valor=str(x).rjust(2, "0"),
+            nome_campo="frequencia",
+        )
+
+    nome_arquivo = "relatorio-adesao.xlsx"
+
+    # act
+    resultados = obtem_resultados(mes, ano, QueryDict())
+
+    exporta_relatorio_adesao_para_xlsx(
+        usuario, nome_arquivo, resultados, {"mes_ano": f"{mes}_{ano}"}
+    )
+
+    assert CentralDeDownload.objects.count() == 1
+    arquivo = CentralDeDownload.objects.first()
+    assert arquivo is not None and arquivo.usuario == usuario
+    assert arquivo is not None and arquivo.identificador == nome_arquivo
+    assert arquivo is not None and arquivo.status == CentralDeDownload.STATUS_CONCLUIDO
