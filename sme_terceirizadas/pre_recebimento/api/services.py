@@ -184,6 +184,11 @@ class ServiceDashboardLayoutEmbalagem(BaseServiceDashboard):
             LayoutDeEmbalagemWorkflow.APROVADO,
             LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         ],
+        DILOG_DIRETORIA: [
+            LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+            LayoutDeEmbalagemWorkflow.APROVADO,
+            LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+        ],
     }
 
 
@@ -209,6 +214,11 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
         ],
+        DILOG_DIRETORIA: [
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+        ],
     }
 
 
@@ -225,6 +235,11 @@ class ServiceDashboardFichaTecnica(BaseServiceDashboard):
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
         ],
         ADMINISTRADOR_CODAE_GABINETE: [
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            FichaTecnicaDoProdutoWorkflow.APROVADA,
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        ],
+        DILOG_DIRETORIA: [
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             FichaTecnicaDoProdutoWorkflow.APROVADA,
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
