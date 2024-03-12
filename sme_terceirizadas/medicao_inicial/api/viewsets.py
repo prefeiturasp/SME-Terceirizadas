@@ -59,6 +59,7 @@ from ..models import (
     ValorMedicao,
 )
 from ..tasks import (
+    exporta_relatorio_adesao_para_pdf,
     exporta_relatorio_adesao_para_xlsx,
     gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
     gera_pdf_relatorio_unificado_async,
@@ -1630,6 +1631,42 @@ class RelatoriosViewSet(ViewSet):
         exporta_relatorio_adesao_para_xlsx.delay(
             user=request.user.get_username(),
             nome_arquivo="relatorio-adesao.xlsx",
+            resultados=resultados,
+            query_params=query_params_dict,
+        )
+
+        return Response(
+            data={"detail": "Solicitação de geração de arquivo recebida com sucesso."},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        url_name="relatorio-adesao_exportar-pdf",
+        url_path="relatorio-adesao/exportar-pdf",
+    )
+    def relatorio_adesao_exportar_pdf(self, request: Request):
+        query_params = request.query_params
+
+        mes_ano = query_params.get("mes_ano")
+        if not mes_ano:
+            return Response(
+                data="É necessário informar o mês/ano de referência",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        mes, ano = mes_ano.split("_")
+
+        resultados = obtem_resultados(mes, ano, query_params)
+
+        query_params_dict = query_params.dict()
+
+        if query_params.get("lotes[]"):
+            query_params_dict["lotes"] = query_params.getlist("lotes[]")
+
+        exporta_relatorio_adesao_para_pdf.delay(
+            user=request.user.get_username(),
+            nome_arquivo="relatorio-adesao.pdf",
             resultados=resultados,
             query_params=query_params_dict,
         )
