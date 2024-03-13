@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.template.loader import render_to_string
 
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
@@ -36,9 +38,15 @@ def gera_relatorio_adesao_pdf(resultados, query_params):
     #     "% de Adesão",
     # ]
 
+    filtros = _formata_filtros(query_params)
+    data_relatorio = datetime.now().date().strftime("%d/%m/%Y")
+
     html_string = render_to_string(
         "relatorio_adesao.html",
-        {},
+        {
+            "filtros": filtros,
+            "data_relatorio": data_relatorio,
+        },
     )
 
-    return html_to_pdf_file(html_string, "relatorio_adesao.pdf", True)
+    return html_to_pdf_file(html_string, "relatorio_adesao.pdf", False)
