@@ -476,9 +476,6 @@ class Empenho(TemChaveExterna, CriadoEm, TemAlteradoEm):
     # Tipo de empenho
     TIPO_EMPENHO_CHOICES = (("PRINCIPAL", "Principal"), ("REAJUSTE", "Reajuste"))
 
-    # Tipo de reajuste
-    TIPO_REAJUSTE_CHOICES = (("ALIMENTACOES", "Alimentações"), ("DIETAS", "Dietas"))
-
     # Status
     STATUS_CHOICES = (("ATIVO", "Ativo"), ("INATIVO", "Inativo"))
 
@@ -491,9 +488,6 @@ class Empenho(TemChaveExterna, CriadoEm, TemAlteradoEm):
     )
     tipo_empenho = models.CharField(
         choices=TIPO_EMPENHO_CHOICES, max_length=20, default="PRINCIPAL"
-    )
-    tipo_reajuste = models.CharField(
-        choices=TIPO_REAJUSTE_CHOICES, max_length=20, null=True, blank=True
     )
     status = models.CharField(choices=STATUS_CHOICES, max_length=10, default="ATIVO")
     valor_total = models.DecimalField(max_digits=12, decimal_places=2)
