@@ -11,17 +11,34 @@ def get_dataset_grafico_total_dre_lote(datasets, request, model, instituicao, qu
 
     lotes = request.data.get("lotes", [])
 
+    label_data = {
+        "AUTORIZADOS": "Autorizadas",
+        "CANCELADOS": "Canceladas",
+        "NEGADOS": "Negadas",
+        "RECEBIDAS": "Recebidas",
+    }
+
     if not lotes:
         lotes = Lote.objects.values_list("uuid", flat=True)
     queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros_=None)
-    dataset = {"labels": [], "data": []}
+    dataset = {
+        "labels": [],
+        "datasets": [
+            {
+                "label": f"Total de Solicitações {label_data[request.data.get('status')]} por DRE e Lote",
+                "data": [],
+                "maxBarThickness": 80,
+                "backgroundColor": "#198459",
+            }
+        ],
+    }
 
     for lote_uuid in lotes:
         lote = Lote.objects.get(uuid=lote_uuid)
         dataset["labels"].append(
             f"{lote.nome} - {lote.diretoria_regional.nome if lote.diretoria_regional else 'sem DRE'}"
         )
-        dataset["data"].append(
+        dataset["datasets"][0]["data"].append(
             count_query_set_sem_duplicados(queryset.filter(lote_uuid=lote_uuid))
         )
 
