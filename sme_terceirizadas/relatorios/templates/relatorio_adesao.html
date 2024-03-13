@@ -26,16 +26,20 @@
           {% for alimentacao, totais in alimentacoes.items %}
           <tr>
             <td>{{ alimentacao }}</td>
-            {% for total in totais.values %}
-            <td>{{ total }}</td>
+            {% for total, valor in totais.items %}
+              {% if total == "total_adesao" %}
+              <td>{{ valor|numero_para_porcentagem }}</td>
+              {% else %}
+              <td>{{ valor|numero_para_milhar }}</td>
+              {% endif %}
             {% endfor %}
           </tr>
           {% endfor %}
           <tr>
             <td>TOTAL</td>
-            <td>{{ alimentacoes|relatorio_adesao_total_servido }}</td>
-            <td>{{ alimentacoes|relatorio_adesao_total_frequencia }}</td>
-            <td>{{ alimentacoes|relatorio_adesao_total_adesao }}</td>
+            <td>{{ alimentacoes|relatorio_adesao_total_servido|numero_para_milhar }}</td>
+            <td>{{ alimentacoes|relatorio_adesao_total_frequencia|numero_para_milhar }}</td>
+            <td>{{ alimentacoes|relatorio_adesao_total_adesao|numero_para_porcentagem }}</td>
           </tr>
         </tbody>
       </table>

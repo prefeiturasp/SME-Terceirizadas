@@ -638,3 +638,13 @@ def relatorio_adesao_total_adesao(alimentacoes):
     total_servido = relatorio_adesao_total_servido(alimentacoes)
     total_frequencia = relatorio_adesao_total_frequencia(alimentacoes)
     return round(total_servido / total_frequencia, 4)
+
+
+@register.filter
+def numero_para_milhar(valor):
+    return "{0:,}".format(valor).replace(",", ".")
+
+
+@register.filter
+def numero_para_porcentagem(valor):
+    return f"{round(valor * 100, 4)}%"
