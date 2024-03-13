@@ -1886,7 +1886,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 log=log_transicao, arquivo=arquivo, nome=anexo["nome"]
             )
         if reclamacao:
-            emails = self.rastro_terceirizada.emails_por_modulo("Gestão de Produto")
+            emails = reclamacao.escola.lote.terceirizada.emails_por_modulo(
+                "Gestão de Produto"
+            )
             self._envia_email_codae_questiona_produto(
                 reclamacao, log_transicao, emails, link
             )
