@@ -1,3 +1,45 @@
-{% extends 'cabecalho_relatorio_adesao.html' %} {% block conteudo %}
-<main></main>
+{% extends 'cabecalho_relatorio_adesao.html' %}
+
+{% load sass_tags %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% sass_src 'css/relatorio_adesao.scss' %}" type="text/css" />
+{% endblock %}
+
+{% block conteudo %}
+<main>
+  <h2>RELATÓRIO DE ADESÃO DAS ALIMENTAÇÕES SERVIDAS</h2>
+  <div>
+    {% for periodo, alimentacoes in resultados.items %}
+    <div id="periodo">
+      <h3>{{ periodo }}</h3>
+      <table>
+        <thead>
+          <tr>
+            {% for coluna in colunas %}
+            <th>{{ coluna }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for alimentacao, totais in alimentacoes.items %}
+          <tr>
+            <td>{{ alimentacao }}</td>
+            {% for total in totais.values %}
+            <td>{{ total }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+          <tr>
+            <td>TOTAL</td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+</main>
 {% endblock %}

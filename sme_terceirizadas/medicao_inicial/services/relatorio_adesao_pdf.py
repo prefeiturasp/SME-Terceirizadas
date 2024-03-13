@@ -31,12 +31,12 @@ def _formata_filtros(query_params: dict):
 
 
 def gera_relatorio_adesao_pdf(resultados, query_params):
-    # colunas = [
-    #     "Tipo de Alimentação",
-    #     "Total de Alimentações Servidas",
-    #     "Número Total de Frequência",
-    #     "% de Adesão",
-    # ]
+    colunas = [
+        "Tipo de Alimentação",
+        "Total de Alimentações Servidas",
+        "Número Total de Frequência",
+        "% de Adesão",
+    ]
 
     filtros = _formata_filtros(query_params)
     data_relatorio = datetime.now().date().strftime("%d/%m/%Y")
@@ -46,6 +46,8 @@ def gera_relatorio_adesao_pdf(resultados, query_params):
         {
             "filtros": filtros,
             "data_relatorio": data_relatorio,
+            "colunas": colunas,
+            "resultados": resultados,
         },
     )
 

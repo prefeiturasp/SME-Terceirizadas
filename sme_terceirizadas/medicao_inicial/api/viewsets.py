@@ -1657,9 +1657,9 @@ class RelatoriosViewSet(ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # mes, ano = mes_ano.split("_")
+        mes, ano = mes_ano.split("_")
 
-        # resultados = obtem_resultados(mes, ano, query_params)
+        resultados = obtem_resultados(mes, ano, query_params)
 
         query_params_dict = query_params.dict()
 
@@ -1678,7 +1678,7 @@ class RelatoriosViewSet(ViewSet):
         #     status=status.HTTP_200_OK,
         # )
 
-        return gera_relatorio_adesao_pdf(None, query_params_dict)
+        return gera_relatorio_adesao_pdf(resultados, query_params_dict)
 
 
 class ClausulaDeDescontoViewSet(ModelViewSet):
