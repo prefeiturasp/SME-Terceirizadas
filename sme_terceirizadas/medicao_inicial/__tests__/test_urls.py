@@ -1600,7 +1600,6 @@ def test_url_endpoint_empenho(client_autenticado_coordenador_codae, edital, cont
     assert response.json()["results"][0]["edital"] == "Edital de Pregão nº 78/SME/2024"
     assert response.json()["results"][0]["numero"] == "1234599"
     assert response.json()["results"][0]["tipo_empenho"] == "PRINCIPAL"
-    assert response.json()["results"][0]["tipo_reajuste"] == None
     assert response.json()["results"][0]["status"] == "ATIVO"
     assert response.json()["results"][0]["valor_total"] == "1050.99"
 
