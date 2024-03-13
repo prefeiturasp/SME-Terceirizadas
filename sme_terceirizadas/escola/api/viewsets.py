@@ -614,6 +614,7 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
                     "count": faixa_alunos[uuid_faixa_etaria],
                 }
             )
+        results = sorted(results, key=lambda x: x["faixa_etaria"]["inicio"])
 
         return Response({"count": len(results), "results": results})
 
