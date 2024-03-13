@@ -1,5 +1,6 @@
 {% extends 'cabecalho_relatorio_adesao.html' %}
 
+{% load index %}
 {% load sass_tags %}
 
 {% block styles %}
@@ -32,9 +33,9 @@
           {% endfor %}
           <tr>
             <td>TOTAL</td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>{{ alimentacoes|relatorio_adesao_total_servido }}</td>
+            <td>{{ alimentacoes|relatorio_adesao_total_frequencia }}</td>
+            <td>{{ alimentacoes|relatorio_adesao_total_adesao }}</td>
           </tr>
         </tbody>
       </table>

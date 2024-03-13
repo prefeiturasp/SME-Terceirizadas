@@ -621,3 +621,20 @@ def check_tipo_usuario(tipo_usuario):
 @register.filter
 def multiply(valor, multiplicador):
     return round(int(valor) * multiplicador)
+
+
+@register.filter
+def relatorio_adesao_total_servido(alimentacoes):
+    return sum([totais["total_servido"] for totais in alimentacoes.values()])
+
+
+@register.filter
+def relatorio_adesao_total_frequencia(alimentacoes):
+    return sum([totais["total_frequencia"] for totais in alimentacoes.values()])
+
+
+@register.filter
+def relatorio_adesao_total_adesao(alimentacoes):
+    total_servido = relatorio_adesao_total_servido(alimentacoes)
+    total_frequencia = relatorio_adesao_total_frequencia(alimentacoes)
+    return round(total_servido / total_frequencia, 4)
