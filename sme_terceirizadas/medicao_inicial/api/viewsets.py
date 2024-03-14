@@ -1606,11 +1606,17 @@ class RelatoriosViewSet(ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        mes, ano = mes_ano.split("_")
+        try:
+            mes, ano = mes_ano.split("_")
 
-        resultados = obtem_resultados(mes, ano, query_params)
+            resultados = obtem_resultados(mes, ano, query_params)
 
-        return Response(data=resultados, status=status.HTTP_200_OK)
+            return Response(data=resultados, status=status.HTTP_200_OK)
+        except Exception:
+            return Response(
+                data={"detail": "Verifique os parâmetros e tente novamente"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @action(
         detail=False,
@@ -1627,26 +1633,34 @@ class RelatoriosViewSet(ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        mes, ano = mes_ano.split("_")
+        try:
+            mes, ano = mes_ano.split("_")
 
-        resultados = obtem_resultados(mes, ano, query_params)
+            resultados = obtem_resultados(mes, ano, query_params)
 
-        query_params_dict = query_params.dict()
+            query_params_dict = query_params.dict()
 
-        if query_params.get("lotes[]"):
-            query_params_dict["lotes"] = query_params.getlist("lotes[]")
+            if query_params.get("lotes[]"):
+                query_params_dict["lotes"] = query_params.getlist("lotes[]")
 
-        exporta_relatorio_adesao_para_xlsx.delay(
-            user=request.user.get_username(),
-            nome_arquivo="relatorio-adesao.xlsx",
-            resultados=resultados,
-            query_params=query_params_dict,
-        )
+            exporta_relatorio_adesao_para_xlsx.delay(
+                user=request.user.get_username(),
+                nome_arquivo="relatorio-adesao.xlsx",
+                resultados=resultados,
+                query_params=query_params_dict,
+            )
 
-        return Response(
-            data={"detail": "Solicitação de geração de arquivo recebida com sucesso."},
-            status=status.HTTP_200_OK,
-        )
+            return Response(
+                data={
+                    "detail": "Solicitação de geração de arquivo recebida com sucesso."
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            return Response(
+                data={"detail": "Verifique os parâmetros e tente novamente"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @action(
         detail=False,
