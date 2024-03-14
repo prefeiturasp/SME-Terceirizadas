@@ -1589,6 +1589,14 @@ class EmpenhoViewSet(ModelViewSet):
 
 
 class RelatoriosViewSet(ViewSet):
+    permission_classes = [
+        UsuarioEscolaTercTotal
+        | UsuarioDiretoriaRegional
+        | UsuarioCODAEGestaoAlimentacao
+        | UsuarioCODAENutriManifestacao
+        | UsuarioCODAEGabinete
+    ]
+
     @action(detail=False, url_name="relatorio-adesao", url_path="relatorio-adesao")
     def relatorio_adesao(self, request: Request):
         query_params = request.query_params
