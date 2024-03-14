@@ -305,6 +305,9 @@ def embalagens_filter(embalagens, tipo):
         return False
 
 
+# LOGS CRONOGRAMA
+
+
 @register.simple_tag
 def get_assinatura_cronograma(logs):
     return logs.filter(
@@ -330,6 +333,23 @@ def get_assinatura_dinutre(logs):
 def get_assinatura_codae(logs):
     return logs.filter(
         status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE
+    ).last()
+
+
+# LOGS FICHA TECNICA
+
+
+@register.simple_tag
+def get_assinatura_fornecedor_ficha(logs):
+    return logs.filter(
+        status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE
+    ).last()
+
+
+@register.simple_tag
+def get_assinatura_codae_ficha(logs):
+    return logs.filter(
+        status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_APROVADA
     ).last()
 
 
