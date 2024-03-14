@@ -1,5 +1,3 @@
-from django.db.models import Count
-
 from sme_terceirizadas.escola.models import Escola, Lote, TipoUnidadeEscolar
 
 
@@ -220,9 +218,7 @@ def totalizador_unidade_educacional(request, model, queryset, list_cards_totaliz
         "terceirizada_uuid": terceirizada,
     }
     queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros)
-    queryset = queryset.values("uuid", "escola_uuid", "escola_nome").annotate(
-        soma_escola_uuid=Count("escola_uuid")
-    )
+    queryset = queryset.values("uuid", "escola_uuid", "escola_nome")
     nomes_escolas = Escola.objects.filter(tipo_gestao__nome="TERC TOTAL").values_list(
         "uuid", "nome"
     )
