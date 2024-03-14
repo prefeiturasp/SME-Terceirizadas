@@ -2,7 +2,7 @@
 
 @page :nth(n+2) {
   margin-top: 5.9cm !important;
-  padding-top: 1cm !important;
+  padding-top: 0cm !important;
 }
 
 @page :nth(1) {
@@ -33,4 +33,57 @@
 
 .rodape-tabela{
   font-size: 11px;
+}
+
+.checkbox-preenchido{
+  padding: 16px;
+  border: 1px $verde-escuro solid;
+  border-radius: 5px;
+
+  .check-verde{
+    color: $verde-escuro;
+    font-weight: bold;
+  }
+}
+
+.assinaturas{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding-top: 16px;
+
+  .logo-sigpae{
+    img {
+      max-width:60px;
+      max-height:60px;
+      width: auto;
+      height: auto;
+    }
+  }
+
+  .assinatura{
+    flex-basis: 49%;
+    padding-bottom: 16px;
+
+    .titulo-assinatura{
+      font-size: 12px;
+      color: $verde-escuro;
+      padding-bottom: 4px;
+    }
+
+    .assinatura-container{
+      height: 2.6cm;
+      border: 1px solid #A4A4A4;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+    }
+
+    .texto-assinatura{
+      font-size: 11px;
+      font-weight: normal;
+      line-height: 13px;
+    }
+  }
 }

@@ -548,6 +548,7 @@ class PermissaoParaListarVinculosAtivos(BasePermission):
                 ADMINISTRADOR_REPRESENTANTE_CODAE,
                 COORDENADOR_SUPERVISAO_NUTRICAO,
                 ADMINISTRADOR_CODAE_GABINETE,
+                DILOG_DIRETORIA,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, Escola)
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]
@@ -593,6 +594,7 @@ class UsuarioDilogOuDistribuidor(BasePermission):
                     COORDENADOR_LOGISTICA,
                     COORDENADOR_CODAE_DILOG_LOGISTICA,
                     ADMINISTRADOR_CODAE_GABINETE,
+                    DILOG_DIRETORIA,
                 ]
                 or usuario.eh_distribuidor
             )
@@ -616,6 +618,7 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
                         COORDENADOR_CODAE_DILOG_LOGISTICA,
                         ADMINISTRADOR_CODAE_DILOG_JURIDICO,
                         DILOG_QUALIDADE,
+                        DILOG_DIRETORIA,
                     ]
                 )
                 or usuario.eh_distribuidor
@@ -645,6 +648,7 @@ class PermissaoParaListarEntregas(BasePermission):
                         ADMINISTRADOR_CODAE_DILOG_CONTABIL,
                         ADMINISTRADOR_CODAE_DILOG_JURIDICO,
                         ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+                        DILOG_DIRETORIA,
                     ]
                 )
                 or usuario.eh_distribuidor
@@ -803,6 +807,7 @@ class PermissaoParaDashboardLayoutEmbalagem(BasePermission):
         DILOG_QUALIDADE,
         COORDENADOR_GESTAO_PRODUTO,
         ADMINISTRADOR_CODAE_GABINETE,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
@@ -825,6 +830,7 @@ class PermissaoParaDashboardDocumentosDeRecebimento(BasePermission):
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_CRONOGRAMA,
         ADMINISTRADOR_CODAE_GABINETE,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
@@ -1100,6 +1106,7 @@ class PermissaoParaVisualizarGuiasComOcorrencias(BasePermission):
                         COORDENADOR_LOGISTICA,
                         DILOG_QUALIDADE,
                         ADMINISTRADOR_CODAE_GABINETE,
+                        DILOG_DIRETORIA,
                     ]
                 )
             )
@@ -1137,6 +1144,7 @@ class PermissaoParaVisualizarLayoutDeEmbalagem(BasePermission):
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
@@ -1160,6 +1168,7 @@ class PermissaoParaVisualizarDocumentosDeRecebimento(BasePermission):
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_CRONOGRAMA,
         ADMINISTRADOR_CODAE_GABINETE,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
@@ -1197,6 +1206,7 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
@@ -1219,6 +1229,7 @@ class PermissaoParaVisualizarFichaTecnica(BasePermission):
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_CRONOGRAMA,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
