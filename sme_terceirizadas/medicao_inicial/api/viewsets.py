@@ -18,9 +18,6 @@ from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
 from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import obtem_resultados
-from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_pdf import (
-    gera_relatorio_adesao_pdf,
-)
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
@@ -61,7 +58,8 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao,
 )
-from ..tasks import (  # exporta_relatorio_adesao_para_pdf,
+from ..tasks import (
+    exporta_relatorio_adesao_para_pdf,
     exporta_relatorio_adesao_para_xlsx,
     gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
     gera_pdf_relatorio_unificado_async,
@@ -1665,28 +1663,34 @@ class RelatoriosViewSet(ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        mes, ano = mes_ano.split("_")
+        try:
+            mes, ano = mes_ano.split("_")
 
-        resultados = obtem_resultados(mes, ano, query_params)
+            resultados = obtem_resultados(mes, ano, query_params)
 
-        query_params_dict = query_params.dict()
+            query_params_dict = query_params.dict()
 
-        if query_params.get("lotes[]"):
-            query_params_dict["lotes"] = query_params.getlist("lotes[]")
+            if query_params.get("lotes[]"):
+                query_params_dict["lotes"] = query_params.getlist("lotes[]")
 
-        # exporta_relatorio_adesao_para_pdf.delay(
-        #     user=request.user.get_username(),
-        #     nome_arquivo="relatorio-adesao.pdf",
-        #     resultados=resultados,
-        #     query_params=query_params_dict,
-        # )
+            exporta_relatorio_adesao_para_pdf.delay(
+                user=request.user.get_username(),
+                nome_arquivo="relatorio-adesao.pdf",
+                resultados=resultados,
+                query_params=query_params_dict,
+            )
 
-        # return Response(
-        #     data={"detail": "Solicitação de geração de arquivo recebida com sucesso."},
-        #     status=status.HTTP_200_OK,
-        # )
-
-        return gera_relatorio_adesao_pdf(resultados, query_params_dict)
+            return Response(
+                data={
+                    "detail": "Solicitação de geração de arquivo recebida com sucesso."
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            return Response(
+                data={"detail": "Verifique os parâmetros e tente novamente"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class ClausulaDeDescontoViewSet(ModelViewSet):

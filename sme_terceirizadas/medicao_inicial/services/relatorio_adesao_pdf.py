@@ -51,4 +51,4 @@ def gera_relatorio_adesao_pdf(resultados, query_params):
         },
     )
 
-    return html_to_pdf_file(html_string, "relatorio_adesao.pdf", False)
+    return html_to_pdf_file(html_string, "relatorio_adesao.pdf", True)
