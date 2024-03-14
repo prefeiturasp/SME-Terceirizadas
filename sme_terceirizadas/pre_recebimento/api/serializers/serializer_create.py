@@ -491,18 +491,6 @@ class TipoDeEmbalagemDeLayoutAnaliseSerializer(serializers.ModelSerializer):
                 }
             )
 
-        if (
-            not embalagem.layout_de_embalagem.eh_primeira_analise
-            and embalagem.status != TipoDeEmbalagemDeLayout.STATUS_EM_ANALISE
-        ):
-            raise serializers.ValidationError(
-                {
-                    f"Layout Embalagem {tipo_embalagem}": [
-                        "O Tipo/UUID informado não pode ser analisado pois não está em análise."
-                    ]
-                }
-            )
-
         return attrs
 
     class Meta:
@@ -521,27 +509,15 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
 
     def validate_tipos_de_embalagens(self, value):
         self._validar_primeira_analise(value)
-        self._validar_analise_correcao(value)
 
         return value
 
     def _validar_primeira_analise(self, value):
         if self.instance.eh_primeira_analise:
-            if not len(value) == self.instance.tipos_de_embalagens.count():
+            if len(value) < self.instance.tipos_de_embalagens.count():
                 raise serializers.ValidationError(
                     "Quantidade de Tipos de Embalagem recebida para primeira análise "
-                    + "é diferente da quantidade presente no Layout de Embalagem."
-                )
-
-    def _validar_analise_correcao(self, value):
-        if not self.instance.eh_primeira_analise:
-            if (
-                not len(value)
-                == self.instance.tipos_de_embalagens.filter(status="EM_ANALISE").count()
-            ):
-                raise serializers.ValidationError(
-                    "Quantidade de Tipos de Embalagem recebida para análise da correção"
-                    + " é diferente da quantidade em análise."
+                    + "é menor que quantidade presente no Layout de Embalagem."
                 )
 
     def update(self, instance, validated_data):
@@ -550,10 +526,21 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
             dados_tipos_de_embalagens = validated_data.pop("tipos_de_embalagens", [])
 
             for dados in dados_tipos_de_embalagens:
-                tipo_de_embalagem = instance.tipos_de_embalagens.get(uuid=dados["uuid"])
-                tipo_de_embalagem.status = dados["status"]
-                tipo_de_embalagem.complemento_do_status = dados["complemento_do_status"]
-                tipo_de_embalagem.save()
+                if dados[
+                    "tipo_embalagem"
+                ] == TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_TERCIARIA and not dados.get(
+                    "uuid", None
+                ):
+                    cria_tipos_de_embalagens(dados, instance)
+                else:
+                    tipo_de_embalagem = instance.tipos_de_embalagens.get(
+                        uuid=dados["uuid"]
+                    )
+                    tipo_de_embalagem.status = dados["status"]
+                    tipo_de_embalagem.complemento_do_status = dados[
+                        "complemento_do_status"
+                    ]
+                    tipo_de_embalagem.save()
 
             (
                 instance.codae_aprova(user=user)
