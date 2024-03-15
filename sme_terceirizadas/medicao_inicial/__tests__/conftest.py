@@ -1,5 +1,6 @@
 import datetime
 import json
+import random
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -1960,7 +1961,9 @@ def medicao_aprovada_pela_dre(
 
 @pytest.fixture
 def categoria_medicao():
-    return mommy.make("CategoriaMedicao", nome="ALIMENTAÇÃO", id=100)
+    return mommy.make(
+        "CategoriaMedicao", nome="ALIMENTAÇÃO", id=random.randint(1, 10000)
+    )
 
 
 @pytest.fixture
