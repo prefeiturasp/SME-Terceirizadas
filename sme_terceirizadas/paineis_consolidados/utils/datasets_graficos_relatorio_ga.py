@@ -1,8 +1,9 @@
-from sme_terceirizadas.escola.models import Escola, Lote
+from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, Lote
 from sme_terceirizadas.paineis_consolidados.utils.totalizadores_relatorio_ga import (
     count_query_set_sem_duplicados,
     filtro_geral_totalizadores,
 )
+from sme_terceirizadas.terceirizada.models import Terceirizada
 
 
 def get_dataset_grafico_total_dre_lote(datasets, request, model, instituicao, queryset):
@@ -19,7 +20,13 @@ def get_dataset_grafico_total_dre_lote(datasets, request, model, instituicao, qu
     }
 
     if not lotes:
-        lotes = Lote.objects.values_list("uuid", flat=True)
+        if isinstance(instituicao, Terceirizada):
+            lotes = Lote.objects.filter(terceirizada=instituicao)
+        elif isinstance(instituicao, DiretoriaRegional):
+            lotes = Lote.objects.filter(diretoria_regional=instituicao)
+        else:
+            lotes = Lote.objects.all()
+        lotes = lotes.values_list("uuid", flat=True)
     queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros_=None)
     dataset = {
         "labels": [],
