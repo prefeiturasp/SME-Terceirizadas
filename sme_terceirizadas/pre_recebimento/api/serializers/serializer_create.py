@@ -477,6 +477,25 @@ class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
 class TipoDeEmbalagemDeLayoutAnaliseSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(required=False)
 
+    def validate(self, attrs):
+        uuid = attrs.get("uuid", None)
+        tipo_embalagem = attrs.get("tipo_embalagem", None)
+        status = attrs.get("status", None)
+
+        if tipo_embalagem in [
+            TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_PRIMARIA,
+            TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA,
+        ]:
+            if not uuid or not status:
+                raise serializers.ValidationError(
+                    {
+                        f"Layout Embalagem {tipo_embalagem}": [
+                            "UUID obrigatório para o tipo de embalagem informado."
+                        ]
+                    }
+                )
+        return attrs
+
     class Meta:
         model = TipoDeEmbalagemDeLayout
         fields = ("uuid", "tipo_embalagem", "status", "complemento_do_status")
