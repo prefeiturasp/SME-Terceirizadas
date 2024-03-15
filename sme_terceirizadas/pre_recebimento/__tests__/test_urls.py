@@ -1585,7 +1585,7 @@ def test_url_layout_embalagem_validacao_primeira_analise(
 
     msg_erro = (
         "Quantidade de Tipos de Embalagem recebida para primeira análise "
-        + "é diferente da quantidade presente no Layout de Embalagem."
+        + "é menor que quantidade presente no Layout de Embalagem."
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro in response.json()["tipos_de_embalagens"]
@@ -1630,26 +1630,15 @@ def test_url_layout_embalagem_analise_correcao(
     assert layout_analisado.aprovado
 
 
-def test_url_layout_embalagem_validacao_analise_correcao(
-    client_autenticado_codae_dilog, layout_de_embalagem_em_analise_com_correcao
+def test_url_layout_embalagem_solicitacao_correcao_apos_aprovado(
+    client_autenticado_codae_dilog, layout_de_embalagem_aprovado
 ):
-    layout_analisado = layout_de_embalagem_em_analise_com_correcao
-    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
+    # Pede correção da embalagem terciaria que não foi enviada originalmente.
+    layout_analisado = layout_de_embalagem_aprovado
     dados_analise = {
         "tipos_de_embalagens": [
             {
-                "uuid": str(
-                    tipos_embalagem_analisados.get(tipo_embalagem="PRIMARIA").uuid
-                ),
-                "tipo_embalagem": "PRIMARIA",
-                "status": "APROVADO",
-                "complemento_do_status": "Teste complemento",
-            },
-            {
-                "uuid": str(
-                    tipos_embalagem_analisados.get(tipo_embalagem="SECUNDARIA").uuid
-                ),
-                "tipo_embalagem": "SECUNDARIA",
+                "tipo_embalagem": "TERCIARIA",
                 "status": "REPROVADO",
                 "complemento_do_status": "Teste complemento",
             },
@@ -1663,13 +1652,14 @@ def test_url_layout_embalagem_validacao_analise_correcao(
         content_type="application/json",
         data=json.dumps(dados_analise),
     )
+    assert response.status_code == status.HTTP_200_OK
 
-    msg_erro = "O Tipo/UUID informado não pode ser analisado pois não está em análise."
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert (
-        msg_erro
-        in response.json()["tipos_de_embalagens"][1]["Layout Embalagem SECUNDARIA"]
-    )
+
+def test_url_layout_embalagem_validacao_analise_correcao(
+    client_autenticado_codae_dilog, layout_de_embalagem_em_analise_com_correcao
+):
+    layout_analisado = layout_de_embalagem_em_analise_com_correcao
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
 
     dados_analise = {
         "tipos_de_embalagens": [
@@ -1681,6 +1671,11 @@ def test_url_layout_embalagem_validacao_analise_correcao(
                 "status": "APROVADO",
                 "complemento_do_status": "Teste complemento",
             },
+            {
+                "tipo_embalagem": "SECUNDARIA",
+                "status": "REPROVADO",
+                "complemento_do_status": "Teste complemento",
+            },
         ],
     }
 
@@ -1689,13 +1684,12 @@ def test_url_layout_embalagem_validacao_analise_correcao(
         content_type="application/json",
         data=json.dumps(dados_analise),
     )
-
-    msg_erro = (
-        "Quantidade de Tipos de Embalagem recebida para análise da correção "
-        + "é diferente da quantidade em análise."
-    )
+    msg_erro = "UUID obrigatório para o tipo de embalagem informado."
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert msg_erro in response.json()["tipos_de_embalagens"]
+    assert (
+        msg_erro
+        in response.json()["tipos_de_embalagens"][1]["Layout Embalagem SECUNDARIA"]
+    )
 
 
 def test_url_layout_de_embalagem_fornecedor_corrige(

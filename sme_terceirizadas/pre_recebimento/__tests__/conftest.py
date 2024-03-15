@@ -665,6 +665,12 @@ def layout_de_embalagem_aprovado(ficha_tecnica_factory, empresa):
         tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA,
         status=TipoDeEmbalagemDeLayout.STATUS_APROVADO,
     )
+    mommy.make(
+        LogSolicitacoesUsuario,
+        uuid_original=layout.uuid,
+        status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
+        solicitacao_tipo=LogSolicitacoesUsuario.LAYOUT_DE_EMBALAGEM,
+    )
 
     return layout
 
