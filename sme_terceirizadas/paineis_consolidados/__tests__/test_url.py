@@ -780,3 +780,38 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_periodo_de_ate(
     assert "Rede Municipal de Educação" not in keys
     assert "Total" not in keys
     assert {"Período: 01/01/2017 até 01/01/2024": 5} in results
+
+
+def test_filtrar_solicitacoes_ga_graficos(
+    client_autenticado_codae_gestao_alimentacao,
+    escola,
+    escola_outro_lote,
+    solicitacoes_kit_lanche_autorizadas,
+    inclusoes_normais,
+):
+    data = {"status": "AUTORIZADOS"}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()[0]["labels"]) == 2
+
+    data = {"status": "AUTORIZADOS", "unidades_educacionais": [escola.uuid]}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == []
+
+    data = {"status": "AUTORIZADOS", "lotes": [escola.lote.uuid]}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()[0]["labels"]) == 1
