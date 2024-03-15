@@ -1441,7 +1441,10 @@ def test_finaliza_medicao_inicial_salva_logs_emebs(
 
 
 def test_salva_valores_medicao_inicial_cemei(
-    client_autenticado_da_escola_cemei, escola_cemei, solicitacao_medicao_inicial_cemei
+    client_autenticado_da_escola_cemei,
+    escola_cemei,
+    solicitacao_medicao_inicial_cemei,
+    categoria_medicao,
 ):
     data = {
         "valores_medicao": [
@@ -1449,14 +1452,14 @@ def test_salva_valores_medicao_inicial_cemei(
                 "dia": "08",
                 "valor": "218",
                 "nome_campo": "matriculados",
-                "categoria_medicao": "100",
+                "categoria_medicao": categoria_medicao.id,
                 "faixa_etaria": "0c914b27-c7cd-4682-a439-a4874745b005",
             },
             {
                 "dia": "08",
                 "valor": "200",
                 "nome_campo": "frequencia",
-                "categoria_medicao": "100",
+                "categoria_medicao": categoria_medicao.id,
                 "faixa_etaria": "0c914b27-c7cd-4682-a439-a4874745b005",
             },
         ]
@@ -1623,6 +1626,30 @@ def test_url_endpoint_relatorio_adesao_exportar_xlsx_sem_mes_ano(
 ):
     response = client_autenticado_coordenador_codae.get(
         "/medicao-inicial/relatorios/relatorio-adesao/exportar-xlsx/"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_endpoint_relatorio_adesao_exportar_pdf(
+    client_autenticado_coordenador_codae,
+):
+    # arrange
+    mes = "03"
+    ano = "2024"
+
+    response = client_autenticado_coordenador_codae.get(
+        f"/medicao-inicial/relatorios/relatorio-adesao/exportar-pdf/?mes_ano={mes}_{ano}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_relatorio_adesao_exportar_pdf_sem_mes_ano(
+    client_autenticado_coordenador_codae,
+):
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/relatorios/relatorio-adesao/exportar-pdf/"
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

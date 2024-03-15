@@ -29,21 +29,47 @@ Faker.seed(420)
 
 @pytest.fixture
 def diretoria_regional():
-    return mommy.make("DiretoriaRegional")
+    return mommy.make("DiretoriaRegional", nome="DRE X")
 
 
 @pytest.fixture
 def escola(diretoria_regional):
     terceirizada = mommy.make("Terceirizada")
     lote = mommy.make(
-        "Lote", diretoria_regional=diretoria_regional, terceirizada=terceirizada
+        "Lote",
+        nome="LOTE 1",
+        diretoria_regional=diretoria_regional,
+        terceirizada=terceirizada,
     )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
     tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEU GESTAO")
     return mommy.make(
         "Escola",
         diretoria_regional=diretoria_regional,
         lote=lote,
+        tipo_gestao=tipo_gestao,
         uuid="fdf23c84-c9ff-4811-adff-e70df5378466",
+        tipo_unidade=tipo_unidade_escolar,
+    )
+
+
+@pytest.fixture
+def escola_outro_lote(diretoria_regional):
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make(
+        "Lote",
+        nome="LOTE 2",
+        diretoria_regional=diretoria_regional,
+        terceirizada=terceirizada,
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEU GESTAO")
+    return mommy.make(
+        "Escola",
+        diretoria_regional=diretoria_regional,
+        lote=lote,
+        tipo_gestao=tipo_gestao,
+        uuid="452fe369-7887-4340-8a38-310318eeeb7b",
         tipo_unidade=tipo_unidade_escolar,
     )
 

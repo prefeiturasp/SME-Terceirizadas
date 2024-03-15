@@ -218,13 +218,22 @@ def totalizador_unidade_educacional(request, model, queryset, list_cards_totaliz
         "terceirizada_uuid": terceirizada,
     }
     queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros)
+    queryset = queryset.values("uuid", "escola_uuid", "escola_nome")
+    nomes_escolas = Escola.objects.filter(tipo_gestao__nome="TERC TOTAL").values_list(
+        "uuid", "nome"
+    )
 
     for unidade_educacional_uuid in unidades_educacionais:
-        escola = Escola.objects.get(uuid=unidade_educacional_uuid)
         list_cards_totalizadores.append(
             {
-                escola.nome: count_query_set_sem_duplicados(
-                    queryset.filter(escola_uuid=unidade_educacional_uuid)
+                nomes_escolas.get(uuid=unidade_educacional_uuid)[1]: len(
+                    set(
+                        [
+                            s["uuid"]
+                            for s in queryset
+                            if str(s["escola_uuid"]) == unidade_educacional_uuid
+                        ]
+                    )
                 )
             }
         )

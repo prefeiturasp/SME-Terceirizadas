@@ -554,6 +554,8 @@ class PermissaoParaListarVinculosAtivos(BasePermission):
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]
             or isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
             and usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]
+            or isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional)
+            and usuario.vinculo_atual.perfil.nome in [COGESTOR_DRE]
         )
 
 
