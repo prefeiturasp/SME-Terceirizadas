@@ -4973,7 +4973,11 @@ class LayoutDeEmbalagemWorkflow(xwf_models.Workflow):
     transitions = (
         ("inicia_fluxo", LAYOUT_CRIADO, ENVIADO_PARA_ANALISE),
         ("codae_aprova", ENVIADO_PARA_ANALISE, APROVADO),
-        ("codae_solicita_correcao", ENVIADO_PARA_ANALISE, SOLICITADO_CORRECAO),
+        (
+            "codae_solicita_correcao",
+            [ENVIADO_PARA_ANALISE, APROVADO],
+            SOLICITADO_CORRECAO,
+        ),
         ("fornecedor_realiza_correcao", SOLICITADO_CORRECAO, ENVIADO_PARA_ANALISE),
         ("fornecedor_atualiza", APROVADO, ENVIADO_PARA_ANALISE),
     )
