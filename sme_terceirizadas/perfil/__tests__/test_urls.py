@@ -390,6 +390,13 @@ def test_busca_sem_vinculos_ativos(
     assert response.json()["count"] == 0
 
 
+def test_busca_vinculos_ativos_dre(client_autenticado_diretoria_regional):
+    """Teste para verificar se o perfil DRE tem acesso aos vinculos ativos."""
+    response = client_autenticado_diretoria_regional.get("/vinculos/vinculos-ativos/")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["count"] == 0
+
+
 def test_busca_vinculos_ativos_com_filtro(
     client_autenticado_codae_dilog, users_terceirizada
 ):
