@@ -1,6 +1,6 @@
 import json
 from collections import Counter
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from itertools import chain
 
 import environ
@@ -412,6 +412,21 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             raw_sql += f"AND escola_lote.diretoria_regional_id = {instituicao_id} "
         return raw_sql
 
+    def melhora_eficiencia_quando_terc(self, qs, usuario, workflow):
+        if usuario == "terceirizada" and workflow in [
+            "CODAE_HOMOLOGADO",
+            "CODAE_NAO_HOMOLOGADO",
+        ]:
+            tres_meses_atras = date.today() - timedelta(days=90)
+            logs_ultimos_tres_meses = LogSolicitacoesUsuario.objects.filter(
+                criado_em__gt=tres_meses_atras,
+                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
+            )
+            qs = qs.filter(
+                uuid__in=logs_ultimos_tres_meses.values_list("uuid_original", flat=True)
+            )
+        return qs
+
     def dados_dashboard(self, query_set: QuerySet, edital: str, use_raw=True) -> list:
         sumario = []
         uuids_homologados_com_vinc_prod_edital_suspenso = (
@@ -481,6 +496,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 if workflow == status_homologado and usuario in status_permitidos:
                     qs = self.homologados_e_com_reclamacoes(workflow, qs, edital)
                 qs = self.tratar_parcialmente_suspensos(workflow, qs, edital)
+                qs = self.melhora_eficiencia_quando_terc(qs, usuario, workflow)
                 qs = solicitacoes_viewset.remove_duplicados_do_query_set(qs)
                 qs = sorted(
                     qs,
