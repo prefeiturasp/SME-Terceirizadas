@@ -475,31 +475,14 @@ class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
 
 
 class TipoDeEmbalagemDeLayoutAnaliseSerializer(serializers.ModelSerializer):
-    uuid = serializers.UUIDField()
-
-    def validate(self, attrs):
-        uuid = attrs.get("uuid", None)
-        tipo_embalagem = attrs.get("tipo_embalagem", None)
-        embalagem = TipoDeEmbalagemDeLayout.objects.filter(uuid=uuid).last()
-
-        if not embalagem:
-            raise serializers.ValidationError(
-                {
-                    f"Layout Embalagem {tipo_embalagem}": [
-                        "UUID do tipo informado não existe."
-                    ]
-                }
-            )
-
-        return attrs
+    uuid = serializers.UUIDField(required=False)
 
     class Meta:
         model = TipoDeEmbalagemDeLayout
         fields = ("uuid", "tipo_embalagem", "status", "complemento_do_status")
         extra_kwargs = {
-            "uuid": {"required": True},
             "tipo_embalagem": {"required": True},
-            "status": {"required": True},
+            "status": {"required": False},
             "complemento_do_status": {"required": True},
         }
 
@@ -531,7 +514,10 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
                 ] == TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_TERCIARIA and not dados.get(
                     "uuid", None
                 ):
-                    cria_tipos_de_embalagens(dados, instance)
+                    TipoDeEmbalagemDeLayout.objects.create(
+                        layout_de_embalagem=instance, **dados
+                    )
+
                 else:
                     tipo_de_embalagem = instance.tipos_de_embalagens.get(
                         uuid=dados["uuid"]
