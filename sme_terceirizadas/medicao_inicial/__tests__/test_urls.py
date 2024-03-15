@@ -1626,3 +1626,27 @@ def test_url_endpoint_relatorio_adesao_exportar_xlsx_sem_mes_ano(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_endpoint_relatorio_adesao_exportar_pdf(
+    client_autenticado_coordenador_codae,
+):
+    # arrange
+    mes = "03"
+    ano = "2024"
+
+    response = client_autenticado_coordenador_codae.get(
+        f"/medicao-inicial/relatorios/relatorio-adesao/exportar-pdf/?mes_ano={mes}_{ano}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_relatorio_adesao_exportar_pdf_sem_mes_ano(
+    client_autenticado_coordenador_codae,
+):
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/relatorios/relatorio-adesao/exportar-pdf/"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST

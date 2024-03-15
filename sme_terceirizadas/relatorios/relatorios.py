@@ -1652,6 +1652,7 @@ def get_pdf_ficha_tecnica(request, ficha):
             "empresa": ficha.empresa,
             "status_ficha": retorna_status_ficha_tecnica(ficha.status),
             "tabela": list(informacoes_nutricionais),
+            "logs": ficha.logs,
         },
     )
     data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")

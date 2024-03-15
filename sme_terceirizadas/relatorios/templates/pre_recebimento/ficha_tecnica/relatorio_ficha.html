@@ -17,11 +17,13 @@
         </h4>
       </div>
       <div id="status">
-        <div class="title pb-2">
+        <div class="title text-center pb-2">
           Status da Ficha Técnica
         </div>
-        <div class="card-barra-status">
-          <span class="px-2">{{status_ficha}}</span>
+        <div class="d-flex justify-content-center">
+          <div class="card-barra-status">
+            <div class="px-2">{{status_ficha}}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -153,7 +155,7 @@
           <div class="col-6">
             Porção: 
             <span class="font-weight-bold"> 
-              {{ficha.porcao}} {{ficha.unidade_medida_porcao.nome}}
+              {{ficha.porcao}} {{ficha.unidade_medida_porcao.abreviacao}}
             </span>
           </div>
           <div class="col-6">
@@ -203,7 +205,7 @@
     </div>
 
     <div id="dados_conservacao">
-      <h5 class="title titulo-secao separator">CONSERVACAO</h5>
+      <h5 class="title titulo-secao separator">CONSERVAÇÃO</h5>
 
       <div class="content">
         {% if ficha.categoria == "PERECIVEIS" %}
@@ -287,6 +289,230 @@
         </div>
       </div>
     </div>
+
+    <div id="dados_embalagem">
+      <h5 class="title titulo-secao separator">EMBALAGENS E ROTULAGENS</h5>
+
+      <div class="content">
+        <div class="row pb-3">
+          <div class="col-12">
+            <div class="checkbox-preenchido">
+              <span class="check-verde">&#10004; </span>
+              <label> 
+                Declaro que as embalagens primária e secundária em que serão entregues
+                o produto estarão de acordo com as especificações do Anexo I do Edital.
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-12">
+            Descreva o material de embalagem primária: 
+            <span class="font-weight-bold"> 
+              {{ficha.material_embalagem_primaria}}
+            </span>
+          </div>
+        </div>
+
+        {% if ficha.categoria == "NAO_PERECIVEIS" %}
+          <div class="row pb-3">
+            <div class="col-12">
+              O produto é líquido?
+              <span class="font-weight-bold"> 
+                {{ficha.produto_eh_liquido |yesno:"SIM,NÃO"}}
+              </span>
+            </div>
+          </div>
+
+          <div class="row pb-3">
+            <div class="col-12">
+              Volume do Produto na Embalagem Primária: 
+              <span class="font-weight-bold"> 
+                {{ficha.volume_embalagem_primaria}} {{ficha.unidade_medida_volume_primaria.abreviacao}}
+              </span>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="row pb-3">
+          <div class="col-6">
+            Peso Líquido do Produto na Embalagem Primária: 
+            <span class="font-weight-bold"> 
+              {{ficha.peso_liquido_embalagem_primaria}} {{ficha.unidade_medida_primaria.abreviacao}}
+            </span>
+          </div>
+          <div class="col-6">
+            Peso Líquido do Produto na Embalagem Secundária: 
+            <span class="font-weight-bold"> 
+              {{ficha.peso_liquido_embalagem_secundaria}} {{ficha.unidade_medida_secundaria.abreviacao}}
+            </span>
+          </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-6">
+            Peso da Embalagem Primária Vazia: 
+            <span class="font-weight-bold"> 
+              {{ficha.peso_embalagem_primaria_vazia}} {{ficha.unidade_medida_primaria_vazia.abreviacao}}
+            </span>
+          </div>
+          <div class="col-6">
+            Peso da Embalagem Secundária Vazia: 
+            <span class="font-weight-bold"> 
+              {{ficha.peso_embalagem_secundaria_vazia}} {{ficha.unidade_medida_secundaria_vazia.abreviacao}}
+            </span>
+          </div>
+        </div>
+
+        {% if ficha.categoria == "PERECIVEIS" %}
+          <div class="row pb-3">
+            <div class="col-12">
+              Variação Porcentual do Peso do Produto ao Descongelar: 
+              <span class="font-weight-bold"> 
+                {{ficha.variacao_percentual}}%
+              </span>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="row pb-3">
+          <div class="col-12">
+            Descrever o Sistema de Vedação da Embalagem Secundária: 
+            <span class="font-weight-bold"> 
+              {{ficha.sistema_vedacao_embalagem_secundaria}}
+            </span>
+          </div>
+        </div>
+
+        <div class="row pb-3">
+          <div class="col-12">
+            <div class="checkbox-preenchido">
+              <span class="check-verde">&#10004; </span>
+              <label> 
+                Declaro que no rótulo da embalagem primária e, se for o caso, da secundária, constarão,
+                de forma legível e indelével, todas as informações solicitadas do Anexo I do Edital.
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="dados_responsavel_tecnico">
+      <h5 class="title titulo-secao separator">RESPONSÁVEL TÉCNICO</h5>
+
+      <div class="content">
+        <div class="row pb-3">
+          <div class="col-12">
+            Nome completo do Responsável Técnico: 
+            <span class="font-weight-bold"> 
+              {{ficha.nome_responsavel_tecnico}}
+            </span>
+          </div>
+        </div>
+        <div class="row pb-3">
+          <div class="col-6">
+            Habilitação: 
+            <span class="font-weight-bold"> 
+              {{ficha.habilitacao}}
+            </span>
+          </div>
+          <div class="col-6">
+            Nº do Registro em Órgão Competente: 
+            <span class="font-weight-bold"> 
+              {{ficha.numero_registro_orgao}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if ficha.modo_de_preparo %}
+      <div id="dados_modo_preparo">
+        <h5 class="title titulo-secao separator">MODO DE PREPARO</h5>
+
+        <div class="content">
+          <div class="row pb-3">
+            <div class="col-12">
+              Modo de preparo do produto: 
+              <span class="font-weight-bold"> 
+                {{ficha.modo_de_preparo}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if ficha.informacoes_adicionais %}
+      <div id="dados_info_adicionais">
+        <h5 class="title titulo-secao separator">OUTRAS INFORMAÇÕES</h5>
+
+        <div class="content">
+          <div class="row pb-3">
+            <div class="col-12">
+              Informações Adicionais: 
+              <span class="font-weight-bold"> 
+                {{ficha.informacoes_adicionais}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="assinaturas content"> 
+
+      {% get_assinatura_fornecedor_ficha logs as log_fornecedor %}
+
+      <div class="assinatura">
+        <div class="title titulo-assinatura">
+          Assinatura Eletrônica Fornecedor
+        </div>
+        <div class="assinatura-container">
+          {% if log_fornecedor %}
+            <div class="col-2 logo-sigpae">
+              <img src="{% static 'images/logo-sigpae.png' %}" alt="" />
+            </div>
+            <div class="col-10 ml-3">
+              <span class="texto-assinatura">
+                Ficha Técnica cadastrada e enviada por
+                <strong>{{ log_fornecedor.usuario.nome }}</strong>, {{ log_fornecedor.usuario.cargo }}, {{ log_fornecedor.usuario.username|formatar_cpf }},
+                em {{ log_fornecedor.criado_em|date:"d/m/Y" }}, às {{ log_fornecedor.criado_em|time:"H:i" }}.
+              </span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% get_assinatura_codae_ficha logs as log_codae %}
+
+        <div class="assinatura">
+          <div class="title titulo-assinatura">
+            Assinatura Eletrônica DILOG
+          </div>
+          <div class="assinatura-container">
+            {% if log_codae %}
+              <div class="col-2 logo-sigpae">
+                <img src="{% static 'images/logo-sigpae.png' %}" alt="" />
+              </div>
+              <div class="col-10 ml-3">
+                <span class="texto-assinatura">
+                  Ficha Técnica aprovada por
+                  <strong>{{ log_codae.usuario.nome }}</strong>, <strong>{{ log_codae.usuario.cargo }}</strong>, <strong>{{ log_codae.usuario.username }}</strong>,
+                  em {{ log_codae.criado_em|date:"d/m/Y" }}, às {{ log_codae.criado_em|time:"H:i" }}.
+                </span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+
+    
+    </div>
+
   </div>
 </body>
 </html>

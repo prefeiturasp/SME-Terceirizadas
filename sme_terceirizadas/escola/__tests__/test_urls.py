@@ -75,13 +75,13 @@ def test_url_endpoint_alunos_por_faixa_etaria(
 
     assert json["count"] == 3
     result0 = json["results"][0]
-    assert result0["faixa_etaria"]["inicio"] == 24
-    assert result0["faixa_etaria"]["fim"] == 48
-    assert result0["count"] == 93
+    assert result0["faixa_etaria"]["inicio"] == 12
+    assert result0["faixa_etaria"]["fim"] == 24
+    assert result0["count"] == 18
     result1 = json["results"][1]
-    assert result1["faixa_etaria"]["inicio"] == 12
-    assert result1["faixa_etaria"]["fim"] == 24
-    assert result1["count"] == 18
+    assert result1["faixa_etaria"]["inicio"] == 24
+    assert result1["faixa_etaria"]["fim"] == 48
+    assert result1["count"] == 93
     result2 = json["results"][2]
     assert result2["faixa_etaria"]["inicio"] == 48
     assert result2["faixa_etaria"]["fim"] == 72
