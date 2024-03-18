@@ -325,14 +325,16 @@
             </div>
           </div>
 
-          <div class="row pb-3">
-            <div class="col-12">
-              Volume do Produto na Embalagem Primária: 
-              <span class="font-weight-bold"> 
-                {{ficha.volume_embalagem_primaria}} {{ficha.unidade_medida_volume_primaria.abreviacao}}
-              </span>
+          {% if ficha.produto_eh_liquido %}
+            <div class="row pb-3">
+              <div class="col-12">
+                Volume do Produto na Embalagem Primária: 
+                <span class="font-weight-bold"> 
+                  {{ficha.volume_embalagem_primaria}} {{ficha.unidade_medida_volume_primaria.abreviacao}}
+                </span>
+              </div>
             </div>
-          </div>
+          {% endif %}
         {% endif %}
 
         <div class="row pb-3">
