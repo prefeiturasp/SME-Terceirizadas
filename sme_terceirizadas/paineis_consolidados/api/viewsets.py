@@ -60,6 +60,7 @@ from ..tasks import (
     gera_pdf_relatorio_solicitacoes_alimentacao_async,
     gera_xls_relatorio_solicitacoes_alimentacao_async,
 )
+from ..utils.datasets_graficos_relatorio_ga import get_dataset_grafico_total_dre_lote
 from ..utils.totalizadores_relatorio_ga import (
     totalizador_lote,
     totalizador_periodo,
@@ -262,6 +263,21 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
         return list_cards_totalizadores
 
+    def filtrar_solicitacoes_para_relatorio_graficos(self, request, instituicao, model):
+        status = request.data.get("status", None)
+        instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
+        queryset = model.map_queryset_por_status(
+            status, instituicao_uuid=instituicao_uuid
+        )
+
+        datasets = []
+
+        datasets = get_dataset_grafico_total_dre_lote(
+            datasets, request, model, instituicao, queryset
+        )
+
+        return datasets
+
     def filtrar_solicitacoes_para_relatorio(self, request, model):
         status = request.data.get("status", None)
         instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
@@ -328,15 +344,33 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     def filtrar_solicitacoes_ga_cards_totalizadores(self, request):
         # queryset por status
         instituicao = request.user.vinculo_atual.instituicao
+
         lista_cards_totalizadores = (
             self.filtrar_solicitacoes_para_relatorio_cards_totalizadores(
                 request, MoldeConsolidado.classe_por_tipo_usuario(instituicao.__class__)
             )
         )
         return Response(
-            data={
-                "results": lista_cards_totalizadores,
-            },
+            data={"results": lista_cards_totalizadores},
+            status=HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="filtrar-solicitacoes-ga-graficos",
+        permission_classes=(IsAuthenticated,),
+    )
+    def filtrar_solicitacoes_ga_graficos(self, request):
+        # queryset por status
+        instituicao = request.user.vinculo_atual.instituicao
+        dataset = self.filtrar_solicitacoes_para_relatorio_graficos(
+            request,
+            instituicao,
+            MoldeConsolidado.classe_por_tipo_usuario(instituicao.__class__),
+        )
+        return Response(
+            data=dataset,
             status=HTTP_200_OK,
         )
 

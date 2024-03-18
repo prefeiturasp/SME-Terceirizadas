@@ -408,7 +408,10 @@ class LayoutDeEmbalagem(
 
     @property
     def aprovado(self):
-        return not self.tipos_de_embalagens.filter(status="REPROVADO").exists()
+        return (
+            self.tipos_de_embalagens.filter(status="APROVADO").count()
+            == self.tipos_de_embalagens.count()
+        )
 
     @property
     def eh_primeira_analise(self):
