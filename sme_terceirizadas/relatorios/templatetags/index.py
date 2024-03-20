@@ -305,6 +305,9 @@ def embalagens_filter(embalagens, tipo):
         return False
 
 
+# LOGS CRONOGRAMA
+
+
 @register.simple_tag
 def get_assinatura_cronograma(logs):
     return logs.filter(
@@ -330,6 +333,23 @@ def get_assinatura_dinutre(logs):
 def get_assinatura_codae(logs):
     return logs.filter(
         status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE
+    ).last()
+
+
+# LOGS FICHA TECNICA
+
+
+@register.simple_tag
+def get_assinatura_fornecedor_ficha(logs):
+    return logs.filter(
+        status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE
+    ).last()
+
+
+@register.simple_tag
+def get_assinatura_codae_ficha(logs):
+    return logs.filter(
+        status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_APROVADA
     ).last()
 
 
@@ -616,3 +636,35 @@ def check_tipo_usuario(tipo_usuario):
         constants.TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
         constants.TIPO_USUARIO_CODAE_GABINETE,
     ]
+
+
+@register.filter
+def multiply(valor, multiplicador):
+    return round(int(valor) * multiplicador)
+
+
+@register.filter
+def relatorio_adesao_total_servido(alimentacoes):
+    return sum([totais["total_servido"] for totais in alimentacoes.values()])
+
+
+@register.filter
+def relatorio_adesao_total_frequencia(alimentacoes):
+    return sum([totais["total_frequencia"] for totais in alimentacoes.values()])
+
+
+@register.filter
+def relatorio_adesao_total_adesao(alimentacoes):
+    total_servido = relatorio_adesao_total_servido(alimentacoes)
+    total_frequencia = relatorio_adesao_total_frequencia(alimentacoes)
+    return round(total_servido / total_frequencia, 4)
+
+
+@register.filter
+def numero_para_milhar(valor):
+    return "{0:,}".format(valor).replace(",", ".")
+
+
+@register.filter
+def numero_para_porcentagem(valor):
+    return f"{round(valor * 100, 4)}%"

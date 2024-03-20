@@ -1,0 +1,43 @@
+@import "variaveis";
+
+h2 {
+  margin: 0;
+  padding: 50px 0 30px 0;
+  text-align: center;
+}
+
+h3 {
+  font-weight: normal;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  padding: 0 75px;
+}
+
+table {
+  width: 100%;
+}
+
+table,
+th,
+td {
+  font-size: 10px;
+  padding: 10px;
+  border: 1px solid $cinza-borda-tabela;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: $cinza-claro;
+}
+
+table tr:last-child {
+  background-color: $cinza-claro;
+  font-weight: bold;
+}
+
+#periodo {
+  margin-bottom: 30px;
+}

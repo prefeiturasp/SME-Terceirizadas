@@ -23,3 +23,16 @@ class EmpenhoFilter(filters.FilterSet):
 
     def filtra_edital(self, queryset, _, value):
         return queryset.filter(contrato__edital__uuid=value)
+
+
+class ClausulaDeDescontoFilter(filters.FilterSet):
+    numero_clausula = filters.CharFilter(
+        field_name="numero_clausula", lookup_expr="icontains"
+    )
+    porcentagem_desconto = filters.NumberFilter(
+        field_name="porcentagem_desconto", lookup_expr="exact"
+    )
+    edital = filters.UUIDFilter(method="filtra_edital")
+
+    def filtra_edital(self, queryset, _, value):
+        return queryset.filter(edital__uuid=value)

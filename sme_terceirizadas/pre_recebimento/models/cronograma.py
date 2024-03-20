@@ -386,8 +386,12 @@ class TipoDeEmbalagemDeLayout(TemChaveExterna):
 class LayoutDeEmbalagem(
     ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoLayoutDeEmbalagem
 ):
-    cronograma = models.ForeignKey(
-        Cronograma, on_delete=models.PROTECT, related_name="layouts"
+    ficha_tecnica = models.OneToOneField(
+        "FichaTecnicaDoProduto",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="layout_embalagem",
     )
     observacoes = models.TextField("Observações", blank=True)
 
@@ -404,7 +408,10 @@ class LayoutDeEmbalagem(
 
     @property
     def aprovado(self):
-        return not self.tipos_de_embalagens.filter(status="REPROVADO").exists()
+        return (
+            self.tipos_de_embalagens.filter(status="APROVADO").count()
+            == self.tipos_de_embalagens.count()
+        )
 
     @property
     def eh_primeira_analise(self):
@@ -418,9 +425,9 @@ class LayoutDeEmbalagem(
 
     def __str__(self):
         try:
-            return f"{self.cronograma.numero} - {self.cronograma.ficha_tecnica.produto.nome}"
+            return f"Layout de Embalagens {self.ficha_tecnica.numero} - {self.ficha_tecnica.produto.nome}"
         except AttributeError:
-            return str(self.id)
+            return f"Layout de Embalagens {self.id}"
 
     class Meta:
         verbose_name = "Layout de Embalagem"

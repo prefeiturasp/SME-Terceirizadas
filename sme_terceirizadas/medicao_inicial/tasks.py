@@ -6,6 +6,13 @@ from celery import shared_task
 from dateutil.relativedelta import relativedelta
 from PyPDF4 import PdfFileMerger
 
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_excel import (
+    gera_relatorio_adesao_xlsx,
+)
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_pdf import (
+    gera_relatorio_adesao_pdf,
+)
+
 from ..dados_comuns.utils import (
     atualiza_central_download,
     atualiza_central_download_com_erro,
@@ -222,3 +229,45 @@ def cria_merge_pdfs(merger_lancamentos, merger_arquivo_final):
     merger_arquivo_final.close()
 
     return output_final.getvalue()
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def exporta_relatorio_adesao_para_xlsx(user, nome_arquivo, resultados, query_params):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        arquivo = gera_relatorio_adesao_xlsx(resultados, query_params)
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def exporta_relatorio_adesao_para_pdf(user, nome_arquivo, resultados, query_params):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        arquivo = gera_relatorio_adesao_pdf(resultados, query_params)
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")

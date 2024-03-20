@@ -9,7 +9,7 @@ from model_mommy import mommy
 from ...cardapio.models import AlteracaoCardapio, SuspensaoAlimentacaoDaCEI
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ...dados_comuns.models import TemplateMensagem
+from ...dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...inclusao_alimentacao.models import (
     DiasMotivosInclusaoDeAlimentacaoCEI,
@@ -29,21 +29,47 @@ Faker.seed(420)
 
 @pytest.fixture
 def diretoria_regional():
-    return mommy.make("DiretoriaRegional")
+    return mommy.make("DiretoriaRegional", nome="DRE X")
 
 
 @pytest.fixture
 def escola(diretoria_regional):
     terceirizada = mommy.make("Terceirizada")
     lote = mommy.make(
-        "Lote", diretoria_regional=diretoria_regional, terceirizada=terceirizada
+        "Lote",
+        nome="LOTE 1",
+        diretoria_regional=diretoria_regional,
+        terceirizada=terceirizada,
     )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
     tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEU GESTAO")
     return mommy.make(
         "Escola",
         diretoria_regional=diretoria_regional,
         lote=lote,
+        tipo_gestao=tipo_gestao,
         uuid="fdf23c84-c9ff-4811-adff-e70df5378466",
+        tipo_unidade=tipo_unidade_escolar,
+    )
+
+
+@pytest.fixture
+def escola_outro_lote(diretoria_regional):
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make(
+        "Lote",
+        nome="LOTE 2",
+        diretoria_regional=diretoria_regional,
+        terceirizada=terceirizada,
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEU GESTAO")
+    return mommy.make(
+        "Escola",
+        diretoria_regional=diretoria_regional,
+        lote=lote,
+        tipo_gestao=tipo_gestao,
+        uuid="452fe369-7887-4340-8a38-310318eeeb7b",
         tipo_unidade=tipo_unidade_escolar,
     )
 
@@ -108,6 +134,8 @@ def solicitacoes_kit_lanche(escola):
         quantidade_alunos=300,
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
+        rastro_escola=escola,
+        rastro_lote=escola.lote,
         uuid="ac0b6f5b-36b0-47d2-99a2-3bc9825b31fb",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -122,6 +150,8 @@ def solicitacoes_kit_lanche(escola):
         quantidade_alunos=300,
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
+        rastro_escola=escola,
+        rastro_lote=escola.lote,
         uuid="d15f17d5-d4c5-47f5-a09a-55677dbc65bf",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -136,6 +166,8 @@ def solicitacoes_kit_lanche(escola):
         quantidade_alunos=300,
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
+        rastro_escola=escola,
+        rastro_lote=escola.lote,
         uuid="c9715ddb-7e95-4156-91a5-c60c8621806b",
     )
     solicitacao_kit_lanche = mommy.make(
@@ -150,6 +182,8 @@ def solicitacoes_kit_lanche(escola):
         quantidade_alunos=300,
         solicitacao_kit_lanche=solicitacao_kit_lanche,
         escola=escola,
+        rastro_escola=escola,
+        rastro_lote=escola.lote,
         uuid="8827b394-ef39-4757-8136-6e09d5c7c486",
     )
     return (
@@ -157,6 +191,52 @@ def solicitacoes_kit_lanche(escola):
         solicitacao_kit_lanche_avulsa_2,
         solicitacao_kit_lanche_avulsa_3,
         solicitacao_kit_lanche_avulsa_4,
+    )
+
+
+@pytest.fixture
+def solicitacoes_kit_lanche_autorizadas(solicitacoes_kit_lanche):
+    (
+        solicitacao_kit_lanche_avulsa_1,
+        solicitacao_kit_lanche_avulsa_2,
+        solicitacao_kit_lanche_avulsa_3,
+        solicitacao_kit_lanche_avulsa_4,
+    ) = solicitacoes_kit_lanche
+
+    solicitacao_kit_lanche_avulsa_1.status = "CODAE_AUTORIZADO"
+    solicitacao_kit_lanche_avulsa_1.save()
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=solicitacao_kit_lanche_avulsa_1.uuid,
+        status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+    )
+
+    solicitacao_kit_lanche_avulsa_2.status = "CODAE_AUTORIZADO"
+    solicitacao_kit_lanche_avulsa_2.save()
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=solicitacao_kit_lanche_avulsa_2.uuid,
+        status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+    )
+
+    solicitacao_kit_lanche_avulsa_3.status = "CODAE_AUTORIZADO"
+    solicitacao_kit_lanche_avulsa_3.save()
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=solicitacao_kit_lanche_avulsa_3.uuid,
+        status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+    )
+
+    solicitacao_kit_lanche_avulsa_4.status = "CODAE_AUTORIZADO"
+    solicitacao_kit_lanche_avulsa_4.save()
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=solicitacao_kit_lanche_avulsa_4.uuid,
+        status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
     )
 
 
@@ -670,6 +750,7 @@ def inclusoes_normais(
         status="CODAE_AUTORIZADO",
         rastro_escola=escola,
         rastro_dre=escola.diretoria_regional,
+        rastro_lote=escola.lote,
         uuid="a4639e26-f4fd-43e9-a8cc-2d0da995c8ef",
     )
     mommy.make(

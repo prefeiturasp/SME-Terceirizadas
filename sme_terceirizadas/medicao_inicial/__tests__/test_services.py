@@ -47,7 +47,7 @@ def test_obtem_resultados_relatorio_adesao(
     # assert
     assert resultados == {
         medicao.nome_periodo_grupo: {
-            tipo_alimentacao_refeicao.nome: {
+            tipo_alimentacao_refeicao.nome.upper(): {
                 "total_servido": total_servido,
                 "total_frequencia": total_frequencia,
                 "total_adesao": total_adesao,
