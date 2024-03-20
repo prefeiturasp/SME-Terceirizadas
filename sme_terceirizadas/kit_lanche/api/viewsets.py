@@ -89,12 +89,17 @@ class KitLancheViewSet(ModelViewSet):
         try:
             nome = request.query_params.get("nome").upper()
             edital = request.query_params.get("edital")
+            tipos_unidades = request.query_params.getlist("tipos_unidades[]")
             uuid = request.query_params.get("uuid")
-            kit_lanche = self.queryset.get(nome=nome, edital__uuid=edital)
+            kit_lanche = self.queryset.distinct().get(
+                nome=nome,
+                edital__uuid=edital,
+                tipos_unidades__uuid__in=tipos_unidades,
+            )
             if str(kit_lanche.uuid) != uuid:
                 return Response(
                     dict(
-                        detail="Esse nome de kit lanche já existe para edital selecionado"
+                        detail="Esse nome de kit lanche já existe para o edital e tipos de unidades selecionados"
                     ),
                     status=HTTP_200_OK,
                 )

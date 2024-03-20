@@ -12,7 +12,7 @@ from ....escola.api.serializers import (
     EscolaSimplissimaSerializer,
     FaixaEtariaSerializer,
 )
-from ....escola.models import Escola, FaixaEtaria
+from ....escola.models import Escola, FaixaEtaria, TipoUnidadeEscolar
 from ....perfil.api.serializers import UsuarioSerializer
 from ....terceirizada.api.serializers.serializers import (
     EditalSerializer,
@@ -45,6 +45,12 @@ class KitLancheSerializer(serializers.ModelSerializer):
     edital = serializers.SlugRelatedField(
         slug_field="uuid", required=True, queryset=Edital.objects.all()
     )
+    tipos_unidades = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=TipoUnidadeEscolar.objects.all(),
+        many=True,
+    )
 
     class Meta:
         model = KitLanche
@@ -52,11 +58,12 @@ class KitLancheSerializer(serializers.ModelSerializer):
 
     def validate_nome_kit_lanche_create(self, validated_data):
         if KitLanche.objects.filter(
-            edital__uuid=validated_data["edital"].uuid,
             nome=validated_data["nome"].upper(),
-        ).first():
+            edital__uuid=validated_data["edital"].uuid,
+            tipos_unidades__in=validated_data["tipos_unidades"],
+        ).exists():
             raise serializers.ValidationError(
-                "Esse nome de kit lanche já existe para edital selecionado"
+                "Esse nome de kit lanche já existe para o edital e tipos de unidades selecionados"
             )
         validated_data["nome"] = validated_data["nome"].upper()
         return validated_data
@@ -64,26 +71,31 @@ class KitLancheSerializer(serializers.ModelSerializer):
     def validate_nome_kit_lanche_update(self, validated_data, instance):
         if (
             KitLanche.objects.filter(
-                edital__uuid=validated_data["edital"].uuid,
                 nome=validated_data["nome"].upper(),
+                edital__uuid=validated_data["edital"].uuid,
+                tipos_unidades__in=validated_data["tipos_unidades"],
             )
             .exclude(uuid=str(instance.uuid))
-            .first()
+            .exists()
         ):
             serializers.ValidationError(
-                "Esse nome de kit lanche já existe para edital selecionado"
+                "Esse nome de kit lanche já existe para o edital e tipos de unidades selecionados"
             )
         validated_data["nome"] = validated_data["nome"].upper()
         return validated_data
 
     def create(self, validated_data):
         self.validate_nome_kit_lanche_create(validated_data)
+        tipos_unidades = validated_data.pop("tipos_unidades")
         kit_lanche = KitLanche.objects.create(**validated_data)
+        kit_lanche.tipos_unidades.set(tipos_unidades)
         return kit_lanche
 
     def update(self, instance, validated_data):
         self.validate_nome_kit_lanche_update(validated_data, instance)
+        tipos_unidades = validated_data.pop("tipos_unidades")
         update_instance_from_dict(instance, validated_data)
+        instance.tipos_unidades.set(tipos_unidades)
         instance.save()
         return instance
 
