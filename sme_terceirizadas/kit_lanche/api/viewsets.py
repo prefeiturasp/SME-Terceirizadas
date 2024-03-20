@@ -64,6 +64,10 @@ class KitLancheViewSet(ModelViewSet):
             queryset = queryset.filter(
                 edital__uuid__in=user.vinculo_atual.instituicao.editais
             )
+            if user.tipo_usuario == "escola":
+                queryset = queryset.filter(
+                    tipos_unidades=user.vinculo_atual.instituicao.tipo_unidade
+                )
         return queryset
 
     def list(self, request, *args, **kwargs):
