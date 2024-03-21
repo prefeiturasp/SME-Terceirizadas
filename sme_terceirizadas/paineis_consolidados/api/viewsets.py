@@ -60,7 +60,10 @@ from ..tasks import (
     gera_pdf_relatorio_solicitacoes_alimentacao_async,
     gera_xls_relatorio_solicitacoes_alimentacao_async,
 )
-from ..utils.datasets_graficos_relatorio_ga import get_dataset_grafico_total_dre_lote
+from ..utils.datasets_graficos_relatorio_ga import (
+    get_dataset_grafico_total_dre_lote,
+    get_dataset_grafico_total_tipo_solicitacao,
+)
 from ..utils.totalizadores_relatorio_ga import (
     totalizador_lote,
     totalizador_periodo,
@@ -274,6 +277,9 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
         datasets = get_dataset_grafico_total_dre_lote(
             datasets, request, model, instituicao, queryset
+        )
+        datasets = get_dataset_grafico_total_tipo_solicitacao(
+            datasets, request, model, queryset
         )
 
         return datasets
