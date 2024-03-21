@@ -3,6 +3,29 @@
 from django.db import migrations, models
 
 
+def set_tipos_unidades_padrao(apps, schema_editor):
+    TipoUnidadeEscolar = apps.get_model("escola", "TipoUnidadeEscolar")
+    KitLanche = apps.get_model("kit_lanche", "KitLanche")
+
+    db_alias = schema_editor.connection.alias
+
+    tipos_unidades_padrao = TipoUnidadeEscolar.objects.using(db_alias).filter(
+        pertence_relatorio_solicitacoes_alimentacao=True
+    )
+
+    for kit_lanche in KitLanche.objects.using(db_alias).filter(tipos_unidades=None):
+        kit_lanche.tipos_unidades.set(tipos_unidades_padrao)
+
+
+def reverse(apps, schema_editor):
+    KitLanche = apps.get_model("kit_lanche", "KitLanche")
+
+    db_alias = schema_editor.connection.alias
+
+    for kit_lanche in KitLanche.objects.using(db_alias).filter(tipos_unidades=None):
+        kit_lanche.tipos_unidades.set([])
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("escola", "0068_add_historico_matricula_aluno"),
@@ -17,4 +40,5 @@ class Migration(migrations.Migration):
                 related_name="tipo_unidade_kit_lanche", to="escola.tipounidadeescolar"
             ),
         ),
+        migrations.RunPython(set_tipos_unidades_padrao, reverse),
     ]
