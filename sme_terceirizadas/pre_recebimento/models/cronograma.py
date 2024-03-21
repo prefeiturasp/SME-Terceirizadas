@@ -529,13 +529,10 @@ class DocumentoDeRecebimento(
     )
     quantidade_laudo = models.FloatField(blank=True, null=True)
     saldo_laudo = models.FloatField(blank=True, null=True)
+    numero_lote_laudo = models.CharField("Número do Laudo", blank=True, max_length=200)
     unidade_medida = models.ForeignKey(
         UnidadeMedida, on_delete=models.PROTECT, blank=True, null=True, default=None
     )
-    data_fabricacao_lote = models.DateField(
-        "Data Fabricação do Lote", blank=True, null=True
-    )
-    validade_produto = models.DateField("Validade do Produto", blank=True, null=True)
     data_final_lote = models.DateField("Data Final do Lote", blank=True, null=True)
     correcao_solicitada = models.TextField("Correção Solicitada", blank=True)
 
@@ -621,6 +618,7 @@ class DataDeFabricaoEPrazo(TemChaveExterna):
         related_name="datas_fabricacao_e_prazos",
     )
     data_fabricacao = models.DateField("Data Fabricação", blank=True, null=True)
+    data_validade = models.DateField("Data Validade", blank=True, null=True)
     data_maxima_recebimento = models.DateField(
         "Data Máxima de Recebimento", blank=True, null=True
     )

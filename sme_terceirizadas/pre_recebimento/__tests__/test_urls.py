@@ -2248,8 +2248,7 @@ def test_url_documentos_de_recebimento_analisar_documento(
         "laboratorio": str(laboratorio.uuid),
         "quantidade_laudo": 10.5,
         "unidade_medida": str(unidade_medida.uuid),
-        "data_fabricacao_lote": str(datetime.date.today()),
-        "validade_produto": str(datetime.date.today()),
+        "numero_lote_laudo": "001",
         "data_final_lote": str(datetime.date.today()),
         "saldo_laudo": 5.5,
     }
@@ -2268,8 +2267,7 @@ def test_url_documentos_de_recebimento_analisar_documento(
     assert documento.laboratorio == laboratorio
     assert documento.quantidade_laudo == 10.5
     assert documento.unidade_medida == unidade_medida
-    assert documento.data_fabricacao_lote == datetime.date.today()
-    assert documento.validade_produto == datetime.date.today()
+    assert documento.numero_lote_laudo == "001"
     assert documento.data_final_lote == datetime.date.today()
     assert documento.saldo_laudo == 5.5
 
