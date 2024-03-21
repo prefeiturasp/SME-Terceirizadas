@@ -805,7 +805,7 @@ def test_filtrar_solicitacoes_ga_graficos(
         data=data,
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == []
+    assert len(response.json()[0]["labels"]) == 6
 
     data = {"status": "AUTORIZADOS", "lotes": [escola.lote.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
