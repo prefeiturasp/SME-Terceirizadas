@@ -711,6 +711,7 @@ class DocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
 
 class DataDeFabricaoEPrazoAnalisarRascunhoSerializer(serializers.ModelSerializer):
     data_fabricacao = serializers.DateField(required=False, allow_null=True)
+    data_validade = serializers.DateField(required=False, allow_null=True)
     prazo_maximo_recebimento = serializers.ChoiceField(
         choices=DataDeFabricaoEPrazo.PRAZO_CHOICES, required=False, allow_blank=True
     )
@@ -718,7 +719,12 @@ class DataDeFabricaoEPrazoAnalisarRascunhoSerializer(serializers.ModelSerializer
 
     class Meta:
         model = DataDeFabricaoEPrazo
-        fields = ("data_fabricacao", "prazo_maximo_recebimento", "justificativa")
+        fields = (
+            "data_fabricacao",
+            "data_validade",
+            "prazo_maximo_recebimento",
+            "justificativa",
+        )
 
 
 class DataDeFabricaoEPrazoAnalisarSerializer(
@@ -740,6 +746,7 @@ class DataDeFabricaoEPrazoAnalisarSerializer(
     class Meta(DataDeFabricaoEPrazoAnalisarRascunhoSerializer.Meta):
         extra_kwargs = {
             "data_fabricacao": {"required": True, "allow_null": False},
+            "data_validade": {"required": True, "allow_null": False},
             "prazo_maximo_recebimento": {"required": True, "allow_blank": False},
         }
 
@@ -759,8 +766,7 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
     )
     quantidade_laudo = serializers.FloatField(required=False, allow_null=True)
     saldo_laudo = serializers.FloatField(required=False, allow_null=True)
-    data_fabricacao_lote = serializers.DateField(required=False, allow_null=True)
-    validade_produto = serializers.DateField(required=False, allow_null=True)
+    numero_lote_laudo = serializers.CharField(required=False, allow_null=True)
     data_final_lote = serializers.DateField(required=False, allow_null=True)
     datas_fabricacao_e_prazos = DataDeFabricaoEPrazoAnalisarRascunhoSerializer(
         many=True, required=False
@@ -780,8 +786,7 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
             "laboratorio",
             "quantidade_laudo",
             "unidade_medida",
-            "data_fabricacao_lote",
-            "validade_produto",
+            "numero_lote_laudo",
             "data_final_lote",
             "saldo_laudo",
             "datas_fabricacao_e_prazos",
