@@ -11,6 +11,7 @@ from ....escola.api.serializers import (
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
     FaixaEtariaSerializer,
+    TipoUnidadeEscolarSimplesSerializer,
 )
 from ....escola.models import Escola, FaixaEtaria, TipoUnidadeEscolar
 from ....perfil.api.serializers import UsuarioSerializer
@@ -108,6 +109,7 @@ class KitLancheSimplesSerializer(serializers.ModelSerializer):
 
 class KitLancheConsultaSerializer(serializers.ModelSerializer):
     edital = EditalSerializer()
+    tipos_unidades = TipoUnidadeEscolarSimplesSerializer(many=True)
     status = serializers.CharField(source="get_status_display")
 
     class Meta:
