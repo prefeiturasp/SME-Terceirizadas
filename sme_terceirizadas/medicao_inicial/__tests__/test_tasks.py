@@ -247,6 +247,28 @@ def test_exporta_relatorio_adesao_para_xlsx(
 
 
 @pytest.mark.django_db
+def test_exporta_relatorio_adesao_para_xlsx_sem_resultados(usuario):
+    # arrange
+    mes = "03"
+    ano = "2024"
+
+    nome_arquivo = "relatorio-adesao.xlsx"
+
+    # act
+    resultados = {}
+
+    exporta_relatorio_adesao_para_xlsx(
+        usuario, nome_arquivo, resultados, {"mes_ano": f"{mes}_{ano}"}
+    )
+
+    assert CentralDeDownload.objects.count() == 1
+    arquivo = CentralDeDownload.objects.first()
+    assert arquivo is not None and arquivo.usuario == usuario
+    assert arquivo is not None and arquivo.identificador == nome_arquivo
+    assert arquivo is not None and arquivo.status == CentralDeDownload.STATUS_CONCLUIDO
+
+
+@pytest.mark.django_db
 def test_exporta_relatorio_adesao_para_pdf(
     usuario,
     categoria_medicao,
@@ -285,6 +307,28 @@ def test_exporta_relatorio_adesao_para_pdf(
 
     # act
     resultados = obtem_resultados(mes, ano, QueryDict())
+
+    exporta_relatorio_adesao_para_pdf(
+        usuario, nome_arquivo, resultados, {"mes_ano": f"{mes}_{ano}"}
+    )
+
+    assert CentralDeDownload.objects.count() == 1
+    arquivo = CentralDeDownload.objects.first()
+    assert arquivo is not None and arquivo.usuario == usuario
+    assert arquivo is not None and arquivo.identificador == nome_arquivo
+    assert arquivo is not None and arquivo.status == CentralDeDownload.STATUS_CONCLUIDO
+
+
+@pytest.mark.django_db
+def test_exporta_relatorio_adesao_para_pdf_sem_resultados(usuario):
+    # arrange
+    mes = "03"
+    ano = "2024"
+
+    nome_arquivo = "relatorio-adesao.pdf"
+
+    # act
+    resultados = {}
 
     exporta_relatorio_adesao_para_pdf(
         usuario, nome_arquivo, resultados, {"mes_ano": f"{mes}_{ano}"}
