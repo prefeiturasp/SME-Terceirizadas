@@ -82,6 +82,9 @@ class KitLanche(ExportModelOperationsMixin("kit_lanche"), Nomeavel, TemChaveExte
         null=True,
     )
     status = models.CharField(choices=STATUS_CHOICES, max_length=10, default=ATIVO)
+    tipos_unidades = models.ManyToManyField(
+        "escola.TipoUnidadeEscolar", related_name="tipo_unidade_kit_lanche"
+    )
 
     def __str__(self):
         return self.nome
