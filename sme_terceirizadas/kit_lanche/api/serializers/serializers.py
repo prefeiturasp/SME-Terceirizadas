@@ -51,6 +51,7 @@ class KitLancheSerializer(serializers.ModelSerializer):
         required=True,
         queryset=TipoUnidadeEscolar.objects.all(),
         many=True,
+        allow_empty=False,
     )
 
     class Meta:
