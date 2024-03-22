@@ -98,3 +98,68 @@ def get_dataset_grafico_total_tipo_solicitacao(datasets, request, model, queryse
 
     datasets.append(dataset)
     return datasets
+
+
+def get_dataset_grafico_total_status(datasets, request, model, instituicao):
+    label_data = {
+        "AUTORIZADOS": "Autorizadas",
+        "CANCELADOS": "Canceladas",
+        "NEGADOS": "Negadas",
+        "RECEBIDAS": "Recebidas",
+    }
+
+    cores = {
+        "AUTORIZADOS": "#198459",
+        "CANCELADOS": "#a50e05",
+        "NEGADOS": "#fdc500",
+        "RECEBIDAS": "#035d96",
+    }
+
+    light_cores = {
+        "AUTORIZADOS": "#d4edda",
+        "CANCELADOS": "#ff7f7f",
+        "NEGADOS": "#fff3cd",
+        "RECEBIDAS": "#d1ecf1",
+    }
+
+    dataset = {
+        "labels": [],
+        "datasets": [
+            {
+                "label": "Total de Solicitações por Status",
+                "data": [],
+                "maxBarThickness": 80,
+                "cutout": "70%",
+                "backgroundColor": [],
+                "borderColor": [],
+            }
+        ],
+    }
+
+    total = 0
+
+    for status_ in list(label_data.keys()):
+        queryset = model.map_queryset_por_status(
+            status_, instituicao_uuid=instituicao.uuid
+        )
+        queryset = filtro_geral_totalizadores(
+            request, model, queryset, map_filtros_=None
+        )
+        total += count_query_set_sem_duplicados(queryset)
+
+    for status_ in list(label_data.keys()):
+        queryset = model.map_queryset_por_status(
+            status_, instituicao_uuid=instituicao.uuid
+        )
+        queryset = filtro_geral_totalizadores(
+            request, model, queryset, map_filtros_=None
+        )
+        dataset["labels"].append(f"{label_data[status_]}")
+        dataset["datasets"][0]["data"].append(
+            round(count_query_set_sem_duplicados(queryset) / total * 100, 2)
+        )
+        dataset["datasets"][0]["backgroundColor"].append(light_cores[status_])
+        dataset["datasets"][0]["borderColor"].append(cores[status_])
+
+    datasets.append(dataset)
+    return datasets
