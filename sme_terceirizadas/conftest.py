@@ -36,6 +36,9 @@ from .produto.fixtures.factories.produto_factory import (
     ProdutoTerceirizadaFactory,
     TipoDeInformacaoNutricionalFactory,
 )
+from .recebimento.fixtures.factories.questao_conferencia_factory import (
+    QuestaoConferenciaFactory,
+)
 from .terceirizada.fixtures.factories.terceirizada_factory import EmpresaFactory
 
 f = Faker(locale="pt-Br")
@@ -56,6 +59,7 @@ register(TipoDeInformacaoNutricionalFactory)
 register(InformacaoNutricionalFactory)
 register(LayoutDeEmbalagemFactory)
 register(AnaliseFichaTecnicaFactory)
+register(QuestaoConferenciaFactory)
 
 
 @pytest.fixture
