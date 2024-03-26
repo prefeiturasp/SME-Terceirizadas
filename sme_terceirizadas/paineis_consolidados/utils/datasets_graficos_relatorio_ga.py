@@ -1,4 +1,9 @@
-from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, Lote
+from sme_terceirizadas.escola.models import (
+    DiretoriaRegional,
+    Escola,
+    Lote,
+    TipoUnidadeEscolar,
+)
 from sme_terceirizadas.paineis_consolidados.utils.totalizadores_relatorio_ga import (
     count_query_set_sem_duplicados,
     filtro_geral_totalizadores,
@@ -160,6 +165,51 @@ def get_dataset_grafico_total_status(datasets, request, model, instituicao):
         )
         dataset["datasets"][0]["backgroundColor"].append(light_cores[status_])
         dataset["datasets"][0]["borderColor"].append(cores[status_])
+
+    datasets.append(dataset)
+    return datasets
+
+
+def get_dataset_grafico_total_tipo_unidade(
+    datasets, request, model, instituicao, queryset
+):
+    if isinstance(instituicao, Escola) or request.data.get("unidades_educacionais", []):
+        return datasets
+
+    tipos_unidade = request.data.get("tipos_unidade", [])
+
+    label_data = {
+        "AUTORIZADOS": "Autorizadas",
+        "CANCELADOS": "Canceladas",
+        "NEGADOS": "Negadas",
+        "RECEBIDAS": "Recebidas",
+    }
+
+    if not tipos_unidade:
+        tipos_unidade = TipoUnidadeEscolar.objects.filter(
+            pertence_relatorio_solicitacoes_alimentacao=True
+        ).values_list("uuid", flat=True)
+    queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros_=None)
+    dataset = {
+        "labels": [],
+        "datasets": [
+            {
+                "label": f"Total de Solicitações {label_data[request.data.get('status')]} por Tipo de Unidade",
+                "data": [],
+                "maxBarThickness": 80,
+                "backgroundColor": "#fdc500",
+            }
+        ],
+    }
+
+    for tipo_unidade_uuid in tipos_unidade:
+        tipos_unidade = TipoUnidadeEscolar.objects.get(uuid=tipo_unidade_uuid)
+        dataset["labels"].append(tipos_unidade.iniciais)
+        dataset["datasets"][0]["data"].append(
+            count_query_set_sem_duplicados(
+                queryset.filter(escola_tipo_unidade_uuid=tipo_unidade_uuid)
+            )
+        )
 
     datasets.append(dataset)
     return datasets
