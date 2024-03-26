@@ -1232,6 +1232,7 @@ class PermissaoParaVisualizarFichaTecnica(BasePermission):
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_CRONOGRAMA,
         DILOG_DIRETORIA,
+        DILOG_QUALIDADE,
     ]
 
     def has_permission(self, request, view):
