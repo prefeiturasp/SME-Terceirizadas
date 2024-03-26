@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from multiselectfield import MultiSelectField
 
@@ -40,3 +41,10 @@ class QuestaoConferencia(ModeloBase):
     class Meta:
         verbose_name = "Questão para Conferência"
         verbose_name_plural = "Questões para Conferência"
+
+    def clean(self):
+        super().clean()
+        if self.pergunta_obrigatoria and not self.posicao:
+            raise ValidationError(
+                {"posicao": "Posição é obrigatória se a pergunta for obrigatória."}
+            )
