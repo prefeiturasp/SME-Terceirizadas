@@ -152,6 +152,9 @@ def get_dataset_grafico_total_status(datasets, request, model, instituicao):
         )
         total += count_query_set_sem_duplicados(queryset)
 
+    if not total:
+        return datasets
+
     for status_ in list(label_data.keys()):
         queryset = model.map_queryset_por_status(
             status_, instituicao_uuid=instituicao.uuid
@@ -159,6 +162,10 @@ def get_dataset_grafico_total_status(datasets, request, model, instituicao):
         queryset = filtro_geral_totalizadores(
             request, model, queryset, map_filtros_=None
         )
+
+        if queryset.count() == 0:
+            continue
+
         dataset["labels"].append(f"{label_data[status_]}")
         dataset["datasets"][0]["data"].append(
             round(count_query_set_sem_duplicados(queryset) / total * 100, 2)
