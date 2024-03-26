@@ -51,3 +51,115 @@ def get_dataset_grafico_total_dre_lote(datasets, request, model, instituicao, qu
 
     datasets.append(dataset)
     return datasets
+
+
+def get_dataset_grafico_total_tipo_solicitacao(datasets, request, model, queryset):
+    label_data = {
+        "AUTORIZADOS": "Autorizadas",
+        "CANCELADOS": "Canceladas",
+        "NEGADOS": "Negadas",
+        "RECEBIDAS": "Recebidas",
+    }
+    queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros_=None)
+    dataset = {
+        "labels": [],
+        "datasets": [
+            {
+                "label": f"Total de Solicitações {label_data[request.data.get('status')]} por Tipo",
+                "data": [],
+                "maxBarThickness": 80,
+                "backgroundColor": "#d06d12",
+            }
+        ],
+    }
+
+    de_para_tipos_solicitacao = {
+        "INC_ALIMENTA": "Inclusão de Alimentação",
+        "ALT_CARDAPIO": "Alteração do tipo de Alimentação",
+        "KIT_LANCHE_UNIFICADO": "Kit Lanche Unificado",
+        "KIT_LANCHE_AVULSA": "Kit Lanche Passeio",
+        "INV_CARDAPIO": "Inversão de dia de Cardápio",
+        "SUSP_ALIMENTACAO": "Suspensão de Alimentação",
+    }
+
+    tipo_doc = request.data.get("tipos_solicitacao", [])
+
+    if not tipo_doc:
+        tipo_doc = list(de_para_tipos_solicitacao.keys())
+
+    for tipo_solicitacao in tipo_doc:
+        tipos_solicitacao_filtrar = model.map_queryset_por_tipo_doc([tipo_solicitacao])
+        dataset["labels"].append(f"{de_para_tipos_solicitacao[tipo_solicitacao]}")
+        dataset["datasets"][0]["data"].append(
+            count_query_set_sem_duplicados(
+                queryset.filter(tipo_doc__in=tipos_solicitacao_filtrar)
+            )
+        )
+
+    datasets.append(dataset)
+    return datasets
+
+
+def get_dataset_grafico_total_status(datasets, request, model, instituicao):
+    label_data = {
+        "AUTORIZADOS": "Autorizadas",
+        "CANCELADOS": "Canceladas",
+        "NEGADOS": "Negadas",
+        "RECEBIDAS": "Recebidas",
+    }
+
+    cores = {
+        "AUTORIZADOS": "#198459",
+        "CANCELADOS": "#a50e05",
+        "NEGADOS": "#fdc500",
+        "RECEBIDAS": "#035d96",
+    }
+
+    light_cores = {
+        "AUTORIZADOS": "#d4edda",
+        "CANCELADOS": "#ff7f7f",
+        "NEGADOS": "#fff3cd",
+        "RECEBIDAS": "#d1ecf1",
+    }
+
+    dataset = {
+        "labels": [],
+        "datasets": [
+            {
+                "label": "Total de Solicitações por Status",
+                "data": [],
+                "maxBarThickness": 80,
+                "cutout": "70%",
+                "backgroundColor": [],
+                "borderColor": [],
+            }
+        ],
+    }
+
+    total = 0
+
+    for status_ in list(label_data.keys()):
+        queryset = model.map_queryset_por_status(
+            status_, instituicao_uuid=instituicao.uuid
+        )
+        queryset = filtro_geral_totalizadores(
+            request, model, queryset, map_filtros_=None
+        )
+        total += count_query_set_sem_duplicados(queryset)
+
+    for status_ in list(label_data.keys()):
+        queryset = model.map_queryset_por_status(
+            status_, instituicao_uuid=instituicao.uuid
+        )
+        queryset = filtro_geral_totalizadores(
+            request, model, queryset, map_filtros_=None
+        )
+        dataset["labels"].append(f"{label_data[status_]}")
+        dataset["datasets"][0]["data"].append(
+            round(count_query_set_sem_duplicados(queryset) / total * 100, 2)
+        )
+        dataset["datasets"][0]["backgroundColor"].append(light_cores[status_])
+        dataset["datasets"][0]["borderColor"].append(cores[status_])
+
+    datasets.append(dataset)
+    return datasets
