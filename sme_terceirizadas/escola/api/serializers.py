@@ -121,8 +121,31 @@ class SubprefeituraSerializerSimples(serializers.ModelSerializer):
         fields = ("codigo_eol", "nome")
 
 
+class TipoUnidadeEscolarPeriodoEscolarTipoAlimentacaoSerializer(serializers.Serializer):
+    uuid = serializers.CharField(read_only=True)
+    nome = serializers.CharField(read_only=True)
+
+
+class TipoUnidadeEscolarPeriodoEscolarSerializer(serializers.Serializer):
+    uuid = serializers.CharField(read_only=True)
+    nome = serializers.CharField(read_only=True)
+    tipos_alimentacao = TipoUnidadeEscolarPeriodoEscolarTipoAlimentacaoSerializer(
+        read_only=True, many=True
+    )
+    posicao = serializers.IntegerField(read_only=True)
+    tipo_turno = serializers.IntegerField(read_only=True)
+    possui_alunos_regulares = serializers.SerializerMethodField()
+
+    def get_possui_alunos_regulares(self, obj):
+        if "escola" not in self.context:
+            return None
+        return obj.alunos_matriculados.filter(
+            escola=self.context["escola"], tipo_turma="REGULAR"
+        ).exists()
+
+
 class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
-    periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
+    periodos_escolares = TipoUnidadeEscolarPeriodoEscolarSerializer(many=True)
 
     class Meta:
         model = TipoUnidadeEscolar
