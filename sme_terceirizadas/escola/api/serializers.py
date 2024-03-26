@@ -743,6 +743,12 @@ class EscolaParaFiltroSerializer(serializers.ModelSerializer):
         fields = ("uuid", "nome", "diretoria_regional", "tipo_unidade", "lote")
 
 
+class PeriodoEscolarParaFiltroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeriodoEscolar
+        fields = ("uuid", "nome")
+
+
 class EscolaAlunoPeriodoSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
     tipo_unidade = TipoUnidadeParaFiltroSerializer()
