@@ -64,6 +64,7 @@ from ..utils.datasets_graficos_relatorio_ga import (
     get_dataset_grafico_total_dre_lote,
     get_dataset_grafico_total_status,
     get_dataset_grafico_total_tipo_solicitacao,
+    get_dataset_grafico_total_tipo_unidade,
 )
 from ..utils.totalizadores_relatorio_ga import (
     totalizador_lote,
@@ -284,6 +285,9 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         )
         datasets = get_dataset_grafico_total_status(
             datasets, request, model, instituicao
+        )
+        datasets = get_dataset_grafico_total_tipo_unidade(
+            datasets, request, model, instituicao, queryset
         )
 
         return datasets
