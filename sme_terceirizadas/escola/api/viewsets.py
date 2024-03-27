@@ -1083,9 +1083,23 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
 
         for periodo_uuid in json.loads(periodos_uuids):
             periodo = PeriodoEscolar.objects.get(uuid=periodo_uuid)
-            total_matriculados = soma_quantidades_por_periodo.filter(
-                periodo_escolar=periodo
-            ).aggregate(max_quantidade=Max("soma_quantidade"))["max_quantidade"]
+
+            if periodo.nome == "INTEGRAL":
+                periodo_parcial = PeriodoEscolar.objects.get(nome="PARCIAL")
+
+                total_matriculados_integral = self.get_total_matriculados_por_periodo(
+                    soma_quantidades_por_periodo, periodo
+                )
+                total_matriculados_parcial = self.get_total_matriculados_por_periodo(
+                    soma_quantidades_por_periodo, periodo_parcial
+                )
+                total_matriculados = (
+                    total_matriculados_integral + total_matriculados_parcial
+                )
+            else:
+                total_matriculados = self.get_total_matriculados_por_periodo(
+                    soma_quantidades_por_periodo, periodo
+                )
             max_quantidades_por_periodo[periodo.nome] = (
                 total_matriculados if total_matriculados else 0
             )
@@ -1095,6 +1109,23 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
         }
 
         return response
+
+    def get_total_matriculados_por_periodo(self, soma_logs_alunos_por_periodo, periodo):
+        return soma_logs_alunos_por_periodo.filter(periodo_escolar=periodo).aggregate(
+            max_quantidade=Max("soma_quantidade")
+        )["max_quantidade"]
+
+    def validar_periodos(self, filtros, periodos_uuids):
+        periodos = PeriodoEscolar.objects.filter(uuid__in=json.loads(periodos_uuids))
+        periodo_integral = PeriodoEscolar.objects.get(nome="INTEGRAL")
+
+        if periodo_integral in periodos:
+            periodos_uuids_list = json.loads(periodos_uuids)
+            periodo_parcial = PeriodoEscolar.objects.get(nome="PARCIAL")
+            periodos_uuids_list.append(str(periodo_parcial.uuid))
+            periodos_uuids = json.dumps(periodos_uuids_list)
+        filtros["periodo_escolar__uuid__in"] = json.loads(periodos_uuids)
+        return filtros
 
     @action(detail=False, methods=["GET"], url_path="meses-anos")
     def meses_anos(self, _):
@@ -1141,7 +1172,9 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
                 )
 
             periodos_ids = log_alunos.values_list("periodo_escolar", flat=True)
-            periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
+            periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids).exclude(
+                nome="PARCIAL"
+            )
 
             datas = obter_primeiro_e_ultimo_dia_util(int(ano), int(mes))
             data_inicial = datas[0]
@@ -1174,7 +1207,7 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
 
         periodos_uuids = request.query_params.get("periodos")
         if periodos_uuids:
-            filtros["periodo_escolar__uuid__in"] = json.loads(periodos_uuids)
+            filtros = self.validar_periodos(filtros, periodos_uuids)
 
         if filtros:
             queryset = queryset.filter(**filtros)
