@@ -220,3 +220,52 @@ def get_dataset_grafico_total_tipo_unidade(
 
     datasets.append(dataset)
     return datasets
+
+
+def get_dataset_grafico_total_terceirizadas(
+    datasets, request, model, instituicao, queryset
+):
+    if isinstance(instituicao, Escola) or request.data.get("unidades_educacionais", []):
+        return datasets
+
+    label_data = {
+        "AUTORIZADOS": "Autorizadas",
+        "CANCELADOS": "Canceladas",
+        "NEGADOS": "Negadas",
+        "RECEBIDAS": "Recebidas",
+    }
+
+    if isinstance(instituicao, Terceirizada):
+        terceirizadas = Terceirizada.objects.filter(id=instituicao.id)
+    elif isinstance(instituicao, DiretoriaRegional):
+        terceirizadas = Terceirizada.objects.filter(
+            lotes__diretoria_regional=instituicao
+        )
+    else:
+        terceirizadas = Terceirizada.objects.filter(
+            tipo_empresa=Terceirizada.TERCEIRIZADA
+        )
+
+    queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros_=None)
+    dataset = {
+        "labels": [],
+        "datasets": [
+            {
+                "label": f"Total de Solicitações {label_data[request.data.get('status')]} por Empresa Terceirizada",
+                "data": [],
+                "maxBarThickness": 80,
+                "backgroundColor": "#035d96",
+            }
+        ],
+    }
+
+    for terceirizada in terceirizadas:
+        dataset["labels"].append(terceirizada.nome_fantasia)
+        dataset["datasets"][0]["data"].append(
+            count_query_set_sem_duplicados(
+                queryset.filter(terceirizada_uuid=terceirizada.uuid)
+            )
+        )
+
+    datasets.append(dataset)
+    return datasets

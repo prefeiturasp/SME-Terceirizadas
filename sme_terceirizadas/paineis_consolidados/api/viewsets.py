@@ -63,6 +63,7 @@ from ..tasks import (
 from ..utils.datasets_graficos_relatorio_ga import (
     get_dataset_grafico_total_dre_lote,
     get_dataset_grafico_total_status,
+    get_dataset_grafico_total_terceirizadas,
     get_dataset_grafico_total_tipo_solicitacao,
     get_dataset_grafico_total_tipo_unidade,
 )
@@ -287,6 +288,9 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             datasets, request, model, instituicao
         )
         datasets = get_dataset_grafico_total_tipo_unidade(
+            datasets, request, model, instituicao, queryset
+        )
+        datasets = get_dataset_grafico_total_terceirizadas(
             datasets, request, model, instituicao, queryset
         )
 
