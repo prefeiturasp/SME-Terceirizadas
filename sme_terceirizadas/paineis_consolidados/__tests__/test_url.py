@@ -873,6 +873,6 @@ def test_filtrar_solicitacoes_ga_graficos_empresa_terceirizada_codae(
         == "Total de Solicitações Autorizadas por Empresa Terceirizada"
     )
     assert (
-        len(response.json()[3]["labels"])
+        len(response.json()[4]["labels"])
         == Terceirizada.objects.filter(tipo_empresa=Terceirizada.TERCEIRIZADA).count()
     )
