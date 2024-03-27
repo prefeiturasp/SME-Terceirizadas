@@ -237,6 +237,10 @@ def get_dataset_grafico_total_terceirizadas(
 
     if isinstance(instituicao, Terceirizada):
         terceirizadas = Terceirizada.objects.filter(id=instituicao.id)
+    elif isinstance(instituicao, DiretoriaRegional):
+        terceirizadas = Terceirizada.objects.filter(
+            lotes__diretoria_regional=instituicao
+        )
     else:
         terceirizadas = Terceirizada.objects.filter(
             tipo_empresa=Terceirizada.TERCEIRIZADA
