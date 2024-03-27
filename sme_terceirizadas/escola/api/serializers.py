@@ -239,8 +239,6 @@ class EscolaParaFiltrosReadOnlySerializer(serializers.Serializer):
     diretoria_regional = EscolaParaFiltrosDiretoriaRegionalReadOnlySerializer()
     tipo_unidade = EscolaParaFiltrosTipoUnidadeReadOnlySerializer()
     lote = EscolaParaFiltrosLoteReadOnlySerializer()
-    periodos_escolares = EscolaParaFiltrosPeriodoEscolarReadOnlySerializer(many=True)
-    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
 
 
 class EscolaEolSimplesSerializer(serializers.ModelSerializer):
@@ -743,6 +741,12 @@ class EscolaParaFiltroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         fields = ("uuid", "nome", "diretoria_regional", "tipo_unidade", "lote")
+
+
+class PeriodoEscolarParaFiltroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeriodoEscolar
+        fields = ("uuid", "nome")
 
 
 class EscolaAlunoPeriodoSerializer(serializers.ModelSerializer):

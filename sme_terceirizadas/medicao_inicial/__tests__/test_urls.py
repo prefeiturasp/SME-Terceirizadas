@@ -5,6 +5,7 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
+from sme_terceirizadas.dados_comuns.models import CentralDeDownload
 from sme_terceirizadas.medicao_inicial.models import (
     DiaParaCorrigir,
     DiaSobremesaDoce,
@@ -1385,8 +1386,65 @@ def test_finaliza_medicao_inicial_salva_logs_cei(
     )
 
 
+def test_finaliza_medicao_inicial_salva_logs_ceu_gestao(
+    client_autenticado_da_escola_ceu_gestao,
+    solicitacao_medicao_inicial_varios_valores_ceu_gestao,
+):
+    tipos_contagem = (
+        solicitacao_medicao_inicial_varios_valores_ceu_gestao.tipos_contagem_alimentacao.all()
+    )
+    tipos_contagem_uuids = tipos_contagem.values_list("uuid", flat=True)
+    tipos_contagem_uuids = [str(uuid) for uuid in tipos_contagem_uuids]
+    data_update = {
+        "escola": str(
+            solicitacao_medicao_inicial_varios_valores_ceu_gestao.escola.uuid
+        ),
+        "tipo_contagem_alimentacoes[]": tipos_contagem_uuids,
+        "com_ocorrencias": False,
+        "finaliza_medicao": True,
+    }
+    response = client_autenticado_da_escola_ceu_gestao.patch(
+        f"/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_varios_valores_ceu_gestao.uuid}/",
+        content_type="application/json",
+        data=json.dumps(data_update),
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == [
+        {
+            "erro": "Restam dias a serem lançados nas alimentações.",
+            "periodo_escolar": "TARDE",
+        }
+    ]
+
+
+def test_finaliza_medicao_inicial_salva_logs_emebs(
+    client_autenticado_da_escola_emebs,
+    solicitacao_medicao_inicial_varios_valores_emebs,
+):
+    tipos_contagem = (
+        solicitacao_medicao_inicial_varios_valores_emebs.tipos_contagem_alimentacao.all()
+    )
+    tipos_contagem_uuids = tipos_contagem.values_list("uuid", flat=True)
+    tipos_contagem_uuids = [str(uuid) for uuid in tipos_contagem_uuids]
+    data_update = {
+        "escola": str(solicitacao_medicao_inicial_varios_valores_emebs.escola.uuid),
+        "tipo_contagem_alimentacoes[]": tipos_contagem_uuids,
+        "com_ocorrencias": False,
+        "finaliza_medicao": True,
+    }
+    response = client_autenticado_da_escola_emebs.patch(
+        f"/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_varios_valores_emebs.uuid}/",
+        content_type="application/json",
+        data=json.dumps(data_update),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_salva_valores_medicao_inicial_cemei(
-    client_autenticado_da_escola_cemei, escola_cemei, solicitacao_medicao_inicial_cemei
+    client_autenticado_da_escola_cemei,
+    escola_cemei,
+    solicitacao_medicao_inicial_cemei,
+    categoria_medicao,
 ):
     data = {
         "valores_medicao": [
@@ -1394,14 +1452,14 @@ def test_salva_valores_medicao_inicial_cemei(
                 "dia": "08",
                 "valor": "218",
                 "nome_campo": "matriculados",
-                "categoria_medicao": "100",
+                "categoria_medicao": categoria_medicao.id,
                 "faixa_etaria": "0c914b27-c7cd-4682-a439-a4874745b005",
             },
             {
                 "dia": "08",
                 "valor": "200",
                 "nome_campo": "frequencia",
-                "categoria_medicao": "100",
+                "categoria_medicao": categoria_medicao.id,
                 "faixa_etaria": "0c914b27-c7cd-4682-a439-a4874745b005",
             },
         ]
@@ -1545,6 +1603,116 @@ def test_url_endpoint_empenho(client_autenticado_coordenador_codae, edital, cont
     assert response.json()["results"][0]["edital"] == "Edital de Pregão nº 78/SME/2024"
     assert response.json()["results"][0]["numero"] == "1234599"
     assert response.json()["results"][0]["tipo_empenho"] == "PRINCIPAL"
-    assert response.json()["results"][0]["tipo_reajuste"] == None
     assert response.json()["results"][0]["status"] == "ATIVO"
     assert response.json()["results"][0]["valor_total"] == "1050.99"
+
+
+def test_url_endpoint_relatorio_adesao(
+    client_autenticado_coordenador_codae,
+    categoria_medicao,
+    tipo_alimentacao_refeicao,
+    make_solicitacao_medicao_inicial,
+    make_medicao,
+    make_valores_medicao,
+    make_periodo_escolar,
+):
+    # arrange
+    mes = "03"
+    ano = "2024"
+    solicitacao = make_solicitacao_medicao_inicial(
+        mes, ano, "MEDICAO_APROVADA_PELA_CODAE"
+    )
+    periodo_escolar = make_periodo_escolar("MANHA")
+    medicao = make_medicao(solicitacao, periodo_escolar)
+
+    valores = range(1, 6)
+    total_servido = sum(valores)
+    total_frequencia = sum(valores)
+    total_adesao = round(total_servido / total_frequencia, 4)
+
+    for x in valores:
+        make_valores_medicao(
+            medicao=medicao,
+            categoria_medicao=categoria_medicao,
+            valor=str(x).rjust(2, "0"),
+            tipo_alimentacao=tipo_alimentacao_refeicao,
+        )
+        make_valores_medicao(
+            medicao=medicao,
+            categoria_medicao=categoria_medicao,
+            valor=str(x).rjust(2, "0"),
+            nome_campo="frequencia",
+        )
+
+    response = client_autenticado_coordenador_codae.get(
+        f"/medicao-inicial/relatorios/relatorio-adesao/?mes_ano={mes}_{ano}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {
+        medicao.nome_periodo_grupo: {
+            tipo_alimentacao_refeicao.nome.upper(): {
+                "total_servido": total_servido,
+                "total_frequencia": total_frequencia,
+                "total_adesao": total_adesao,
+            }
+        }
+    }
+
+
+def test_url_endpoint_relatorio_adesao_sem_mes_ano(
+    client_autenticado_coordenador_codae,
+):
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/relatorios/relatorio-adesao/"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_endpoint_relatorio_adesao_exportar_xlsx(
+    client_autenticado_coordenador_codae,
+):
+    # arrange
+    mes = "03"
+    ano = "2024"
+
+    response = client_autenticado_coordenador_codae.get(
+        f"/medicao-inicial/relatorios/relatorio-adesao/exportar-xlsx/?mes_ano={mes}_{ano}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_relatorio_adesao_exportar_xlsx_sem_mes_ano(
+    client_autenticado_coordenador_codae,
+):
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/relatorios/relatorio-adesao/exportar-xlsx/"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_endpoint_relatorio_adesao_exportar_pdf(
+    client_autenticado_coordenador_codae,
+):
+    # arrange
+    mes = "03"
+    ano = "2024"
+
+    response = client_autenticado_coordenador_codae.get(
+        f"/medicao-inicial/relatorios/relatorio-adesao/exportar-pdf/?mes_ano={mes}_{ano}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_relatorio_adesao_exportar_pdf_sem_mes_ano(
+    client_autenticado_coordenador_codae,
+):
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/relatorios/relatorio-adesao/exportar-pdf/"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST

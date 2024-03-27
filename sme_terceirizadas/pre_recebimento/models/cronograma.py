@@ -386,8 +386,12 @@ class TipoDeEmbalagemDeLayout(TemChaveExterna):
 class LayoutDeEmbalagem(
     ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoLayoutDeEmbalagem
 ):
-    cronograma = models.ForeignKey(
-        Cronograma, on_delete=models.PROTECT, related_name="layouts"
+    ficha_tecnica = models.OneToOneField(
+        "FichaTecnicaDoProduto",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="layout_embalagem",
     )
     observacoes = models.TextField("Observações", blank=True)
 
@@ -404,7 +408,10 @@ class LayoutDeEmbalagem(
 
     @property
     def aprovado(self):
-        return not self.tipos_de_embalagens.filter(status="REPROVADO").exists()
+        return (
+            self.tipos_de_embalagens.filter(status="APROVADO").count()
+            == self.tipos_de_embalagens.count()
+        )
 
     @property
     def eh_primeira_analise(self):
@@ -418,9 +425,9 @@ class LayoutDeEmbalagem(
 
     def __str__(self):
         try:
-            return f"{self.cronograma.numero} - {self.cronograma.ficha_tecnica.produto.nome}"
+            return f"Layout de Embalagens {self.ficha_tecnica.numero} - {self.ficha_tecnica.produto.nome}"
         except AttributeError:
-            return str(self.id)
+            return f"Layout de Embalagens {self.id}"
 
     class Meta:
         verbose_name = "Layout de Embalagem"
@@ -522,13 +529,10 @@ class DocumentoDeRecebimento(
     )
     quantidade_laudo = models.FloatField(blank=True, null=True)
     saldo_laudo = models.FloatField(blank=True, null=True)
+    numero_lote_laudo = models.CharField("Número do Laudo", blank=True, max_length=200)
     unidade_medida = models.ForeignKey(
         UnidadeMedida, on_delete=models.PROTECT, blank=True, null=True, default=None
     )
-    data_fabricacao_lote = models.DateField(
-        "Data Fabricação do Lote", blank=True, null=True
-    )
-    validade_produto = models.DateField("Validade do Produto", blank=True, null=True)
     data_final_lote = models.DateField("Data Final do Lote", blank=True, null=True)
     correcao_solicitada = models.TextField("Correção Solicitada", blank=True)
 
@@ -614,6 +618,7 @@ class DataDeFabricaoEPrazo(TemChaveExterna):
         related_name="datas_fabricacao_e_prazos",
     )
     data_fabricacao = models.DateField("Data Fabricação", blank=True, null=True)
+    data_validade = models.DateField("Data Validade", blank=True, null=True)
     data_maxima_recebimento = models.DateField(
         "Data Máxima de Recebimento", blank=True, null=True
     )

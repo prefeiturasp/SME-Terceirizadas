@@ -69,6 +69,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     AnaliseFichaTecnicaCreateSerializer,
     AnaliseFichaTecnicaRascunhoSerializer,
+    CorrecaoFichaTecnicaSerializer,
     CronogramaCreateSerializer,
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
@@ -134,7 +135,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 
 from ...dados_comuns.api.paginations import DefaultPagination
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...relatorios.relatorios import get_pdf_cronograma
+from ...relatorios.relatorios import get_pdf_cronograma, get_pdf_ficha_tecnica
 from ..models.cronograma import FichaTecnicaDoProduto
 from .validators import valida_parametros_calendario
 
@@ -857,7 +858,7 @@ class LayoutDeEmbalagemModelViewSet(
         user = self.request.user
         if user.eh_fornecedor:
             return LayoutDeEmbalagem.objects.filter(
-                cronograma__empresa=user.vinculo_atual.instituicao
+                ficha_tecnica__empresa=user.vinculo_atual.instituicao
             ).order_by("-criado_em")
         return LayoutDeEmbalagem.objects.all().order_by("-criado_em")
 
@@ -1098,18 +1099,6 @@ class FichaTecnicaModelViewSet(
             request, *args, **kwargs
         ) or super().update(request, *args, **kwargs)
 
-    def _verificar_autenticidade_usuario(self, request, *args, **kwargs):
-        usuario = request.user
-        password = request.data.pop("password", "")
-
-        if not usuario.verificar_autenticidade(password):
-            return Response(
-                {
-                    "Senha inválida": "em caso de esquecimento de senha, solicite a recuperação e tente novamente."
-                },
-                status=HTTP_401_UNAUTHORIZED,
-            )
-
     @action(
         detail=False,
         methods=["GET"],
@@ -1130,14 +1119,54 @@ class FichaTecnicaModelViewSet(
     @action(
         detail=False,
         methods=["GET"],
+        url_path="lista-simples",
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
+    )
+    def lista_simples(self, request, **kwargs):
+        usuario = self.request.user
+
+        qs = (
+            self.get_queryset().filter(empresa=usuario.vinculo_atual.instituicao)
+            if usuario.eh_empresa
+            else self.get_queryset()
+        )
+
+        qs = qs.exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO)
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=False,
+        methods=["GET"],
         url_path="lista-simples-sem-cronograma",
-        permission_classes=(PermissaoParaCriarCronograma,),
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
     )
     def lista_simples_sem_cronograma(self, request, **kwargs):
         qs = (
             self.get_queryset()
             .exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO)
             .exclude(cronograma__isnull=False)
+        )
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-simples-sem-layout-embalagem",
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
+    )
+    def lista_simples_sem_layout_embalagem(self, request, **kwargs):
+        usuario = self.request.user
+
+        qs = (
+            self.get_queryset().filter(empresa=usuario.vinculo_atual.instituicao)
+            if usuario.eh_empresa
+            else self.get_queryset()
+        )
+
+        qs = qs.exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO).exclude(
+            layout_embalagem__isnull=False
         )
 
         return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
@@ -1215,6 +1244,45 @@ class FichaTecnicaModelViewSet(
         serializer.save()
 
         return Response(status=HTTP_201_CREATED if analise is None else HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        url_path="correcao-fornecedor",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def correcao_fornecedor(self, request, *args, **kwargs):
+        return self._verificar_autenticidade_usuario(
+            request, *args, **kwargs
+        ) or self._processa_correcao(request, *args, **kwargs)
+
+    def _processa_correcao(self, request, *args, **kwargs):
+        serializer = CorrecaoFichaTecnicaSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(HTTP_200_OK)
+
+    def _verificar_autenticidade_usuario(self, request, *args, **kwargs):
+        usuario = request.user
+        password = request.data.pop("password", "")
+
+        if not usuario.verificar_autenticidade(password):
+            return Response(
+                {
+                    "Senha inválida": "em caso de esquecimento de senha, solicite a recuperação e tente novamente."
+                },
+                status=HTTP_401_UNAUTHORIZED,
+            )
+
+    @action(detail=True, methods=["GET"], url_path="gerar-pdf-ficha")
+    def gerar_pdf_ficha(self, request, uuid=None):
+        ficha = self.get_object()
+        return get_pdf_ficha_tecnica(request, ficha)
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):

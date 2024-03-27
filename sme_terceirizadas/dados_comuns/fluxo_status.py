@@ -1886,7 +1886,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 log=log_transicao, arquivo=arquivo, nome=anexo["nome"]
             )
         if reclamacao:
-            emails = self.rastro_terceirizada.emails_por_modulo("Gestão de Produto")
+            emails = reclamacao.escola.lote.terceirizada.emails_por_modulo(
+                "Gestão de Produto"
+            )
             self._envia_email_codae_questiona_produto(
                 reclamacao, log_transicao, emails, link
             )
@@ -4437,7 +4439,7 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             log_transicao = self.log_mais_recente
             usuarios = [
                 *PartesInteressadasService.usuarios_por_perfis("DILOG_CRONOGRAMA"),
-                *PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
+                *PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
                     self
                 ),
             ]
@@ -4470,7 +4472,7 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         partes_interessadas = PartesInteressadasService.usuarios_por_perfis(
             ["DILOG_CRONOGRAMA", "DINUTRE_DIRETORIA"], True
-        ) + PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
+        ) + PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
             self, True
         )
 
@@ -4595,8 +4597,8 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             assunto=f"[SIGPAE] Alteração do Cronograma {numero_cronograma}",
             corpo="",
             html=html,
-            emails=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
-                cronograma=self.cronograma, somente_email=True
+            emails=PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
+                self.cronograma, somente_email=True
             ),
         )
 
@@ -4654,10 +4656,8 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         template = "pre_recebimento_notificacao_solicitacao_cronograma_codae.html"
         titulo_notificacao = f"Alteração do Cronograma Nº { self.cronograma.numero }"
-        usuarios = (
-            PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
-                self.cronograma
-            )
+        usuarios = PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
+            self.cronograma
         )
         link = f"/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}"
         tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
@@ -4792,7 +4792,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             *PartesInteressadasService.usuarios_por_perfis(
                 ["DINUTRE_DIRETORIA", "DILOG_CRONOGRAMA"]
             ),
-            *PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
+            *PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
                 self.cronograma
             ),
         ]
@@ -4836,7 +4836,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
         )
 
         partes_interessadas = (
-            PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
+            PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
                 self.cronograma, True
             )
             + PartesInteressadasService.usuarios_por_perfis(
@@ -4973,7 +4973,11 @@ class LayoutDeEmbalagemWorkflow(xwf_models.Workflow):
     transitions = (
         ("inicia_fluxo", LAYOUT_CRIADO, ENVIADO_PARA_ANALISE),
         ("codae_aprova", ENVIADO_PARA_ANALISE, APROVADO),
-        ("codae_solicita_correcao", ENVIADO_PARA_ANALISE, SOLICITADO_CORRECAO),
+        (
+            "codae_solicita_correcao",
+            [ENVIADO_PARA_ANALISE, APROVADO],
+            SOLICITADO_CORRECAO,
+        ),
         ("fornecedor_realiza_correcao", SOLICITADO_CORRECAO, ENVIADO_PARA_ANALISE),
         ("fornecedor_atualiza", APROVADO, ENVIADO_PARA_ANALISE),
     )
@@ -4994,9 +4998,9 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
                 usuario=user,
             )
 
-            nome_empresa = self.cronograma.empresa.nome_fantasia
+            nome_empresa = "XXXXXXXXXXXXXXXXXXXXXXXXX"
             data_envio = self.log_mais_recente.criado_em.strftime("%d/%m/%Y")
-            numero_cronograma = self.cronograma.numero
+            numero_cronograma = "XXX/XXXXA"
             url_layout_embalagens = (
                 f"/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}"
             )
@@ -5054,7 +5058,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
                 usuario=user,
             )
 
-            numero_cronograma = self.cronograma.numero
+            numero_cronograma = "XXX/XXXXA"
             url_corrigir_layout_embalagens = (
                 f"/pre-recebimento/corrigir-layout-embalagem?uuid={self.uuid}"
             )
@@ -5069,8 +5073,8 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
                 tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                 categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS,
                 link_acesse_aqui=url_corrigir_layout_embalagens,
-                usuarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
-                    self.cronograma
+                usuarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
+                    self.ficha_tecnica
                 ),
             )
 
@@ -5085,8 +5089,8 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
                     ),
                     "url_layout_embalagens": base_url + url_corrigir_layout_embalagens,
                 },
-                destinatarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
-                    self.cronograma, somente_email=True
+                destinatarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
+                    self.ficha_tecnica, somente_email=True
                 ),
             )
 
@@ -5111,7 +5115,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
 
     def _notificar_correcao_ou_atualizacao(self, usuario):
         data_envio = self.log_mais_recente.criado_em.strftime("%d/%m/%Y")
-        nome_empresa = self.cronograma.empresa.nome_fantasia
+        nome_empresa = "XXXXXXXXXXXXXXXXXXXXXXXXX"
         perfis_interessados = [
             constants.DILOG_QUALIDADE,
             constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
@@ -5122,7 +5126,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             "pre_recebimento_notificacao_fornecedor_corrige_ou_atualiza_layout_embalagem.html",
         )
         contexto_template = {
-            "numero_cronograna": self.cronograma.numero,
+            "numero_cronograna": "XXX/XXXXA",
             "nome_usuario_empresa": usuario.nome,
             "cpf_usuario_empresa": usuario.cpf_formatado_e_censurado,
         }
@@ -5258,8 +5262,8 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
                 tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                 categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO,
                 link_acesse_aqui=url_documento_recebimento,
-                usuarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
-                    cronograma=self.cronograma
+                usuarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
+                    self.cronograma
                 ),
             )
 
@@ -5268,8 +5272,8 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
                 assunto=f"[SIGPAE] Solicitação de Correção Documentos de Recebimento do Cronograma Nº {numero_cronograma}",
                 template="pre_recebimento_email_codae_solicita_correcao_documento_recebimento.html",
                 contexto_template=contexto,
-                destinatarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
-                    cronograma=self.cronograma, somente_email=True
+                destinatarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_objeto(
+                    self.cronograma, somente_email=True
                 ),
             )
 
@@ -5353,6 +5357,7 @@ class FichaTecnicaDoProdutoWorkflow(xwf_models.Workflow):
         ("inicia_fluxo", RASCUNHO, ENVIADA_PARA_ANALISE),
         ("gpcodae_aprova", ENVIADA_PARA_ANALISE, APROVADA),
         ("gpcodae_envia_para_correcao", ENVIADA_PARA_ANALISE, ENVIADA_PARA_CORRECAO),
+        ("fornecedor_corrige", ENVIADA_PARA_CORRECAO, ENVIADA_PARA_ANALISE),
     )
 
     initial_state = RASCUNHO
@@ -5386,6 +5391,15 @@ class FluxoFichaTecnicaDoProduto(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(
                 status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_CORRECAO,
+                usuario=user,
+            )
+
+    @xworkflows.after_transition("fornecedor_corrige")
+    def _fornecedor_corrige_hook(self, *args, **kwargs):
+        user = kwargs["user"]
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE,
                 usuario=user,
             )
 

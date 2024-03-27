@@ -32,6 +32,7 @@ from sme_terceirizadas.escola.models import (
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    ClausulaDeDesconto,
     DiaSobremesaDoce,
     Empenho,
     GrupoMedicao,
@@ -52,16 +53,19 @@ from ..utils import log_alteracoes_escola_corrige_periodo
 from ..validators import (
     valida_medicoes_inexistentes_cei,
     valida_medicoes_inexistentes_ceu_gestao,
+    valida_medicoes_inexistentes_emebs,
     validate_lancamento_alimentacoes_inclusoes_ceu_gestao,
     validate_lancamento_alimentacoes_medicao,
     validate_lancamento_alimentacoes_medicao_cei,
+    validate_lancamento_alimentacoes_medicao_emebs,
     validate_lancamento_dietas_cei,
+    validate_lancamento_dietas_emebs,
     validate_lancamento_dietas_emef,
     validate_lancamento_dietas_inclusoes_ceu_gestao,
     validate_lancamento_inclusoes,
     validate_lancamento_inclusoes_cei,
     validate_lancamento_inclusoes_dietas_cei,
-    validate_lancamento_inclusoes_dietas_emef,
+    validate_lancamento_inclusoes_dietas_emef_emebs,
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
     validate_medicao_cemei,
@@ -69,6 +73,7 @@ from ..validators import (
     validate_solicitacoes_etec_ceu_gestao,
     validate_solicitacoes_programas_e_projetos,
     validate_solicitacoes_programas_e_projetos_ceu_gestao,
+    validate_solicitacoes_programas_e_projetos_emebs,
 )
 
 
@@ -213,7 +218,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_lancamento_alimentacoes_medicao(instance, lista_erros)
         lista_erros = validate_lancamento_inclusoes(instance, lista_erros)
         lista_erros = validate_lancamento_dietas_emef(instance, lista_erros)
-        lista_erros = validate_lancamento_inclusoes_dietas_emef(instance, lista_erros)
+        lista_erros = validate_lancamento_inclusoes_dietas_emef_emebs(
+            instance, lista_erros
+        )
         lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
         lista_erros = validate_lanche_emergencial(instance, lista_erros)
         lista_erros = validate_solicitacoes_etec(instance, lista_erros)
@@ -280,6 +287,33 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_solicitacoes_etec_ceu_gestao(instance, lista_erros)
         lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
         lista_erros = validate_lanche_emergencial(instance, lista_erros)
+
+        if lista_erros:
+            raise ValidationError(lista_erros)
+
+    def valida_finalizar_medicao_emebs(
+        self, instance: SolicitacaoMedicaoInicial
+    ) -> None:
+        if (
+            not instance.escola.eh_emebs
+            or instance.status
+            != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+        ):
+            return
+
+        lista_erros = []
+        lista_erros = valida_medicoes_inexistentes_emebs(instance, lista_erros)
+        lista_erros = validate_lancamento_alimentacoes_medicao_emebs(
+            instance, lista_erros
+        )
+        lista_erros = validate_lancamento_inclusoes(instance, lista_erros, True)
+        lista_erros = validate_lancamento_dietas_emebs(instance, lista_erros)
+        lista_erros = validate_lancamento_inclusoes_dietas_emef_emebs(
+            instance, lista_erros, True
+        )
+        lista_erros = validate_solicitacoes_programas_e_projetos_emebs(
+            instance, lista_erros
+        )
 
         if lista_erros:
             raise ValidationError(lista_erros)
@@ -926,6 +960,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             self.valida_finalizar_medicao_cemei(instance)
             self.valida_finalizar_medicao_cei(instance)
             self.valida_finalizar_medicao_ceu_gestao(instance)
+            self.valida_finalizar_medicao_emebs(instance)
             instance.ue_envia(user=self.context["request"].user)
             if hasattr(instance, "ocorrencia"):
                 instance.ocorrencia.ue_envia(
@@ -1082,27 +1117,68 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 mes = int(instance.solicitacao_medicao_inicial.mes)
                 ano = int(instance.solicitacao_medicao_inicial.ano)
                 semana = ValorMedicao.get_week_of_month(ano, mes, dia)
-                ValorMedicao.objects.update_or_create(
-                    medicao=instance,
-                    dia=valor_medicao.get("dia", ""),
-                    semana=semana,
-                    nome_campo=valor_medicao.get("nome_campo", ""),
-                    categoria_medicao=valor_medicao.get("categoria_medicao", ""),
-                    tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
-                    faixa_etaria=valor_medicao.get("faixa_etaria", None),
-                    infantil_ou_fundamental=infantil_ou_fundamental,
-                    defaults={
-                        "medicao": instance,
-                        "dia": valor_medicao.get("dia", ""),
-                        "semana": semana,
-                        "valor": valor_medicao.get("valor", ""),
-                        "nome_campo": valor_medicao.get("nome_campo", ""),
-                        "categoria_medicao": valor_medicao.get("categoria_medicao", ""),
-                        "tipo_alimentacao": valor_medicao.get("tipo_alimentacao", None),
-                        "faixa_etaria": valor_medicao.get("faixa_etaria", None),
-                        "infantil_ou_fundamental": infantil_ou_fundamental,
-                    },
-                )
+                try:
+                    ValorMedicao.objects.update_or_create(
+                        medicao=instance,
+                        dia=valor_medicao.get("dia", ""),
+                        semana=semana,
+                        nome_campo=valor_medicao.get("nome_campo", ""),
+                        categoria_medicao=valor_medicao.get("categoria_medicao", ""),
+                        tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
+                        faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                        infantil_ou_fundamental=infantil_ou_fundamental,
+                        defaults={
+                            "medicao": instance,
+                            "dia": valor_medicao.get("dia", ""),
+                            "semana": semana,
+                            "valor": valor_medicao.get("valor", ""),
+                            "nome_campo": valor_medicao.get("nome_campo", ""),
+                            "categoria_medicao": valor_medicao.get(
+                                "categoria_medicao", ""
+                            ),
+                            "tipo_alimentacao": valor_medicao.get(
+                                "tipo_alimentacao", None
+                            ),
+                            "faixa_etaria": valor_medicao.get("faixa_etaria", None),
+                            "infantil_ou_fundamental": infantil_ou_fundamental,
+                        },
+                    )
+                except ValorMedicao.MultipleObjectsReturned:
+                    ValorMedicao.objects.filter(
+                        medicao=instance,
+                        dia=valor_medicao.get("dia", ""),
+                        semana=semana,
+                        nome_campo=valor_medicao.get("nome_campo", ""),
+                        categoria_medicao=valor_medicao.get("categoria_medicao", ""),
+                        tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
+                        faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                        infantil_ou_fundamental=infantil_ou_fundamental,
+                    ).first().delete()
+                    ValorMedicao.objects.update_or_create(
+                        medicao=instance,
+                        dia=valor_medicao.get("dia", ""),
+                        semana=semana,
+                        nome_campo=valor_medicao.get("nome_campo", ""),
+                        categoria_medicao=valor_medicao.get("categoria_medicao", ""),
+                        tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
+                        faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                        infantil_ou_fundamental=infantil_ou_fundamental,
+                        defaults={
+                            "medicao": instance,
+                            "dia": valor_medicao.get("dia", ""),
+                            "semana": semana,
+                            "valor": valor_medicao.get("valor", ""),
+                            "nome_campo": valor_medicao.get("nome_campo", ""),
+                            "categoria_medicao": valor_medicao.get(
+                                "categoria_medicao", ""
+                            ),
+                            "tipo_alimentacao": valor_medicao.get(
+                                "tipo_alimentacao", None
+                            ),
+                            "faixa_etaria": valor_medicao.get("faixa_etaria", None),
+                            "infantil_ou_fundamental": infantil_ou_fundamental,
+                        },
+                    )
         eh_observacao = self.context["request"].data.get(
             "eh_observacao",
         )
@@ -1165,3 +1241,20 @@ class EmpenhoCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Empenho
         fields = "__all__"
+
+
+class ClausulaDeDescontoCreateUpdateSerializer(serializers.ModelSerializer):
+    edital = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Edital.objects.all()
+    )
+
+    class Meta:
+        model = ClausulaDeDesconto
+        fields = "__all__"
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=("edital", "numero_clausula", "item_clausula"),
+                message="Já existe uma cláusula cadastrada para este edital com o mesmo número e item de cláusula.",
+            )
+        ]

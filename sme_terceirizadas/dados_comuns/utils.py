@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import uuid
+from calendar import monthrange
 from copy import deepcopy
 from mimetypes import guess_extension, guess_type
 from typing import Any
@@ -120,8 +121,33 @@ def obter_dias_uteis_apos(dia: datetime.date, quantidade_dias: int):
     return calendar.add_working_days(dia, quantidade_dias)
 
 
+def obter_dias_uteis_antes(dia: datetime.date, quantidade_dias: int):
+    """Retorna o próximo dia útil antes do dia de parâmetro."""
+    return calendar.sub_working_days(dia, quantidade_dias)
+
+
 def eh_dia_util(date):
     return calendar.is_working_day(date)
+
+
+def obter_primeiro_e_ultimo_dia_util(ano, mes):
+    """Retorna o primeiro e o último dia útil do mês."""
+
+    data_inicial = datetime.date(ano, mes, 1)
+    quantidade_dias = monthrange(ano, mes)[1]
+    data_final = datetime.date(ano, mes, quantidade_dias)
+
+    primeiro_dia_util = (
+        data_inicial
+        if eh_dia_util(data_inicial)
+        else obter_dias_uteis_apos(data_inicial, 1)
+    )
+
+    ultimo_dia_util = (
+        data_final if eh_dia_util(data_final) else obter_dias_uteis_antes(data_final, 1)
+    )
+
+    return primeiro_dia_util, ultimo_dia_util
 
 
 def update_instance_from_dict(instance, attrs, save=False):

@@ -1,6 +1,8 @@
 import datetime
+import json
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.models import Max, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
@@ -27,7 +29,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin,
 )
-from ...dados_comuns.utils import get_ultimo_dia_mes
+from ...dados_comuns.utils import get_ultimo_dia_mes, obter_primeiro_e_ultimo_dia_util
 from ...eol_servico.utils import EOLException
 from ...escola.api.serializers import (
     AlunoSerializer,
@@ -43,6 +45,7 @@ from ...escola.api.serializers import (
     LoteParaFiltroSerializer,
     LoteSerializer,
     LoteSimplesSerializer,
+    PeriodoEscolarParaFiltroSerializer,
     TipoUnidadeParaFiltroSerializer,
 )
 from ...escola.api.serializers_create import (
@@ -98,6 +101,7 @@ from .serializers import (
     DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaListagemSimplissimaComDRESelializer,
+    EscolaParaFiltrosPeriodoEscolarReadOnlySerializer,
     EscolaParaFiltrosReadOnlySerializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
@@ -106,6 +110,7 @@ from .serializers import (
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
     SubprefeituraSerializerSimples,
+    TipoAlimentacaoSerializer,
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer,
 )
@@ -147,11 +152,32 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
 
 
 class EscolaParaFiltrosViewSet(ListModelMixin, GenericViewSet):
-    queryset = Escola.objects.all()
+    lookup_field = "uuid"
+    queryset = (
+        Escola.objects.select_related("diretoria_regional", "lote", "tipo_unidade")
+        .all()
+        .order_by()
+    )
     serializer_class = EscolaParaFiltrosReadOnlySerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ["diretoria_regional__uuid"]
     pagination_class = None
+
+    @action(detail=True, url_path="periodos-escolares", url_name="periodos-escolares")
+    def periodos_escolares(self, _, uuid: str):
+        escola = get_object_or_404(Escola, uuid=uuid)
+        serializer = EscolaParaFiltrosPeriodoEscolarReadOnlySerializer(
+            instance=escola.periodos_escolares(), many=True
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, url_path="tipos-alimentacao", url_name="tipos-alimentacao")
+    def tipos_alimentacao(self, _, uuid: str):
+        escola = get_object_or_404(Escola, uuid=uuid)
+        serializer = TipoAlimentacaoSerializer(
+            instance=escola.tipos_alimentacao, many=True
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
@@ -591,6 +617,7 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
                     "count": faixa_alunos[uuid_faixa_etaria],
                 }
             )
+        results = sorted(results, key=lambda x: x["faixa_etaria"]["inicio"])
 
         return Response({"count": len(results), "results": results})
 
@@ -1033,3 +1060,127 @@ class GrupoUnidadeEscolarViewSet(ModelViewSet):
     lookup_field = "uuid"
     serializer_class = GrupoUnidadeEscolarSerializer
     queryset = GrupoUnidadeEscolar.objects.all()
+
+
+class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
+    def get_queryset(self):
+        escola = self.request.user.vinculo_atual.instituicao
+        if escola.eh_cei or escola.eh_cemei:
+            return LogAlunosMatriculadosFaixaEtariaDia.objects.all()
+        return LogAlunosMatriculadosPeriodoEscola.objects.all()
+
+    def filtrar_alunos_matriculados(
+        self, queryset, escola_eh_cei_ou_cemei, periodos_uuids
+    ):
+        max_quantidades_por_periodo = {}
+        param_quantidade = (
+            "quantidade" if escola_eh_cei_ou_cemei else "quantidade_alunos"
+        )
+
+        soma_quantidades_por_periodo = queryset.values(
+            "periodo_escolar__uuid", "criado_em__date"
+        ).annotate(soma_quantidade=Sum(param_quantidade))
+
+        for periodo_uuid in json.loads(periodos_uuids):
+            periodo = PeriodoEscolar.objects.get(uuid=periodo_uuid)
+            total_matriculados = soma_quantidades_por_periodo.filter(
+                periodo_escolar=periodo
+            ).aggregate(max_quantidade=Max("soma_quantidade"))["max_quantidade"]
+            max_quantidades_por_periodo[periodo.nome] = (
+                total_matriculados if total_matriculados else 0
+            )
+        response = {
+            "periodos": max_quantidades_por_periodo,
+            "total_matriculados": sum(max_quantidades_por_periodo.values()),
+        }
+
+        return response
+
+    @action(detail=False, methods=["GET"], url_path="meses-anos")
+    def meses_anos(self, _):
+        data_atual = datetime.date.today()
+        mes_ano_atual = {"mes": data_atual.month, "ano": data_atual.year}
+
+        mes_anterior = data_atual.month - 1 if data_atual.month > 1 else 12
+        ano_anterior = data_atual.year - 1 if data_atual.month == 1 else data_atual.year
+        mes_ano_anterior = {"mes": mes_anterior, "ano": ano_anterior}
+
+        mes_posterior = data_atual.month + 1 if data_atual.month < 12 else 1
+        ano_posterior = (
+            data_atual.year + 1 if data_atual.month == 12 else data_atual.year
+        )
+        mes_ano_posterior = {"mes": mes_posterior, "ano": ano_posterior}
+
+        meses_anos = [mes_ano_anterior, mes_ano_atual, mes_ano_posterior]
+
+        return Response({"results": meses_anos}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"], url_path="filtros")
+    def filtros(self, request):
+        escola = request.user.vinculo_atual.instituicao
+        mes = request.query_params.get("mes")
+        ano = request.query_params.get("ano")
+
+        if mes is None or ano is None:
+            return Response(
+                data={
+                    "detail": "É necessário informar o mês e o ano para extrair o relatório"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            escola_eh_cei_ou_cemei = escola.eh_cei or escola.eh_cemei
+
+            if escola_eh_cei_ou_cemei:
+                log_alunos = escola.logs_alunos_matriculados_por_faixa_etaria.filter(
+                    quantidade__gte=1, criado_em__year=ano
+                )
+            else:
+                log_alunos = escola.logs_alunos_matriculados_por_periodo.filter(
+                    tipo_turma="REGULAR", quantidade_alunos__gte=1, criado_em__year=ano
+                )
+
+            periodos_ids = log_alunos.values_list("periodo_escolar", flat=True)
+            periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
+
+            datas = obter_primeiro_e_ultimo_dia_util(int(ano), int(mes))
+            data_inicial = datas[0]
+            data_final = datas[1]
+
+            response = {
+                "periodos": PeriodoEscolarParaFiltroSerializer(
+                    periodos, many=True
+                ).data,
+                "data_inicial": data_inicial,
+                "data_final": data_final,
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["GET"], url_path="filtrar")
+    def filtrar(self, request):
+        escola = request.user.vinculo_atual.instituicao
+        queryset = self.get_queryset().filter(escola=escola)
+        escola_eh_cei_ou_cemei = escola.eh_cei or escola.eh_cemei
+
+        filtros = {}
+
+        if request.query_params.get("data_inicial"):
+            filtros["criado_em__gte"] = request.query_params.get("data_inicial")
+
+        if request.query_params.get("data_final"):
+            filtros["criado_em__lte"] = request.query_params.get("data_final")
+
+        periodos_uuids = request.query_params.get("periodos")
+        if periodos_uuids:
+            filtros["periodo_escolar__uuid__in"] = json.loads(periodos_uuids)
+
+        if filtros:
+            queryset = queryset.filter(**filtros)
+
+        response = self.filtrar_alunos_matriculados(
+            queryset, escola_eh_cei_ou_cemei, periodos_uuids
+        )
+
+        return Response(response, status=status.HTTP_200_OK)

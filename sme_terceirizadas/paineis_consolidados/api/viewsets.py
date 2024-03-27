@@ -60,7 +60,22 @@ from ..tasks import (
     gera_pdf_relatorio_solicitacoes_alimentacao_async,
     gera_xls_relatorio_solicitacoes_alimentacao_async,
 )
-from ..utils import (
+from ..utils.datasets_graficos_relatorio_ga import (
+    get_dataset_grafico_total_dre_lote,
+    get_dataset_grafico_total_status,
+    get_dataset_grafico_total_tipo_solicitacao,
+    get_dataset_grafico_total_tipo_unidade,
+)
+from ..utils.totalizadores_relatorio_ga import (
+    totalizador_lote,
+    totalizador_periodo,
+    totalizador_rede_municipal,
+    totalizador_tipo_solicitacao,
+    totalizador_tipo_unidade,
+    totalizador_total,
+    totalizador_unidade_educacional,
+)
+from ..utils.utils import (
     formata_resultado_inclusoes_etec_autorizadas,
     get_numero_alunos_alteracao_alimentacao,
     tratar_append_return_dict,
@@ -107,7 +122,11 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     @classmethod
-    def remove_duplicados_do_query_set(self, query_set):
+    def count_query_set_sem_duplicados(cls, query_set):
+        return len(set(query_set.values_list("uuid", flat=True)))
+
+    @classmethod
+    def remove_duplicados_do_query_set(cls, query_set):
         """_remove_duplicados_do_query_set é criado por não ser possível juntar order_by e distinct na mesma query."""
         # TODO: se alguém descobrir como ordenar a query e tirar os uuids
         # repetidos, por favor melhore
@@ -210,17 +229,68 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             sumario["total"] += 1
         return sumario
 
-    def _retorna_data_ou_falso(self, date_text):
-        try:
-            return datetime.datetime.strptime(date_text, "%d-%m-%Y")
-        except ValueError:
-            return False
-
     @action(detail=False, methods=["GET"], url_path="solicitacoes-detalhadas")
     def solicitacoes_detalhadas(self, request):
         solicitacoes = request.query_params.getlist("solicitacoes[]", None)
         solicitacoes = MoldeConsolidado.solicitacoes_detalhadas(solicitacoes, request)
         return Response(dict(data=solicitacoes, status=HTTP_200_OK))
+
+    def filtrar_solicitacoes_para_relatorio_cards_totalizadores(self, request, model):
+        list_cards_totalizadores = []
+
+        status = request.data.get("status", None)
+        instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
+        queryset = model.map_queryset_por_status(
+            status, instituicao_uuid=instituicao_uuid
+        )
+
+        list_cards_totalizadores = totalizador_rede_municipal(
+            request, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = totalizador_total(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = totalizador_periodo(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = totalizador_lote(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = totalizador_tipo_solicitacao(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = totalizador_tipo_unidade(
+            request, model, queryset, list_cards_totalizadores
+        )
+        list_cards_totalizadores = totalizador_unidade_educacional(
+            request, model, queryset, list_cards_totalizadores
+        )
+
+        return list_cards_totalizadores
+
+    def filtrar_solicitacoes_para_relatorio_graficos(self, request, instituicao, model):
+        status = request.data.get("status", None)
+        instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
+        queryset = model.map_queryset_por_status(
+            status, instituicao_uuid=instituicao_uuid
+        )
+
+        datasets = []
+
+        datasets = get_dataset_grafico_total_dre_lote(
+            datasets, request, model, instituicao, queryset
+        )
+        datasets = get_dataset_grafico_total_tipo_solicitacao(
+            datasets, request, model, queryset
+        )
+        datasets = get_dataset_grafico_total_status(
+            datasets, request, model, instituicao
+        )
+        datasets = get_dataset_grafico_total_tipo_unidade(
+            datasets, request, model, instituicao, queryset
+        )
+
+        return datasets
 
     def filtrar_solicitacoes_para_relatorio(self, request, model):
         status = request.data.get("status", None)
@@ -276,6 +346,45 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
                 ).data,
                 "count": len(queryset),
             },
+            status=HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="filtrar-solicitacoes-ga-cards-totalizadores",
+        permission_classes=(IsAuthenticated,),
+    )
+    def filtrar_solicitacoes_ga_cards_totalizadores(self, request):
+        # queryset por status
+        instituicao = request.user.vinculo_atual.instituicao
+
+        lista_cards_totalizadores = (
+            self.filtrar_solicitacoes_para_relatorio_cards_totalizadores(
+                request, MoldeConsolidado.classe_por_tipo_usuario(instituicao.__class__)
+            )
+        )
+        return Response(
+            data={"results": lista_cards_totalizadores},
+            status=HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="filtrar-solicitacoes-ga-graficos",
+        permission_classes=(IsAuthenticated,),
+    )
+    def filtrar_solicitacoes_ga_graficos(self, request):
+        # queryset por status
+        instituicao = request.user.vinculo_atual.instituicao
+        dataset = self.filtrar_solicitacoes_para_relatorio_graficos(
+            request,
+            instituicao,
+            MoldeConsolidado.classe_por_tipo_usuario(instituicao.__class__),
+        )
+        return Response(
+            data=dataset,
             status=HTTP_200_OK,
         )
 

@@ -4,7 +4,7 @@ from model_mommy import mommy
 
 from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from sme_terceirizadas.dados_comuns.fluxo_status import (
-    CronogramaWorkflow,
+    FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
 )
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
@@ -400,12 +400,38 @@ def unidades_medida_reais_logistica():
 
 
 @pytest.fixture
-def layout_de_embalagem(cronograma_assinado_perfil_dilog):
+def layout_de_embalagem(ficha_tecnica_perecivel_enviada_para_analise):
     return mommy.make(
         "LayoutDeEmbalagem",
-        cronograma=cronograma_assinado_perfil_dilog,
+        ficha_tecnica=ficha_tecnica_perecivel_enviada_para_analise,
         observacoes="teste",
     )
+
+
+@pytest.fixture
+def payload_layout_embalagem(
+    ficha_tecnica_perecivel_enviada_para_analise,
+    arquivo_base64,
+):
+    return {
+        "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
+        "observacoes": "Imagine uma observação aqui.",
+        "tipos_de_embalagens": [
+            {
+                "tipo_embalagem": "PRIMARIA",
+                "imagens_do_tipo_de_embalagem": [
+                    {"arquivo": arquivo_base64, "nome": "Anexo1.jpg"},
+                    {"arquivo": arquivo_base64, "nome": "Anexo2.jpg"},
+                ],
+            },
+            {
+                "tipo_embalagem": "SECUNDARIA",
+                "imagens_do_tipo_de_embalagem": [
+                    {"arquivo": arquivo_base64, "nome": "Anexo1.jpg"}
+                ],
+            },
+        ],
+    }
 
 
 @pytest.fixture
@@ -432,11 +458,12 @@ def arquivo_pdf_base64():
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem_enviados_para_analise(cronograma_factory):
+def lista_layouts_de_embalagem_enviados_para_analise(ficha_tecnica_factory, empresa):
     layouts_cronograma_assinado_dinutre = [
         {
-            "cronograma": cronograma_factory(
-                status=CronogramaWorkflow.ASSINADO_DINUTRE
+            "ficha_tecnica": ficha_tecnica_factory(
+                status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+                empresa=empresa,
             ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
@@ -446,7 +473,10 @@ def lista_layouts_de_embalagem_enviados_para_analise(cronograma_factory):
 
     layouts_cronograma_assinado_dilog = [
         {
-            "cronograma": cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE),
+            "ficha_tecnica": ficha_tecnica_factory(
+                status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+                empresa=empresa,
+            ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         }
@@ -461,11 +491,12 @@ def lista_layouts_de_embalagem_enviados_para_analise(cronograma_factory):
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem_aprovados(cronograma_factory):
+def lista_layouts_de_embalagem_aprovados(ficha_tecnica_factory, empresa):
     layouts_cronograma_assinado_dinutre = [
         {
-            "cronograma": cronograma_factory(
-                status=CronogramaWorkflow.ASSINADO_DINUTRE
+            "ficha_tecnica": ficha_tecnica_factory(
+                status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+                empresa=empresa,
             ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.APROVADO,
@@ -475,7 +506,10 @@ def lista_layouts_de_embalagem_aprovados(cronograma_factory):
 
     layouts_cronograma_assinado_dilog = [
         {
-            "cronograma": cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE),
+            "ficha_tecnica": ficha_tecnica_factory(
+                status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+                empresa=empresa,
+            ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.APROVADO,
         }
@@ -490,11 +524,12 @@ def lista_layouts_de_embalagem_aprovados(cronograma_factory):
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem_solicitado_correcao(cronograma_factory):
+def lista_layouts_de_embalagem_solicitado_correcao(ficha_tecnica_factory, empresa):
     layouts_cronograma_assinado_dinutre = [
         {
-            "cronograma": cronograma_factory(
-                status=CronogramaWorkflow.ASSINADO_DINUTRE
+            "ficha_tecnica": ficha_tecnica_factory(
+                status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+                empresa=empresa,
             ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
@@ -504,7 +539,10 @@ def lista_layouts_de_embalagem_solicitado_correcao(cronograma_factory):
 
     layouts_cronograma_assinado_dilog = [
         {
-            "cronograma": cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE),
+            "ficha_tecnica": ficha_tecnica_factory(
+                status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+                empresa=empresa,
+            ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         }
@@ -519,10 +557,13 @@ def lista_layouts_de_embalagem_solicitado_correcao(cronograma_factory):
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem_com_tipo_embalagem(cronograma_assinado_perfil_dilog):
+def lista_layouts_de_embalagem_com_tipo_embalagem(ficha_tecnica_factory, empresa):
     dados_layouts = [
         {
-            "cronograma": cronograma_assinado_perfil_dilog,
+            "ficha_tecnica": ficha_tecnica_factory(
+                status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+                empresa=empresa,
+            ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         }
@@ -575,10 +616,13 @@ def lista_layouts_de_embalagem(
 
 
 @pytest.fixture
-def layout_de_embalagem_para_correcao(cronograma_assinado_perfil_dilog, arquivo_base64):
+def layout_de_embalagem_para_correcao(ficha_tecnica_factory, empresa):
     layout = mommy.make(
         LayoutDeEmbalagem,
-        cronograma=cronograma_assinado_perfil_dilog,
+        ficha_tecnica=ficha_tecnica_factory(
+            status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            empresa=empresa,
+        ),
         observacoes="Imagine uma observação aqui.",
         status=LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     )
@@ -599,10 +643,13 @@ def layout_de_embalagem_para_correcao(cronograma_assinado_perfil_dilog, arquivo_
 
 
 @pytest.fixture
-def layout_de_embalagem_aprovado(cronograma_assinado_perfil_dilog, arquivo_base64):
+def layout_de_embalagem_aprovado(ficha_tecnica_factory, empresa):
     layout = mommy.make(
         LayoutDeEmbalagem,
-        cronograma=cronograma_assinado_perfil_dilog,
+        ficha_tecnica=ficha_tecnica_factory(
+            status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            empresa=empresa,
+        ),
         observacoes="Imagine uma observação aqui.",
         status=LayoutDeEmbalagemWorkflow.APROVADO,
     )
@@ -618,17 +665,24 @@ def layout_de_embalagem_aprovado(cronograma_assinado_perfil_dilog, arquivo_base6
         tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA,
         status=TipoDeEmbalagemDeLayout.STATUS_APROVADO,
     )
+    mommy.make(
+        LogSolicitacoesUsuario,
+        uuid_original=layout.uuid,
+        status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
+        solicitacao_tipo=LogSolicitacoesUsuario.LAYOUT_DE_EMBALAGEM,
+    )
 
     return layout
 
 
 @pytest.fixture
-def layout_de_embalagem_em_analise_com_correcao(
-    cronograma_assinado_perfil_dilog, arquivo_base64
-):
+def layout_de_embalagem_em_analise_com_correcao(ficha_tecnica_factory, empresa):
     layout = mommy.make(
         LayoutDeEmbalagem,
-        cronograma=cronograma_assinado_perfil_dilog,
+        ficha_tecnica=ficha_tecnica_factory(
+            status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            empresa=empresa,
+        ),
         observacoes="Imagine uma observação aqui.",
         status=LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
     )
@@ -735,6 +789,7 @@ def payload_ficha_tecnica_pereciveis(
         "componentes_produto": fake.pystr(max_chars=250),
         "alergenicos": True,
         "ingredientes_alergenicos": fake.pystr(max_chars=150),
+        "gluten": True,
         "lactose": True,
         "lactose_detalhe": fake.pystr(max_chars=150),
         "porcao": fake.random_number() / 100,
