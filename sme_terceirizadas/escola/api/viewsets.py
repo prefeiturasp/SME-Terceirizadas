@@ -1111,9 +1111,12 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
         return response
 
     def get_total_matriculados_por_periodo(self, soma_logs_alunos_por_periodo, periodo):
-        return soma_logs_alunos_por_periodo.filter(periodo_escolar=periodo).aggregate(
-            max_quantidade=Max("soma_quantidade")
-        )["max_quantidade"]
+        return (
+            soma_logs_alunos_por_periodo.filter(periodo_escolar=periodo).aggregate(
+                max_quantidade=Max("soma_quantidade")
+            )["max_quantidade"]
+            or 0
+        )
 
     def validar_periodos(self, filtros, periodos_uuids):
         periodos = PeriodoEscolar.objects.filter(uuid__in=json.loads(periodos_uuids))
