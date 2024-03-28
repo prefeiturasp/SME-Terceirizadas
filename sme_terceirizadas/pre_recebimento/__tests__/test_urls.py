@@ -3144,6 +3144,31 @@ def test_url_ficha_tecnica_lista_simples_sem_layout_embalagem(
     assert len(response.json()["results"]) == len(fichas) - FICHAS_VINCULADAS
 
 
+def test_url_ficha_tecnica_lista_simples_sem_questoes_conferencia(
+    client_autenticado_qualidade,
+    ficha_tecnica_factory,
+    empresa,
+    questoes_por_produto_factory,
+):
+    FICHAS_VINCULADAS = 5
+
+    fichas = ficha_tecnica_factory.create_batch(
+        size=10,
+        status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        empresa=empresa,
+    )
+
+    for ficha in fichas[:FICHAS_VINCULADAS]:
+        questoes_por_produto_factory(ficha_tecnica=ficha)
+
+    response = client_autenticado_qualidade.get(
+        "/ficha-tecnica/lista-simples-sem-questoes-conferencia/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(fichas) - FICHAS_VINCULADAS
+
+
 def test_url_ficha_tecnica_lista_simples(
     client_autenticado_fornecedor, ficha_tecnica_factory, empresa
 ):
