@@ -48,7 +48,6 @@ def test_questao_conferencia_form_clean_method_validation(questao_conferencia_fa
 
     # Altera a posição para um valor já existente para validar a tratativa de erro
     data["posicao"] = 1
-    data["pergunta_obrigatoria"] = False
     form = QuestaoForm(data=data)
 
     #  Com a alteração o form não pode ser mais valido
