@@ -17,8 +17,13 @@ from rest_framework.mixins import (
     UpdateModelMixin,
 )
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
+
+from sme_terceirizadas.medicao_inicial.tasks import (
+    exporta_relatorio_controle_frequencia_para_pdf,
+)
 
 from ...dados_comuns.permissions import (
     UsuarioCODAEDietaEspecial,
@@ -1220,3 +1225,39 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
         )
 
         return Response(response, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        url_path="imprimir-pdf",
+    )
+    def relatorio_controle_frequencia_exportar_pdf(self, request: Request):
+        escola_uuid = request.user.vinculo_atual.instituicao.uuid
+        query_params = request.query_params
+
+        mes_ano = query_params.get("mes_ano")
+        if not mes_ano:
+            return Response(
+                data="É necessário informar o mês/ano de referência",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            query_params_dict = query_params.dict()
+            exporta_relatorio_controle_frequencia_para_pdf.delay(
+                user=request.user.get_username(),
+                nome_arquivo="controle-frequencia.pdf",
+                query_params=query_params_dict,
+                escola_uuid=escola_uuid,
+            )
+
+            return Response(
+                data={
+                    "detail": "Solicitação de geração de arquivo recebida com sucesso."
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            return Response(
+                data={"detail": "Verifique os parâmetros e tente novamente"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
