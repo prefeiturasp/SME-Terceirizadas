@@ -102,3 +102,7 @@
   fields:
     nome: ORGAO_FISCALIZADOR
     visao: CODAE
+- model: perfil.perfil
+  fields:
+    nome: USUARIO_RELATORIOS
+    visao: CODAE
