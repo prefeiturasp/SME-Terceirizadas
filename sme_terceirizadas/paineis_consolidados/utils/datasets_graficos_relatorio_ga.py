@@ -28,7 +28,9 @@ def get_dataset_grafico_total_dre_lote(datasets, request, model, instituicao, qu
         if isinstance(instituicao, Terceirizada):
             lotes = Lote.objects.filter(terceirizada=instituicao)
         elif isinstance(instituicao, DiretoriaRegional):
-            lotes = Lote.objects.filter(diretoria_regional=instituicao)
+            lotes = Lote.objects.filter(
+                uuid__in=list(set(queryset.values_list("lote_uuid", flat=True)))
+            )
         else:
             lotes = Lote.objects.all()
         lotes = lotes.values_list("uuid", flat=True)
@@ -239,7 +241,7 @@ def get_dataset_grafico_total_terceirizadas(
         terceirizadas = Terceirizada.objects.filter(id=instituicao.id)
     elif isinstance(instituicao, DiretoriaRegional):
         terceirizadas = Terceirizada.objects.filter(
-            lotes__diretoria_regional=instituicao
+            uuid__in=list(set(queryset.values_list("terceirizada_uuid", flat=True)))
         )
     else:
         terceirizadas = Terceirizada.objects.filter(
