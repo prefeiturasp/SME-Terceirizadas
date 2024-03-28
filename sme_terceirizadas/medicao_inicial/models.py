@@ -539,7 +539,7 @@ class ParametrizacaoFinanceira(TemChaveExterna, CriadoEm, TemAlteradoEm):
     legenda = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"Edital {self.edital} | Lote {self.lote} | DRE {self.lote.diretoria_regional} | Tipos de Unidades {', '.join(self.tipos_unidades)}"
+        return f"Edital {self.edital} | Lote {self.lote} | DRE {self.lote.diretoria_regional} | Tipos de Unidades {', '.join(self.tipos_unidades.values_list('iniciais', flat=True))}"
 
     class Meta:
         verbose_name = "Parametrização Financeira"
