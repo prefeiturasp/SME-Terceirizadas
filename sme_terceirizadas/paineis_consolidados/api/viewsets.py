@@ -22,6 +22,7 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEDietaEspecial,
     UsuarioCODAEGabinete,
     UsuarioCODAEGestaoAlimentacao,
+    UsuarioCODAERelatorios,
     UsuarioDiretoriaRegional,
     UsuarioNutricionista,
     UsuarioTerceirizada,
@@ -450,7 +451,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioCODAEDietaEspecial,),
+        permission_classes=[UsuarioCODAEDietaEspecial | UsuarioCODAERelatorios],
         url_name="anos-com-dietas",
         url_path="anos-com-dietas",
     )
@@ -468,7 +469,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioCODAEDietaEspecial,),
+        permission_classes=[UsuarioCODAEDietaEspecial | UsuarioCODAERelatorios],
         url_name="totais-gerencial-dietas",
         url_path="totais-gerencial-dietas",
     )
