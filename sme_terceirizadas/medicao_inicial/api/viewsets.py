@@ -31,6 +31,7 @@ from ...dados_comuns.permissions import (
     UsuarioDiretorEscolaTercTotal,
     UsuarioDiretoriaRegional,
     UsuarioEscolaTercTotal,
+    UsuarioMedicao,
     ViewSetActionPermissionMixin,
 )
 from ...dados_comuns.utils import get_ultimo_dia_mes
@@ -53,6 +54,7 @@ from ..models import (
     Empenho,
     Medicao,
     OcorrenciaMedicaoInicial,
+    ParametrizacaoFinanceira,
     PermissaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -106,6 +108,7 @@ from .serializers_create import (
     DiaSobremesaDoceCreateManySerializer,
     EmpenhoCreateUpdateSerializer,
     MedicaoCreateUpdateSerializer,
+    ParametrizacaoFinanceiraWriteModelSerializer,
     PermissaoLancamentoEspecialCreateUpdateSerializer,
     SolicitacaoMedicaoInicialCreateSerializer,
 )
@@ -1724,3 +1727,15 @@ class ClausulaDeDescontoViewSet(ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return ClausulaDeDescontoCreateUpdateSerializer
         return ClausulaDeDescontoSerializer
+
+
+class ParametrizacaoFinanceiraViewSet(ModelViewSet):
+    lookup_field = "uuid"
+    permission_classes = [UsuarioMedicao]
+    queryset = ParametrizacaoFinanceira.objects.all()
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return ParametrizacaoFinanceiraWriteModelSerializer
+        return None

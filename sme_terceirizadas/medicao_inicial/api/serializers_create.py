@@ -26,6 +26,7 @@ from sme_terceirizadas.escola.models import (
     DiretoriaRegional,
     Escola,
     FaixaEtaria,
+    Lote,
     PeriodoEscolar,
     TipoUnidadeEscolar,
 )
@@ -38,6 +39,9 @@ from sme_terceirizadas.medicao_inicial.models import (
     GrupoMedicao,
     Medicao,
     OcorrenciaMedicaoInicial,
+    ParametrizacaoFinanceira,
+    ParametrizacaoFinanceiraTabela,
+    ParametrizacaoFinanceiraTabelaValor,
     PermissaoLancamentoEspecial,
     Responsavel,
     SolicitacaoMedicaoInicial,
@@ -1258,3 +1262,73 @@ class ClausulaDeDescontoCreateUpdateSerializer(serializers.ModelSerializer):
                 message="Já existe uma cláusula cadastrada para este edital com o mesmo número e item de cláusula.",
             )
         ]
+
+
+class ParametrizacaoFinanceiraTabelaValorWriteModelSerializer(
+    serializers.ModelSerializer
+):
+    tipo_alimentacao = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=TipoAlimentacao.objects.all()
+    )
+
+    class Meta:
+        model = ParametrizacaoFinanceiraTabelaValor
+        fields = ["tipo_alimentacao", "grupo", "valor_colunas"]
+
+    def validate_valor_colunas(self, valor_colunas):
+        valores = list(valor_colunas.values())
+        if not (valores and all(valores)):
+            raise serializers.ValidationError("Todos os campos devem ser preenchidos")
+        return valor_colunas
+
+
+class ParametrizacaoFinanceiraTabelaWriteModelSerializer(serializers.ModelSerializer):
+    valores = ParametrizacaoFinanceiraTabelaValorWriteModelSerializer(many=True)
+
+    class Meta:
+        model = ParametrizacaoFinanceiraTabela
+        fields = ["nome", "valores"]
+
+
+class ParametrizacaoFinanceiraWriteModelSerializer(serializers.ModelSerializer):
+    edital = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Edital.objects.all()
+    )
+    lote = serializers.SlugRelatedField(slug_field="uuid", queryset=Lote.objects.all())
+    tipos_unidades = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=TipoUnidadeEscolar.objects.all(), many=True
+    )
+    tabelas = ParametrizacaoFinanceiraTabelaWriteModelSerializer(many=True)
+
+    class Meta:
+        model = ParametrizacaoFinanceira
+        fields = ["edital", "lote", "tipos_unidades", "legenda", "tabelas"]
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=("edital", "lote", "tipos_unidades"),
+                message="Já existe uma parametrização financeira para este edital, lote e tipo de unidade",
+            )
+        ]
+
+    def create(self, validated_data):
+        tabelas = validated_data.pop("tabelas")
+
+        parametrizacao_financeira = super().create(validated_data)
+
+        for tabela in tabelas:
+            valores = tabela.pop("valores")
+
+            _tabela = ParametrizacaoFinanceiraTabela.objects.create(
+                **tabela,
+                parametrizacao_financeira=parametrizacao_financeira,
+            )
+
+            ParametrizacaoFinanceiraTabelaValor.objects.bulk_create(
+                [
+                    ParametrizacaoFinanceiraTabelaValor(**valor, tabela=_tabela)
+                    for valor in valores
+                ]
+            )
+
+        return parametrizacao_financeira
