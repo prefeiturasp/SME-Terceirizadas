@@ -56,18 +56,19 @@ class QuestoesPorProduto(ModeloBase):
     ficha_tecnica = models.OneToOneField(
         FichaTecnicaDoProduto,
         on_delete=models.CASCADE,
+        related_name="questoes_conferencia",
     )
     questoes_primarias = models.ManyToManyField(
         QuestaoConferencia,
         verbose_name="Questões referentes à Embalagem Primária",
         related_name="questoes_primarias",
     )
-    questoes_secundaria = models.ManyToManyField(
+    questoes_secundarias = models.ManyToManyField(
         QuestaoConferencia,
         verbose_name="Questões referentes à Embalagem Secundária",
-        related_name="questoes_secundaria",
+        related_name="questoes_secundarias",
     )
 
     class Meta:
         verbose_name = "Questões por Produto"
-        verbose_name_plural = "Questões por Produto"
+        verbose_name_plural = "Questões por Produtos"
