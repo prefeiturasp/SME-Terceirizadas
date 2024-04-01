@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from sme_terceirizadas.recebimento.forms import QuestaoForm
-from sme_terceirizadas.recebimento.models import QuestaoConferencia
+from sme_terceirizadas.recebimento.models import QuestaoConferencia, QuestoesPorProduto
 
 
 @admin.register(QuestaoConferencia)
@@ -25,3 +25,9 @@ class QuestaoConferenciaAdmin(admin.ModelAdmin):
     )
     list_editable = ("pergunta_obrigatoria", "posicao")
     readonly_fields = ("uuid",)
+
+
+@admin.register(QuestoesPorProduto)
+class QuestoesPorProdutoAdmin(admin.ModelAdmin):
+    list_display = ("ficha_tecnica",)
+    filter_horizontal = ("questoes_primarias", "questoes_secundarias")
