@@ -130,24 +130,14 @@ def eh_dia_util(date):
     return calendar.is_working_day(date)
 
 
-def obter_primeiro_e_ultimo_dia_util(ano, mes):
-    """Retorna o primeiro e o último dia útil do mês."""
+def obter_primeiro_e_ultimo_dia_mes(ano, mes):
+    """Retorna o primeiro e o último dia do mês."""
 
-    data_inicial = datetime.date(ano, mes, 1)
+    primeiro_dia = datetime.date(ano, mes, 1)
     quantidade_dias = monthrange(ano, mes)[1]
-    data_final = datetime.date(ano, mes, quantidade_dias)
+    ultimo_dia = datetime.date(ano, mes, quantidade_dias)
 
-    primeiro_dia_util = (
-        data_inicial
-        if eh_dia_util(data_inicial)
-        else obter_dias_uteis_apos(data_inicial, 1)
-    )
-
-    ultimo_dia_util = (
-        data_final if eh_dia_util(data_final) else obter_dias_uteis_antes(data_final, 1)
-    )
-
-    return primeiro_dia_util, ultimo_dia_util
+    return primeiro_dia, ultimo_dia
 
 
 def update_instance_from_dict(instance, attrs, save=False):
