@@ -111,20 +111,20 @@ class LaboratorioFilter(filters.FilterSet):
 
 
 class LayoutDeEmbalagemFilter(filters.FilterSet):
-    numero_cronograma = filters.CharFilter(
-        field_name="cronograma__numero",
+    numero_ficha_tecnica = filters.CharFilter(
+        field_name="ficha_tecnica__numero",
         lookup_expr="icontains",
     )
     nome_produto = filters.CharFilter(
-        field_name="cronograma__ficha_tecnica__produto__nome",
+        field_name="ficha_tecnica__produto__nome",
         lookup_expr="icontains",
     )
     nome_fornecedor = filters.CharFilter(
-        field_name="cronograma__empresa__razao_social",
+        field_name="ficha_tecnica__empresa__razao_social",
         lookup_expr="icontains",
     )
     pregao_chamada_publica = filters.CharFilter(
-        field_name="cronograma__contrato__numero_pregao",
+        field_name="ficha_tecnica__pregao_chamada_publica",
         lookup_expr="icontains",
     )
     status = filters.MultipleChoiceFilter(

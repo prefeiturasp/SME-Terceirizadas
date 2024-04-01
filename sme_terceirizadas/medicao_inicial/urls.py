@@ -22,6 +22,7 @@ router.register(
 )
 router.register("dias-para-corrigir", viewsets.DiasParaCorrigirViewSet)
 router.register("empenhos", viewsets.EmpenhoViewSet)
+router.register("clausulas-de-descontos", viewsets.ClausulaDeDescontoViewSet)
 
 router.register("relatorios", viewsets.RelatoriosViewSet, basename="relatorios")
 

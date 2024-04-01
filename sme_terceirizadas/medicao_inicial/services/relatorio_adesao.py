@@ -12,7 +12,7 @@ def _obtem_medicoes(mes: str, ano: str, filtros: dict):
             solicitacao_medicao_inicial__mes=mes,
             solicitacao_medicao_inicial__ano=ano,
             solicitacao_medicao_inicial__status="MEDICAO_APROVADA_PELA_CODAE",
-            **filtros
+            **filtros,
         )
         .exclude(
             solicitacao_medicao_inicial__escola__tipo_unidade__iniciais__in=[
@@ -52,14 +52,15 @@ def _soma_total_servido_do_tipo_de_alimentacao(
     tipo_alimentacao = valor_medicao.tipo_alimentacao
 
     if tipo_alimentacao is not None:
-        if resultados[medicao_nome].get(tipo_alimentacao.nome) is None:
-            resultados[medicao_nome][tipo_alimentacao.nome] = {
+        tipo_alimentacao_nome = tipo_alimentacao.nome.upper()
+        if resultados[medicao_nome].get(tipo_alimentacao_nome) is None:
+            resultados[medicao_nome][tipo_alimentacao_nome] = {
                 "total_servido": 0,
                 "total_frequencia": 0,
                 "total_adesao": 0,
             }
 
-        resultados[medicao_nome][tipo_alimentacao.nome]["total_servido"] += int(
+        resultados[medicao_nome][tipo_alimentacao_nome]["total_servido"] += int(
             valor_medicao.valor
         )
 
@@ -89,7 +90,7 @@ def _soma_totais_por_medicao(
     medicao: Medicao,
     tipos_alimentacao: List[str],
 ):
-    medicao_nome = medicao.nome_periodo_grupo
+    medicao_nome = medicao.nome_periodo_grupo.upper()
 
     if resultados.get(medicao_nome) is None:
         resultados[medicao_nome] = {}

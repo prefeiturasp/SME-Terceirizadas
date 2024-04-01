@@ -150,22 +150,32 @@ class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
         read_only_fields = ("uuid", "nome", "abreviacao")
 
 
-class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
+class FichaTecnicaSimplesSerializer(serializers.ModelSerializer):
     produto = NomeDeProdutoEditalSerializer()
-    marca = MarcaSimplesSerializer()
-    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    numero_e_produto = serializers.SerializerMethodField()
+    uuid_empresa = serializers.SerializerMethodField()
 
-    def get_numero_e_produto(self, obj):
-        return str(obj)
+    def get_uuid_empresa(self, obj):
+        return obj.empresa.uuid if obj.empresa else None
 
     class Meta:
         model = FichaTecnicaDoProduto
         fields = (
             "uuid",
+            "numero",
             "produto",
+            "uuid_empresa",
+            "pregao_chamada_publica",
+        )
+
+
+class FichaTecnicaCronogramaSerializer(FichaTecnicaSimplesSerializer):
+    marca = MarcaSimplesSerializer()
+    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+
+    class Meta(FichaTecnicaSimplesSerializer.Meta):
+        fields = FichaTecnicaSimplesSerializer.Meta.fields + (
             "marca",
             "volume_embalagem_primaria",
             "unidade_medida_volume_primaria",
@@ -173,7 +183,6 @@ class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
             "unidade_medida_primaria",
             "peso_liquido_embalagem_secundaria",
             "unidade_medida_secundaria",
-            "numero_e_produto",
         )
 
 
@@ -413,30 +422,28 @@ class TipoEmbalagemLayoutLookupSerializer(serializers.ModelSerializer):
 
 
 class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
-    numero_cronograma = serializers.SerializerMethodField()
-    pregao_chamada_publica = serializers.SerializerMethodField()
+    numero_ficha_tecnica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
+    pregao_chamada_publica = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
 
-    def get_numero_cronograma(self, obj):
-        return obj.cronograma.numero if obj.cronograma else None
-
-    def get_pregao_chamada_publica(self, obj):
-        return (
-            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
-        )
+    def get_numero_ficha_tecnica(self, obj):
+        return obj.ficha_tecnica.numero if obj.ficha_tecnica else None
 
     def get_nome_produto(self, obj):
         try:
-            return obj.cronograma.ficha_tecnica.produto.nome
+            return obj.ficha_tecnica.produto.nome
         except AttributeError:
             None
+
+    def get_pregao_chamada_publica(self, obj):
+        return obj.ficha_tecnica.pregao_chamada_publica if obj.ficha_tecnica else None
 
     class Meta:
         model = LayoutDeEmbalagem
         fields = (
             "uuid",
-            "numero_cronograma",
+            "numero_ficha_tecnica",
             "pregao_chamada_publica",
             "nome_produto",
             "status",
@@ -445,32 +452,33 @@ class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
 
 
 class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
-    numero_cronograma = serializers.SerializerMethodField()
-    pregao_chamada_publica = serializers.SerializerMethodField()
+    numero_ficha_tecnica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
     nome_empresa = serializers.SerializerMethodField()
+    pregao_chamada_publica = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
     tipos_de_embalagens = TipoEmbalagemLayoutLookupSerializer(many=True)
     log_mais_recente = serializers.SerializerMethodField()
     primeira_analise = serializers.SerializerMethodField()
     logs = LogSolicitacoesUsuarioSimplesSerializer(many=True)
 
-    def get_numero_cronograma(self, obj):
-        return obj.cronograma.numero if obj.cronograma else None
-
-    def get_pregao_chamada_publica(self, obj):
-        return (
-            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
-        )
+    def get_numero_ficha_tecnica(self, obj):
+        return obj.ficha_tecnica.numero if obj.ficha_tecnica else None
 
     def get_nome_produto(self, obj):
         try:
-            return obj.cronograma.ficha_tecnica.produto.nome
+            return obj.ficha_tecnica.produto.nome
         except AttributeError:
             None
 
     def get_nome_empresa(self, obj):
-        return obj.cronograma.empresa.razao_social if obj.cronograma.empresa else None
+        try:
+            return obj.ficha_tecnica.empresa.razao_social
+        except AttributeError:
+            None
+
+    def get_pregao_chamada_publica(self, obj):
+        return obj.ficha_tecnica.pregao_chamada_publica if obj.ficha_tecnica else None
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -491,7 +499,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
             "criado_em",
             "status",
             "tipos_de_embalagens",
-            "numero_cronograma",
+            "numero_ficha_tecnica",
             "pregao_chamada_publica",
             "nome_produto",
             "nome_empresa",
@@ -502,21 +510,27 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
 
 
 class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
-    numero_cronograma = serializers.CharField(source="cronograma.numero")
+    numero_ficha_tecnica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
     nome_empresa = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
     log_mais_recente = serializers.SerializerMethodField()
 
+    def get_numero_ficha_tecnica(self, obj):
+        try:
+            return obj.ficha_tecnica.numero
+        except AttributeError:
+            return ""
+
     def get_nome_produto(self, obj):
         try:
-            return obj.cronograma.ficha_tecnica.produto.nome
+            return obj.ficha_tecnica.produto.nome
         except AttributeError:
             return ""
 
     def get_nome_empresa(self, obj):
         try:
-            return obj.cronograma.empresa.razao_social
+            return obj.ficha_tecnica.empresa.razao_social
         except AttributeError:
             return ""
 
@@ -536,7 +550,7 @@ class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
         model = LayoutDeEmbalagem
         fields = (
             "uuid",
-            "numero_cronograma",
+            "numero_ficha_tecnica",
             "nome_produto",
             "nome_empresa",
             "status",
@@ -910,18 +924,3 @@ class PainelFichaTecnicaSerializer(serializers.ModelSerializer):
             "status",
             "log_mais_recente",
         )
-
-
-class FichaTecnicaSimplesSerializer(serializers.ModelSerializer):
-    numero_e_produto = serializers.SerializerMethodField()
-    uuid_empresa = serializers.SerializerMethodField()
-
-    def get_numero_e_produto(self, obj):
-        return str(obj)
-
-    def get_uuid_empresa(self, obj):
-        return obj.empresa.uuid if obj.empresa else None
-
-    class Meta:
-        model = FichaTecnicaDoProduto
-        fields = ("uuid", "numero_e_produto", "uuid_empresa")

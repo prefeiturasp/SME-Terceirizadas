@@ -1,3 +1,4 @@
+from sme_terceirizadas.dados_comuns.fluxo_status import FichaTecnicaDoProdutoWorkflow
 from sme_terceirizadas.dados_comuns.utils import (
     convert_base64_to_contentfile,
     update_instance_from_dict,
@@ -176,3 +177,23 @@ def gerar_nova_analise_ficha_tecnica(ficha_tecnica):
         ficha_tecnica=ficha_tecnica,
         **valores_conferidos_antigos,
     )
+
+
+def retorna_status_ficha_tecnica(status):
+    nomes_status = FichaTecnicaDoProdutoWorkflow.states
+
+    aprovada = FichaTecnicaDoProdutoWorkflow.APROVADA
+    enviada_analise = FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE
+    enviada_correcao = FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO
+
+    switcher = {
+        aprovada: nomes_status[aprovada],
+        enviada_analise: nomes_status[enviada_analise],
+        enviada_correcao: nomes_status[enviada_correcao],
+    }
+
+    state = switcher.get(status, "Status Inválido")
+    if isinstance(state, str):
+        return state
+    else:
+        return state.title

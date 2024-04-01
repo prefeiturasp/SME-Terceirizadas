@@ -1152,31 +1152,14 @@ def test_url_cronograma_action_listar_para_cadastro(
     assert len(response.data["results"]) != len(todos_cronogramas)
 
 
-def test_url_endpoint_layout_de_embalagem_create(
-    client_autenticado_fornecedor, cronograma_assinado_perfil_dilog, arquivo_base64
+def test_url_layout_de_embalagem_create(
+    client_autenticado_fornecedor,
+    payload_layout_embalagem,
 ):
-    data = {
-        "cronograma": str(cronograma_assinado_perfil_dilog.uuid),
-        "observacoes": "Imagine uma observação aqui.",
-        "tipos_de_embalagens": [
-            {
-                "tipo_embalagem": "PRIMARIA",
-                "imagens_do_tipo_de_embalagem": [
-                    {"arquivo": arquivo_base64, "nome": "Anexo1.jpg"},
-                    {"arquivo": arquivo_base64, "nome": "Anexo2.jpg"},
-                ],
-            },
-            {
-                "tipo_embalagem": "SECUNDARIA",
-                "imagens_do_tipo_de_embalagem": [
-                    {"arquivo": arquivo_base64, "nome": "Anexo1.jpg"}
-                ],
-            },
-        ],
-    }
-
     response = client_autenticado_fornecedor.post(
-        "/layouts-de-embalagem/", content_type="application/json", data=json.dumps(data)
+        "/layouts-de-embalagem/",
+        content_type="application/json",
+        data=json.dumps(payload_layout_embalagem),
     )
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -1185,12 +1168,13 @@ def test_url_endpoint_layout_de_embalagem_create(
     assert obj.tipos_de_embalagens.count() == 2
 
 
-def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(
-    client_autenticado_fornecedor,
+def test_url_layout_de_embalagem_validate_ficha_tecnica(
+    client_autenticado_fornecedor, ficha_tecnica_factory
 ):
-    """Uuid do cronograma precisa existir na base, imagens_do_tipo_de_embalagem e arquivo são obrigatórios."""
-    data = {
-        "cronograma": str(uuid.uuid4()),
+    ficha = ficha_tecnica_factory(status=FichaTecnicaDoProdutoWorkflow.RASCUNHO)
+
+    payload = {
+        "ficha_tecnica": str(ficha.uuid),
         "observacoes": "Imagine uma observação aqui.",
         "tipos_de_embalagens": [
             {
@@ -1204,11 +1188,16 @@ def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(
     }
 
     response = client_autenticado_fornecedor.post(
-        "/layouts-de-embalagem/", content_type="application/json", data=json.dumps(data)
+        "/layouts-de-embalagem/",
+        content_type="application/json",
+        data=json.dumps(payload),
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "Cronograma não existe" in response.data["cronograma"]
+    assert (
+        "Não é possível vincular com Ficha Técnica em rascunho."
+        in response.data["ficha_tecnica"]
+    )
     assert (
         "Este campo é obrigatório."
         in response.data["tipos_de_embalagens"][0]["imagens_do_tipo_de_embalagem"]
@@ -1216,10 +1205,10 @@ def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(
 
 
 def test_url_layout_de_embalagem_listagem(
-    client_autenticado_qualidade, lista_layouts_de_embalagem
+    client_autenticado_fornecedor, lista_layouts_de_embalagem
 ):
     """Deve obter lista paginada de layouts de embalagens."""
-    client = client_autenticado_qualidade
+    client = client_autenticado_fornecedor
     response = client.get("/layouts-de-embalagem/")
 
     assert response.status_code == status.HTTP_200_OK
@@ -1231,32 +1220,27 @@ def test_url_layout_de_embalagem_listagem(
 def test_url_layout_de_embalagem_detalhar(
     client_autenticado_codae_dilog, lista_layouts_de_embalagem
 ):
-    layout_esperado = LayoutDeEmbalagem.objects.first()
-    cronograma_esperado = layout_esperado.cronograma
+    layout = LayoutDeEmbalagem.objects.first()
 
     response = client_autenticado_codae_dilog.get(
-        f"/layouts-de-embalagem/{layout_esperado.uuid}/"
+        f"/layouts-de-embalagem/{layout.uuid}/"
     )
-    dados_recebidos = response.json()
+    dados = response.json()
 
     assert response.status_code == status.HTTP_200_OK
 
-    assert dados_recebidos["uuid"] == str(layout_esperado.uuid)
-    assert dados_recebidos["observacoes"] == str(layout_esperado.observacoes)
-    assert dados_recebidos["criado_em"] == layout_esperado.criado_em.strftime(
-        settings.REST_FRAMEWORK["DATETIME_FORMAT"]
-    )
-    assert dados_recebidos["status"] == layout_esperado.get_status_display()
-    assert dados_recebidos["numero_cronograma"] == str(cronograma_esperado.numero)
-    assert dados_recebidos["nome_produto"] == str(
-        cronograma_esperado.ficha_tecnica.produto.nome
-    )
-    assert dados_recebidos["nome_empresa"] == str(
-        cronograma_esperado.empresa.razao_social
+    assert dados["uuid"] == str(layout.uuid)
+    assert dados["observacoes"] == str(layout.observacoes)
+    assert dados["status"] == layout.get_status_display()
+    assert dados["numero_ficha_tecnica"] == str(layout.ficha_tecnica.numero)
+    assert dados["nome_produto"] == str(layout.ficha_tecnica.produto.nome)
+    assert dados["nome_empresa"] == str(layout.ficha_tecnica.empresa.razao_social)
+    assert dados["pregao_chamada_publica"] == str(
+        layout.ficha_tecnica.pregao_chamada_publica
     )
 
 
-def test_url_dashboard_layout_embalagens_status_retornados(
+def test_url_dashboard_layout_embalagem_status_retornados(
     client_autenticado_codae_dilog, lista_layouts_de_embalagem
 ):
     response = client_autenticado_codae_dilog.get("/layouts-de-embalagem/dashboard/")
@@ -1280,7 +1264,7 @@ def test_url_dashboard_layout_embalagens_status_retornados(
         LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     ],
 )
-def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
+def test_url_dashboard_layout_embalagem_quantidade_itens_por_card(
     client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
 ):
     response = client_autenticado_codae_dilog.get("/layouts-de-embalagem/dashboard/")
@@ -1302,12 +1286,12 @@ def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
         LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     ],
 )
-def test_url_dashboard_layout_embalagens_com_filtro(
+def test_url_dashboard_layout_embalagem_com_filtro(
     client_autenticado_codae_dilog, layout_de_embalagem_factory, status_card
 ):
     layouts = layout_de_embalagem_factory.create_batch(size=10, status=status_card)
 
-    filtros = {"numero_cronograma": layouts[0].cronograma.numero}
+    filtros = {"numero_ficha_tecnica": layouts[0].ficha_tecnica.numero}
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
@@ -1317,7 +1301,7 @@ def test_url_dashboard_layout_embalagens_com_filtro(
 
     assert len(dados_card) == 1
 
-    filtros = {"nome_produto": layouts[0].cronograma.ficha_tecnica.produto.nome}
+    filtros = {"nome_produto": layouts[0].ficha_tecnica.produto.nome}
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
@@ -1327,7 +1311,7 @@ def test_url_dashboard_layout_embalagens_com_filtro(
 
     assert len(dados_card) == 1
 
-    filtros = {"nome_fornecedor": layouts[0].cronograma.empresa.razao_social}
+    filtros = {"nome_fornecedor": layouts[0].ficha_tecnica.empresa.razao_social}
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
@@ -1346,7 +1330,7 @@ def test_url_dashboard_layout_embalagens_com_filtro(
         LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     ],
 )
-def test_url_dashboard_layout_embalagens_ver_mais(
+def test_url_dashboard_layout_embalagem_ver_mais(
     client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
 ):
     filtros = {"status": status_card, "offset": 0, "limit": 10}
@@ -1369,7 +1353,7 @@ def test_url_dashboard_layout_embalagens_ver_mais(
         LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     ],
 )
-def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
+def test_url_dashboard_layout_embalagem_ver_mais_com_filtros(
     client_autenticado_codae_dilog, layout_de_embalagem_factory, status_card
 ):
     layouts = layout_de_embalagem_factory.create_batch(size=10, status=status_card)
@@ -1378,7 +1362,7 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "numero_cronograma": layouts[0].cronograma.numero,
+        "numero_ficha_tecnica": layouts[0].ficha_tecnica.numero,
     }
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
@@ -1390,7 +1374,7 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "nome_produto": layouts[0].cronograma.ficha_tecnica.produto.nome,
+        "nome_produto": layouts[0].ficha_tecnica.produto.nome,
     }
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
@@ -1402,7 +1386,7 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "nome_fornecedor": layouts[0].cronograma.empresa.razao_social,
+        "nome_fornecedor": layouts[0].ficha_tecnica.empresa.razao_social,
     }
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
@@ -1411,7 +1395,7 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
     assert len(response.json()["results"]["dados"]) == 1
 
 
-def test_url_layout_embalagens_analise_aprovando(
+def test_url_layout_embalagem_analise_aprovando(
     client_autenticado_codae_dilog, lista_layouts_de_embalagem_com_tipo_embalagem
 ):
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
@@ -1489,7 +1473,7 @@ def test_url_layout_embalagens_analise_aprovando(
     assert layout_analisado.aprovado
 
 
-def test_url_layout_embalagens_analise_solicitando_correcao(
+def test_url_layout_embalagem_analise_solicitando_correcao(
     client_autenticado_codae_dilog, lista_layouts_de_embalagem_com_tipo_embalagem
 ):
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
@@ -1567,7 +1551,7 @@ def test_url_layout_embalagens_analise_solicitando_correcao(
     assert not layout_analisado.aprovado
 
 
-def test_url_layout_embalagens_validacao_primeira_analise(
+def test_url_layout_embalagem_validacao_primeira_analise(
     client_autenticado_codae_dilog, lista_layouts_de_embalagem_com_tipo_embalagem
 ):
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
@@ -1601,13 +1585,13 @@ def test_url_layout_embalagens_validacao_primeira_analise(
 
     msg_erro = (
         "Quantidade de Tipos de Embalagem recebida para primeira análise "
-        + "é diferente da quantidade presente no Layout de Embalagem."
+        + "é menor que quantidade presente no Layout de Embalagem."
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro in response.json()["tipos_de_embalagens"]
 
 
-def test_url_layout_embalagens_analise_correcao(
+def test_url_layout_embalagem_analise_correcao(
     client_autenticado_codae_dilog, layout_de_embalagem_em_analise_com_correcao
 ):
     layout_analisado = layout_de_embalagem_em_analise_com_correcao
@@ -1646,26 +1630,15 @@ def test_url_layout_embalagens_analise_correcao(
     assert layout_analisado.aprovado
 
 
-def test_url_layout_embalagens_validacao_analise_correcao(
-    client_autenticado_codae_dilog, layout_de_embalagem_em_analise_com_correcao
+def test_url_layout_embalagem_solicitacao_correcao_apos_aprovado(
+    client_autenticado_codae_dilog, layout_de_embalagem_aprovado
 ):
-    layout_analisado = layout_de_embalagem_em_analise_com_correcao
-    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
+    # Pede correção da embalagem terciaria que não foi enviada originalmente.
+    layout_analisado = layout_de_embalagem_aprovado
     dados_analise = {
         "tipos_de_embalagens": [
             {
-                "uuid": str(
-                    tipos_embalagem_analisados.get(tipo_embalagem="PRIMARIA").uuid
-                ),
-                "tipo_embalagem": "PRIMARIA",
-                "status": "APROVADO",
-                "complemento_do_status": "Teste complemento",
-            },
-            {
-                "uuid": str(
-                    tipos_embalagem_analisados.get(tipo_embalagem="SECUNDARIA").uuid
-                ),
-                "tipo_embalagem": "SECUNDARIA",
+                "tipo_embalagem": "TERCIARIA",
                 "status": "REPROVADO",
                 "complemento_do_status": "Teste complemento",
             },
@@ -1679,13 +1652,14 @@ def test_url_layout_embalagens_validacao_analise_correcao(
         content_type="application/json",
         data=json.dumps(dados_analise),
     )
+    assert response.status_code == status.HTTP_200_OK
 
-    msg_erro = "O Tipo/UUID informado não pode ser analisado pois não está em análise."
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert (
-        msg_erro
-        in response.json()["tipos_de_embalagens"][1]["Layout Embalagem SECUNDARIA"]
-    )
+
+def test_url_layout_embalagem_validacao_analise_correcao(
+    client_autenticado_codae_dilog, layout_de_embalagem_em_analise_com_correcao
+):
+    layout_analisado = layout_de_embalagem_em_analise_com_correcao
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
 
     dados_analise = {
         "tipos_de_embalagens": [
@@ -1697,6 +1671,11 @@ def test_url_layout_embalagens_validacao_analise_correcao(
                 "status": "APROVADO",
                 "complemento_do_status": "Teste complemento",
             },
+            {
+                "tipo_embalagem": "SECUNDARIA",
+                "status": "REPROVADO",
+                "complemento_do_status": "Teste complemento",
+            },
         ],
     }
 
@@ -1705,16 +1684,15 @@ def test_url_layout_embalagens_validacao_analise_correcao(
         content_type="application/json",
         data=json.dumps(dados_analise),
     )
-
-    msg_erro = (
-        "Quantidade de Tipos de Embalagem recebida para análise da correção "
-        + "é diferente da quantidade em análise."
-    )
+    msg_erro = "UUID obrigatório para o tipo de embalagem informado."
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert msg_erro in response.json()["tipos_de_embalagens"]
+    assert (
+        msg_erro
+        in response.json()["tipos_de_embalagens"][1]["Layout Embalagem SECUNDARIA"]
+    )
 
 
-def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(
+def test_url_layout_de_embalagem_fornecedor_corrige(
     client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
 ):
     layout_para_corrigir = layout_de_embalagem_para_correcao
@@ -1749,7 +1727,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(
     assert layout_para_corrigir.observacoes == "Imagine uma nova observação aqui."
 
 
-def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(
+def test_url_layout_de_embalagem_fornecedor_corrige_not_ok(
     client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
 ):
     """Checa transição de estado, UUID valido de tipo de embalagem e se pode ser de fato corrigido."""
@@ -1827,7 +1805,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(
     assert msg_erro3 in response.json()[0]
 
 
-def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(
+def test_url_layout_de_embalagem_fornecedor_atualiza(
     client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_aprovado
 ):
     layout_para_atualizar = layout_de_embalagem_aprovado
@@ -1881,7 +1859,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(
     assert layout_para_atualizar.observacoes == "Imagine uma nova observação aqui."
 
 
-def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(
+def test_url_layout_de_embalagem_fornecedor_atualiza_not_ok(
     client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
 ):
     """Checa transição de estado."""
@@ -3123,13 +3101,13 @@ def test_url_dashboard_ficha_tecnica_quantidade_itens_por_card(
     assert len(dados_card) == 6
 
 
-def test_url_ficha_tecnica_lista_simples(
+def test_url_ficha_tecnica_lista_simples_sem_cronograma(
     client_autenticado_dilog_cronograma, ficha_tecnica_factory, cronograma_factory
 ):
     FICHAS_VINCULADAS = 5
 
     fichas = ficha_tecnica_factory.create_batch(
-        size=35, status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE
+        size=10, status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE
     )
 
     for ficha in fichas[:FICHAS_VINCULADAS]:
@@ -3142,16 +3120,45 @@ def test_url_ficha_tecnica_lista_simples(
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == len(fichas) - FICHAS_VINCULADAS
 
-    ficha = [
-        ficha
-        for ficha in response.json()["results"]
-        if ficha["uuid"] == str(fichas[FICHAS_VINCULADAS].uuid)
-    ].pop()
-    assert (
-        ficha["numero_e_produto"]
-        == f"{fichas[FICHAS_VINCULADAS].numero} - {fichas[FICHAS_VINCULADAS].produto.nome}"
+
+def test_url_ficha_tecnica_lista_simples_sem_layout_embalagem(
+    client_autenticado_fornecedor,
+    ficha_tecnica_factory,
+    empresa,
+    layout_de_embalagem_factory,
+):
+    FICHAS_VINCULADAS = 5
+
+    fichas = ficha_tecnica_factory.create_batch(
+        size=10,
+        status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        empresa=empresa,
     )
-    assert ficha["uuid_empresa"] is not None
+
+    for ficha in fichas[:FICHAS_VINCULADAS]:
+        layout_de_embalagem_factory(ficha_tecnica=ficha)
+
+    response = client_autenticado_fornecedor.get(
+        "/ficha-tecnica/lista-simples-sem-layout-embalagem/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(fichas) - FICHAS_VINCULADAS
+
+
+def test_url_ficha_tecnica_lista_simples(
+    client_autenticado_fornecedor, ficha_tecnica_factory, empresa
+):
+    fichas = ficha_tecnica_factory.create_batch(
+        size=10,
+        status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        empresa=empresa,
+    )
+
+    response = client_autenticado_fornecedor.get("/ficha-tecnica/lista-simples/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(fichas)
 
 
 def test_url_ficha_tecnica_dados_cronograma(

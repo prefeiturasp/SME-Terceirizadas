@@ -129,9 +129,9 @@ class PartesInteressadasService:
         return [usuario for usuario in queryset]
 
     @staticmethod
-    def usuarios_vinculados_a_empresa_do_cronograma(cronograma, somente_email=False):
-        if cronograma.empresa:
-            vinculos = cronograma.empresa.vinculos.filter(ativo=True)
+    def usuarios_vinculados_a_empresa_do_objeto(objeto, somente_email=False):
+        if objeto.empresa:
+            vinculos = objeto.empresa.vinculos.filter(ativo=True)
 
             if somente_email:
                 return [vinculo.usuario.email for vinculo in vinculos]
