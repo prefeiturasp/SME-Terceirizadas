@@ -4,9 +4,12 @@ import environ
 import redis
 from django.core.management.base import BaseCommand
 
+from ....eol_servico.utils import EOLService, dt_nascimento_from_api
 from ...models import (
+    Aluno,
     Escola,
     FaixaEtaria,
+    LogAlunoPorDia,
     LogAlunosMatriculadosFaixaEtariaDia,
     PeriodoEscolar,
 )
@@ -78,7 +81,10 @@ class Command(BaseCommand):
             escola=escola, data=ontem - timedelta(days=1)
         )
         for log in logs:
-            LogAlunosMatriculadosFaixaEtariaDia.objects.update_or_create(
+            (
+                log_alunos_matriculados_faixa_dia,
+                _,
+            ) = LogAlunosMatriculadosFaixaEtariaDia.objects.update_or_create(
                 escola=escola,
                 periodo_escolar=log.periodo_escolar,
                 faixa_etaria=log.faixa_etaria,
@@ -91,6 +97,7 @@ class Command(BaseCommand):
                     "data": ontem,
                 },
             )
+            self._cria_log_aluno_por_dia(escola, log_alunos_matriculados_faixa_dia)
 
     def periodos_integral_sem_alunos_pariciais(self, periodos, periodo_parcial):
         if "INTEGRAL" in periodos and "PARCIAL" in periodo_parcial:
@@ -113,6 +120,44 @@ class Command(BaseCommand):
                 pula_gerar_logs = True
         return pula_gerar_logs, quantidade
 
+    def get_lista_filtrada_alunos_eol(
+        self, lista_alunos_eol, periodo_do_log, faixa_etaria_do_log
+    ):
+        lista_filtrada_alunos_eol = []
+        for aluno in lista_alunos_eol:
+            if aluno["dc_tipo_turno"].strip().upper() == periodo_do_log:
+                faixa = FaixaEtaria.objects.get(uuid=faixa_etaria_do_log.uuid)
+                aluno_data_nascimento = dt_nascimento_from_api(
+                    aluno["dt_nascimento_aluno"]
+                )
+                if faixa.data_pertence_a_faixa(aluno_data_nascimento, date.today()):
+                    lista_filtrada_alunos_eol.append(aluno)
+        return lista_filtrada_alunos_eol
+
+    def _cria_log_aluno_por_dia(self, escola, log_alunos_matriculados_faixa_dia):
+        lista_alunos_eol = EOLService.get_informacoes_escola_turma_aluno(
+            escola.codigo_eol
+        )
+        if not log_alunos_matriculados_faixa_dia.periodo_escolar.nome == "PARCIAL":
+            periodo_do_log = log_alunos_matriculados_faixa_dia.periodo_escolar.nome
+            faixa_etaria_do_log = log_alunos_matriculados_faixa_dia.faixa_etaria
+            lista_filtrada_alunos_eol = self.get_lista_filtrada_alunos_eol(
+                lista_alunos_eol, periodo_do_log, faixa_etaria_do_log
+            )
+            for aluno_eol in lista_filtrada_alunos_eol:
+                try:
+                    aluno = Aluno.objects.get(codigo_eol=aluno_eol["cd_aluno"])
+                    LogAlunoPorDia.objects.update_or_create(
+                        log_alunos_matriculados_faixa_dia=log_alunos_matriculados_faixa_dia,
+                        aluno=aluno,
+                        defaults={
+                            "log_alunos_matriculados_faixa_dia": log_alunos_matriculados_faixa_dia,
+                            "aluno": aluno,
+                        },
+                    )
+                except Aluno.DoesNotExist as e:
+                    self.stdout.write(self.style.ERROR(str(e)))
+
     def _salvar_matriculados_por_faixa_dia(self, escola):
         try:
             msg = f"Salvando matriculados por faixa da escola {escola.codigo_eol} - {escola.nome}"
@@ -134,7 +179,10 @@ class Command(BaseCommand):
                     )
                     if pula_gerar_logs:
                         continue
-                    LogAlunosMatriculadosFaixaEtariaDia.objects.update_or_create(
+                    (
+                        log_alunos_matriculados_faixa_dia,
+                        _,
+                    ) = LogAlunosMatriculadosFaixaEtariaDia.objects.update_or_create(
                         escola=escola,
                         periodo_escolar=periodo_escolar,
                         faixa_etaria=faixa_obj,
@@ -146,6 +194,9 @@ class Command(BaseCommand):
                             "quantidade": quantidade,
                             "data": ontem,
                         },
+                    )
+                    self._cria_log_aluno_por_dia(
+                        escola, log_alunos_matriculados_faixa_dia
                     )
 
         except Exception as e:

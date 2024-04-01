@@ -333,3 +333,50 @@ def eh_dia_sem_atividade_escolar(escola, data, alteracao):
         )
         .exists()
     )
+
+
+def formata_periodos_pdf_controle_frequencia(qtd_matriculados, queryset):
+    from .models import FaixaEtaria
+
+    periodos = []
+    for periodo_key in qtd_matriculados["periodos"].keys():
+        faixas = []
+        queryset_periodo = queryset.filter(periodo_escolar__nome=periodo_key)
+        uuid_faixas = list(
+            set(queryset_periodo.values_list("faixa_etaria__uuid", flat=True))
+        )
+        for uuid_faixa in uuid_faixas:
+            queryset_periodo_faixa = queryset_periodo.filter(
+                faixa_etaria__uuid=uuid_faixa
+            )
+            dias = []
+            alunos_por_faixa = []
+            for log_periodo_faixa in queryset_periodo_faixa:
+                alunos_por_dia = []
+                for log_aluno_dia in log_periodo_faixa.logs_alunos_por_dia.all():
+                    data_nascimento = log_aluno_dia.aluno.data_nascimento
+                    aluno = f"{log_aluno_dia.aluno.nome} - {data_nascimento.day:02d}/{data_nascimento.month:02d}/{data_nascimento.year}"
+                    alunos_por_dia.append(aluno)
+                    if aluno not in alunos_por_faixa:
+                        alunos_por_faixa.append(aluno)
+                dias.append(
+                    {
+                        "dia": f"{log_periodo_faixa.data.day:02d}",
+                        "alunos_por_dia": alunos_por_dia,
+                    }
+                )
+            faixas.append(
+                {
+                    "nome_faixa": FaixaEtaria.objects.get(uuid=uuid_faixa).__str__(),
+                    "dias": dias,
+                    "alunos_por_faixa": alunos_por_faixa,
+                }
+            )
+        periodos.append(
+            {
+                "periodo": periodo_key,
+                "quantidade": qtd_matriculados["periodos"][periodo_key],
+                "faixas": faixas,
+            }
+        )
+    return periodos

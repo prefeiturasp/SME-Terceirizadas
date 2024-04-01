@@ -468,6 +468,11 @@ def get_nao_eh_dia_letivo(dias_letivos, i):
     return not dias_letivos[i]
 
 
+@register.simple_tag
+def aluno_nessa_faixa_etaria(dia, aluno, dias):
+    return bool([d for d in dias if d["dia"] == dia and aluno in d["alunos_por_dia"]])
+
+
 @register.filter
 def get_nao_eh_dia_letivo_cei(dias_letivos, i):
     try:
