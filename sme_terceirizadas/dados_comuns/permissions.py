@@ -1246,6 +1246,7 @@ class PermissaoParaVisualizarFichaTecnica(BasePermission):
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_CRONOGRAMA,
         DILOG_DIRETORIA,
+        DILOG_QUALIDADE,
     ]
 
     def has_permission(self, request, view):
@@ -1268,6 +1269,18 @@ class PermissaoParaAnalisarFichaTecnica(BasePermission):
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
     ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
+        )
+
+
+class PermissaoParaVisualizarQuestoesConferencia(BasePermission):
+    PERFIS_PERMITIDOS = [DILOG_QUALIDADE]
 
     def has_permission(self, request, view):
         usuario = request.user
