@@ -1380,15 +1380,21 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
     )
     tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
     tabela_observacoes = build_lista_campos_observacoes(solicitacao)
-    tabela_somatorio = build_tabela_somatorio_body(
+
+    primeira_tabela_somatorio, segunda_tabela_somatorio = build_tabela_somatorio_body(
         solicitacao, dict_total_refeicoes, dict_total_sobremesas
     )
-    tabela_somatorio_dietas_tipo_a = build_tabela_somatorio_dietas_body(
-        solicitacao, "TIPO A"
-    )
-    tabela_somatorio_dietas_tipo_b = build_tabela_somatorio_dietas_body(
-        solicitacao, "TIPO B"
-    )
+
+    (
+        primeira_tabela_somatorio_dietas_tipo_a,
+        segunda_tabela_somatorio_dietas_tipo_a,
+    ) = build_tabela_somatorio_dietas_body(solicitacao, "TIPO A")
+
+    (
+        primeira_tabela_somatorio_dietas_tipo_b,
+        segunda_tabela_somatorio_dietas_tipo_b,
+    ) = build_tabela_somatorio_dietas_body(solicitacao, "TIPO B")
+
     html_string = render_to_string(
         "relatorio_solicitacao_medicao_por_escola.html",
         {
@@ -1402,9 +1408,12 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
             ),
             "tabelas": tabelas,
             "tabela_observacoes": tabela_observacoes,
-            "tabela_somatorio": tabela_somatorio,
-            "tabela_somatorio_dietas_tipo_a": tabela_somatorio_dietas_tipo_a,
-            "tabela_somatorio_dietas_tipo_b": tabela_somatorio_dietas_tipo_b,
+            "primeira_tabela_somatorio": primeira_tabela_somatorio,
+            "segunda_tabela_somatorio": segunda_tabela_somatorio,
+            "primeira_tabela_somatorio_dietas_tipo_a": primeira_tabela_somatorio_dietas_tipo_a,
+            "segunda_tabela_somatorio_dietas_tipo_a": segunda_tabela_somatorio_dietas_tipo_a,
+            "primeira_tabela_somatorio_dietas_tipo_b": primeira_tabela_somatorio_dietas_tipo_b,
+            "segunda_tabela_somatorio_dietas_tipo_b": segunda_tabela_somatorio_dietas_tipo_b,
         },
     )
 
