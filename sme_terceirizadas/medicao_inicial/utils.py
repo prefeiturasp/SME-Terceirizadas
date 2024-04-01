@@ -27,6 +27,7 @@ from sme_terceirizadas.dieta_especial.models import (
 from sme_terceirizadas.escola.models import (
     DiaCalendario,
     FaixaEtaria,
+    LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
     PeriodoEscolar,
 )
@@ -4409,3 +4410,40 @@ def agrupa_permissoes_especiais_por_dia(permissoes_especiais, mes, ano):
                 "permissao_id_externo": permissao_id_externo,
             }
     return permissoes_especiais_por_dia
+
+
+def queryset_alunos_matriculados(escola):
+    if escola.eh_cei or escola.eh_cemei:
+        qs = LogAlunosMatriculadosFaixaEtariaDia.objects.all()
+    else:
+        qs = LogAlunosMatriculadosPeriodoEscola.objects.all()
+    return qs
+
+
+def get_data_relatorio(query_params):
+    if query_params.get("data_inicial"):
+        ano, mes, dia = query_params.get("data_inicial").split("-")
+        data_relatorio = f"{dia}/{mes}/{ano}"
+    else:
+        data_relatorio = datetime.datetime.now().date().strftime("%d/%m/%Y")
+    return data_relatorio
+
+
+def get_queryset_filtrado(vs_relatorio_controle, queryset, filtros, periodos_uuids):
+    if periodos_uuids:
+        filtros = vs_relatorio_controle.validar_periodos(filtros, periodos_uuids)
+    if filtros:
+        queryset = queryset.filter(**filtros)
+    return queryset
+
+
+def get_pdf_merge_cabecalho(
+    pdf_relatorio_controle_frequencia,
+    pdf_cabecalho_relatorio_controle_frequencia,
+    pdf_writer,
+):
+    for page in range(pdf_relatorio_controle_frequencia.getNumPages()):
+        page = pdf_relatorio_controle_frequencia.getPage(page)
+        page.mergePage(pdf_cabecalho_relatorio_controle_frequencia.getPage(0))
+        pdf_writer.addPage(page)
+    return pdf_writer

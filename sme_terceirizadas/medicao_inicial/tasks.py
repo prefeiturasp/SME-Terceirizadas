@@ -12,6 +12,9 @@ from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_excel import (
 from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_pdf import (
     gera_relatorio_adesao_pdf,
 )
+from sme_terceirizadas.medicao_inicial.services.relatorio_controle_frequencia_pdf import (
+    gera_relatorio_controle_frequencia_pdf,
+)
 
 from ..dados_comuns.utils import (
     atualiza_central_download,
@@ -266,6 +269,29 @@ def exporta_relatorio_adesao_para_pdf(user, nome_arquivo, resultados, query_para
     )
     try:
         arquivo = gera_relatorio_adesao_pdf(resultados, query_params)
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def exporta_relatorio_controle_frequencia_para_pdf(
+    user, nome_arquivo, query_params, escola_uuid
+):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        arquivo = gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
