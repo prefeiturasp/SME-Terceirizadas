@@ -29,7 +29,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin,
 )
-from ...dados_comuns.utils import get_ultimo_dia_mes, obter_primeiro_e_ultimo_dia_util
+from ...dados_comuns.utils import get_ultimo_dia_mes, obter_primeiro_e_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.serializers import (
     AlunoSerializer,
@@ -1127,7 +1127,19 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
             periodo_parcial = PeriodoEscolar.objects.get(nome="PARCIAL")
             periodos_uuids_list.append(str(periodo_parcial.uuid))
             periodos_uuids = json.dumps(periodos_uuids_list)
-        filtros["periodo_escolar__uuid__in"] = json.loads(periodos_uuids)
+        filtros["periodo_escolar__in"] = periodos
+        return filtros
+
+    def validar_datas(self, filtros, data_inicial, data_final, escola_eh_cei_ou_cemei):
+        nome_campo = "data" if escola_eh_cei_ou_cemei else "criado_em"
+
+        if data_inicial == data_final:
+            filtros[nome_campo] = data_inicial
+        else:
+            if data_inicial:
+                filtros[f"{nome_campo}__gte"] = data_inicial
+            if data_final:
+                filtros[f"{nome_campo}__lte"] = data_final
         return filtros
 
     @action(detail=False, methods=["GET"], url_path="meses-anos")
@@ -1179,7 +1191,7 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
                 nome="PARCIAL"
             )
 
-            datas = obter_primeiro_e_ultimo_dia_util(int(ano), int(mes))
+            datas = obter_primeiro_e_ultimo_dia_mes(int(ano), int(mes))
             data_inicial = datas[0]
             data_final = datas[1]
 
@@ -1202,11 +1214,12 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
 
         filtros = {}
 
-        if request.query_params.get("data_inicial"):
-            filtros["criado_em__gte"] = request.query_params.get("data_inicial")
-
-        if request.query_params.get("data_final"):
-            filtros["criado_em__lte"] = request.query_params.get("data_final")
+        data_inicial = request.query_params.get("data_inicial")
+        data_final = request.query_params.get("data_final")
+        if data_inicial or data_final:
+            filtros = self.validar_datas(
+                filtros, data_inicial, data_final, escola_eh_cei_ou_cemei
+            )
 
         periodos_uuids = request.query_params.get("periodos")
         if periodos_uuids:
