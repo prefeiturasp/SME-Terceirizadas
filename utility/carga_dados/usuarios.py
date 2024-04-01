@@ -306,6 +306,14 @@ USUARIOS = [
         "nome": "REPRESENTANTE CODAE ADM",
         "cargo": "Coordenador",
     },
+    {
+        "email": "usariorelatorios@admin.com",
+        "password": DJANGO_ADMIN_PASSWORD,
+        "cpf": "61583337865",
+        "registro_funcional": "1242099",
+        "nome": "USUARIO RELATORIOS",
+        "cargo": "Coordenador",
+    },
 ]
 
 

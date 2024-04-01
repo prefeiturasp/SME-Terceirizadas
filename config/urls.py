@@ -30,6 +30,7 @@ from sme_terceirizadas.paineis_consolidados.urls import (
 from sme_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_terceirizadas.pre_recebimento.urls import urlpatterns as pre_recebimento_urls
 from sme_terceirizadas.produto.urls import urlpatterns as produto_urls
+from sme_terceirizadas.recebimento.urls import urlpatterns as recebimento_urls
 from sme_terceirizadas.relatorios.urls import urlpatterns as relatorio_urls
 from sme_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 
@@ -75,6 +76,7 @@ urlpatterns += produto_urls
 urlpatterns += logistica_urls
 urlpatterns += medicao_inicial_urls
 urlpatterns += pre_recebimento_urls
+urlpatterns += recebimento_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

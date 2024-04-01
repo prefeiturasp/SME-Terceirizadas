@@ -1172,6 +1172,27 @@ class FichaTecnicaModelViewSet(
         return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
 
     @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-simples-sem-questoes-conferencia",
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
+    )
+    def lista_simples_sem_questoes_conferencia(self, request, **kwargs):
+        usuario = self.request.user
+
+        qs = (
+            self.get_queryset().filter(empresa=usuario.vinculo_atual.instituicao)
+            if usuario.eh_empresa
+            else self.get_queryset()
+        )
+
+        qs = qs.exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO).exclude(
+            questoes_conferencia__isnull=False
+        )
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
         detail=True,
         methods=["GET"],
         url_path="dados-cronograma",

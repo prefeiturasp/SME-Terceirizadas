@@ -31,6 +31,7 @@ from .constants import (
     DIRETOR_UE,
     ORGAO_FISCALIZADOR,
     PARCEIRA,
+    USUARIO_RELATORIOS,
 )
 
 
@@ -188,6 +189,19 @@ class UsuarioCODAEDietaEspecial(BasePermission):
             and isinstance(usuario.vinculo_atual.instituicao, Codae)
             and usuario.vinculo_atual.perfil.nome
             in [COORDENADOR_DIETA_ESPECIAL, ADMINISTRADOR_DIETA_ESPECIAL]
+        )
+
+
+class UsuarioCODAERelatorios(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Relatórios."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome in [USUARIO_RELATORIOS]
         )
 
 
@@ -1245,6 +1259,7 @@ class PermissaoParaVisualizarFichaTecnica(BasePermission):
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_CRONOGRAMA,
         DILOG_DIRETORIA,
+        DILOG_QUALIDADE,
     ]
 
     def has_permission(self, request, view):
@@ -1267,6 +1282,18 @@ class PermissaoParaAnalisarFichaTecnica(BasePermission):
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
     ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
+        )
+
+
+class PermissaoParaVisualizarQuestoesConferencia(BasePermission):
+    PERFIS_PERMITIDOS = [DILOG_QUALIDADE]
 
     def has_permission(self, request, view):
         usuario = request.user
