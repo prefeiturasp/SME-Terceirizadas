@@ -1132,7 +1132,7 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
             periodo_parcial = PeriodoEscolar.objects.get(nome="PARCIAL")
             periodos_uuids_list.append(str(periodo_parcial.uuid))
             periodos_uuids = json.dumps(periodos_uuids_list)
-        filtros["periodo_escolar__in"] = periodos
+        filtros["periodo_escolar__uuid__in"] = json.loads(periodos_uuids)
         return filtros
 
     def validar_datas(self, filtros, data_inicial, data_final, escola_eh_cei_ou_cemei):

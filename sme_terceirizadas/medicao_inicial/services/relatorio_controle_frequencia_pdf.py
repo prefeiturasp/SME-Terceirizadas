@@ -1,6 +1,5 @@
 import io
 from calendar import monthrange
-from datetime import datetime
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.template.loader import render_to_string
@@ -11,6 +10,7 @@ from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.escola.utils import formata_periodos_pdf_controle_frequencia
 from sme_terceirizadas.medicao_inicial.utils import (
+    get_data_relatorio,
     get_pdf_merge_cabecalho,
     get_queryset_filtrado,
     queryset_alunos_matriculados,
@@ -40,7 +40,9 @@ def gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid):
     filtros["data__gte"] = query_params.get("data_inicial", f"{ano}-{mes}-{'01'}")
     filtros["data__lte"] = query_params.get("data_final", f"{ano}-{mes}-{num_dias}")
 
-    queryset = get_queryset_filtrado(queryset, filtros)
+    queryset = get_queryset_filtrado(
+        vs_relatorio_controle, queryset, filtros, periodos_uuids
+    )
 
     qtd_matriculados = vs_relatorio_controle.filtrar_alunos_matriculados(
         queryset, escola_eh_cei_ou_cemei, periodos_uuids
@@ -49,7 +51,7 @@ def gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid):
 
     periodos = formata_periodos_pdf_controle_frequencia(qtd_matriculados, queryset)
 
-    data_relatorio = datetime.now().date().strftime("%d/%m/%Y")
+    data_relatorio = get_data_relatorio(query_params)
     mes_ano_formatado = f"{converte_numero_em_mes(int(mes))}/{ano}"
 
     dias_do_mes = []
@@ -70,7 +72,11 @@ def gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid):
 
     matriculados_data_str = f"em {data_relatorio}"
 
-    if query_params.get("data_inicial") and query_params.get("data_final"):
+    if (
+        query_params.get("data_inicial")
+        and query_params.get("data_final")
+        and query_params.get("data_inicial") != query_params.get("data_final")
+    ):
         _, _, dia_inicial = query_params.get("data_inicial").split("-")
         _, _, dia_final = query_params.get("data_final").split("-")
         matriculados_data_str = f"entre {int(dia_inicial):02d}/{int(mes):02d}/{ano} e {int(dia_final):02d}/{int(mes):02d}/{ano}"

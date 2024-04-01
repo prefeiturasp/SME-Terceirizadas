@@ -4351,7 +4351,18 @@ def queryset_alunos_matriculados(escola):
     return qs
 
 
-def get_queryset_filtrado(queryset, filtros):
+def get_data_relatorio(query_params):
+    if query_params.get("data_inicial"):
+        ano, mes, dia = query_params.get("data_inicial").split("-")
+        data_relatorio = f"{dia}/{mes}/{ano}"
+    else:
+        data_relatorio = datetime.datetime.now().date().strftime("%d/%m/%Y")
+    return data_relatorio
+
+
+def get_queryset_filtrado(vs_relatorio_controle, queryset, filtros, periodos_uuids):
+    if periodos_uuids:
+        filtros = vs_relatorio_controle.validar_periodos(filtros, periodos_uuids)
     if filtros:
         queryset = queryset.filter(**filtros)
     return queryset
