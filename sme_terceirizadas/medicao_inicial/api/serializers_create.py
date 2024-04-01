@@ -1303,13 +1303,20 @@ class ParametrizacaoFinanceiraWriteModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParametrizacaoFinanceira
         fields = ["edital", "lote", "tipos_unidades", "legenda", "tabelas"]
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=model.objects.all(),
-                fields=("edital", "lote", "tipos_unidades"),
-                message="Já existe uma parametrização financeira para este edital, lote e tipo de unidade",
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        if ParametrizacaoFinanceira.objects.filter(
+            edital=attrs["edital"],
+            lote=attrs["lote"],
+            tipos_unidades__in=attrs["tipos_unidades"],
+        ).exists():
+            raise ValidationError(
+                "Já existe uma parametrização financeira para este edital, lote e tipos de unidades"
             )
-        ]
+
+        return attrs
 
     def create(self, validated_data):
         tabelas = validated_data.pop("tabelas")
