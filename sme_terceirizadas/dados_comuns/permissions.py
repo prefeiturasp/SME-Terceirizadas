@@ -239,6 +239,19 @@ class UsuarioNutricionista(BasePermission):
         )
 
 
+class UsuarioMedicao(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - MEDICAO."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_MEDICAO
+        )
+
+
 class UsuarioOrgaoFiscalizador(BasePermission):
     """Permite acesso a usuários com vinculo a CODAE - Orgao Fiscalizador."""
 
