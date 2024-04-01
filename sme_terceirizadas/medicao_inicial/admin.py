@@ -10,6 +10,9 @@ from .models import (
     Empenho,
     GrupoMedicao,
     Medicao,
+    ParametrizacaoFinanceira,
+    ParametrizacaoFinanceiraTabela,
+    ParametrizacaoFinanceiraTabelaValor,
     PermissaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -151,3 +154,24 @@ class ClausulaDeDescontoAdmin(admin.ModelAdmin):
     search_fields = ("edital__numero", "numero_clausula", "item_clausula")
     list_filter = ("alterado_em",)
     ordering = ("-alterado_em",)
+
+
+@admin.register(ParametrizacaoFinanceira)
+class ParametrizacaoFinanceiraAdmin(admin.ModelAdmin):
+    list_display = ("edital", "lote")
+    search_fields = ("edital__numero", "lote__nome", "tipos_unidades__iniciais")
+    list_filter = ("edital__numero", "lote__nome", "tipos_unidades__iniciais")
+
+
+@admin.register(ParametrizacaoFinanceiraTabela)
+class ParametrizacaoFinanceiraTabelaAdmin(admin.ModelAdmin):
+    list_display = ("nome", "parametrizacao_financeira")
+    search_fields = ("nome",)
+    list_filter = ("nome",)
+
+
+@admin.register(ParametrizacaoFinanceiraTabelaValor)
+class ParametrizacaoFinanceiraTabelaValorAdmin(admin.ModelAdmin):
+    list_display = ("tabela", "tipo_alimentacao", "grupo", "valor_colunas")
+    search_fields = ("tabela", "tipo_alimentacao__nome", "grupo")
+    list_filter = ("tabela", "tipo_alimentacao__nome", "grupo")
