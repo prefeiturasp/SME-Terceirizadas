@@ -34,7 +34,7 @@
           <div>Matriculados em <b>Período {{ periodo.periodo|title }}: {{ periodo.quantidade }}</b></div>
           <div>Mês: <b>{{ mes_ano_formatado|upper }}</b></div>
         </div>
-        <table>
+        <table class="tabela-principal">
           <thead class="thead-controle-frequencia">
             <tr>
               <th>Faixas Etárias</th>
@@ -50,22 +50,28 @@
                 </td>
 
                 {% for dia in dias_do_mes %}
-                  <td class="coluna-frequencia-head">{{ dia }}</td>
+                  {% eh_dia_nao_letivo dia escola_nome mes_ano as dia_nao_letivo %}
+                  <td class="coluna-frequencia-head {% if dia_nao_letivo %}dia-nao-letivo-frequencia-head{% endif %}">{{ dia }}</td>
                 {% endfor %}
                 
                 <td />
               </tr>
               {% for aluno in faixa.alunos_por_faixa %}
                 <tr>
-                  <td>
+                  <td class="coluna-nome-aluno">
                     {{ aluno }}
+                    {% tem_dieta_especial aluno periodo.alunos_com_dietas_autorizadas as aluno_com_dieta %}
+                    {% if aluno_com_dieta %}
+                      <img src="{% static 'images/icone_tooltip_pb.png' %}" alt="tooltip-dieta" />
+                    {% endif %}
                   </td>
 
                   {% for dia in dias_do_mes %}
                     {% aluno_nessa_faixa_etaria dia aluno faixa.dias as aluno_nesta_faixa_dia %}
-                    <td class="coluna-frequencia {% if not aluno_nesta_faixa_dia %}nao-exibe-checkbox{% endif %}">
+                    {% eh_dia_nao_letivo dia escola_nome mes_ano as dia_nao_letivo %}
+                    <td class="coluna-frequencia {% if not aluno_nesta_faixa_dia %}nao-exibe-checkbox{% endif %} {% if dia_nao_letivo %}dia-nao-letivo{% endif %}">
                       {% if aluno_nesta_faixa_dia %}
-                        <div class="checkbox-frequencia" />
+                        <div class="checkbox-frequencia {% if dia_nao_letivo %}dia-nao-letivo-ckbox-freq{% endif %}" />
                       {% endif %}
                     </td>
                   {% endfor %}
@@ -74,6 +80,17 @@
                     <div class="checkbox-periodo-parcial" />
                   </td>
                 </tr>
+
+                {% tem_dieta_especial aluno periodo.alunos_com_dietas_autorizadas as aluno_com_dieta %}
+                {% if aluno_com_dieta %}
+                  <tr>
+                    <td colspan="{{dias_do_mes|get_quantidade_total_colunas}}" class="aluno-com-dieta-especial">
+                      <img src="{% static 'images/icone_tooltip_pb.png' %}" alt="tooltip-dieta" />
+                      {{ aluno|get_string_aluno_dieta:periodo.alunos_com_dietas_autorizadas }}
+                    </td>
+                  </tr>
+                {% endif %}
+
               {% endfor %}
               <tr>
                 <td class="total-frequentes-por-faixa">

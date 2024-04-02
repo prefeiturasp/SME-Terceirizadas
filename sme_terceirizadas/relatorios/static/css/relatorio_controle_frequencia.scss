@@ -48,13 +48,32 @@ main {
     font-weight: 700;
     text-align: right;
   }
+
+  .coluna-nome-aluno {
+    img {
+      width: 14px;
+      height: 14px;
+      margin-left: 10px;
+    }
+  }
+  
+  .aluno-com-dieta-especial {
+    font-size: 10px;
+
+    img {
+      width: 9px;
+      height: 9px;
+      margin-left: 8px;
+      margin-right: 5px;
+    }
+  }
 }
 
-table {
+.tabela-principal {
   width: 100%;
 }
 
-table,
+.tabela-principal,
 th,
 td {
   font-size: 12px;
@@ -83,13 +102,21 @@ tbody {
     font-size: 10px;
     padding: 0px !important;
   }
-  
+
   .coluna-frequencia {
     position: relative;
   }
 
   .nao-exibe-checkbox {
-    background-color: $cinza-quase-claro;
+    background-color: $cinza-quase-claro !important;
+  }
+  
+  .dia-nao-letivo {
+    background-color: #e6e6e6;
+  }
+  
+  .dia-nao-letivo-ckbox-freq, .dia-nao-letivo-frequencia-head {
+    background-color: #e6e6e6 !important;
   }
 
   .checkbox-frequencia {
@@ -120,14 +147,16 @@ th {
   background-color: $cinza-claro;
 }
 
-table tr:first-child, .linha-faixa-matriculados {
-  background-color: $cinza-claro;
-  
-  th:nth-child(2) {
-    text-align: center;
-  }
-  th:nth-child(3) {
-    width: 12%;
-    text-align: center;
+.tabela-principal {
+  tr:first-child, .linha-faixa-matriculados {
+    background-color: $cinza-claro;
+    
+    th:nth-child(2) {
+      text-align: center;
+    }
+    th:nth-child(3) {
+      width: 12%;
+      text-align: center;
+    }
   }
 }
