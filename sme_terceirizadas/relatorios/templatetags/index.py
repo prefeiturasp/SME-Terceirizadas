@@ -703,3 +703,13 @@ def get_nome_header(nome):
     }
 
     return nomes.get(nome, nome.upper())
+
+
+@register.filter
+def get_nome_categoria(nome):
+    nomes = {
+        "DIETA ESPECIAL - TIPO A": "DIETA TIPO A",
+        "DIETA ESPECIAL - TIPO B": "DIETA TIPO B",
+    }
+
+    return nomes.get(nome, nome.upper())

@@ -3356,18 +3356,19 @@ def build_valores_campos(solicitacao, tabela):  # noqa C901
 
     faixas_etarias = FaixaEtaria.objects.filter(id__in=faixas_etarias_ids, ativo=True)
     faixa_etaria_dict = {fe.id: str(fe) for fe in faixas_etarias}
-    categorias = ["ALIMENTAÇÃO", "DIETA ESPECIAL - TIPO A", "DIETA ESPECIAL - TIPO B"]
 
     valores_campos = []
-    totais = ["total"] + [0] * (
-        len(tabela["periodos"]) * len(categorias) + len(tabela["periodos"])
-    )
+    categorias = tabela["categorias"]
+    totais = ["total"] + [0] * len(categorias)
 
     for faixa_id, faixa_nome in faixa_etaria_dict.items():
         linha = [faixa_nome]
 
         for indice_periodo, periodo in enumerate(tabela["periodos"]):
+            len_periodo = tabela["len_periodos"][indice_periodo]
             for idx_categoria, categoria in enumerate(categorias):
+                if categoria == "total":
+                    break
                 try:
                     medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
                     valores_frequencia = medicao.valores_medicao.filter(
@@ -3381,16 +3382,16 @@ def build_valores_campos(solicitacao, tabela):  # noqa C901
                     )
                     linha.append(str(quantidade))
 
-                    indice_total = 1 + indice_periodo * 4 + idx_categoria
+                    indice_total = indice_periodo * len_periodo + idx_categoria + 1
                     totais[indice_total] += quantidade
 
                 except ObjectDoesNotExist:
-                    linha.append("-")
+                    linha.append(0)
 
-            total = sum(int(val) for val in linha[-3:] if val != "-")
+            total = sum(int(val) for val in linha[-(len_periodo - 1) :] if val != 0)
             linha.append(str(total))
 
-            totais[1 + indice_periodo * 4 + 3] += total
+            totais[1 + indice_periodo * len_periodo + (len_periodo - 1)] += total
 
         valores_campos.append(linha)
 
@@ -3408,33 +3409,51 @@ def build_tabela_somatorio_body_cei(solicitacao):
         "TARDE": 4,
     }
 
-    CATEGORIAS = ["ALIMENTAÇÃO", "DIETA TIPO A", "DIETA TIPO B", "total"]
-
-    periodos_ordenados = sorted(
+    medicoes = sorted(
         [
-            medicao.nome_periodo_grupo
+            medicao
             for medicao in solicitacao.medicoes.all()
             if medicao.nome_periodo_grupo in list(ORDEM_PERIODOS_GRUPOS_CEI)
         ],
-        key=lambda k: ORDEM_PERIODOS_GRUPOS_CEI[k],
+        key=lambda k: ORDEM_PERIODOS_GRUPOS_CEI[k.nome_periodo_grupo],
     )
-    grupos_periodos = [
-        periodos_ordenados[i : i + 2] for i in range(0, len(periodos_ordenados), 2)
-    ]
 
     tabelas = []
-    for grupo in grupos_periodos:
-        tabela = {
-            "periodos": grupo,
-            "categorias": CATEGORIAS * len(grupo),
-            "len_periodos": [4] * len(grupo),
-            "ordem_periodos_grupos": [
-                ORDEM_PERIODOS_GRUPOS_CEI[periodo] for periodo in grupo
-            ],
-            "len_linha": 9,
-            "valores_campos": [],
-        }
-        tabelas.append(tabela)
+
+    for medicao in medicoes:
+        nome_periodo = (
+            medicao.periodo_escolar.nome
+            if not medicao.grupo
+            else (
+                f"{medicao.grupo.nome} - {medicao.periodo_escolar.nome}"
+                if medicao.periodo_escolar
+                else medicao.grupo.nome
+            )
+        )
+
+        categorias = list(
+            medicao.valores_medicao.values_list(
+                "categoria_medicao__nome", flat=True
+            ).distinct()
+        )
+        categorias.append("total")
+
+        if not tabelas or len(tabelas[-1]["periodos"]) > 1:
+            tabela = {
+                "periodos": [nome_periodo],
+                "categorias": categorias,
+                "ordem_periodos_grupos": [ORDEM_PERIODOS_GRUPOS_CEI[nome_periodo]],
+                "len_periodos": [len(categorias)],
+                "valores_campos": [],
+            }
+            tabelas.append(tabela)
+        else:
+            tabelas[-1]["periodos"].append(nome_periodo)
+            tabelas[-1]["categorias"] += categorias
+            tabelas[-1]["ordem_periodos_grupos"].append(
+                ORDEM_PERIODOS_GRUPOS_CEI[nome_periodo]
+            )
+            tabelas[-1]["len_periodos"].append(len(categorias))
 
     for tabela in tabelas:
         tabela["valores_campos"] = build_valores_campos(solicitacao, tabela)
