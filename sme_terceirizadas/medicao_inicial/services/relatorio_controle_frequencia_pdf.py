@@ -49,7 +49,9 @@ def gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid):
     )
     total_matriculados = qtd_matriculados["total_matriculados"]
 
-    periodos = formata_periodos_pdf_controle_frequencia(qtd_matriculados, queryset)
+    periodos = formata_periodos_pdf_controle_frequencia(
+        qtd_matriculados, queryset, query_params, escola
+    )
 
     data_relatorio = get_data_relatorio(query_params)
     mes_ano_formatado = f"{converte_numero_em_mes(int(mes))}/{ano}"
@@ -92,6 +94,7 @@ def gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid):
             "dias_do_mes": dias_do_mes,
             "matriculados_data_str": matriculados_data_str,
             "escola_nome": escola.nome,
+            "mes_ano": query_params.get("mes_ano"),
         },
     )
 
@@ -113,10 +116,10 @@ def gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid):
 
     arquivo_final = io.BytesIO()
     pdf_cabecalho_relatorio_controle_frequencia = PdfFileReader(
-        io.BytesIO(html_pdf_cabecalho_relatorio_controle_frequencia)
+        io.BytesIO(html_pdf_cabecalho_relatorio_controle_frequencia), strict=False
     )
     pdf_relatorio_controle_frequencia = PdfFileReader(
-        io.BytesIO(html_pdf_relatorio_controle_frequencia)
+        io.BytesIO(html_pdf_relatorio_controle_frequencia), strict=False
     )
     pdf_writer = PdfFileWriter()
 
