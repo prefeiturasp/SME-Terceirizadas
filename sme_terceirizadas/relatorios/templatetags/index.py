@@ -468,6 +468,11 @@ def get_nao_eh_dia_letivo(dias_letivos, i):
     return not dias_letivos[i]
 
 
+@register.simple_tag
+def aluno_nessa_faixa_etaria(dia, aluno, dias):
+    return bool([d for d in dias if d["dia"] == dia and aluno in d["alunos_por_dia"]])
+
+
 @register.filter
 def get_nao_eh_dia_letivo_cei(dias_letivos, i):
     try:
@@ -668,3 +673,33 @@ def numero_para_milhar(valor):
 @register.filter
 def numero_para_porcentagem(valor):
     return f"{round(valor * 100, 4)}%"
+
+
+@register.filter
+def get_colspan(periodo):
+    periodo_colsapn = {
+        "TIPOS DE ALIMENTAÇÃO": 2,
+        "DIETAS TIPO A / ENTERAL / REST. DE AMINOÁCIDOS": 2,
+        "DIETAS TIPO B": 2,
+        "MANHA": 1,
+        "TARDE": 1,
+        "INTEGRAL": 1,
+        "PROGRAMAS E PROJETOS": 1,
+        "SOLICITAÇÕES DE ALIMENTAÇÃO": 2,
+        "TOTAL": 1,
+        "NOITE": 1,
+        "ETEC": 1,
+    }
+
+    return periodo_colsapn.get(periodo.upper())
+
+
+@register.filter
+def get_nome_header(nome):
+    nomes = {
+        "NOITE": "NOITE/EJA",
+        "TIPO A": "DIETAS TIPO A / ENTERAL / REST. DE AMINOÁCIDOS",
+        "TIPO B": "DIETAS TIPO B",
+    }
+
+    return nomes.get(nome, nome.upper())

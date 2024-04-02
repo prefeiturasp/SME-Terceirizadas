@@ -620,7 +620,7 @@ def test_utils_get_somatorio_manha(solicitacao_medicao_inicial_com_valores_repet
         get_somatorio_manha(
             "lanche_4h", solicitacao_medicao_inicial_com_valores_repeticao, {}, {}
         )
-        == " - "
+        == 0
     )
 
 
@@ -641,7 +641,7 @@ def test_utils_get_somatorio_tarde(solicitacao_medicao_inicial_com_valores_repet
         get_somatorio_tarde(
             "lanche_4h", solicitacao_medicao_inicial_com_valores_repeticao, {}, {}
         )
-        == " - "
+        == 0
     )
 
 
@@ -664,7 +664,7 @@ def test_utils_get_somatorio_integral(
         get_somatorio_integral(
             "lanche_4h", solicitacao_medicao_inicial_com_valores_repeticao, {}, {}
         )
-        == " - "
+        == 0
     )
 
 
@@ -770,7 +770,7 @@ def test_utils_get_somatorio_noite_eja(
         get_somatorio_noite_eja(
             "lanche_4h", solicitacao_medicao_inicial_com_valores_repeticao, {}, {}
         )
-        == " - "
+        == 0
     )
 
 
@@ -791,7 +791,7 @@ def test_utils_get_somatorio_etec(solicitacao_medicao_inicial_com_valores_repeti
         get_somatorio_etec(
             "lanche_4h", solicitacao_medicao_inicial_com_valores_repeticao, {}, {}
         )
-        == " - "
+        == 0
     )
 
 
@@ -804,7 +804,7 @@ def test_utils_get_somatorio_solicitacoes_de_alimentacao(
         == 50
     )
     assert get_somatorio_solicitacoes_de_alimentacao("kit_lanche", solicitacao) == 50
-    assert get_somatorio_solicitacoes_de_alimentacao("lanche_4h", solicitacao) == " - "
+    assert get_somatorio_solicitacoes_de_alimentacao("lanche_4h", solicitacao) == 0
 
 
 def test_utils_get_somatorio_programas_e_projetos(
@@ -826,7 +826,7 @@ def test_utils_get_somatorio_programas_e_projetos(
         get_somatorio_programas_e_projetos(
             "lanche_4h", solicitacao_medicao_inicial_com_valores_repeticao, {}, {}
         )
-        == " - "
+        == 0
     )
 
 
@@ -856,33 +856,55 @@ def test_utils_get_somatorio_total_tabela(
 def test_utils_build_tabela_somatorio_body(
     solicitacao_medicao_inicial_com_valores_repeticao,
 ):
-    assert build_tabela_somatorio_body(
+    primeira_tabela_somatorio, segunda_tabela_somatorio = build_tabela_somatorio_body(
         solicitacao_medicao_inicial_com_valores_repeticao, {}, {}
-    ) == [
-        ["Lanche", 50, 50, 50, 50, 50, 250, 50, 50, 100],
-        ["Refeição", 100, 100, 100, 100, 50, 450, 100, 100, 200],
-        ["Kit Lanche", 50, 50, 50, 50, 50, 250, 50, 50, 100],
-        ["Sobremesa", 100, 100, 100, 100, 50, 450, 100, 100, 200],
-        ["Lanche Emergencial", 50, 50, 50, 50, 50, 250, 50, 50, 100],
+    )
+
+    assert primeira_tabela_somatorio["body"] == [
+        ["Lanche", 50, 50, 50, 50, 50, 250],
+        ["Refeição", 100, 100, 100, 100, 50, 450],
+        ["Kit Lanche", 50, 50, 50, 50, 50, 250],
+        ["Sobremesa", 100, 100, 100, 100, 50, 450],
+        ["Lanche Emergencial", 50, 50, 50, 50, 50, 250],
+    ]
+
+    assert segunda_tabela_somatorio["body"] == [
+        [50, 50, 100],
+        [100, 100, 200],
+        [50, 50, 100],
+        [100, 100, 200],
+        [50, 50, 100],
     ]
 
 
 def test_utils_build_tabela_somatorio_dietas_body(
     solicitacao_medicao_inicial_dietas,
 ):
-    assert build_tabela_somatorio_dietas_body(
+    primeira_tabela_tipo_a, segunda_tabela_tipo_a = build_tabela_somatorio_dietas_body(
         solicitacao_medicao_inicial_dietas, "TIPO A"
-    ) == [
-        ["Lanche", " - ", 20, 20, 20, 60, "Lanche", 20],
-        ["Lanche 4h", " - ", 20, 20, 20, 60, "Lanche 4h", 20],
-        ["Refeição", " - ", 20, 20, 20, 60, "Refeição", 20],
+    )
+
+    assert primeira_tabela_tipo_a["body"] == [
+        ["Lanche", 0, 20, 20, 20, 60],
+        ["Lanche 4h", 0, 20, 20, 20, 60],
+        ["Refeição", 0, 20, 20, 20, 60],
     ]
-    assert build_tabela_somatorio_dietas_body(
+
+    assert segunda_tabela_tipo_a["body"] == [
+        ["Lanche", 20, 20],
+        ["Lanche 4h", 20, 20],
+        ["Refeição", 20, 20],
+    ]
+
+    primeira_tabela_tipo_b, segunda_tabela_tipo_b = build_tabela_somatorio_dietas_body(
         solicitacao_medicao_inicial_dietas, "TIPO B"
-    ) == [
-        ["Lanche", " - ", 20, 20, 20, 60, "Lanche", 20],
-        ["Lanche 4h", " - ", 20, 20, 20, 60, "Lanche 4h", 20],
+    )
+
+    assert primeira_tabela_tipo_b["body"] == [
+        ["Lanche", 0, 20, 20, 20, 60],
+        ["Lanche 4h", 0, 20, 20, 20, 60],
     ]
+    assert segunda_tabela_tipo_b["body"] == [["Lanche", 20, 20], ["Lanche 4h", 20, 20]]
 
 
 def test_build_row_primeira_tabela(solicitacao_medicao_inicial_com_valores_repeticao):
