@@ -2304,7 +2304,10 @@ def valida_alimentacoes_solicitacoes_continuas(
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
-            or not escola.calendario.filter(data=data).first().dia_letivo
+            or (
+                not inclusoes_filtradas.exists()
+                and not escola.calendario.filter(data=data).first().dia_letivo
+            )
         ):
             continue
         periodo_com_erro = valida_campo_a_campo_alimentacao_continua(
@@ -2498,7 +2501,10 @@ def valida_dietas_solicitacoes_continuas(
             if (
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
-                or not escola.calendario.filter(data=data).first().dia_letivo
+                or (
+                    not inclusoes_filtradas.exists()
+                    and not escola.calendario.filter(data=data).first().dia_letivo
+                )
             ):
                 continue
             periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
