@@ -6,6 +6,7 @@ from django import template
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...escola.models import Escola
 from ...inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -471,6 +472,54 @@ def get_nao_eh_dia_letivo(dias_letivos, i):
 @register.simple_tag
 def aluno_nessa_faixa_etaria(dia, aluno, dias):
     return bool([d for d in dias if d["dia"] == dia and aluno in d["alunos_por_dia"]])
+
+
+@register.simple_tag
+def eh_dia_nao_letivo(dia, escola_nome, mes_ano):
+    from workalendar.america import BrazilSaoPauloCity
+
+    from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
+
+    escola = Escola.objects.get(nome=escola_nome)
+    mes, ano = mes_ano.split("_")
+    eh_dia_letivo = escola.calendario.get(
+        data__month=mes, data__year=ano, data__day=dia
+    ).dia_letivo
+    calendario = BrazilSaoPauloCity()
+    feriados = [h[0] for h in calendario.holidays()]
+    eh_feriado = [
+        feriado for feriado in feriados if feriado.month == mes and feriado.day == dia
+    ]
+    eh_dia_suspensao = DiaSuspensaoAtividades.objects.filter(
+        tipo_unidade=escola.tipo_unidade, data__month=mes, data__year=ano, data__day=dia
+    )
+    return (not eh_dia_letivo) or eh_feriado or eh_dia_suspensao
+
+
+@register.simple_tag
+def tem_dieta_especial(aluno, alunos_com_dietas_autorizadas):
+    return bool(
+        [
+            aluno_dieta
+            for aluno_dieta in alunos_com_dietas_autorizadas
+            if aluno.split(" - ")[0] in aluno_dieta["aluno"]
+        ]
+    )
+
+
+@register.filter
+def get_quantidade_total_colunas(dias_do_mes):
+    return len(dias_do_mes) + 2
+
+
+@register.filter
+def get_string_aluno_dieta(aluno, alunos_com_dietas_autorizadas):
+    aluno_dieta = [
+        aluno_dieta
+        for aluno_dieta in alunos_com_dietas_autorizadas
+        if aluno.split(" - ")[0] in aluno_dieta["aluno"]
+    ][0]
+    return f"Aluno com Dieta Especial Autorizada em {aluno_dieta['data_autorizacao']} - {aluno_dieta['tipo_dieta']}"
 
 
 @register.filter
