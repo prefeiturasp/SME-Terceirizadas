@@ -1297,7 +1297,7 @@ def test_finaliza_medicao_inicial_salva_logs(
         medicao_etec.valores_medicao.filter(
             nome_campo="numero_de_alunos", categoria_medicao__nome="ALIMENTAÇÃO"
         ).count()
-        == 15
+        == 30
     )
 
     medicao_solicitacoes_alimentacao = (
