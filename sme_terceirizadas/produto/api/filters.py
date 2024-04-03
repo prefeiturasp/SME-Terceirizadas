@@ -101,3 +101,9 @@ class CadastroProdutosEditalFilter(filters.FilterSet):
     def filtra_status(self, qs, name, value):
         filtro = False if value == "Inativo" else True
         return qs.filter(ativo=filtro)
+
+class TipoRecipienteFilter(filters.FilterSet):
+    nome = filters.CharFilter(field_name='nome', lookup_expr='icontains')
+
+class TipoAlimentoFilter(filters.FilterSet):
+    nome = filters.CharFilter(field_name='nome', lookup_expr='icontains')

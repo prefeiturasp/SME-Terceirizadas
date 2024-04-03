@@ -68,6 +68,8 @@ from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm
 from ..models import (
     AnaliseSensorial,
     EmbalagemProduto,
+    TipoRecipiente,
+    TipoAlimento,
     Fabricante,
     HomologacaoProduto,
     ImagemDoProduto,
@@ -105,9 +107,12 @@ from .filters import (
     ProdutoFilter,
     filtros_produto_reclamacoes,
 )
+from .filters import CadastroProdutosEditalFilter, ItemCadastroFilter, ProdutoFilter, TipoRecipienteFilter, TipoAlimentoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
     CadastroProdutosEditalSerializer,
     EmbalagemProdutoSerialzer,
+    TipoRecipienteSerializer,
+    TipoAlimentoSerializer,
     FabricanteSerializer,
     FabricanteSimplesSerializer,
     HomologacaoProdutoPainelGerencialSerializer,
@@ -3693,4 +3698,78 @@ class EmbalagemProdutoViewSet(viewsets.ModelViewSet):
                 return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response({"results": serializer.data})
+        return Response({'results': serializer.data})
+
+class TipoRecipienteViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = TipoRecipienteSerializer
+    pagination_class = CustomPagination
+    queryset = TipoRecipiente.objects.all()
+    permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TipoRecipienteFilter
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_de_nomes(self, _):
+        return Response({'results': [item.nome for item in self.queryset.all()]})
+
+    def destroy(self, request, *args, **kwargs):
+        instance: TipoRecipiente = self.get_object()
+
+        if instance.deleta():
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        msg = 'Não será possível realizar a exclusão. Este item contém relacionamentos com Controle de Sobras.'
+        return Response(data={'detail': msg}, status=status.HTTP_403_FORBIDDEN)
+
+    class Meta:
+        model = TipoRecipiente
+    
+class TipoAlimentoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = TipoAlimentoSerializer
+    pagination_class = CustomPagination
+    queryset = TipoAlimento.objects.all()
+    permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TipoAlimentoFilter
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_de_nomes(self, _):
+        return Response({'results': [item.nome for item in self.queryset.all()]})
+
+    def destroy(self, request, *args, **kwargs):
+        instance: TipoAlimento = self.get_object()
+
+        if instance.deleta():
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        msg = 'Não será possível realizar a exclusão. Este item contém relacionamentos com Controle de Sobras.'
+        return Response(data={'detail': msg}, status=status.HTTP_403_FORBIDDEN)
+
+    class Meta:
+        model = TipoAlimento
