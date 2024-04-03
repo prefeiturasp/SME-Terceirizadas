@@ -689,6 +689,9 @@ def get_colspan(periodo):
         "TOTAL": 1,
         "NOITE": 1,
         "ETEC": 1,
+        "Infantil INTEGRAL": 1,
+        "Infantil MANHA": 1,
+        "Infantil TARDE": 1,
     }
 
     return periodo_colsapn.get(periodo.upper())
@@ -697,9 +700,13 @@ def get_colspan(periodo):
 @register.filter
 def get_nome_header(nome):
     nomes = {
+        "MANHA": "MANHÃ",
         "NOITE": "NOITE/EJA",
         "TIPO A": "DIETAS TIPO A / ENTERAL / REST. DE AMINOÁCIDOS",
         "TIPO B": "DIETAS TIPO B",
+        "Infantil INTEGRAL": "INTEGRAL",
+        "Infantil MANHA": "MANHÃ",
+        "Infantil TARDE": "TARDE",
     }
 
     return nomes.get(nome, nome.upper())

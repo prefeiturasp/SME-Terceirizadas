@@ -2937,20 +2937,6 @@ def build_tabela_somatorio_body(
     primeira_tabela_somatorio = {"header": primeira_tabela_header, "body": []}
     segunda_tabela_somatorio = {"header": segunda_tabela_header, "body": []}
 
-    if solicitacao.escola.eh_cemei:
-        if campos_tipos_alimentacao:
-            campos_tipos_alimentacao.append("Total por Períodos")
-
-        for tipo_alimentacao in campos_tipos_alimentacao:
-            primeira_tabela_somatorio = somatorio_periodo_cemei(
-                tipo_alimentacao,
-                dict_total_refeicoes,
-                dict_total_sobremesas,
-                solicitacao,
-                primeira_tabela_somatorio,
-            )
-        return primeira_tabela_somatorio
-
     for tipo_alimentacao in campos_tipos_alimentacao:
         primeira_tabela_somatorio, segunda_tabela_somatorio = somatorio_periodo(
             tipo_alimentacao,
@@ -2968,6 +2954,14 @@ def build_tabela_somatorio_body(
         "ALIMENTAÇÃO",
         "TIPOS DE ALIMENTAÇÃO",
     )
+
+    if solicitacao.escola.eh_cemei:
+        if campos_tipos_alimentacao:
+            campos_tipos_alimentacao.append("Total por Períodos")
+            primeira_tabela_somatorio = total_por_periodos_cemei(
+                primeira_tabela_somatorio
+            )
+            return primeira_tabela_somatorio
 
     return primeira_tabela_somatorio, segunda_tabela_somatorio
 
@@ -3210,15 +3204,19 @@ def somatorio_periodo(
     valores_somatorios_primeira_tabela = []
 
     for periodo in primeira_tabela_somatorio["header"]:
+        nome_periodo = (
+            get_nome_periodo(periodo) if solicitacao.escola.eh_cemei else periodo
+        )
+
         params = get_somatorio_periodos_params(
-            periodo,
+            nome_periodo,
             tipo_alimentacao,
             solicitacao,
             dict_total_refeicoes,
             dict_total_sobremesas,
             tipo_turma,
         )
-        somatorio = periodo_func[periodo](*params)
+        somatorio = periodo_func[nome_periodo](*params)
         valores_somatorios_primeira_tabela.append(somatorio)
 
     somatorio_total_primeira_tabela = get_somatorio_total_tabela(
@@ -3235,16 +3233,16 @@ def somatorio_periodo(
 
     if segunda_tabela_somatorio:
         valores_somatorios_segunda_tabela = []
-        for periodo in segunda_tabela_somatorio["header"]:
+        for nome_periodo in segunda_tabela_somatorio["header"]:
             params = get_somatorio_periodos_params(
-                periodo,
+                nome_periodo,
                 tipo_alimentacao,
                 solicitacao,
                 dict_total_refeicoes,
                 dict_total_sobremesas,
                 tipo_turma,
             )
-            somatorio = periodo_func[periodo](*params)
+            somatorio = periodo_func[nome_periodo](*params)
             valores_somatorios_segunda_tabela.append(somatorio)
 
         somatorio_total_primeira_tabela = get_somatorio_total_tabela(
@@ -3258,88 +3256,24 @@ def somatorio_periodo(
     return primeira_tabela_somatorio, segunda_tabela_somatorio
 
 
-def somatorio_periodo_cemei(
-    tipo_alimentacao,
-    dict_total_refeicoes,
-    dict_total_sobremesas,
-    solicitacao,
-    body_tabela_somatorio,
+def total_por_periodos_cemei(
+    tabela_somatorio,
 ):
-    if tipo_alimentacao == "Total por Períodos":
-        valores_periodo_integral = [valores[1] for valores in body_tabela_somatorio]
-        total_periodo_integral = (
-            sum(int(valor) for valor in valores_periodo_integral if valor != " - ")
-            or "-"
-        )
+    periodos = tabela_somatorio["header"][1:]
+    valores_somatorios = []
 
-        valores_periodo_manha = [valores[2] for valores in body_tabela_somatorio]
-        total_periodo_manha = (
-            sum(int(valor) for valor in valores_periodo_manha if valor != " - ") or "-"
-        )
+    for indice, _ in enumerate(periodos):
+        valores = [valores[indice + 1] for valores in tabela_somatorio["body"]]
+        total = sum(int(valor) for valor in valores) or 0
+        valores_somatorios.append(total)
 
-        valores_periodo_tarde = [valores[3] for valores in body_tabela_somatorio]
-        total_periodo_tarde = (
-            sum(int(valor) for valor in valores_periodo_tarde if valor != " - ") or "-"
-        )
-
-        valores_solicitacoes_de_alimentacao = [
-            valores[4] for valores in body_tabela_somatorio
+    tabela_somatorio["body"].append(
+        [
+            "Total por Períodos",
+            *valores_somatorios,
         ]
-        total_solicitacoes_de_alimentacao = (
-            sum(
-                int(valor)
-                for valor in valores_solicitacoes_de_alimentacao
-                if valor != " - "
-            )
-            or "-"
-        )
-
-        valores_totais = [valores[5] for valores in body_tabela_somatorio]
-        total_geral = (
-            sum(int(valor) for valor in valores_totais if valor != " - ") or "-"
-        )
-
-        body_tabela_somatorio.append(
-            [
-                "Total por Períodos",
-                total_periodo_integral,
-                total_periodo_manha,
-                total_periodo_tarde,
-                total_solicitacoes_de_alimentacao,
-                total_geral,
-            ]
-        )
-    else:
-        somatorio_integral = get_somatorio_integral(
-            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
-        )
-        somatorio_manha = get_somatorio_manha(
-            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
-        )
-        somatorio_tarde = get_somatorio_tarde(
-            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
-        )
-        somatorio_solicitacoes_de_alimentacao = (
-            get_somatorio_solicitacoes_de_alimentacao(tipo_alimentacao, solicitacao)
-        )
-        valores_somatorios_tabela = [
-            somatorio_integral,
-            somatorio_manha,
-            somatorio_tarde,
-            somatorio_solicitacoes_de_alimentacao,
-        ]
-        somatorio_total = get_somatorio_total_tabela(valores_somatorios_tabela)
-        body_tabela_somatorio.append(
-            [
-                get_nome_campo(tipo_alimentacao),
-                somatorio_integral,
-                somatorio_manha,
-                somatorio_tarde,
-                somatorio_solicitacoes_de_alimentacao,
-                somatorio_total,
-            ]
-        )
-    return body_tabela_somatorio
+    )
+    return tabela_somatorio
 
 
 def build_valores_campos(solicitacao, tabela):  # noqa C901
@@ -3365,7 +3299,20 @@ def build_valores_campos(solicitacao, tabela):  # noqa C901
         linha = [faixa_nome]
 
         for indice_periodo, periodo in enumerate(tabela["periodos"]):
-            len_periodo = tabela["len_periodos"][indice_periodo]
+            len_periodo_anterior = (
+                tabela["len_periodos"][indice_periodo - 1] if indice_periodo >= 1 else 0
+            )
+            len_periodo_atual = tabela["len_periodos"][indice_periodo]
+            indice_inicial = (
+                indice_periodo if indice_periodo == 0 else len_periodo_anterior
+            )
+            indice_final = (
+                len_periodo_atual
+                if indice_periodo == 0
+                else len_periodo_atual + len_periodo_anterior
+            )
+            categorias = tabela["categorias"][indice_inicial:indice_final]
+
             for idx_categoria, categoria in enumerate(categorias):
                 if categoria == "total":
                     break
@@ -3382,16 +3329,18 @@ def build_valores_campos(solicitacao, tabela):  # noqa C901
                     )
                     linha.append(str(quantidade))
 
-                    indice_total = indice_periodo * len_periodo + idx_categoria + 1
+                    indice_total = len_periodo_anterior + idx_categoria + 1
                     totais[indice_total] += quantidade
 
                 except ObjectDoesNotExist:
                     linha.append(0)
 
-            total = sum(int(val) for val in linha[-(len_periodo - 1) :] if val != 0)
+            total = sum(
+                int(val) for val in linha[-(len_periodo_atual - 1) :] if val != 0
+            )
             linha.append(str(total))
 
-            totais[1 + indice_periodo * len_periodo + (len_periodo - 1)] += total
+            totais[len_periodo_atual + len_periodo_anterior] += total
 
         valores_campos.append(linha)
 
