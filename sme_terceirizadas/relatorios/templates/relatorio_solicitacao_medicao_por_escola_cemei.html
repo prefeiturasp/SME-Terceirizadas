@@ -386,7 +386,7 @@
                       <th  class="categoria" >Total</th>
                   {% else %}
                       <th>
-                        {{ categoria|upper }}</th>
+                        {{ categoria|get_nome_categoria }}</th>
                   {% endif %}
               {% endfor %}
           </tr>
@@ -413,7 +413,7 @@
     </table>
   {% endfor %}
 
-  {% if tabelas_somatorios_infantil %}
+  {% if tabelas_somatorios_infantil.body %}
     <header class="header" style="page-break-before: always;">
       <div class="row p-0 mx-4">
         <div class="col-2">
@@ -455,24 +455,18 @@
     <table class="tabela-valores-medicao mt-3">
       <thead>
         <tr class="texto-branco">
-          <th class="col-2">TIPOS DE ALIMENTAÇÃO</th>
-          <th class="col-1">INTEGRAL</th>
-          <th class="col-1">MANHÃ</th>
-          <th class="col-1">TARDE</th>
-          <th class="col-2">SOLICITAÇÕES DE ALIMENTAÇÃO</th>
-          <th class="col-1">TOTAL</th>
+          {% for periodo in tabelas_somatorios_infantil.header %}
+            <th class="col-{{ periodo|get_colspan }}">{{periodo|get_nome_header}}</th>
+          {% endfor %}
         </tr>
       </thead>
 
       <tbody class="somatorio-infantil">
-        {% for row in tabelas_somatorios_infantil %}
+        {% for row in tabelas_somatorios_infantil.body %}
           <tr>
-            <td class="col-2">{{ row.0|safe }}</td>
-            <td class="col-1">{{ row.1|safe }}</td>
-            <td class="col-1">{{ row.2|safe }}</td>
-            <td class="col-1">{{ row.3|safe }}</td>
-            <td class="col-1">{{ row.4|safe }}</td>
-            <td class="col-2">{{ row.5|safe }}</td>
+            {% for periodo in tabelas_somatorios_infantil.header %}
+              <td class="col-{{ periodo|get_colspan }}">{{ row|get_element_by_index:forloop.counter0 }}</td>
+            {% endfor %}
           </tr>
         {% endfor %}
       <tr><td class="text-left info-abaixo-tabela" colspan="6">* A tabela acima representa a soma das alimentações laçadas em todos os períodos da UE</td></tr>

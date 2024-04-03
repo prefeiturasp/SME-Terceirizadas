@@ -23,7 +23,7 @@
                       <th  class="categoria" > Total do Dia</th>
                   {% else %}
                       <th>
-                        {{ categoria|upper }}</th>
+                        {{ categoria|get_nome_categoria }}</th>
                   {% endif %}
               {% endfor %}
           </tr>
