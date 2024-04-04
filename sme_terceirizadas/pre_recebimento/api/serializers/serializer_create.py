@@ -125,6 +125,12 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         queryset=FichaTecnicaDoProduto.objects.all(),
         allow_null=True,
     )
+    tipo_embalagem_secundaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=TipoEmbalagemQld.objects.all(),
+        required=False,
+        allow_null=True,
+    )
     custo_unitario_produto = serializers.FloatField(required=False)
 
     def gera_proximo_numero_cronograma(self):
