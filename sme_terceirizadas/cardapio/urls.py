@@ -72,7 +72,7 @@ router.register(
     "Motivos de não validação da DRE",
 )
 router.register(
-    'controle-sobras', 
+    'controle-sobras',
     viewsets.ControleSobrasViewSet,
     'controle-sobras'
 )

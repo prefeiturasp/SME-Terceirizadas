@@ -8,14 +8,14 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
             (mis.ano || '-' || mis.mes || '-' || miv.dia)::date as data_medicao,
             sum(case when miv.nome_campo = 'frequencia' then miv.valor::numeric else 0 end) as frequencia,
             sum(case when miv.tipo_alimentacao_id is not null then miv.valor::numeric else 0 end) as num_refeicoes
-        from medicao_inicial_solicitacaomedicaoinicial mis  
+        from medicao_inicial_solicitacaomedicaoinicial mis
         join medicao_inicial_medicao mim on mim.solicitacao_medicao_inicial_id = mis.id
         join medicao_inicial_valormedicao miv on miv.medicao_id = mim.id
         where (mis.ano || '-' || mis.mes || '-' || miv.dia)::date between %s::date and %s::date
         group by 1, 2
     ),
     restos as (
-        select cr.escola_id, cr.data_hora_medicao::date as data_medicao, 
+        select cr.escola_id, cr.data_hora_medicao::date as data_medicao,
             sum(cr.quantidade_distribuida) as quantidade_distribuida_soma,
             sum(cr.peso_resto) as peso_resto_soma
         from cardapio_controlerestos cr
@@ -24,9 +24,9 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
         [EXTRA_WHERE_CLAUSES]
         group by 1, 2
     )
-    select m.data_medicao, 
+    select m.data_medicao,
         dre.nome as dre_nome,
-        ee.nome as escola_nome, 
+        ee.nome as escola_nome,
         r.quantidade_distribuida_soma,
         r.peso_resto_soma,
         m.num_refeicoes,
@@ -43,14 +43,14 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
     with medicao as (
         select mis.escola_id, (mis.ano || '-' || mis.mes || '-' || miv.dia)::date as data_medicao,
             case
-                when miv.tipo_alimentacao_id is not null then miv.tipo_alimentacao_id 
+                when miv.tipo_alimentacao_id is not null then miv.tipo_alimentacao_id
                 when miv.nome_campo = 'repeticao_refeicao' then 2
                 when miv.nome_campo = 'repeticao_sobremesa' then 4
             else null end as tipo_alimentacao_id,
             sum(case when miv.nome_campo like 'repeticao_%%' then 0 else miv.valor::numeric end) as total_primeira_oferta,
             sum(case when miv.nome_campo like 'repeticao_%%' then miv.valor::numeric else 0 end) as total_repeticao,
             sum(miv.valor::numeric) as total_refeicao
-        from medicao_inicial_solicitacaomedicaoinicial mis  
+        from medicao_inicial_solicitacaomedicaoinicial mis
         join medicao_inicial_medicao mim on mim.solicitacao_medicao_inicial_id = mis.id
         join medicao_inicial_valormedicao miv on miv.medicao_id = mim.id
         where (miv.tipo_alimentacao_id is not null or miv.nome_campo ilike ('repeticao_%%'))
@@ -59,15 +59,15 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
     ),
     frequencia as (
         select mis.escola_id, (mis.ano || '-' || mis.mes || '-' || miv.dia)::date as data_medicao, sum(miv.valor::numeric) as frequencia
-        from medicao_inicial_solicitacaomedicaoinicial mis  
+        from medicao_inicial_solicitacaomedicaoinicial mis
         join medicao_inicial_medicao mim on mim.solicitacao_medicao_inicial_id = mis.id
         join medicao_inicial_valormedicao miv on miv.medicao_id = mim.id
-        where miv.nome_campo = 'frequencia' 
+        where miv.nome_campo = 'frequencia'
             and (mis.ano || '-' || mis.mes || '-' || miv.dia)::date between %s::date and %s::date
         group by 1, 2
     ),
     sobras as (
-        select cs.escola_id, cs.data_hora_medicao::date as data_medicao, 
+        select cs.escola_id, cs.data_hora_medicao::date as data_medicao,
             cs.tipo_alimentacao_id, ta.nome as tipo_alimento_nome,
             sum(cs.peso_alimento) as peso_alimento,
             sum(cs.peso_sobra) as peso_sobra
@@ -78,15 +78,15 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
         [EXTRA_WHERE_CLAUSES]
         group by 1, 2, 3, 4
     )
-    select m.data_medicao, 
+    select m.data_medicao,
         dre.nome as dre_nome,
-        ee.nome as escola_nome, 
-        ta.nome as tipo_alimentacao_nome, 
-        s.tipo_alimento_nome, 
-        coalesce((s.peso_alimento - s.peso_sobra), 0) as quantidade_distribuida, 
+        ee.nome as escola_nome,
+        ta.nome as tipo_alimentacao_nome,
+        s.tipo_alimento_nome,
+        coalesce((s.peso_alimento - s.peso_sobra), 0) as quantidade_distribuida,
         coalesce(s.peso_sobra, 0) as peso_sobra,
         coalesce(f.frequencia, 0) as frequencia,
-        coalesce(m.total_primeira_oferta, 0) as total_primeira_oferta, 
+        coalesce(m.total_primeira_oferta, 0) as total_primeira_oferta,
         coalesce(m.total_repeticao, 0) as total_repeticao,
         coalesce((s.peso_sobra / (s.peso_alimento - s.peso_sobra)), 0) as percentual_sobra,
         coalesce((s.peso_sobra / f.frequencia), 0) as media_por_aluno,
@@ -135,7 +135,7 @@ def obtem_dados_relatorio_controle_sobras(form_data, user):  # noqa C901
 
     data_inicial = form_data['data_inicial'].strftime('%Y-%m-%d')
     data_final = form_data['data_final'].strftime('%Y-%m-%d')
-    
+
     extra_arguments = [
         data_inicial, data_final,
         data_inicial, data_final,
@@ -160,12 +160,13 @@ def obtem_dados_relatorio_controle_sobras(form_data, user):  # noqa C901
 
     return rows
 
+
 def paginate_list(request, items_list, serializer, per_page=10):
     page = request.GET.get('page', 1)
     per_page = request.GET.get('per_page', per_page)
 
     paginator = Paginator(items_list, per_page)
-    
+
     try:
         paginated_items = paginator.page(page)
     except EmptyPage:

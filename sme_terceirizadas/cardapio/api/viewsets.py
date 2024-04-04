@@ -101,14 +101,15 @@ from .serializers.serializers_create import (
     VinculoTipoAlimentoCreateSerializer,
 )
 from ..forms import (
-  ControleSobrasForm, 
-  ControleSobrasRelatorioForm, 
-  ControleRestosForm, 
-  ControleRestosRelatorioForm
+    ControleSobrasForm,
+    ControleSobrasRelatorioForm,
+    ControleRestosForm,
+    ControleRestosRelatorioForm
 )
 
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
+
 
 class CustomPagination(PageNumberPagination):
     page = DEFAULT_PAGE
@@ -1609,6 +1610,7 @@ class MotivosDRENaoValidaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MotivoDRENaoValida.objects.all()
     serializer_class = MotivoDRENaoValidaSerializer
 
+
 class ControleSobrasViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = ControleSobras.objects.all()
@@ -1637,7 +1639,7 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
         form = ControleSobrasForm(self.request.GET)
         if not form.is_valid():
             raise ValidationError(form.errors)
-    
+
         user = self.request.user
 
         qs = ControleSobras.objects.all().order_by('-criado_em')
@@ -1653,7 +1655,7 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
 
         return qs.distinct()
 
-    @action(detail=False, 
+    @action(detail=False,
             methods=['GET'],
             url_path=f'{constants.RELATORIO}')
     def relatorio(self, request):
@@ -1664,8 +1666,8 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
         rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
         data = paginate_list(request, rows, serializer=serialize_relatorio_controle_sobras)
         return Response(data)
-    
-    @action(detail=False, 
+
+    @action(detail=False,
             methods=['GET'],
             url_path=f'{constants.RELATORIO}/exportar-xlsx')
     def relatorio_exportar_xlsx(self, request):
@@ -1677,7 +1679,7 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
         user = request.user.get_username()
         gera_xls_relatorio_controle_sobras_async.delay(
             user=user,
-            nome_arquivo=f'relatorio_controle_sobras.xlsx',
+            nome_arquivo='relatorio_controle_sobras.xlsx',
             data=rows,
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
@@ -1685,6 +1687,7 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
 
     class Meta:
         model = ControleSobras
+
 
 class ControleRestosViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -1714,7 +1717,7 @@ class ControleRestosViewSet(viewsets.ModelViewSet):
         form = ControleRestosForm(self.request.GET)
         if not form.is_valid():
             raise ValidationError(form.errors)
-    
+
         user = self.request.user
 
         qs = ControleRestos.objects.all().order_by('-criado_em')
@@ -1729,8 +1732,8 @@ class ControleRestosViewSet(viewsets.ModelViewSet):
             qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
 
         return qs.distinct()
-    
-    @action(detail=False, 
+
+    @action(detail=False,
             methods=['GET'],
             url_path=f'{constants.RELATORIO}')
     def relatorio(self, request):
@@ -1742,7 +1745,7 @@ class ControleRestosViewSet(viewsets.ModelViewSet):
         data = paginate_list(request, rows, serializer=serialize_relatorio_controle_restos)
         return Response(data)
 
-    @action(detail=False, 
+    @action(detail=False,
             methods=['GET'],
             url_path=f'{constants.RELATORIO}/exportar-xlsx')
     def relatorio_exportar_xlsx(self, request):
@@ -1754,7 +1757,7 @@ class ControleRestosViewSet(viewsets.ModelViewSet):
         user = request.user.get_username()
         gera_xls_relatorio_controle_restos_async.delay(
             user=user,
-            nome_arquivo=f'relatorio_controle_restos.xlsx',
+            nome_arquivo='relatorio_controle_restos.xlsx',
             data=rows,
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),

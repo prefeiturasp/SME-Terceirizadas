@@ -107,7 +107,7 @@ from .filters import (
     ProdutoFilter,
     filtros_produto_reclamacoes,
 )
-from .filters import CadastroProdutosEditalFilter, ItemCadastroFilter, ProdutoFilter, TipoRecipienteFilter, TipoAlimentoFilter, filtros_produto_reclamacoes
+from .filters import TipoRecipienteFilter, TipoAlimentoFilter
 from .serializers.serializers import (
     CadastroProdutosEditalSerializer,
     EmbalagemProdutoSerialzer,
@@ -3700,6 +3700,7 @@ class EmbalagemProdutoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})
 
+
 class TipoRecipienteViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoRecipienteSerializer
@@ -3736,7 +3737,8 @@ class TipoRecipienteViewSet(viewsets.ModelViewSet):
 
     class Meta:
         model = TipoRecipiente
-    
+
+
 class TipoAlimentoViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoAlimentoSerializer

@@ -23,8 +23,6 @@ from sme_terceirizadas.dados_comuns.utils import (
 )
 
 from .api.serializers.serializers import serialize_relatorio_controle_restos, serialize_relatorio_controle_sobras
-from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEI_DIRET
-from ..escola.models import AlunosMatriculadosPeriodoEscola, EscolaPeriodoEscolar, PeriodoEscolar, TipoUnidadeEscolar
 from .models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 
 logger = logging.getLogger("sigpae.taskCardapio")
@@ -112,14 +110,15 @@ def gera_xls_relatorio_controle_restos_async(user, nome_arquivo, data):
     try:
         output = io.BytesIO()
 
-        titulos_colunas = ['DRE', 'Unidade Educacional', 'Data da Medição', 
-            'Quantidade Distribuída', 'Peso do Resto (Kg)', 'Nº Refeições', 
+        titulos_colunas = [
+            'DRE', 'Unidade Educacional', 'Data da Medição',
+            'Quantidade Distribuída', 'Peso do Resto (Kg)', 'Nº Refeições',
             'Resto per Capita', '% Resto']
         build_xlsx_generico(
             output,
             queryset_serializada=[serialize_relatorio_controle_restos(item) for item in data],
             titulo='Relatório de Controle de Restos',
-            titulo_sheet=f'Relatório',
+            titulo_sheet='Relatório',
             titulos_colunas=titulos_colunas,
         )
 
@@ -128,6 +127,7 @@ def gera_xls_relatorio_controle_restos_async(user, nome_arquivo, data):
         atualiza_central_download_com_erro(obj_central_download, str(e))
 
     logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+
 
 @shared_task(
     retry_backoff=2,
@@ -141,15 +141,16 @@ def gera_xls_relatorio_controle_sobras_async(user, nome_arquivo, data):
     try:
         output = io.BytesIO()
 
-        titulos_colunas = ['DRE', 'Unidade Educacional', 'Tipo de Alimentação', 'Tipo de Alimento'
-            'Data da Medição', 'Peso da Refeição Distribuída (Kg)', 'Peso da Sobra (Kg)', 
+        titulos_colunas = [
+            'DRE', 'Unidade Educacional', 'Tipo de Alimentação', 'Tipo de Alimento',
+            'Data da Medição', 'Peso da Refeição Distribuída (Kg)', 'Peso da Sobra (Kg)',
             'Total de Alunos (frequência)', 'Total Primeira Oferta', 'Total Segunda Oferta (Repetição)',
             '% Sobra', 'Média por Aluno', 'Média por Refeição']
         build_xlsx_generico(
             output,
             queryset_serializada=[serialize_relatorio_controle_sobras(item) for item in data],
             titulo='Relatório de Controle de Sobras',
-            titulo_sheet=f'Relatório',
+            titulo_sheet='Relatório',
             titulos_colunas=titulos_colunas,
         )
 

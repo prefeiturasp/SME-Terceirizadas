@@ -1479,6 +1479,7 @@ class MotivoDRENaoValida(
         verbose_name = 'Motivo de não validação da DRE'
         verbose_name_plural = 'Motivos de não validação da DRE'
 
+
 class ControleSobras(TemChaveExterna, CriadoEm):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     tipo_alimentacao = models.ForeignKey(TipoAlimentacao, on_delete=models.DO_NOTHING)
@@ -1492,6 +1493,7 @@ class ControleSobras(TemChaveExterna, CriadoEm):
 
     class Meta:
         verbose_name = 'Controle de Sobras'
+
 
 class ControleRestos(TemChaveExterna, CriadoEm):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
@@ -1509,6 +1511,7 @@ class ControleRestos(TemChaveExterna, CriadoEm):
 
     class Meta:
         verbose_name = 'Controle de Restos'
+
 
 class ImagemControleResto(TemChaveExterna):
     controle_resto = models.ForeignKey('ControleRestos', on_delete=models.CASCADE, blank=True)

@@ -67,14 +67,14 @@ router.register(
     basename="embalagens-produto",
 )
 router.register(
-  'tipos-recipiente', 
-  viewsets.TipoRecipienteViewSet, 
-  basename='tipos-recipiente'
+    "tipos-recipiente",
+    viewsets.TipoRecipienteViewSet,
+    basename="tipos-recipiente"
 )
 router.register(
-  'tipos-alimento', 
-  viewsets.TipoAlimentoViewSet, 
-  basename='tipos-alimento'
+    "tipos-alimento",
+    viewsets.TipoAlimentoViewSet,
+    basename="tipos-alimento"
 )
 
 urlpatterns = [

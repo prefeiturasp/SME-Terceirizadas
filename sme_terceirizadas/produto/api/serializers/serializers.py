@@ -267,15 +267,18 @@ class EmbalagemProdutoSerialzer(serializers.ModelSerializer):
         model = EmbalagemProduto
         fields = ("uuid", "nome")
 
+
 class TipoRecipienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoRecipiente
         fields = ('uuid', 'id', 'nome')
 
+
 class TipoAlimentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoAlimento
         fields = ('uuid', 'id', 'nome')
+
 
 class EspecificacaoProdutoSerializer(serializers.ModelSerializer):
     unidade_de_medida = UnidadeMedidaSerialzer()
