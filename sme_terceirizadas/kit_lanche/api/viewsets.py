@@ -60,14 +60,16 @@ class KitLancheViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = models.KitLanche.objects.all()
         user = self.request.user
+
         if user.tipo_usuario in ["escola", "diretoriaregional"]:
-            queryset = queryset.filter(
-                edital__uuid__in=user.vinculo_atual.instituicao.editais
-            )
-            if user.tipo_usuario == "escola":
+            instituicao = user.vinculo_atual.instituicao
+            queryset = queryset.filter(edital__uuid__in=instituicao.editais)
+            if user.tipo_usuario == "escola" and not instituicao.eh_cemei:
+                queryset = queryset.filter(tipos_unidades=instituicao.tipo_unidade)
+            elif user.tipo_usuario == "escola" and instituicao.eh_cemei:
                 queryset = queryset.filter(
-                    tipos_unidades=user.vinculo_atual.instituicao.tipo_unidade
-                )
+                    tipos_unidades__iniciais__in=["CEI DIRET", "EMEI"]
+                ).distinct()
         return queryset
 
     def list(self, request, *args, **kwargs):
