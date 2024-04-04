@@ -22,6 +22,7 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEDietaEspecial,
     UsuarioCODAEGabinete,
     UsuarioCODAEGestaoAlimentacao,
+    UsuarioCODAERelatorios,
     UsuarioDiretoriaRegional,
     UsuarioNutricionista,
     UsuarioTerceirizada,
@@ -60,7 +61,13 @@ from ..tasks import (
     gera_pdf_relatorio_solicitacoes_alimentacao_async,
     gera_xls_relatorio_solicitacoes_alimentacao_async,
 )
-from ..utils.datasets_graficos_relatorio_ga import get_dataset_grafico_total_dre_lote
+from ..utils.datasets_graficos_relatorio_ga import (
+    get_dataset_grafico_total_dre_lote,
+    get_dataset_grafico_total_status,
+    get_dataset_grafico_total_terceirizadas,
+    get_dataset_grafico_total_tipo_solicitacao,
+    get_dataset_grafico_total_tipo_unidade,
+)
 from ..utils.totalizadores_relatorio_ga import (
     totalizador_lote,
     totalizador_periodo,
@@ -275,6 +282,18 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         datasets = get_dataset_grafico_total_dre_lote(
             datasets, request, model, instituicao, queryset
         )
+        datasets = get_dataset_grafico_total_tipo_solicitacao(
+            datasets, request, model, queryset
+        )
+        datasets = get_dataset_grafico_total_status(
+            datasets, request, model, instituicao
+        )
+        datasets = get_dataset_grafico_total_tipo_unidade(
+            datasets, request, model, instituicao, queryset
+        )
+        datasets = get_dataset_grafico_total_terceirizadas(
+            datasets, request, model, instituicao, queryset
+        )
 
         return datasets
 
@@ -432,7 +451,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioCODAEDietaEspecial,),
+        permission_classes=[UsuarioCODAEDietaEspecial | UsuarioCODAERelatorios],
         url_name="anos-com-dietas",
         url_path="anos-com-dietas",
     )
@@ -450,7 +469,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioCODAEDietaEspecial,),
+        permission_classes=[UsuarioCODAEDietaEspecial | UsuarioCODAERelatorios],
         url_name="totais-gerencial-dietas",
         url_path="totais-gerencial-dietas",
     )

@@ -2248,8 +2248,7 @@ def test_url_documentos_de_recebimento_analisar_documento(
         "laboratorio": str(laboratorio.uuid),
         "quantidade_laudo": 10.5,
         "unidade_medida": str(unidade_medida.uuid),
-        "data_fabricacao_lote": str(datetime.date.today()),
-        "validade_produto": str(datetime.date.today()),
+        "numero_lote_laudo": "001",
         "data_final_lote": str(datetime.date.today()),
         "saldo_laudo": 5.5,
     }
@@ -2268,8 +2267,7 @@ def test_url_documentos_de_recebimento_analisar_documento(
     assert documento.laboratorio == laboratorio
     assert documento.quantidade_laudo == 10.5
     assert documento.unidade_medida == unidade_medida
-    assert documento.data_fabricacao_lote == datetime.date.today()
-    assert documento.validade_produto == datetime.date.today()
+    assert documento.numero_lote_laudo == "001"
     assert documento.data_final_lote == datetime.date.today()
     assert documento.saldo_laudo == 5.5
 
@@ -3140,6 +3138,31 @@ def test_url_ficha_tecnica_lista_simples_sem_layout_embalagem(
 
     response = client_autenticado_fornecedor.get(
         "/ficha-tecnica/lista-simples-sem-layout-embalagem/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(fichas) - FICHAS_VINCULADAS
+
+
+def test_url_ficha_tecnica_lista_simples_sem_questoes_conferencia(
+    client_autenticado_qualidade,
+    ficha_tecnica_factory,
+    empresa,
+    questoes_por_produto_factory,
+):
+    FICHAS_VINCULADAS = 5
+
+    fichas = ficha_tecnica_factory.create_batch(
+        size=10,
+        status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        empresa=empresa,
+    )
+
+    for ficha in fichas[:FICHAS_VINCULADAS]:
+        questoes_por_produto_factory(ficha_tecnica=ficha)
+
+    response = client_autenticado_qualidade.get(
+        "/ficha-tecnica/lista-simples-sem-questoes-conferencia/"
     )
 
     assert response.status_code == status.HTTP_200_OK

@@ -6,6 +6,8 @@ from rest_framework import status
 from ...dados_comuns.constants import SEM_FILTRO
 from ...eol_servico.utils import EOLService
 from ...escola.__tests__.conftest import mocked_informacoes_escola_turma_aluno
+from ...escola.models import TipoUnidadeEscolar
+from ...terceirizada.models import Terceirizada
 from ..api.constants import (
     AGUARDANDO_CODAE,
     AUTORIZADOS,
@@ -805,7 +807,7 @@ def test_filtrar_solicitacoes_ga_graficos(
         data=data,
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == []
+    assert len(response.json()[0]["labels"]) == 6
 
     data = {"status": "AUTORIZADOS", "lotes": [escola.lote.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
@@ -815,3 +817,62 @@ def test_filtrar_solicitacoes_ga_graficos(
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()[0]["labels"]) == 1
+
+
+def test_filtrar_solicitacoes_ga_graficos_tipo_unidade(
+    client_autenticado_codae_gestao_alimentacao,
+    escola,
+    escola_outro_lote,
+    solicitacoes_kit_lanche_autorizadas,
+    inclusoes_normais,
+):
+    data = {"status": "AUTORIZADOS"}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert (
+        response.json()[3]["datasets"][0]["label"]
+        == "Total de Solicitações Autorizadas por Tipo de Unidade"
+    )
+    assert (
+        len(response.json()[3]["labels"])
+        == TipoUnidadeEscolar.objects.filter(
+            pertence_relatorio_solicitacoes_alimentacao=True
+        ).count()
+    )
+
+    data = {"status": "AUTORIZADOS", "tipos_unidade": [escola.tipo_unidade.uuid]}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()[3]["labels"]) == 1
+
+
+def test_filtrar_solicitacoes_ga_graficos_empresa_terceirizada_codae(
+    client_autenticado_codae_gestao_alimentacao,
+    escola,
+    escola_outro_lote,
+    solicitacoes_kit_lanche_autorizadas,
+    inclusoes_normais,
+):
+    data = {"status": "AUTORIZADOS"}
+    response = client_autenticado_codae_gestao_alimentacao.post(
+        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert (
+        response.json()[4]["datasets"][0]["label"]
+        == "Total de Solicitações Autorizadas por Empresa Terceirizada"
+    )
+    assert (
+        len(response.json()[4]["labels"])
+        == Terceirizada.objects.filter(tipo_empresa=Terceirizada.TERCEIRIZADA).count()
+    )

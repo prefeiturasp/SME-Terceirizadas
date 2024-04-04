@@ -95,5 +95,10 @@ router.register(
 )
 router.register("dias-suspensao-atividades", viewsets.DiaSuspensaoAtividadesViewSet)
 router.register("grupos-unidade-escolar", viewsets.GrupoUnidadeEscolarViewSet)
+router.register(
+    "relatorio-controle-frequencia",
+    viewsets.RelatorioControleDeFrequenciaViewSet,
+    basename="relatorio-controle-frequencia",
+)
 
 urlpatterns = [path("", include(router.urls))]

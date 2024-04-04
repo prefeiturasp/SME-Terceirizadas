@@ -19,6 +19,7 @@ from .models import (
     GrupoUnidadeEscolar,
     HistoricoMatriculaAluno,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunoPorDia,
     LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
     LogAtualizaDadosAluno,
@@ -283,6 +284,41 @@ class LogAlunosMatriculadosFaixaEtariaDiaAdmin(admin.ModelAdmin):
     ordering = ("-criado_em", "escola__nome")
 
 
+@admin.register(LogAlunoPorDia)
+class LogAlunoPorDiaAdmin(admin.ModelAdmin):
+    list_display = (
+        "aluno",
+        "get_escola",
+        "get_periodo",
+        "get_faixa_etaria",
+        "get_data",
+        "criado_em",
+    )
+    search_fields = (
+        "aluno__nome",
+        "aluno__codigo_eol",
+        "log_alunos_matriculados_faixa_dia__escola__nome",
+    )
+    list_filter = (("log_alunos_matriculados_faixa_dia__data", DateRangeFilter),)
+    ordering = ("-criado_em",)
+
+    @admin.display(description="Escola")
+    def get_escola(self, obj):
+        return obj.log_alunos_matriculados_faixa_dia.escola.nome
+
+    @admin.display(description="Período")
+    def get_periodo(self, obj):
+        return obj.log_alunos_matriculados_faixa_dia.periodo_escolar.nome
+
+    @admin.display(description="Faixa Etária")
+    def get_faixa_etaria(self, obj):
+        return obj.log_alunos_matriculados_faixa_dia.faixa_etaria
+
+    @admin.display(description="Data")
+    def get_data(self, obj):
+        return obj.log_alunos_matriculados_faixa_dia.data
+
+
 @admin.register(DiaCalendario)
 class DiaCalendarioAdmin(admin.ModelAdmin):
     list_display = ("escola", "data", "dia_letivo", "__str__")
@@ -300,7 +336,7 @@ class PeriodoEscolarAdmin(admin.ModelAdmin):
 @admin.register(HistoricoMatriculaAluno)
 class HistoricoMatriculaAlunoAdmin(admin.ModelAdmin):
     list_display = ("aluno", "escola", "data_inicio", "data_fim", "situacao")
-    search_fields = ("aluno__nome", "escola__nome")
+    search_fields = ("aluno__nome", "escola__nome", "aluno__codigo_eol")
     list_filter = (
         "situacao",
         "escola__diretoria_regional",
