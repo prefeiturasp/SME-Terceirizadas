@@ -1307,7 +1307,7 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         solicitacao_medicao_inicial=solicitacao_medicao,
         grupo=grupo_programas_e_projetos,
     )
-    mommy.make(
+    medicao_etec = mommy.make(
         "Medicao", solicitacao_medicao_inicial=solicitacao_medicao, grupo=grupo_etec
     )
     mommy.make(
@@ -1323,7 +1323,7 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
             dia_letivo=False,
         )
 
-    for medicao_ in [medicao_manha, medicao_programas_projetos]:
+    for medicao_ in [medicao_manha, medicao_programas_projetos, medicao_etec]:
         for dia in range(1, 31):
             for nome_campo in [
                 "numero_de_alunos",

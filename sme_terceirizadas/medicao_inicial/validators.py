@@ -75,10 +75,24 @@ def buscar_valores_lancamento_alimentacoes(
             .exclude(valor=None)
             .values_list("dia", flat=True)
         )
+        permissoes_especiais = get_permissoes_especiais_da_solicitacao(
+            solicitacao, solicitacao.escola, periodo_escolar
+        )
+        permissoes_especiais_agrupadas_por_dia = agrupa_permissoes_especiais_por_dia(
+            permissoes_especiais, solicitacao.mes, solicitacao.ano
+        )
         valores_da_medicao = list(set(valores_da_medicao))
         if len(valores_da_medicao) != len(dias_letivos):
             diferenca = list(set(dias_letivos) - set(valores_da_medicao))
             for dia_sem_preenchimento in diferenca:
+                if nome_campo in ALIMENTACOES_LANCAMENTOS_ESPECIAIS and (
+                    (
+                        not permissoes_especiais_agrupadas_por_dia.get(
+                            dia_sem_preenchimento
+                        )
+                    )
+                ):
+                    continue
                 valor_observacao = ValorMedicao.objects.filter(
                     medicao__solicitacao_medicao_inicial=solicitacao,
                     nome_campo="observacao",
@@ -86,8 +100,9 @@ def buscar_valores_lancamento_alimentacoes(
                     dia=dia_sem_preenchimento,
                     categoria_medicao=categoria_medicao,
                 ).exclude(valor=None)
-                if not valor_observacao:
-                    periodo_com_erro = True
+                periodo_com_erro = checa_valor_observacao(
+                    valor_observacao, periodo_com_erro
+                )
     if periodo_com_erro:
         lista_erros.append(
             {
@@ -228,6 +243,22 @@ def lista_erros_com_periodo(lista_erros, medicao, tipo_erro):
     )
 
 
+def get_quantidade_dietas_autorizadas(medicao, ano, mes, dia, faixa_etaria):
+    escola = medicao.solicitacao_medicao_inicial.escola
+    periodo = medicao.periodo_escolar
+    quantidade_dietas_autorizadas = sum(
+        LogQuantidadeDietasAutorizadasCEI.objects.filter(
+            escola=escola,
+            data__month=mes,
+            data__year=ano,
+            data__day=dia,
+            periodo_escolar=periodo,
+            faixa_etaria=faixa_etaria,
+        ).values_list("quantidade", flat=True)
+    )
+    return quantidade_dietas_autorizadas
+
+
 def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
     faixas_etarias,
     lista_erros,
@@ -265,7 +296,10 @@ def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
             None,
         )
         quantidade = log[QUANTIDADE_INDEX] if log else 0
-        if quantidade == 0:
+        quantidade_dietas_autorizadas = get_quantidade_dietas_autorizadas(
+            medicao, ano, mes, dia, faixa_etaria
+        )
+        if quantidade == 0 or (quantidade - quantidade_dietas_autorizadas == 0):
             continue
         valor_medicao = next(
             (
@@ -2304,7 +2338,10 @@ def valida_alimentacoes_solicitacoes_continuas(
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
-            or not escola.calendario.filter(data=data).first().dia_letivo
+            or (
+                not inclusoes_filtradas.exists()
+                and not escola.calendario.filter(data=data).first().dia_letivo
+            )
         ):
             continue
         periodo_com_erro = valida_campo_a_campo_alimentacao_continua(
@@ -2498,7 +2535,10 @@ def valida_dietas_solicitacoes_continuas(
             if (
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
-                or not escola.calendario.filter(data=data).first().dia_letivo
+                or (
+                    not inclusoes_filtradas.exists()
+                    and not escola.calendario.filter(data=data).first().dia_letivo
+                )
             ):
                 continue
             periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
