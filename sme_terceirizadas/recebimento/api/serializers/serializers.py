@@ -13,3 +13,12 @@ class QuestaoConferenciaSerializer(serializers.ModelSerializer):
             "pergunta_obrigatoria",
             "posicao",
         )
+
+
+class QuestaoConferenciaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestaoConferencia
+        fields = (
+            "uuid",
+            "questao",
+        )
