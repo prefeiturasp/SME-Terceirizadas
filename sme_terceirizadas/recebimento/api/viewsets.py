@@ -1,4 +1,5 @@
 from rest_framework import mixins, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from sme_terceirizadas.dados_comuns.permissions import (
@@ -6,7 +7,10 @@ from sme_terceirizadas.dados_comuns.permissions import (
 )
 
 from ..models import QuestaoConferencia, QuestoesPorProduto
-from .serializers.serializers import QuestaoConferenciaSerializer
+from .serializers.serializers import (
+    QuestaoConferenciaSerializer,
+    QuestaoConferenciaSimplesSerializer,
+)
 from .serializers.serializers_create import QuestoesPorProdutoCreateSerializer
 
 
@@ -37,6 +41,13 @@ class QuestoesConferenciaModelViewSet(viewsets.ReadOnlyModelViewSet):
                 }
             }
         )
+
+    @action(detail=False, methods=["GET"], url_path="lista-simples-questoes")
+    def lista_simples_questoes(self, request):
+        questoes = self.get_queryset()
+        serializer = QuestaoConferenciaSimplesSerializer(questoes, many=True).data
+        response = {"results": serializer}
+        return Response(response)
 
 
 class QuestoesPorProdutoModelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
