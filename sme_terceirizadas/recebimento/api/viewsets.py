@@ -1,4 +1,5 @@
-from rest_framework import mixins, viewsets
+from django_filters import rest_framework as filters
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -6,10 +7,13 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarQuestoesConferencia,
 )
 
+from ...dados_comuns.api.paginations import DefaultPagination
 from ..models import QuestaoConferencia, QuestoesPorProduto
+from .filters import QuestoesPorProdutoFilter
 from .serializers.serializers import (
     QuestaoConferenciaSerializer,
     QuestaoConferenciaSimplesSerializer,
+    QuestoesPorProdutoSerializer,
 )
 from .serializers.serializers_create import QuestoesPorProdutoCreateSerializer
 
@@ -50,8 +54,17 @@ class QuestoesConferenciaModelViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(response)
 
 
-class QuestoesPorProdutoModelViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class QuestoesPorProdutoModelViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
-    queryset = QuestoesPorProduto.objects.all()
+    queryset = QuestoesPorProduto.objects.all().order_by("-criado_em")
     permission_classes = (PermissaoParaVisualizarQuestoesConferencia,)
-    serializer_class = QuestoesPorProdutoCreateSerializer
+    serializer_class = QuestoesPorProdutoSerializer
+    pagination_class = DefaultPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = QuestoesPorProdutoFilter
+
+    def get_serializer_class(self):
+        if self.action in ["retrieve", "list"]:
+            return QuestoesPorProdutoSerializer
+        else:
+            return QuestoesPorProdutoCreateSerializer
