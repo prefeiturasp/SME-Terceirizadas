@@ -47,6 +47,13 @@ def _questoes_ordenadas(questoes):
     )
 
 
+def test_url_questoes_conferencia_lista_simples(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get(
+        "/questoes-conferencia/lista-simples-questoes/"
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_url_questoes_por_produto_create(
     client_autenticado_qualidade,
     payload_questoes_por_produto,
@@ -67,3 +74,12 @@ def test_url_questoes_por_produto_create(
     assert questoes_por_produto.questoes_secundarias.count() == len(
         payload_questoes_por_produto["questoes_secundarias"]
     )
+
+
+def test_url_questoes_por_produto_list(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get("/questoes-por-produto/")
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert "count" in json
+    assert "next" in json
+    assert "previous" in json
