@@ -2435,6 +2435,17 @@ def get_nomes_campos_categoria(nomes_campos, classificacao, categorias):
     return nomes_campos, categoria
 
 
+def inclusoes_tem_lanche_4h(inclusoes_filtradas):
+    tipos_alimentacao = []
+    for inclusao in inclusoes_filtradas:
+        for qp in inclusao.quantidades_por_periodo.all():
+            [
+                tipos_alimentacao.append(tipo_alimentacao.nome)
+                for tipo_alimentacao in qp.tipos_alimentacao.all()
+            ]
+    return "Lanche 4h" in tipos_alimentacao
+
+
 def tratar_nomes_campos_periodo_com_erro(
     nomes_campos,
     medicao_programas_projetos,
@@ -2442,9 +2453,15 @@ def tratar_nomes_campos_periodo_com_erro(
     dia,
     eh_ceu_gestao,
     periodo_com_erro_dieta,
+    inclusoes_filtradas,
     infantil_ou_fundamental=ValorMedicao.NA,
 ):
     for nome_campo in nomes_campos:
+        if (
+            not inclusoes_tem_lanche_4h(inclusoes_filtradas)
+            and nome_campo == "lanche_4h"
+        ):
+            continue
         if not medicao_programas_projetos.valores_medicao.filter(
             categoria_medicao=categoria,
             nome_campo=nome_campo,
@@ -2548,6 +2565,7 @@ def valida_dietas_solicitacoes_continuas(
                 dia,
                 eh_ceu_gestao,
                 periodo_com_erro_dieta,
+                inclusoes_filtradas,
                 infantil_ou_fundamental,
             )
     return periodo_com_erro_dieta
@@ -2622,6 +2640,7 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
                 dia,
                 eh_ceu_gestao,
                 periodo_com_erro_dieta,
+                inclusoes_filtradas,
             )
     return periodo_com_erro_dieta
 
