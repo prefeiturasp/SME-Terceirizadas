@@ -97,6 +97,7 @@ from .serializers import (
     EmpenhoSerializer,
     MedicaoSerializer,
     OcorrenciaMedicaoInicialSerializer,
+    ParametrizacaoFinanceiraSerializer,
     PermissaoLancamentoEspecialSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
@@ -1738,4 +1739,4 @@ class ParametrizacaoFinanceiraViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return ParametrizacaoFinanceiraWriteModelSerializer
-        return None
+        return ParametrizacaoFinanceiraSerializer

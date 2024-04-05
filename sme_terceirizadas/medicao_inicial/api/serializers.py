@@ -16,6 +16,7 @@ from sme_terceirizadas.escola.api.serializers import (
     EscolaSimplissimaSerializer,
     PeriodoEscolarSerializer,
     TipoUnidadeEscolarSerializer,
+    TipoUnidadeEscolarSimplesSerializer,
 )
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
@@ -26,6 +27,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     Empenho,
     Medicao,
     OcorrenciaMedicaoInicial,
+    ParametrizacaoFinanceira,
     PermissaoLancamentoEspecial,
     Responsavel,
     SolicitacaoMedicaoInicial,
@@ -35,6 +37,7 @@ from sme_terceirizadas.medicao_inicial.models import (
 from sme_terceirizadas.perfil.api.serializers import UsuarioSerializer
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     EditalSimplesSerializer,
+    LoteSimplesSerializer,
 )
 
 
@@ -270,4 +273,15 @@ class ClausulaDeDescontoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClausulaDeDesconto
+        exclude = ("id", "criado_em", "alterado_em")
+
+
+class ParametrizacaoFinanceiraSerializer(serializers.ModelSerializer):
+    edital = EditalSimplesSerializer()
+    dre = serializers.CharField(source="lote.diretoria_regional.nome")
+    lote = LoteSimplesSerializer()
+    tipos_unidades = TipoUnidadeEscolarSimplesSerializer(many=True)
+
+    class Meta:
+        model = ParametrizacaoFinanceira
         exclude = ("id", "criado_em", "alterado_em")
