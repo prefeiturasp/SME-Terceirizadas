@@ -1133,7 +1133,6 @@ class PermissaoParaVisualizarGuiasComOcorrencias(BasePermission):
                         ADMINISTRADOR_CODAE_DILOG_JURIDICO,
                         COORDENADOR_CODAE_DILOG_LOGISTICA,
                         COORDENADOR_LOGISTICA,
-                        DILOG_QUALIDADE,
                         ADMINISTRADOR_CODAE_GABINETE,
                         DILOG_DIRETORIA,
                     ]
