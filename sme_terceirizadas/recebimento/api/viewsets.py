@@ -48,7 +48,7 @@ class QuestoesConferenciaModelViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["GET"], url_path="lista-simples-questoes")
     def lista_simples_questoes(self, request):
-        questoes = self.get_queryset()
+        questoes = self.get_queryset().order_by("questao").distinct("questao")
         serializer = QuestaoConferenciaSimplesSerializer(questoes, many=True).data
         response = {"results": serializer}
         return Response(response)
