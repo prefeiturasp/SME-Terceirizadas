@@ -8,7 +8,10 @@ from weasyprint import HTML
 
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
 from sme_terceirizadas.escola.models import Escola
-from sme_terceirizadas.escola.utils import formata_periodos_pdf_controle_frequencia
+from sme_terceirizadas.escola.utils import (
+    formata_periodos_pdf_controle_frequencia,
+    trata_filtro_data_relatorio_controle_frequencia_pdf,
+)
 from sme_terceirizadas.medicao_inicial.utils import (
     get_data_relatorio,
     get_pdf_merge_cabecalho,
@@ -37,8 +40,9 @@ def gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid):
         int(ano),
         int(mes),
     )
-    filtros["data__gte"] = query_params.get("data_inicial", f"{ano}-{mes}-{'01'}")
-    filtros["data__lte"] = query_params.get("data_final", f"{ano}-{mes}-{num_dias}")
+    mes_seguinte = trata_filtro_data_relatorio_controle_frequencia_pdf(
+        filtros, query_params, ano, mes, num_dias
+    )
 
     queryset = get_queryset_filtrado(
         vs_relatorio_controle, queryset, filtros, periodos_uuids
@@ -50,7 +54,7 @@ def gera_relatorio_controle_frequencia_pdf(query_params, escola_uuid):
     total_matriculados = qtd_matriculados["total_matriculados"]
 
     periodos = formata_periodos_pdf_controle_frequencia(
-        qtd_matriculados, queryset, query_params, escola
+        qtd_matriculados, queryset, query_params, escola, mes_seguinte
     )
 
     data_relatorio = get_data_relatorio(query_params)
