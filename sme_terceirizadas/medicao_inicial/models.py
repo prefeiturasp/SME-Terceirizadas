@@ -544,6 +544,7 @@ class ParametrizacaoFinanceira(TemChaveExterna, CriadoEm, TemAlteradoEm):
     class Meta:
         verbose_name = "Parametrização Financeira"
         verbose_name_plural = "Parametrizações Financeiras"
+        ordering = ["-alterado_em"]
 
 
 class ParametrizacaoFinanceiraTabela(TemChaveExterna, CriadoEm, TemAlteradoEm):
