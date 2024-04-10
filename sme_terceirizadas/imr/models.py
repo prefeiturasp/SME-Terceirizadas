@@ -1,6 +1,13 @@
 from django.db import models
 
-from ..dados_comuns.behaviors import CriadoPor, ModeloBase
+from ..dados_comuns.behaviors import (
+    Ativavel,
+    CriadoPor,
+    ModeloBase,
+    Nomeavel,
+    PerfilDiretorSupervisao,
+    Posicao,
+)
 
 
 class TipoGravidade(ModeloBase):
@@ -54,3 +61,39 @@ class ObrigacaoPenalidade(ModeloBase):
     class Meta:
         verbose_name = "Obrigação da Penalidade"
         verbose_name_plural = "Obrigações das Penalidades"
+
+
+class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao):
+    def __str__(self):
+        return f"{self.nome}"
+
+    class Meta:
+        verbose_name = "Categoria das Ocorrências"
+        verbose_name_plural = "Categorias das Ocorrências"
+
+
+class TipoOcorrencia(ModeloBase, CriadoPor, Posicao, PerfilDiretorSupervisao, Ativavel):
+    edital = models.ForeignKey(
+        "terceirizada.Edital",
+        on_delete=models.PROTECT,
+        related_name="tipos_ocorrencia",
+    )
+    categoria = models.ForeignKey(
+        CategoriaOcorrencia,
+        on_delete=models.PROTECT,
+        related_name="tipos_ocorrencia",
+    )
+    titulo = models.CharField("Titulo", max_length=100)
+    descricao = models.CharField("Descrição", max_length=500)
+    penalidade = models.ForeignKey(
+        TipoPenalidade, on_delete=models.PROTECT, related_name="tipos_ocorrencia"
+    )
+    pontuacao = models.PositiveSmallIntegerField(blank=True, null=True)
+    tolerancia = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.edital.numero} - {self.titulo}"
+
+    class Meta:
+        verbose_name = "Tipo de Ocorrência"
+        verbose_name_plural = "Tipos de Ocorrência"

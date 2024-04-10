@@ -515,3 +515,24 @@ class AcessoModuloMedicaoInicial(models.Model):
 
     class Meta:
         abstract = True
+
+
+class PerfilDiretorSupervisao(models.Model):
+    DIRETOR = "DIRETOR"
+    SUPERVISAO = "SUPERVISAO"
+
+    PERFIS = (
+        (DIRETOR, "DIRETOR"),
+        (SUPERVISAO, "SUPERVISAO"),
+    )
+
+    dias_semana = ArrayField(
+        models.PositiveSmallIntegerField(
+            choices=PERFIS, default=[], null=True, blank=True
+        ),
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        abstract = True
