@@ -1,3 +1,6 @@
+import os
+
+from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from ..dados_comuns.behaviors import (
@@ -8,6 +11,7 @@ from ..dados_comuns.behaviors import (
     Posicao,
     StatusAtivoInativo,
 )
+from ..dados_comuns.validators import validate_file_size_10mb
 
 
 class TipoGravidade(ModeloBase):
@@ -86,6 +90,14 @@ class TipoOcorrencia(
     )
     pontuacao = models.PositiveSmallIntegerField(blank=True, null=True)
     tolerancia = models.PositiveSmallIntegerField(blank=True, null=True)
+    modelo_anexo = models.FileField(
+        "Modelo de Anexo",
+        upload_to="IMR",
+        validators=[
+            FileExtensionValidator(allowed_extensions=["XLS", "XLSX"]),
+            validate_file_size_10mb,
+        ],
+    )
 
     def __str__(self):
         return f"{self.edital.numero} - {self.titulo}"
@@ -93,3 +105,9 @@ class TipoOcorrencia(
     class Meta:
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
+
+    def delete(self, *args, **kwargs):
+        if self.modelo_anexo:
+            if os.path.isfile(self.modelo_anexo.path):
+                os.remove(self.modelo_anexo.path)
+        super().delete(*args, **kwargs)
