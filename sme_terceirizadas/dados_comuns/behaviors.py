@@ -58,6 +58,17 @@ class Ativavel(models.Model):
         abstract = True
 
 
+class StatusAtivoInativo(models.Model):
+    STATUS_CHOICES = (
+        (True, "Ativo"),
+        (False, "Inativo"),
+    )
+    status = models.BooleanField("Status", choices=STATUS_CHOICES, default=True)
+
+    class Meta:
+        abstract = True
+
+
 class CriadoEm(models.Model):
     criado_em = models.DateTimeField("Criado em", editable=False, auto_now_add=True)
 
