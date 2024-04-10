@@ -1138,8 +1138,15 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
     def validar_datas(self, filtros, data_inicial, data_final, escola_eh_cei_ou_cemei):
         nome_campo = "data" if escola_eh_cei_ou_cemei else "criado_em"
 
-        if data_inicial == data_final:
+        ano, mes, dia_inicial = data_inicial.split("-")
+        datetime_inicial = datetime.date(int(ano), int(mes), int(dia_inicial))
+        hoje = datetime.date.today()
+        ontem = hoje - datetime.timedelta(days=1)
+
+        if data_inicial == data_final and not datetime_inicial >= hoje:
             filtros[nome_campo] = data_inicial
+        elif datetime_inicial >= hoje:
+            filtros[nome_campo] = ontem
         else:
             if data_inicial:
                 filtros[f"{nome_campo}__gte"] = data_inicial

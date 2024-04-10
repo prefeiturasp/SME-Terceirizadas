@@ -86,7 +86,7 @@ from .constants import (
     STATUS_RELACAO_DRE_UE,
     USUARIOS_VISAO_CODAE,
 )
-from .filters import ClausulaDeDescontoFilter, DiaParaCorrecaoFilter, EmpenhoFilter
+from .filters import ClausulaDeDescontoFilter, DiaParaCorrecaoFilter, EmpenhoFilter, ParametrizacaoFinanceiraFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     AlimentacaoLancamentoEspecialSerializer,
@@ -97,6 +97,7 @@ from .serializers import (
     EmpenhoSerializer,
     MedicaoSerializer,
     OcorrenciaMedicaoInicialSerializer,
+    ParametrizacaoFinanceiraSerializer,
     PermissaoLancamentoEspecialSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
@@ -1733,9 +1734,11 @@ class ParametrizacaoFinanceiraViewSet(ModelViewSet):
     lookup_field = "uuid"
     permission_classes = [UsuarioMedicao]
     queryset = ParametrizacaoFinanceira.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ParametrizacaoFinanceiraFilter
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return ParametrizacaoFinanceiraWriteModelSerializer
-        return None
+        return ParametrizacaoFinanceiraSerializer
