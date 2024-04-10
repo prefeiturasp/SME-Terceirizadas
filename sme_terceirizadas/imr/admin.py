@@ -28,9 +28,8 @@ class TipoPenalidadeAdmin(admin.ModelAdmin):
         "gravidade",
         "status",
     )
-    readonly_fields = ("uuid",)
+    readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
     autocomplete_fields = ("edital",)
-    exclude = ("criado_por",)
     inlines = [ObrigacaoPenalidadeInline]
 
     def save_model(self, request, obj, form, change):
