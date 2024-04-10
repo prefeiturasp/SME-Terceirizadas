@@ -97,6 +97,8 @@ class TipoOcorrencia(
             FileExtensionValidator(allowed_extensions=["XLS", "XLSX"]),
             validate_file_size_10mb,
         ],
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
