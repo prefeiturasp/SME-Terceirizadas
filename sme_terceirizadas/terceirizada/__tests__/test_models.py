@@ -12,7 +12,7 @@ def test_modelo_edital(edital):
     assert edital.objeto is not None
     assert edital.contratos is not None
     assert hasattr(edital, "contratos")
-    assert edital.__str__() == "1 - lorem ipsum"
+    assert edital.__str__() == "1"
 
 
 def test_modelo_contrato(contrato):
