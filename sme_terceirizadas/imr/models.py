@@ -84,7 +84,7 @@ class TipoOcorrencia(
         related_name="tipos_ocorrencia",
     )
     titulo = models.CharField("Titulo", max_length=100)
-    descricao = models.CharField("Descrição", max_length=500)
+    descricao = models.TextField("Descrição")
     penalidade = models.ForeignKey(
         TipoPenalidade, on_delete=models.PROTECT, related_name="tipos_ocorrencia"
     )

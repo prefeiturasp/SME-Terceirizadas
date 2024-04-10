@@ -537,7 +537,7 @@ class PerfilDiretorSupervisao(models.Model):
         (SUPERVISAO, "SUPERVISAO"),
     )
 
-    dias_semana = ArrayField(
+    perfis = ArrayField(
         models.PositiveSmallIntegerField(
             choices=PERFIS, default=[], null=True, blank=True
         ),
