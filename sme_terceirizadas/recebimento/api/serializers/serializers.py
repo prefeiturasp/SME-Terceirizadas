@@ -38,14 +38,18 @@ class QuestoesPorProdutoSerializer(serializers.ModelSerializer):
 
     def get_questoes_primarias(self, obj):
         return (
-            obj.questoes_primarias.all().values_list("questao", flat=True)
+            obj.questoes_primarias.order_by("posicao", "criado_em").values_list(
+                "questao", flat=True
+            )
             if obj.questoes_primarias
             else []
         )
 
     def get_questoes_secundarias(self, obj):
         return (
-            obj.questoes_secundarias.all().values_list("questao", flat=True)
+            obj.questoes_secundarias.order_by("posicao", "criado_em").values_list(
+                "questao", flat=True
+            )
             if obj.questoes_secundarias
             else []
         )
