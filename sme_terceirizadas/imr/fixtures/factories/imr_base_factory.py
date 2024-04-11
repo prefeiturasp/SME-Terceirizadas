@@ -46,4 +46,4 @@ class TipoOcorrenciaFactory(DjangoModelFactory):
     titulo = Sequence(lambda n: f"titulo - {fake.unique.name()}")
     descricao = Sequence(lambda n: f"descrição - {fake.unique.name()}")
     categoria = SubFactory(CategoriaOcorrenciaFactory)
-    penalidade = SubFactory(CategoriaOcorrenciaFactory)
+    penalidade = SubFactory(TipoPenalidadeFactory)
