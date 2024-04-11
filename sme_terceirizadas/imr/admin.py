@@ -81,7 +81,22 @@ class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
     form = PerfisMultipleChoiceForm
 
 
+@admin.register(ParametrizacaoOcorrencia)
+class ParametrizacaoAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_edital",
+        "titulo",
+        "tipo_pergunta",
+    )
+    ordering = ("criado_em",)
+    search_fields = ("get_edital", "titulo")
+    list_filter = ("tipo_ocorrencia__edital",)
+    autocomplete_fields = ("tipo_ocorrencia",)
+
+    def get_edital(self, obj):
+        return obj.tipo_ocorrencia.edital.numero
+
+
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
-admin.site.register(ParametrizacaoOcorrencia)
 admin.site.register(TipoPerguntaParametrizacaoOcorrencia)
