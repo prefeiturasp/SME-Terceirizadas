@@ -8,7 +8,9 @@ from pytest_factoryboy import register
 from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
 from .imr.fixtures.factories.imr_base_factory import (
+    CategoriaOcorrenciaFactory,
     TipoGravidadeFactory,
+    TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
 )
 from .inclusao_alimentacao.models import (
@@ -74,6 +76,8 @@ register(QuestoesPorProdutoFactory)
 register(EditalFactory)
 register(TipoPenalidadeFactory)
 register(TipoGravidadeFactory)
+register(CategoriaOcorrenciaFactory)
+register(TipoOcorrenciaFactory)
 
 
 @pytest.fixture
