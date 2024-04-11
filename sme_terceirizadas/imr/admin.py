@@ -5,6 +5,7 @@ from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     ObrigacaoPenalidade,
+    ParametrizacaoOcorrencia,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
@@ -81,3 +82,4 @@ class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
 
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
+admin.site.register(ParametrizacaoOcorrencia)
