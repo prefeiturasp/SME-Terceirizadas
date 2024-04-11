@@ -1,5 +1,9 @@
 from rest_framework import serializers
 
+from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
+    FichaTecnicaSimplesSerializer,
+)
+
 from ...models import QuestaoConferencia, QuestoesPorProduto
 
 
@@ -60,6 +64,32 @@ class QuestoesPorProdutoSerializer(serializers.ModelSerializer):
             "uuid",
             "numero_ficha",
             "nome_produto",
+            "questoes_primarias",
+            "questoes_secundarias",
+        )
+
+
+class QuestoesPorProdutoSimplesSerializer(serializers.ModelSerializer):
+    ficha_tecnica = FichaTecnicaSimplesSerializer()
+    questoes_primarias = serializers.SlugRelatedField(
+        slug_field="uuid",
+        read_only=True,
+        many=True,
+    )
+    questoes_secundarias = serializers.SlugRelatedField(
+        slug_field="uuid",
+        read_only=True,
+        many=True,
+    )
+
+    def get_ficha_tecnica(self, obj):
+        return obj.ficha_tecnica.uuid
+
+    class Meta:
+        model = QuestoesPorProduto
+        fields = (
+            "uuid",
+            "ficha_tecnica",
             "questoes_primarias",
             "questoes_secundarias",
         )
