@@ -42,7 +42,7 @@ class TipoPenalidadeAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-class TipoOcorrenciaForm(forms.ModelForm):
+class PerfisMultipleChoiceForm(forms.ModelForm):
     perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
 
 
@@ -66,7 +66,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
     autocomplete_fields = ("edital", "penalidade")
-    form = TipoOcorrenciaForm
+    form = PerfisMultipleChoiceForm
 
     def save_model(self, request, obj, form, change):
         if not change:  # Apenas para novos registros
@@ -74,6 +74,10 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+@admin.register(CategoriaOcorrencia)
+class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
+    form = PerfisMultipleChoiceForm
+
+
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
-admin.site.register(CategoriaOcorrencia)
