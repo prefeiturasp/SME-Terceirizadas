@@ -51,6 +51,7 @@ def test_rascunho_cronograma_create_ok(
     unidade_medida_logistica,
     armazem,
     ficha_tecnica_perecivel_enviada_para_analise,
+    tipo_emabalagem_qld,
 ):
     qtd_total_empenho = fake.random_number() / 100
     custo_unitario_produto = fake.random_number() / 100
@@ -79,6 +80,7 @@ def test_rascunho_cronograma_create_ok(
             }
         ],
         "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
+        "tipo_embalagem_secundaria": str(tipo_emabalagem_qld.uuid),
         "custo_unitario_produto": custo_unitario_produto,
     }
 
@@ -94,6 +96,7 @@ def test_rascunho_cronograma_create_ok(
     assert obj.unidade_medida == unidade_medida_logistica
     assert obj.armazem == armazem
     assert obj.ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
+    assert obj.tipo_embalagem_secundaria == tipo_emabalagem_qld
     assert obj.custo_unitario_produto == custo_unitario_produto
     assert obj.etapas.first().qtd_total_empenho == qtd_total_empenho
 

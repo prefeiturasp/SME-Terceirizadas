@@ -69,6 +69,9 @@ class QuestoesPorProduto(ModeloBase):
         related_name="questoes_secundarias",
     )
 
+    def __str__(self):
+        return f"Questões da Ficha: {self.ficha_tecnica}"
+
     class Meta:
         verbose_name = "Questões por Produto"
         verbose_name_plural = "Questões por Produtos"

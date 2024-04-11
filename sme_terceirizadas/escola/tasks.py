@@ -366,3 +366,12 @@ def registra_historico_matriculas_alunos(*args, **kwargs):
         )
     else:
         management.call_command("registra_historico_matriculas_alunos", verbosity=0)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=5,
+    retry_kwargs={"max_retries": 2},
+)
+def cria_logs_alunos_por_dia_escolas_cei(*args, **kwargs):
+    management.call_command("cria_logs_alunos_por_dia_escolas_cei", verbosity=0)
