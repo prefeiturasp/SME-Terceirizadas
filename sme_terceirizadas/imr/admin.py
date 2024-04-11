@@ -1,5 +1,7 @@
+from django import forms
 from django.contrib import admin
 
+from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     ObrigacaoPenalidade,
@@ -40,6 +42,10 @@ class TipoPenalidadeAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class TipoOcorrenciaForm(forms.ModelForm):
+    perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
+
+
 @admin.register(TipoOcorrencia)
 class TipoOcorrenciaAdmin(admin.ModelAdmin):
     list_display = (
@@ -60,6 +66,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
     autocomplete_fields = ("edital", "penalidade")
+    form = TipoOcorrenciaForm
 
     def save_model(self, request, obj, form, change):
         if not change:  # Apenas para novos registros
