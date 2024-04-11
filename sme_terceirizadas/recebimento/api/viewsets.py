@@ -14,6 +14,7 @@ from .serializers.serializers import (
     QuestaoConferenciaSerializer,
     QuestaoConferenciaSimplesSerializer,
     QuestoesPorProdutoSerializer,
+    QuestoesPorProdutoSimplesSerializer,
 )
 from .serializers.serializers_create import QuestoesPorProdutoCreateSerializer
 
@@ -64,7 +65,7 @@ class QuestoesPorProdutoModelViewSet(viewsets.ModelViewSet):
     filterset_class = QuestoesPorProdutoFilter
 
     def get_serializer_class(self):
-        if self.action in ["retrieve", "list"]:
-            return QuestoesPorProdutoSerializer
-        else:
-            return QuestoesPorProdutoCreateSerializer
+        return {
+            "list": QuestoesPorProdutoSerializer,
+            "retrieve": QuestoesPorProdutoSimplesSerializer,
+        }.get(self.action, QuestoesPorProdutoCreateSerializer)
