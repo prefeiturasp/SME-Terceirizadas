@@ -3486,3 +3486,31 @@ def test_url_ficha_tecnica_correcao_fornecedor_validate_campos_nao_pereciveis(
         "produto_eh_liquido": ["Este campo não é permitido nesta correção."]
     }
     assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO
+
+
+def test_url_ficha_tecnica_atualizacao_fornecedor(
+    client_autenticado_fornecedor,
+    django_user_model,
+    analise_ficha_tecnica_factory,
+    payload_atualizacao_ficha_tecnica,
+):
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    analise = analise_ficha_tecnica_factory.create(
+        ficha_tecnica__empresa=empresa,
+        ficha_tecnica__status=FichaTecnicaDoProdutoWorkflow.APROVADA,
+    )
+    ficha = analise.ficha_tecnica
+
+    payload_atualizacao_ficha_tecnica["password"] = constants.DJANGO_ADMIN_PASSWORD
+
+    response = client_autenticado_fornecedor.patch(
+        f"/ficha-tecnica/{ficha.uuid}/atualizacao-fornecedor/",
+        content_type="application/json",
+        data=json.dumps(payload_atualizacao_ficha_tecnica),
+    )
+
+    ficha.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE

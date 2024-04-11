@@ -58,6 +58,17 @@ class Ativavel(models.Model):
         abstract = True
 
 
+class StatusAtivoInativo(models.Model):
+    STATUS_CHOICES = (
+        (True, "Ativo"),
+        (False, "Inativo"),
+    )
+    status = models.BooleanField("Status", choices=STATUS_CHOICES, default=True)
+
+    class Meta:
+        abstract = True
+
+
 class CriadoEm(models.Model):
     criado_em = models.DateTimeField("Criado em", editable=False, auto_now_add=True)
 
@@ -512,6 +523,27 @@ class EhCopia(models.Model):
 
 class AcessoModuloMedicaoInicial(models.Model):
     acesso_modulo_medicao_inicial = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+
+class PerfilDiretorSupervisao(models.Model):
+    DIRETOR = "DIRETOR"
+    SUPERVISAO = "SUPERVISAO"
+
+    PERFIS = (
+        (DIRETOR, "DIRETOR"),
+        (SUPERVISAO, "SUPERVISAO"),
+    )
+
+    perfis = ArrayField(
+        models.PositiveSmallIntegerField(
+            choices=PERFIS, default=[], null=True, blank=True
+        ),
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         abstract = True
