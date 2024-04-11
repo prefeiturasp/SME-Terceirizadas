@@ -190,6 +190,15 @@ class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
     queryset = Escola.objects.all()
     serializer_class = EscolaEolSimplesSerializer
 
+    @action(detail=False, methods=["POST"], url_path="escolas-com-cod-eol")
+    def escolas_com_cod_eol(self, request):
+        escolas = self.get_queryset()
+        lote = request.data.get("lote", None)
+        if lote:
+            escolas = escolas.filter(lote__uuid=lote)
+        serializer = self.serializer_class(escolas, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["POST"], url_path="terc-total")
     def terc_total(self, request):
         escolas = self.get_queryset().filter(tipo_gestao__nome="TERC TOTAL")
