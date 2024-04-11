@@ -163,7 +163,7 @@ def reseta_analise_atualizacao(analise, payload):
         "alergenicos": "detalhes_produto_conferido",
         "ingredientes_alergenicos": "detalhes_produto_conferido",
         "gluten": "detalhes_produto_conferido",
-        "porcao": "detalhes_produto_conferido",
+        "porcao": "informacoes_nutricionais_conferido",
         "unidade_medida_porcao ": "informacoes_nutricionais_conferido",
         "valor_unidade_caseira": "informacoes_nutricionais_conferido",
         "unidade_medida_caseira": "informacoes_nutricionais_conferido",
