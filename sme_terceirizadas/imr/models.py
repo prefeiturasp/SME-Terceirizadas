@@ -115,37 +115,30 @@ class TipoOcorrencia(
         super().delete(*args, **kwargs)
 
 
+class TipoPerguntaParametrizacaoOcorrencia(ModeloBase, Nomeavel):
+    def __str__(self):
+        return f"{self.nome}"
+
+    class Meta:
+        verbose_name = "Tipo de Pergunta para Parametrização de Tipo de Ocorrência"
+        verbose_name_plural = (
+            "Tipos de Pergunta para Parametrização de Tipo de Ocorrência"
+        )
+
+
 class ParametrizacaoOcorrencia(ModeloBase, Posicao):
-    OPCOES_SIM_NAO = "Opções Sim/Não"
-    CAMPO_NUMERICO = "Campo Numérico"
-    CAMPO_TEXTO_SIMPLES = "Campo de Texto Simples"
-    CAMPO_TEXTO_LONGO = "Campo de Texto Longo"
-    SELETOR_DATAS = "Seletor de Datas"
-    SELETOR_PERIODOS = "Seletor de Períodos"
-    SELETOR_FAIXAS_ETARIAS = "Seletor de Faixas Etárias"
-    SELETOR_TIPO_ALIMENTACAO = "Seletor de Tipo de Alimentação"
-    SELETOR_SIM_NAO_NAO_SE_APLICE = "Seletor de Sim/Não/Não se aplica"
-
-    CHOICES = (
-        (OPCOES_SIM_NAO, OPCOES_SIM_NAO),
-        (CAMPO_NUMERICO, CAMPO_NUMERICO),
-        (CAMPO_TEXTO_SIMPLES, CAMPO_TEXTO_SIMPLES),
-        (CAMPO_TEXTO_LONGO, CAMPO_TEXTO_LONGO),
-        (SELETOR_DATAS, SELETOR_DATAS),
-        (SELETOR_PERIODOS, SELETOR_PERIODOS),
-        (SELETOR_FAIXAS_ETARIAS, SELETOR_FAIXAS_ETARIAS),
-        (SELETOR_TIPO_ALIMENTACAO, SELETOR_TIPO_ALIMENTACAO),
-        (SELETOR_SIM_NAO_NAO_SE_APLICE, SELETOR_SIM_NAO_NAO_SE_APLICE),
-    )
-
     titulo = models.CharField("Titulo", max_length=100)
     tipo_ocorrencia = models.ForeignKey(
         TipoOcorrencia, on_delete=models.PROTECT, related_name="parametrizacoes"
     )
-    tipo_resposta = models.CharField("Tipo de resposta", choices=CHOICES)
+    tipo_pergunta = models.ForeignKey(
+        TipoPerguntaParametrizacaoOcorrencia,
+        on_delete=models.PROTECT,
+        related_name="parametrizacoes",
+    )
 
     def __str__(self):
-        return f"{self.tipo_ocorrencia.__str__()} {self.tipo_resposta} - {self.posicao}"
+        return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao}"
 
     class Meta:
         verbose_name = "Parametrização de Tipo de Ocorrência"

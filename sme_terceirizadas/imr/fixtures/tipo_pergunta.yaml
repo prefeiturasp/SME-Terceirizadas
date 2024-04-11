@@ -1,0 +1,62 @@
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 1
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Opções Sim/Não
+
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 2
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Campo Numérico
+
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 3
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Campo de Texto Simples
+
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 4
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Campo de Texto Longo
+
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 5
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Seletor de Datas
+
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 6
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Seletor de Períodos
+
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 7
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Seletor de Faixas Etárias
+
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 8
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Seletor de Tipo de Alimentação
+
+- model: imr.TipoPerguntaParametrizacaoOcorrencia
+  pk: 9
+  fields:
+    criado_em: 2024-01-01
+    alterado_em: 2024-01-01
+    nome: Seletor de Sim/Não/Não se aplica
