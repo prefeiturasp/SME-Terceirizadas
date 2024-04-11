@@ -51,6 +51,7 @@ from ..validators import (
     valida_campos_dependentes_ficha_tecnica,
     valida_campos_nao_pereciveis_ficha_tecnica,
     valida_campos_pereciveis_ficha_tecnica,
+    valida_ingredientes_alergenicos_ficha_tecnica,
 )
 
 
@@ -1549,3 +1550,61 @@ class CorrecaoFichaTecnicaSerializer(serializers.ModelSerializer):
             field: {"required": False}
             for field in FichaTecnicaDoProduto._meta.get_fields()
         }
+
+
+class FichaTecnicaAtualizacaoSerializer(serializers.ModelSerializer):
+    componentes_produto = serializers.CharField(required=False, allow_blank=False)
+    alergenicos = serializers.BooleanField(required=False)
+    ingredientes_alergenicos = serializers.CharField(required=False, allow_blank=False)
+    gluten = serializers.BooleanField(required=False)
+
+    porcao = serializers.FloatField(required=False)
+    unidade_medida_porcao = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        queryset=UnidadeMedida.objects.all(),
+    )
+    valor_unidade_caseira = serializers.FloatField(required=False)
+    unidade_medida_caseira = serializers.CharField(required=False, allow_blank=False)
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaCreateSerializer(
+        many=True,
+        required=False,
+    )
+
+    condicoes_de_conservacao = serializers.CharField(required=False, allow_blank=False)
+
+    embalagem_primaria = serializers.CharField(required=False, allow_blank=False)
+    embalagem_secundaria = serializers.CharField(required=False, allow_blank=False)
+
+    nome_responsavel_tecnico = serializers.CharField(required=False, allow_blank=False)
+    habilitacao = serializers.CharField(required=False, allow_blank=False)
+    numero_registro_orgao = serializers.CharField(required=False, allow_blank=False)
+    arquivo = serializers.CharField(required=False, allow_blank=False)
+
+    modo_de_preparo = serializers.CharField(required=False, allow_blank=False)
+
+    informacoes_adicionais = serializers.CharField(required=False, allow_blank=False)
+
+    def validate(self, attrs):
+        valida_ingredientes_alergenicos_ficha_tecnica(attrs)
+
+        return attrs
+
+    def validate_arquivo(self, value):
+        if value and "pdf" not in value:
+            raise serializers.ValidationError("Arquivo deve ser um PDF.")
+        return value
+
+    def update(self, instance, validated_data):
+        instance = atualiza_ficha_tecnica(instance, validated_data)
+
+        gerar_nova_analise_ficha_tecnica(instance, validated_data)
+
+        user = self.context["request"].user
+        instance.fornecedor_atualiza(user=user)
+
+        return instance
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        exclude = ("id", "produto")

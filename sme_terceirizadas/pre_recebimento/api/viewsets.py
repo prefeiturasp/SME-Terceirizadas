@@ -75,6 +75,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCorrecaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
+    FichaTecnicaAtualizacaoSerializer,
     FichaTecnicaCreateSerializer,
     FichaTecnicaRascunhoSerializer,
     LaboratorioCreateSerializer,
@@ -1279,6 +1280,28 @@ class FichaTecnicaModelViewSet(
 
     def _processa_correcao(self, request, *args, **kwargs):
         serializer = CorrecaoFichaTecnicaSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        url_path="atualizacao-fornecedor",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def atualizacao_fornecedor(self, request, *args, **kwargs):
+        return self._verificar_autenticidade_usuario(
+            request, *args, **kwargs
+        ) or self._processa_atualizacao(request, *args, **kwargs)
+
+    def _processa_atualizacao(self, request, *args, **kwargs):
+        serializer = FichaTecnicaAtualizacaoSerializer(
             instance=self.get_object(),
             data=request.data,
             context={"request": request},
