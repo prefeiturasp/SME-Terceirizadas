@@ -7,6 +7,12 @@ from pytest_factoryboy import register
 
 from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
+from .imr.fixtures.factories.imr_base_factory import (
+    CategoriaOcorrenciaFactory,
+    TipoGravidadeFactory,
+    TipoOcorrenciaFactory,
+    TipoPenalidadeFactory,
+)
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -42,7 +48,10 @@ from .recebimento.fixtures.factories.questao_conferencia_factory import (
 from .recebimento.fixtures.factories.questoes_por_produto_factory import (
     QuestoesPorProdutoFactory,
 )
-from .terceirizada.fixtures.factories.terceirizada_factory import EmpresaFactory
+from .terceirizada.fixtures.factories.terceirizada_factory import (
+    EditalFactory,
+    EmpresaFactory,
+)
 
 f = Faker(locale="pt-Br")
 
@@ -64,6 +73,11 @@ register(LayoutDeEmbalagemFactory)
 register(AnaliseFichaTecnicaFactory)
 register(QuestaoConferenciaFactory)
 register(QuestoesPorProdutoFactory)
+register(EditalFactory)
+register(TipoPenalidadeFactory)
+register(TipoGravidadeFactory)
+register(CategoriaOcorrenciaFactory)
+register(TipoOcorrenciaFactory)
 
 
 @pytest.fixture

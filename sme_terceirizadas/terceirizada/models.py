@@ -53,7 +53,7 @@ class Edital(ExportModelOperationsMixin("edital"), TemChaveExterna):
     objects = EditalManager()
 
     def __str__(self):
-        return f"{self.numero} - {self.objeto}"
+        return f"{self.numero}"
 
     class Meta:
         verbose_name = "Edital"

@@ -130,6 +130,7 @@ LOCAL_APPS = [
     "sme_terceirizadas.medicao_inicial.apps.MedicaoInicialConfig",
     "sme_terceirizadas.pre_recebimento.apps.PreRecebimentoConfig",
     "sme_terceirizadas.recebimento.apps.RecebimentoConfig",
+    "sme_terceirizadas.imr.apps.ImrConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
