@@ -48,6 +48,7 @@ class TipoPenalidade(ModeloBase, CriadoPor, StatusAtivoInativo):
 class ObrigacaoPenalidade(ModeloBase):
     tipo_penalidade = models.ForeignKey(
         TipoPenalidade,
+        verbose_name="Tipo de Penalidade",
         on_delete=models.CASCADE,
         related_name="obrigacoes",
     )
@@ -80,16 +81,22 @@ class TipoOcorrencia(
     )
     categoria = models.ForeignKey(
         CategoriaOcorrencia,
+        verbose_name="Categoria da Ocorrência",
         on_delete=models.PROTECT,
         related_name="tipos_ocorrencia",
     )
     titulo = models.CharField("Titulo", max_length=100)
     descricao = models.TextField("Descrição")
     penalidade = models.ForeignKey(
-        TipoPenalidade, on_delete=models.PROTECT, related_name="tipos_ocorrencia"
+        TipoPenalidade,
+        verbose_name="Penalidade do Item",
+        on_delete=models.PROTECT,
+        related_name="tipos_ocorrencia",
     )
-    pontuacao = models.PositiveSmallIntegerField(blank=True, null=True)
-    tolerancia = models.PositiveSmallIntegerField(blank=True, null=True)
+    pontuacao = models.PositiveSmallIntegerField(
+        "Pontuação (IMR)", blank=True, null=True
+    )
+    tolerancia = models.PositiveSmallIntegerField("Tolerância", blank=True, null=True)
     modelo_anexo = models.FileField(
         "Modelo de Anexo",
         upload_to="IMR",
