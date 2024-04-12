@@ -5,9 +5,21 @@ from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     ObrigacaoPenalidade,
+    ParametrizacaoOcorrencia,
+    RespostaCampoNumerico,
+    RespostaCampoTextoLongo,
+    RespostaCampoTextoSimples,
+    RespostaDatas,
+    RespostaFaixaEtaria,
+    RespostaPeriodo,
+    RespostaSimNao,
+    RespostaSimNaoNaoSeAplica,
+    RespostaTipoAlimentacao,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
+    TipoPerguntaParametrizacaoOcorrencia,
+    TipoRespostaModelo,
 )
 
 
@@ -79,5 +91,31 @@ class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
     form = PerfisMultipleChoiceForm
 
 
+@admin.register(ParametrizacaoOcorrencia)
+class ParametrizacaoAdmin(admin.ModelAdmin):
+    list_display = ("get_edital", "titulo", "tipo_pergunta", "get_perfis")
+    ordering = ("criado_em",)
+    search_fields = ("get_edital", "titulo")
+    list_filter = ("tipo_ocorrencia__edital", "tipo_ocorrencia__perfis")
+    autocomplete_fields = ("tipo_ocorrencia",)
+
+    def get_edital(self, obj):
+        return obj.tipo_ocorrencia.edital.numero
+
+    def get_perfis(self, obj):
+        return obj.tipo_ocorrencia.perfis
+
+
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
+admin.site.register(TipoPerguntaParametrizacaoOcorrencia)
+admin.site.register(RespostaSimNao)
+admin.site.register(RespostaCampoNumerico)
+admin.site.register(RespostaCampoTextoSimples)
+admin.site.register(RespostaCampoTextoLongo)
+admin.site.register(RespostaDatas)
+admin.site.register(RespostaPeriodo)
+admin.site.register(RespostaFaixaEtaria)
+admin.site.register(RespostaTipoAlimentacao)
+admin.site.register(RespostaSimNaoNaoSeAplica)
+admin.site.register(TipoRespostaModelo)
