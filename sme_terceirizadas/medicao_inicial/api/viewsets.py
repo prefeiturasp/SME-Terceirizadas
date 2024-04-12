@@ -86,7 +86,12 @@ from .constants import (
     STATUS_RELACAO_DRE_UE,
     USUARIOS_VISAO_CODAE,
 )
-from .filters import ClausulaDeDescontoFilter, DiaParaCorrecaoFilter, EmpenhoFilter, ParametrizacaoFinanceiraFilter
+from .filters import (
+    ClausulaDeDescontoFilter,
+    DiaParaCorrecaoFilter,
+    EmpenhoFilter,
+    ParametrizacaoFinanceiraFilter,
+)
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     AlimentacaoLancamentoEspecialSerializer,
