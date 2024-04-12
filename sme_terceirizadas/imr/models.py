@@ -1,8 +1,10 @@
 import os
 
+from django.apps import apps
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
+from ..cardapio.models import TipoAlimentacao
 from ..dados_comuns.behaviors import (
     CriadoPor,
     ModeloBase,
@@ -12,6 +14,7 @@ from ..dados_comuns.behaviors import (
     StatusAtivoInativo,
 )
 from ..dados_comuns.validators import validate_file_size_10mb
+from ..perfil.models import Usuario
 
 
 class TipoGravidade(ModeloBase):
@@ -115,7 +118,29 @@ class TipoOcorrencia(
         super().delete(*args, **kwargs)
 
 
+class Relatorio(ModeloBase):
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.PROTECT, related_name="relatorios"
+    )
+    data = models.DateField()
+
+
 class TipoPerguntaParametrizacaoOcorrencia(ModeloBase, Nomeavel):
+    RESPOSTA_SIM_NAO = "RespostaSimNao"
+    RESPOSTA_TIPO_ALIMENTACAO = "RespostaTipoAlimentacao"
+
+    TIPOS_RESPOSTA = (
+        (RESPOSTA_SIM_NAO, RESPOSTA_SIM_NAO),
+        (RESPOSTA_TIPO_ALIMENTACAO, RESPOSTA_TIPO_ALIMENTACAO),
+    )
+
+    tipo_resposta = models.CharField(
+        "Tipo de resposta", choices=TIPOS_RESPOSTA, max_length=100
+    )
+
+    def get_model_tipo_resposta(self):
+        return apps.get_model("imr", self.tipo_resposta)
+
     def __str__(self):
         return f"{self.nome}"
 
@@ -143,3 +168,49 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
     class Meta:
         verbose_name = "Parametrização de Tipo de Ocorrência"
         verbose_name_plural = "Parametrizações de Tipo de Ocorrência"
+
+
+class RespostaSimNao(ModeloBase):
+    SIM = "Sim"
+    NAO = "Não"
+
+    CHOICES = ((SIM, SIM), (NAO, NAO))
+    resposta = models.CharField("Opção", choices=CHOICES, max_length=3)
+    relatorio = models.ForeignKey(
+        Relatorio, on_delete=models.CASCADE, related_name="respostas_sim_nao"
+    )
+    parametrizacao = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_sim_nao",
+    )
+
+    def __str__(self):
+        return self.resposta
+
+    class Meta:
+        verbose_name = "Resposta Sim/Não"
+        verbose_name_plural = "Respostas Sim/Não"
+
+
+class RespostaTipoAlimentacao(ModeloBase):
+    resposta = models.ForeignKey(
+        TipoAlimentacao,
+        on_delete=models.PROTECT,
+        related_name="respostas_relatorio_imr",
+    )
+    relatorio = models.ForeignKey(
+        Relatorio, on_delete=models.CASCADE, related_name="respostas_tipos_alimentacao"
+    )
+    parametrizacao = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_tipos_alimentacao",
+    )
+
+    def __str__(self):
+        return self.resposta.nome
+
+    class Meta:
+        verbose_name = "Resposta Tipo Alimentação"
+        verbose_name_plural = "Respostas Tipo Alimentação"

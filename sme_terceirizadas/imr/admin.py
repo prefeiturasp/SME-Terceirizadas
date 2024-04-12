@@ -6,6 +6,9 @@ from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
+    Relatorio,
+    RespostaSimNao,
+    RespostaTipoAlimentacao,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
@@ -100,3 +103,6 @@ class ParametrizacaoAdmin(admin.ModelAdmin):
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
 admin.site.register(TipoPerguntaParametrizacaoOcorrencia)
+admin.site.register(RespostaSimNao)
+admin.site.register(RespostaTipoAlimentacao)
+admin.site.register(Relatorio)
