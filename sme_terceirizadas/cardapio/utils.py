@@ -130,6 +130,7 @@ def obtem_dados_relatorio_controle_restos(form_data, user):
 
     return rows
 
+
 def obtem_dados_relatorio_controle_sobras(form_data, user):
     extra_where_clauses = ""
 
