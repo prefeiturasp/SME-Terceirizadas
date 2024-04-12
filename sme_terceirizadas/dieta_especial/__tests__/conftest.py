@@ -232,6 +232,7 @@ def solicitacao_dieta_especial_a_autorizar(
     solic = mommy.make(
         SolicitacaoDietaEspecial,
         rastro_escola=escola,
+        escola_destino=escola,
         rastro_terceirizada=escola.lote.terceirizada,
         aluno=aluno,
         criado_por=user,
@@ -348,7 +349,9 @@ def escola():
     diretoria_regional = mommy.make(
         "DiretoriaRegional", nome="DIRETORIA REGIONAL IPIRANGA"
     )
-    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_gestao = mommy.make(
+        "TipoGestao", nome="TERC TOTAL", uuid="8bd3931b-8636-44ba-9d8e-81b29067eed1"
+    )
     escola = mommy.make(
         "Escola",
         lote=lote,
@@ -631,6 +634,7 @@ def solicitacao_dieta_especial_cancelada_automaticamente(client, escola):
     solicitacao = mommy.make(
         SolicitacaoDietaEspecial,
         rastro_escola=escola,
+        escola_destino=escola,
         aluno=aluno,
         data_termino=datetime.date.today() - datetime.timedelta(days=1),
         status=DietaEspecialWorkflow.CODAE_AUTORIZADO,

@@ -538,7 +538,7 @@ class PerfilDiretorSupervisao(models.Model):
     )
 
     perfis = ArrayField(
-        models.CharField(choices=PERFIS, default=[], null=True, blank=True),
+        models.CharField(choices=PERFIS, default=[], blank=True),
         null=True,
         blank=True,
     )
