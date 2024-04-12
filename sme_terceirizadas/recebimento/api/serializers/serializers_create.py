@@ -30,6 +30,17 @@ class QuestoesPorProdutoCreateSerializer(serializers.ModelSerializer):
 
         return instance
 
+    def update(self, instance, validated_data):
+        instance.questoes_primarias.clear()
+        instance.questoes_secundarias.clear()
+
+        instance.questoes_primarias.set(validated_data.pop("questoes_primarias", []))
+        instance.questoes_secundarias.set(
+            validated_data.pop("questoes_secundarias", [])
+        )
+
+        return instance
+
     class Meta:
         model = QuestoesPorProduto
         fields = ("ficha_tecnica", "questoes_primarias", "questoes_secundarias")

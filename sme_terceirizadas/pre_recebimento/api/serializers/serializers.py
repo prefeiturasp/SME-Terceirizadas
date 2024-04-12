@@ -27,7 +27,6 @@ from sme_terceirizadas.produto.api.serializers.serializers import (
     InformacaoNutricionalSerializer,
     MarcaSimplesSerializer,
     NomeDeProdutoEditalSerializer,
-    UnidadeMedidaSerialzer,
 )
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
@@ -190,6 +189,13 @@ class FichaTecnicaCronogramaSerializer(FichaTecnicaSimplesSerializer):
             "peso_liquido_embalagem_secundaria",
             "unidade_medida_secundaria",
         )
+
+
+class UnidadeMedidaSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ("uuid", "nome", "abreviacao", "criado_em")
+        read_only_fields = ("uuid", "nome", "abreviacao", "criado_em")
 
 
 class CronogramaSerializer(serializers.ModelSerializer):
@@ -408,13 +414,6 @@ class LaboratorioCredenciadoSimplesSerializer(serializers.ModelSerializer):
         model = Laboratorio
         fields = ("uuid", "nome")
         read_only_fields = ("uuid", "nome")
-
-
-class UnidadeMedidaSerialzer(serializers.ModelSerializer):
-    class Meta:
-        model = UnidadeMedida
-        fields = ("uuid", "nome", "abreviacao", "criado_em")
-        read_only_fields = ("uuid", "nome", "abreviacao", "criado_em")
 
 
 class ImagemDoTipoEmbalagemLookupSerializer(serializers.ModelSerializer):
