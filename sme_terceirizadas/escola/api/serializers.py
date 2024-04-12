@@ -266,13 +266,17 @@ class EscolaParaFiltrosReadOnlySerializer(serializers.Serializer):
 
 class EscolaEolSimplesSerializer(serializers.ModelSerializer):
     codigo_eol_escola = serializers.SerializerMethodField()
+    tipo_gestao = serializers.SerializerMethodField()
 
     def get_codigo_eol_escola(self, obj):
         return f"{obj.codigo_eol} - {obj.nome}" if obj.codigo_eol else None
 
+    def get_tipo_gestao(self, obj):
+        return obj.tipo_gestao.nome if obj.tipo_gestao else None
+
     class Meta:
         model = Escola
-        fields = ("codigo_eol", "codigo_eol_escola")
+        fields = ("codigo_eol", "codigo_eol_escola", "tipo_gestao")
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):

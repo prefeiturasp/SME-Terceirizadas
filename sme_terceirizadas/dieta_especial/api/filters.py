@@ -47,6 +47,12 @@ class DietaEspecialFilter(filters.FilterSet):
         to_field_name="uuid",
         queryset=ProtocoloPadraoDietaEspecial.objects.all(),
     )
+    tipo_gestao = filters.CharFilter(
+        field_name="escola_destino__tipo_gestao__uuid", lookup_expr="iexact"
+    )
+    lote = filters.CharFilter(
+        field_name="escola_destino__lote__uuid", lookup_expr="iexact"
+    )
 
 
 class AlimentoFilter(filters.FilterSet):

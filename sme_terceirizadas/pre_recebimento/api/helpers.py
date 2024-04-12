@@ -157,7 +157,36 @@ def limpar_campos_dependentes_ficha_tecnica(instance, validated_data):
     return instance
 
 
-def gerar_nova_analise_ficha_tecnica(ficha_tecnica):
+def reseta_analise_atualizacao(analise, payload):
+    mapa = {
+        "componentes_produto": "detalhes_produto_conferido",
+        "alergenicos": "detalhes_produto_conferido",
+        "ingredientes_alergenicos": "detalhes_produto_conferido",
+        "gluten": "detalhes_produto_conferido",
+        "porcao": "informacoes_nutricionais_conferido",
+        "unidade_medida_porcao ": "informacoes_nutricionais_conferido",
+        "valor_unidade_caseira": "informacoes_nutricionais_conferido",
+        "unidade_medida_caseira": "informacoes_nutricionais_conferido",
+        "informacoes_nutricionais ": "informacoes_nutricionais_conferido",
+        "condicoes_de_conservacao": "conservacao_conferido",
+        "embalagem_primaria": "armazenamento_conferido",
+        "embalagem_secundaria": "armazenamento_conferido",
+        "nome_responsavel_tecnico": "responsavel_tecnico_conferido",
+        "habilitacao": "responsavel_tecnico_conferido",
+        "numero_registro_orgao": "responsavel_tecnico_conferido",
+        "arquivo": "responsavel_tecnico_conferido",
+        "modo_de_preparo": "modo_preparo_conferido",
+        "informacoes_adicionais": "outras_informacoes_conferido",
+    }
+
+    for key in mapa.keys():
+        if key in payload:
+            setattr(analise, mapa[key], False)
+
+    return analise
+
+
+def gerar_nova_analise_ficha_tecnica(ficha_tecnica, payload=None):
     campos_conferidos = [
         campo.name
         for campo in AnaliseFichaTecnica._meta.fields
@@ -165,6 +194,9 @@ def gerar_nova_analise_ficha_tecnica(ficha_tecnica):
     ]
 
     analise_antiga = ficha_tecnica.analises.last()
+
+    if payload:
+        analise_antiga = reseta_analise_atualizacao(analise_antiga, payload)
 
     valores_conferidos_antigos = {
         campo: getattr(analise_antiga, campo)

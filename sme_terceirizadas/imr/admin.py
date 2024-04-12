@@ -1,8 +1,12 @@
+from django import forms
 from django.contrib import admin
 
+from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.models import (
+    CategoriaOcorrencia,
     ObrigacaoPenalidade,
     TipoGravidade,
+    TipoOcorrencia,
     TipoPenalidade,
 )
 
@@ -28,15 +32,51 @@ class TipoPenalidadeAdmin(admin.ModelAdmin):
         "gravidade",
         "status",
     )
-    readonly_fields = ("uuid",)
+    readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
     autocomplete_fields = ("edital",)
-    exclude = ("criado_por",)
     inlines = [ObrigacaoPenalidadeInline]
 
     def save_model(self, request, obj, form, change):
         if not change:  # Apenas para novos registros
             obj.criado_por = request.user
         super().save_model(request, obj, form, change)
+
+
+class PerfisMultipleChoiceForm(forms.ModelForm):
+    perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
+
+
+@admin.register(TipoOcorrencia)
+class TipoOcorrenciaAdmin(admin.ModelAdmin):
+    list_display = (
+        "edital",
+        "categoria",
+        "titulo",
+        "penalidade",
+        "pontuacao",
+        "perfis",
+        "status",
+    )
+    ordering = ("criado_em",)
+    search_fields = ("titulo",)
+    list_filter = (
+        "edital",
+        "categoria",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
+    autocomplete_fields = ("edital", "penalidade")
+    form = PerfisMultipleChoiceForm
+
+    def save_model(self, request, obj, form, change):
+        if not change:  # Apenas para novos registros
+            obj.criado_por = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(CategoriaOcorrencia)
+class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
+    form = PerfisMultipleChoiceForm
 
 
 admin.site.register(TipoGravidade)
