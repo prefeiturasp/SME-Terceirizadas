@@ -82,9 +82,6 @@ class QuestoesPorProdutoSimplesSerializer(serializers.ModelSerializer):
         many=True,
     )
 
-    def get_ficha_tecnica(self, obj):
-        return obj.ficha_tecnica.uuid
-
     class Meta:
         model = QuestoesPorProduto
         fields = (

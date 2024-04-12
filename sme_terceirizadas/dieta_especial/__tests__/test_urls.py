@@ -959,8 +959,17 @@ def test_filtros_relatorio_dieta_especial_success(
     assert response.json() == {
         "alergias_intolerancias": [],
         "classificacoes": [{"nome": "Tipo A", "id": 1}],
-        "lotes": [{"nome": "LOTE 07", "uuid": "429446c2-5b17-4ada-96ae-cce369dd4ae1"}],
+        "lotes": [
+            {
+                "nome": "LOTE 07 - DIRETORIA REGIONAL IPIRANGA",
+                "uuid": "429446c2-5b17-4ada-96ae-cce369dd4ae1",
+            }
+        ],
         "protocolos_padrao": [
             {"nome": "ALERGIA - OVO", "uuid": "5d7f80b8-7b62-441b-89da-4d5dd5c1e7e8"}
         ],
+        "tipos_gestao": [
+            {"nome": "TERC TOTAL", "uuid": "8bd3931b-8636-44ba-9d8e-81b29067eed1"}
+        ],
+        "tipos_unidades": [],
     }
