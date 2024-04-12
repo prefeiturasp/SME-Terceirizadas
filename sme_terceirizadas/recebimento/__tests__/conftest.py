@@ -32,22 +32,6 @@ def payload_create_questoes_por_produto(
 
 
 @pytest.fixture
-def payload_create_questoes_por_produto(
-    ficha_tecnica_factory,
-    questoes_conferencia,
-):
-    questoes = [str(q.uuid) for q in questoes_conferencia]
-
-    return {
-        "ficha_tecnica": str(
-            ficha_tecnica_factory(status=FichaTecnicaDoProdutoWorkflow.APROVADA).uuid
-        ),
-        "questoes_primarias": questoes,
-        "questoes_secundarias": questoes,
-    }
-
-
-@pytest.fixture
 def payload_update_questoes_por_produto(questoes_conferencia):
     questoes = [str(q.uuid) for q in questoes_conferencia]
 
