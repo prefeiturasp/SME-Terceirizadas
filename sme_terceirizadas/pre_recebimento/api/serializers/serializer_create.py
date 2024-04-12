@@ -1596,9 +1596,9 @@ class FichaTecnicaAtualizacaoSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-        instance = atualiza_ficha_tecnica(instance, validated_data)
-
         gerar_nova_analise_ficha_tecnica(instance, validated_data)
+
+        instance = atualiza_ficha_tecnica(instance, validated_data)
 
         user = self.context["request"].user
         instance.fornecedor_atualiza(user=user)
