@@ -101,7 +101,7 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
 """
 
 
-def obtem_dados_relatorio_controle_restos(form_data, user):  # noqa C901
+def obtem_dados_relatorio_controle_restos(form_data, user):
     extra_where_clauses = ""
 
     data_inicial = form_data['data_inicial'].strftime('%Y-%m-%d')
@@ -130,7 +130,7 @@ def obtem_dados_relatorio_controle_restos(form_data, user):  # noqa C901
 
     return rows
 
-def obtem_dados_relatorio_controle_sobras(form_data, user):  # noqa C901
+def obtem_dados_relatorio_controle_sobras(form_data, user):
     extra_where_clauses = ""
 
     data_inicial = form_data['data_inicial'].strftime('%Y-%m-%d')

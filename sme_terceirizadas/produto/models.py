@@ -83,7 +83,7 @@ class EmbalagemProduto(Nomeavel, TemChaveExterna):
 
 class TipoRecipiente(Nomeavel, TemChaveExterna):
 
-    def pode_deletar(self): # noqa C901
+    def pode_deletar(self):
         from sme_terceirizadas.cardapio.models import ControleSobras
         return not ControleSobras.objects.filter(tipo_recipiente__pk=self.pk).exists()
 
@@ -98,7 +98,7 @@ class TipoRecipiente(Nomeavel, TemChaveExterna):
 
 class TipoAlimento(Nomeavel, TemChaveExterna):
 
-    def pode_deletar(self): # noqa C901
+    def pode_deletar(self):
         from sme_terceirizadas.cardapio.models import ControleSobras
         return not ControleSobras.objects.filter(tipo_alimento__pk=self.pk).exists()
 
