@@ -1,5 +1,9 @@
 from rest_framework import serializers
 
+from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
+    FichaTecnicaSimplesSerializer,
+)
+
 from ...models import QuestaoConferencia, QuestoesPorProduto
 
 
@@ -38,14 +42,18 @@ class QuestoesPorProdutoSerializer(serializers.ModelSerializer):
 
     def get_questoes_primarias(self, obj):
         return (
-            obj.questoes_primarias.all().values_list("questao", flat=True)
+            obj.questoes_primarias.order_by("posicao", "criado_em").values_list(
+                "questao", flat=True
+            )
             if obj.questoes_primarias
             else []
         )
 
     def get_questoes_secundarias(self, obj):
         return (
-            obj.questoes_secundarias.all().values_list("questao", flat=True)
+            obj.questoes_secundarias.order_by("posicao", "criado_em").values_list(
+                "questao", flat=True
+            )
             if obj.questoes_secundarias
             else []
         )
@@ -56,6 +64,29 @@ class QuestoesPorProdutoSerializer(serializers.ModelSerializer):
             "uuid",
             "numero_ficha",
             "nome_produto",
+            "questoes_primarias",
+            "questoes_secundarias",
+        )
+
+
+class QuestoesPorProdutoSimplesSerializer(serializers.ModelSerializer):
+    ficha_tecnica = FichaTecnicaSimplesSerializer()
+    questoes_primarias = serializers.SlugRelatedField(
+        slug_field="uuid",
+        read_only=True,
+        many=True,
+    )
+    questoes_secundarias = serializers.SlugRelatedField(
+        slug_field="uuid",
+        read_only=True,
+        many=True,
+    )
+
+    class Meta:
+        model = QuestoesPorProduto
+        fields = (
+            "uuid",
+            "ficha_tecnica",
             "questoes_primarias",
             "questoes_secundarias",
         )
