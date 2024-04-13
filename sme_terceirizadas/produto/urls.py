@@ -66,6 +66,16 @@ router.register(
     viewsets.EmbalagemProdutoViewSet,
     basename="embalagens-produto",
 )
+router.register(
+    "tipos-recipiente",
+    viewsets.TipoRecipienteViewSet,
+    basename="tipos-recipiente"
+)
+router.register(
+    "tipos-alimento",
+    viewsets.TipoAlimentoViewSet,
+    basename="tipos-alimento"
+)
 
 urlpatterns = [
     path("", include(router.urls)),

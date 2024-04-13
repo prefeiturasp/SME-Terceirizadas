@@ -7,7 +7,9 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.pagination import PageNumberPagination
 from xworkflows import InvalidTransitionError
+from django_filters import rest_framework as filters
 
 from ...dados_comuns import constants, services
 from ...dados_comuns.permissions import (
@@ -19,6 +21,8 @@ from ...dados_comuns.permissions import (
 )
 from ...escola.constants import PERIODOS_ESPECIAIS_CEMEI
 from ...escola.models import Escola
+from ..utils import obtem_dados_relatorio_controle_restos, obtem_dados_relatorio_controle_sobras, paginate_list
+from ..tasks import gera_xls_relatorio_controle_restos_async, gera_xls_relatorio_controle_sobras_async
 from ...inclusao_alimentacao.api.viewsets import (
     CodaeAutoriza,
     CodaeQuestionaTerceirizadaResponde,
@@ -49,6 +53,8 @@ from ..models import (
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoDRENaoValida,
+    ControleSobras,
+    ControleRestos,
     MotivoSuspensao,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacaoDaCEI,
@@ -69,11 +75,17 @@ from .serializers.serializers import (
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     MotivoDRENaoValidaSerializer,
+    ControleSobrasSerializer,
+    ControleSobrasCreateSerializer,
+    ControleRestosSerializer,
+    ControleRestosCreateSerializer,
     MotivoSuspensaoSerializer,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     SuspensaoAlimentacaoDaCEISerializer,
     TipoAlimentacaoSerializer,
     VinculoTipoAlimentoSimplesSerializer,
+    serialize_relatorio_controle_restos,
+    serialize_relatorio_controle_sobras,
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioCEISerializerCreate,
@@ -88,6 +100,30 @@ from .serializers.serializers_create import (
     SuspensaoAlimentacaodeCEICreateSerializer,
     VinculoTipoAlimentoCreateSerializer,
 )
+from ..forms import (
+    ControleSobrasForm,
+    ControleSobrasRelatorioForm,
+    ControleRestosForm,
+    ControleRestosRelatorioForm
+)
+
+DEFAULT_PAGE = 1
+DEFAULT_PAGE_SIZE = 10
+
+
+class CustomPagination(PageNumberPagination):
+    page = DEFAULT_PAGE
+    page_size = DEFAULT_PAGE_SIZE
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        return Response({
+            'previous': self.get_previous_link(),
+            'next': self.get_next_link(),
+            'count': self.page.paginator.count,
+            'page_size': int(self.request.GET.get('page_size', self.page_size)),
+            'results': data
+        })
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -1573,3 +1609,159 @@ class MotivosDRENaoValidaViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "uuid"
     queryset = MotivoDRENaoValida.objects.all()
     serializer_class = MotivoDRENaoValidaSerializer
+
+
+class ControleSobrasViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ControleSobras.objects.all()
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ControleSobrasCreateSerializer
+        return ControleSobrasSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+    def get_queryset(self):
+        form = ControleSobrasForm(self.request.GET)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        user = self.request.user
+
+        qs = ControleSobras.objects.all().order_by('-criado_em')
+
+        if user.tipo_usuario == 'escola':
+            qs = qs.filter(escola=user.vinculo_atual.instituicao)
+
+        elif form.cleaned_data['escola']:
+            qs = qs.filter(escola=form.cleaned_data['escola'])
+
+        elif form.cleaned_data['dre']:
+            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
+
+        return qs.distinct()
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}')
+    def relatorio(self, request):
+        form = ControleSobrasRelatorioForm(self.request.GET)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
+        data = paginate_list(request, rows, serializer=serialize_relatorio_controle_sobras)
+        return Response(data)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}/exportar-xlsx')
+    def relatorio_exportar_xlsx(self, request):
+        form = ControleSobrasRelatorioForm(self.request.GET)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
+        user = request.user.get_username()
+        gera_xls_relatorio_controle_sobras_async.delay(
+            user=user,
+            nome_arquivo='relatorio_controle_sobras.xlsx',
+            data=rows,
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    class Meta:
+        model = ControleSobras
+
+
+class ControleRestosViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ControleRestos.objects.all()
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ControleRestosCreateSerializer
+        return ControleRestosSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+    def get_queryset(self):
+        form = ControleRestosForm(self.request.GET)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        user = self.request.user
+
+        qs = ControleRestos.objects.all().order_by('-criado_em')
+
+        if user.tipo_usuario == 'escola':
+            qs = qs.filter(escola=user.vinculo_atual.instituicao)
+
+        elif form.cleaned_data['escola']:
+            qs = qs.filter(escola=form.cleaned_data['escola'])
+
+        elif form.cleaned_data['dre']:
+            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
+
+        return qs.distinct()
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}')
+    def relatorio(self, request):
+        form = ControleRestosRelatorioForm(self.request.GET)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
+        data = paginate_list(request, rows, serializer=serialize_relatorio_controle_restos)
+        return Response(data)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}/exportar-xlsx')
+    def relatorio_exportar_xlsx(self, request):
+        form = ControleRestosRelatorioForm(self.request.GET)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
+        user = request.user.get_username()
+        gera_xls_relatorio_controle_restos_async.delay(
+            user=user,
+            nome_arquivo='relatorio_controle_restos.xlsx',
+            data=rows,
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    class Meta:
+        model = ControleRestos
