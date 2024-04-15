@@ -91,18 +91,32 @@ class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
     form = PerfisMultipleChoiceForm
 
 
+class PerfisFilter(admin.SimpleListFilter):
+    title = "Perfis"
+    parameter_name = "perfis"
+
+    def lookups(self, request, model_admin):
+        return [("Diretor", "Diretor"), ("Supervisao", "Supervisao")]
+
+    def queryset(self, request, queryset):
+        if self.value() == "Tudo":
+            return queryset.all()
+        if self.value() in ["Diretor", "Supervisao"]:
+            return queryset.filter(tipo_ocorrencia__perfis__icontains=self.value())
+
+
 @admin.register(ParametrizacaoOcorrencia)
 class ParametrizacaoAdmin(admin.ModelAdmin):
-    list_display = ("get_edital", "titulo", "tipo_pergunta", "get_perfis")
+    list_display = ("edital", "titulo", "tipo_pergunta", "perfis")
     ordering = ("criado_em",)
-    search_fields = ("get_edital", "titulo")
-    list_filter = ("tipo_ocorrencia__edital", "tipo_ocorrencia__perfis")
+    search_fields = ("edital", "titulo")
+    list_filter = ("tipo_ocorrencia__edital", PerfisFilter)
     autocomplete_fields = ("tipo_ocorrencia",)
 
-    def get_edital(self, obj):
+    def edital(self, obj):
         return obj.tipo_ocorrencia.edital.numero
 
-    def get_perfis(self, obj):
+    def perfis(self, obj):
         return obj.tipo_ocorrencia.perfis
 
 
