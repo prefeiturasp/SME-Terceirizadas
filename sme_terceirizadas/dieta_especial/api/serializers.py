@@ -691,6 +691,8 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
     protocolo_padrao = ProtocoloPadraoDietaEspecialSimplesSerializer()
     data_ultimo_log = serializers.SerializerMethodField()
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
+    tipo_gestao = serializers.SerializerMethodField()
+    dre = serializers.SerializerMethodField()
 
     def get_nome_escola(self, obj):
         return obj.escola_destino.nome if obj.escola_destino else None
@@ -715,6 +717,16 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             else None
         )
 
+    def get_tipo_gestao(self, obj):
+        return (
+            obj.escola_destino.tipo_gestao.nome
+            if obj.escola_destino.tipo_gestao
+            else None
+        )
+
+    def get_dre(self, obj):
+        return obj.escola_destino.diretoria_regional.nome
+
     class Meta:
         model = SolicitacaoDietaEspecial
         fields = (
@@ -732,6 +744,8 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             "nome_protocolo",
             "data_ultimo_log",
             "alergias_intolerancias",
+            "tipo_gestao",
+            "dre",
         )
 
 

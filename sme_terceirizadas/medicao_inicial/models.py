@@ -520,3 +520,72 @@ class ClausulaDeDesconto(TemChaveExterna, CriadoEm, TemAlteradoEm):
         verbose_name_plural = "Cláusulas de Descontos"
         ordering = ["-alterado_em"]
         unique_together = ("edital", "numero_clausula", "item_clausula")
+
+
+class ParametrizacaoFinanceira(TemChaveExterna, CriadoEm, TemAlteradoEm):
+    edital = models.ForeignKey(
+        "terceirizada.Edital",
+        related_name="parametrizacoes_financeiras",
+        on_delete=models.PROTECT,
+    )
+    lote = models.ForeignKey(
+        "escola.Lote",
+        related_name="parametrizacoes_financeiras",
+        on_delete=models.PROTECT,
+    )
+    tipos_unidades = models.ManyToManyField(
+        "escola.TipoUnidadeEscolar", related_name="parametrizacoes_financeiras"
+    )
+    legenda = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Edital {self.edital} | Lote {self.lote} | DRE {self.lote.diretoria_regional} | Tipos de Unidades {', '.join(self.tipos_unidades.values_list('iniciais', flat=True))}"
+
+    class Meta:
+        verbose_name = "Parametrização Financeira"
+        verbose_name_plural = "Parametrizações Financeiras"
+        ordering = ["-alterado_em"]
+
+
+class ParametrizacaoFinanceiraTabela(TemChaveExterna, CriadoEm, TemAlteradoEm):
+    nome = models.CharField()
+    parametrizacao_financeira = models.ForeignKey(
+        ParametrizacaoFinanceira, on_delete=models.CASCADE, related_name="tabelas"
+    )
+
+    def __str__(self):
+        return f"Tabela {self.nome}"
+
+    class Meta:
+        verbose_name = "Parametrização Financeira Tabela"
+        verbose_name_plural = "Parametrizações Financeiras Tabelas"
+        unique_together = ("nome", "parametrizacao_financeira")
+
+
+class ParametrizacaoFinanceiraTabelaValor(TemChaveExterna, CriadoEm, TemAlteradoEm):
+    """
+    Ex.: valor_colunas: {
+        "tipo_alimentacao": "REFEICAO - EJA",
+        "valor_unitario": 10,
+        "valor_reajuste": 15
+    }
+    """
+
+    tabela = models.ForeignKey(
+        ParametrizacaoFinanceiraTabela, on_delete=models.CASCADE, related_name="valores"
+    )
+    tipo_alimentacao = models.ForeignKey(
+        "cardapio.TipoAlimentacao",
+        on_delete=models.PROTECT,
+        related_name="parametrizacoes_valores",
+    )
+    grupo = models.CharField(null=True, blank=True)
+    valor_colunas = models.JSONField()
+
+    def __str__(self):
+        return f"Tabela {self.tabela} | {self.tipo_alimentacao} {self.grupo}"
+
+    class Meta:
+        verbose_name = "Parametrização Financeira Tabela Valor"
+        verbose_name_plural = "Parametrizações Financeiras Tabelas Valores"
+        unique_together = ("tabela", "tipo_alimentacao", "grupo")

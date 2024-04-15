@@ -28,7 +28,9 @@ def get_dataset_grafico_total_dre_lote(datasets, request, model, instituicao, qu
         if isinstance(instituicao, Terceirizada):
             lotes = Lote.objects.filter(terceirizada=instituicao)
         elif isinstance(instituicao, DiretoriaRegional):
-            lotes = Lote.objects.filter(diretoria_regional=instituicao)
+            lotes = Lote.objects.filter(
+                uuid__in=list(set(queryset.values_list("lote_uuid", flat=True)))
+            )
         else:
             lotes = Lote.objects.all()
         lotes = lotes.values_list("uuid", flat=True)
@@ -215,6 +217,55 @@ def get_dataset_grafico_total_tipo_unidade(
         dataset["datasets"][0]["data"].append(
             count_query_set_sem_duplicados(
                 queryset.filter(escola_tipo_unidade_uuid=tipo_unidade_uuid)
+            )
+        )
+
+    datasets.append(dataset)
+    return datasets
+
+
+def get_dataset_grafico_total_terceirizadas(
+    datasets, request, model, instituicao, queryset
+):
+    if isinstance(instituicao, Escola) or request.data.get("unidades_educacionais", []):
+        return datasets
+
+    label_data = {
+        "AUTORIZADOS": "Autorizadas",
+        "CANCELADOS": "Canceladas",
+        "NEGADOS": "Negadas",
+        "RECEBIDAS": "Recebidas",
+    }
+
+    if isinstance(instituicao, Terceirizada):
+        terceirizadas = Terceirizada.objects.filter(id=instituicao.id)
+    elif isinstance(instituicao, DiretoriaRegional):
+        terceirizadas = Terceirizada.objects.filter(
+            uuid__in=list(set(queryset.values_list("terceirizada_uuid", flat=True)))
+        )
+    else:
+        terceirizadas = Terceirizada.objects.filter(
+            tipo_empresa=Terceirizada.TERCEIRIZADA
+        )
+
+    queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros_=None)
+    dataset = {
+        "labels": [],
+        "datasets": [
+            {
+                "label": f"Total de Solicitações {label_data[request.data.get('status')]} por Empresa Terceirizada",
+                "data": [],
+                "maxBarThickness": 80,
+                "backgroundColor": "#035d96",
+            }
+        ],
+    }
+
+    for terceirizada in terceirizadas:
+        dataset["labels"].append(terceirizada.nome_fantasia)
+        dataset["datasets"][0]["data"].append(
+            count_query_set_sem_duplicados(
+                queryset.filter(terceirizada_uuid=terceirizada.uuid)
             )
         )
 

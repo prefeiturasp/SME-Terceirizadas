@@ -17,8 +17,13 @@ from rest_framework.mixins import (
     UpdateModelMixin,
 )
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
+
+from sme_terceirizadas.medicao_inicial.tasks import (
+    exporta_relatorio_controle_frequencia_para_pdf,
+)
 
 from ...dados_comuns.permissions import (
     UsuarioCODAEDietaEspecial,
@@ -29,7 +34,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin,
 )
-from ...dados_comuns.utils import get_ultimo_dia_mes, obter_primeiro_e_ultimo_dia_util
+from ...dados_comuns.utils import get_ultimo_dia_mes, obter_primeiro_e_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.serializers import (
     AlunoSerializer,
@@ -184,6 +189,15 @@ class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
     lookup_field = "uuid"
     queryset = Escola.objects.all()
     serializer_class = EscolaEolSimplesSerializer
+
+    @action(detail=False, methods=["POST"], url_path="escolas-com-cod-eol")
+    def escolas_com_cod_eol(self, request):
+        escolas = self.get_queryset()
+        lote = request.data.get("lote", None)
+        if lote:
+            escolas = escolas.filter(lote__uuid=lote)
+        serializer = self.serializer_class(escolas, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["POST"], url_path="terc-total")
     def terc_total(self, request):
@@ -1083,9 +1097,23 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
 
         for periodo_uuid in json.loads(periodos_uuids):
             periodo = PeriodoEscolar.objects.get(uuid=periodo_uuid)
-            total_matriculados = soma_quantidades_por_periodo.filter(
-                periodo_escolar=periodo
-            ).aggregate(max_quantidade=Max("soma_quantidade"))["max_quantidade"]
+
+            if periodo.nome == "INTEGRAL":
+                periodo_parcial = PeriodoEscolar.objects.get(nome="PARCIAL")
+
+                total_matriculados_integral = self.get_total_matriculados_por_periodo(
+                    soma_quantidades_por_periodo, periodo
+                )
+                total_matriculados_parcial = self.get_total_matriculados_por_periodo(
+                    soma_quantidades_por_periodo, periodo_parcial
+                )
+                total_matriculados = (
+                    total_matriculados_integral + total_matriculados_parcial
+                )
+            else:
+                total_matriculados = self.get_total_matriculados_por_periodo(
+                    soma_quantidades_por_periodo, periodo
+                )
             max_quantidades_por_periodo[periodo.nome] = (
                 total_matriculados if total_matriculados else 0
             )
@@ -1095,6 +1123,45 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
         }
 
         return response
+
+    def get_total_matriculados_por_periodo(self, soma_logs_alunos_por_periodo, periodo):
+        return (
+            soma_logs_alunos_por_periodo.filter(periodo_escolar=periodo).aggregate(
+                max_quantidade=Max("soma_quantidade")
+            )["max_quantidade"]
+            or 0
+        )
+
+    def validar_periodos(self, filtros, periodos_uuids):
+        periodos = PeriodoEscolar.objects.filter(uuid__in=json.loads(periodos_uuids))
+        periodo_integral = PeriodoEscolar.objects.get(nome="INTEGRAL")
+
+        if periodo_integral in periodos:
+            periodos_uuids_list = json.loads(periodos_uuids)
+            periodo_parcial = PeriodoEscolar.objects.get(nome="PARCIAL")
+            periodos_uuids_list.append(str(periodo_parcial.uuid))
+            periodos_uuids = json.dumps(periodos_uuids_list)
+        filtros["periodo_escolar__uuid__in"] = json.loads(periodos_uuids)
+        return filtros
+
+    def validar_datas(self, filtros, data_inicial, data_final, escola_eh_cei_ou_cemei):
+        nome_campo = "data" if escola_eh_cei_ou_cemei else "criado_em"
+
+        ano, mes, dia_inicial = data_inicial.split("-")
+        datetime_inicial = datetime.date(int(ano), int(mes), int(dia_inicial))
+        hoje = datetime.date.today()
+        ontem = hoje - datetime.timedelta(days=1)
+
+        if data_inicial == data_final and not datetime_inicial >= hoje:
+            filtros[nome_campo] = data_inicial
+        elif datetime_inicial >= hoje:
+            filtros[nome_campo] = ontem
+        else:
+            if data_inicial:
+                filtros[f"{nome_campo}__gte"] = data_inicial
+            if data_final:
+                filtros[f"{nome_campo}__lte"] = data_final
+        return filtros
 
     @action(detail=False, methods=["GET"], url_path="meses-anos")
     def meses_anos(self, _):
@@ -1141,9 +1208,11 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
                 )
 
             periodos_ids = log_alunos.values_list("periodo_escolar", flat=True)
-            periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
+            periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids).exclude(
+                nome="PARCIAL"
+            )
 
-            datas = obter_primeiro_e_ultimo_dia_util(int(ano), int(mes))
+            datas = obter_primeiro_e_ultimo_dia_mes(int(ano), int(mes))
             data_inicial = datas[0]
             data_final = datas[1]
 
@@ -1166,15 +1235,16 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
 
         filtros = {}
 
-        if request.query_params.get("data_inicial"):
-            filtros["criado_em__gte"] = request.query_params.get("data_inicial")
-
-        if request.query_params.get("data_final"):
-            filtros["criado_em__lte"] = request.query_params.get("data_final")
+        data_inicial = request.query_params.get("data_inicial")
+        data_final = request.query_params.get("data_final")
+        if data_inicial or data_final:
+            filtros = self.validar_datas(
+                filtros, data_inicial, data_final, escola_eh_cei_ou_cemei
+            )
 
         periodos_uuids = request.query_params.get("periodos")
         if periodos_uuids:
-            filtros["periodo_escolar__uuid__in"] = json.loads(periodos_uuids)
+            filtros = self.validar_periodos(filtros, periodos_uuids)
 
         if filtros:
             queryset = queryset.filter(**filtros)
@@ -1184,3 +1254,39 @@ class RelatorioControleDeFrequenciaViewSet(ModelViewSet):
         )
 
         return Response(response, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        url_path="imprimir-pdf",
+    )
+    def relatorio_controle_frequencia_exportar_pdf(self, request: Request):
+        escola_uuid = request.user.vinculo_atual.instituicao.uuid
+        query_params = request.query_params
+
+        mes_ano = query_params.get("mes_ano")
+        if not mes_ano:
+            return Response(
+                data="É necessário informar o mês/ano de referência",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            query_params_dict = query_params.dict()
+            exporta_relatorio_controle_frequencia_para_pdf.delay(
+                user=request.user.get_username(),
+                nome_arquivo="controle-frequencia.pdf",
+                query_params=query_params_dict,
+                escola_uuid=escola_uuid,
+            )
+
+            return Response(
+                data={
+                    "detail": "Solicitação de geração de arquivo recebida com sucesso."
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            return Response(
+                data={"detail": "Verifique os parâmetros e tente novamente"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

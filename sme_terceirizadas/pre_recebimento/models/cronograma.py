@@ -38,6 +38,7 @@ from ...produto.models import (
     NomeDeProdutoEdital,
 )
 from ...terceirizada.models import Contrato, Terceirizada
+from .qualidade import TipoEmbalagemQld
 
 
 class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
@@ -86,6 +87,12 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
         blank=True,
         null=True,
     )
+    tipo_embalagem_secundaria = models.ForeignKey(
+        TipoEmbalagemQld,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
     custo_unitario_produto = models.FloatField(
         "Custo Unitário do Produto", blank=True, null=True
     )
@@ -125,9 +132,7 @@ class EtapasDoCronograma(ModeloBase):
     parte = models.CharField(blank=True, max_length=15)
     data_programada = models.DateField("Data Programada", blank=True, null=True)
     quantidade = models.FloatField(blank=True, null=True)
-    total_embalagens = models.PositiveIntegerField(
-        "Total de Embalagens", blank=True, null=True
-    )
+    total_embalagens = models.FloatField("Total de Embalagens", blank=True, null=True)
 
     def __str__(self):
         if self.etapa and self.cronograma:

@@ -75,6 +75,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCorrecaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
+    FichaTecnicaAtualizacaoSerializer,
     FichaTecnicaCreateSerializer,
     FichaTecnicaRascunhoSerializer,
     LaboratorioCreateSerializer,
@@ -1172,6 +1173,27 @@ class FichaTecnicaModelViewSet(
         return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
 
     @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-simples-sem-questoes-conferencia",
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
+    )
+    def lista_simples_sem_questoes_conferencia(self, request, **kwargs):
+        usuario = self.request.user
+
+        qs = (
+            self.get_queryset().filter(empresa=usuario.vinculo_atual.instituicao)
+            if usuario.eh_empresa
+            else self.get_queryset()
+        )
+
+        qs = qs.exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO).exclude(
+            questoes_conferencia__isnull=False
+        )
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
         detail=True,
         methods=["GET"],
         url_path="dados-cronograma",
@@ -1258,6 +1280,28 @@ class FichaTecnicaModelViewSet(
 
     def _processa_correcao(self, request, *args, **kwargs):
         serializer = CorrecaoFichaTecnicaSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        url_path="atualizacao-fornecedor",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def atualizacao_fornecedor(self, request, *args, **kwargs):
+        return self._verificar_autenticidade_usuario(
+            request, *args, **kwargs
+        ) or self._processa_atualizacao(request, *args, **kwargs)
+
+    def _processa_atualizacao(self, request, *args, **kwargs):
+        serializer = FichaTecnicaAtualizacaoSerializer(
             instance=self.get_object(),
             data=request.data,
             context={"request": request},

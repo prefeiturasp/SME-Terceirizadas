@@ -51,6 +51,7 @@ def test_rascunho_cronograma_create_ok(
     unidade_medida_logistica,
     armazem,
     ficha_tecnica_perecivel_enviada_para_analise,
+    tipo_emabalagem_qld,
 ):
     qtd_total_empenho = fake.random_number() / 100
     custo_unitario_produto = fake.random_number() / 100
@@ -79,6 +80,7 @@ def test_rascunho_cronograma_create_ok(
             }
         ],
         "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
+        "tipo_embalagem_secundaria": str(tipo_emabalagem_qld.uuid),
         "custo_unitario_produto": custo_unitario_produto,
     }
 
@@ -94,6 +96,7 @@ def test_rascunho_cronograma_create_ok(
     assert obj.unidade_medida == unidade_medida_logistica
     assert obj.armazem == armazem
     assert obj.ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
+    assert obj.tipo_embalagem_secundaria == tipo_emabalagem_qld
     assert obj.custo_unitario_produto == custo_unitario_produto
     assert obj.etapas.first().qtd_total_empenho == qtd_total_empenho
 
@@ -3144,6 +3147,31 @@ def test_url_ficha_tecnica_lista_simples_sem_layout_embalagem(
     assert len(response.json()["results"]) == len(fichas) - FICHAS_VINCULADAS
 
 
+def test_url_ficha_tecnica_lista_simples_sem_questoes_conferencia(
+    client_autenticado_qualidade,
+    ficha_tecnica_factory,
+    empresa,
+    questoes_por_produto_factory,
+):
+    FICHAS_VINCULADAS = 5
+
+    fichas = ficha_tecnica_factory.create_batch(
+        size=10,
+        status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        empresa=empresa,
+    )
+
+    for ficha in fichas[:FICHAS_VINCULADAS]:
+        questoes_por_produto_factory(ficha_tecnica=ficha)
+
+    response = client_autenticado_qualidade.get(
+        "/ficha-tecnica/lista-simples-sem-questoes-conferencia/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(fichas) - FICHAS_VINCULADAS
+
+
 def test_url_ficha_tecnica_lista_simples(
     client_autenticado_fornecedor, ficha_tecnica_factory, empresa
 ):
@@ -3458,3 +3486,31 @@ def test_url_ficha_tecnica_correcao_fornecedor_validate_campos_nao_pereciveis(
         "produto_eh_liquido": ["Este campo não é permitido nesta correção."]
     }
     assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO
+
+
+def test_url_ficha_tecnica_atualizacao_fornecedor(
+    client_autenticado_fornecedor,
+    django_user_model,
+    analise_ficha_tecnica_factory,
+    payload_atualizacao_ficha_tecnica,
+):
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    analise = analise_ficha_tecnica_factory.create(
+        ficha_tecnica__empresa=empresa,
+        ficha_tecnica__status=FichaTecnicaDoProdutoWorkflow.APROVADA,
+    )
+    ficha = analise.ficha_tecnica
+
+    payload_atualizacao_ficha_tecnica["password"] = constants.DJANGO_ADMIN_PASSWORD
+
+    response = client_autenticado_fornecedor.patch(
+        f"/ficha-tecnica/{ficha.uuid}/atualizacao-fornecedor/",
+        content_type="application/json",
+        data=json.dumps(payload_atualizacao_ficha_tecnica),
+    )
+
+    ficha.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE

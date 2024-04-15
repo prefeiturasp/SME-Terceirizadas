@@ -1,5 +1,6 @@
 import logging
 import re
+from calendar import monthrange
 from datetime import date, datetime, timedelta
 
 from django.db.models import Q
@@ -333,3 +334,304 @@ def eh_dia_sem_atividade_escolar(escola, data, alteracao):
         )
         .exists()
     )
+
+
+def analise_alunos_dietas_somente_uma_data(
+    datetime_autorizacao, data_inicial, data_final, dieta, alunos_com_dietas_autorizadas
+):
+    from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+
+    if (
+        data_inicial is not None
+        and data_final is not None
+        and data_inicial == data_final
+    ):
+        if datetime_autorizacao < datetime.strptime(data_inicial, "%Y-%m-%d") and (
+            (dieta.logs.last().status_evento == LogSolicitacoesUsuario.CODAE_AUTORIZOU)
+            or (
+                dieta.logs.last().status_evento
+                != LogSolicitacoesUsuario.CODAE_AUTORIZOU
+                and dieta.logs.last().criado_em
+                > datetime.strptime(data_inicial, "%Y-%m-%d")
+            )
+        ):
+            alunos_com_dietas_autorizadas.append(
+                {
+                    "aluno": dieta.aluno.nome,
+                    "tipo_dieta": dieta.classificacao.nome,
+                    "data_autorizacao": dieta.data_autorizacao,
+                }
+            )
+    return alunos_com_dietas_autorizadas
+
+
+def get_alunos_com_dietas_autorizadas(query_params, escola):
+    from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+    from sme_terceirizadas.dieta_especial.models import SolicitacaoDietaEspecial
+
+    solicitacoes_dietas_comuns = SolicitacaoDietaEspecial.objects.filter(
+        aluno__escola=escola, tipo_solicitacao="COMUM"
+    )
+    dietas_com_log_autorizado = [
+        s
+        for s in solicitacoes_dietas_comuns
+        if s.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
+    ]
+    data_inicial = query_params.get("data_inicial")
+    data_final = query_params.get("data_final")
+    alunos_com_dietas_autorizadas = []
+    for dieta in dietas_com_log_autorizado:
+        datetime_autorizacao = datetime.strptime(dieta.data_autorizacao, "%d/%m/%Y")
+        if data_inicial and data_final:
+            if (
+                datetime_autorizacao >= datetime.strptime(data_inicial, "%Y-%m-%d")
+                and datetime_autorizacao <= datetime.strptime(data_final, "%Y-%m-%d")
+            ) or (
+                datetime_autorizacao < datetime.strptime(data_inicial, "%Y-%m-%d")
+                and (
+                    (
+                        dieta.logs.last().status_evento
+                        == LogSolicitacoesUsuario.CODAE_AUTORIZOU
+                    )
+                    or (
+                        dieta.logs.last().status_evento
+                        != LogSolicitacoesUsuario.CODAE_AUTORIZOU
+                        and dieta.logs.last().criado_em
+                        > datetime.strptime(data_inicial, "%Y-%m-%d")
+                    )
+                )
+            ):
+                alunos_com_dietas_autorizadas.append(
+                    {
+                        "aluno": dieta.aluno.nome,
+                        "tipo_dieta": dieta.classificacao.nome,
+                        "data_autorizacao": dieta.data_autorizacao,
+                    }
+                )
+        elif not data_inicial and not data_final:
+            mes_ano = query_params.get("mes_ano")
+            mes, ano = mes_ano.split("_")
+            _, num_dias = monthrange(
+                int(ano),
+                int(mes),
+            )
+            if (
+                datetime_autorizacao
+                >= datetime.strptime(f"{1}/{mes}/{ano}", "%d/%m/%Y")
+                and datetime_autorizacao
+                <= datetime.strptime(f"{num_dias}/{mes}/{ano}", "%d/%m/%Y")
+            ) or (
+                datetime_autorizacao < datetime.strptime(f"{1}/{mes}/{ano}", "%d/%m/%Y")
+                and (
+                    (
+                        dieta.logs.last().status_evento
+                        == LogSolicitacoesUsuario.CODAE_AUTORIZOU
+                    )
+                    or (
+                        dieta.logs.last().status_evento
+                        != LogSolicitacoesUsuario.CODAE_AUTORIZOU
+                        and dieta.logs.last().criado_em
+                        > datetime.strptime(f"{1}/{mes}/{ano}", "%d/%m/%Y")
+                    )
+                )
+            ):
+                alunos_com_dietas_autorizadas.append(
+                    {
+                        "aluno": dieta.aluno.nome,
+                        "tipo_dieta": dieta.classificacao.nome,
+                        "data_autorizacao": dieta.data_autorizacao,
+                    }
+                )
+        alunos_com_dietas_autorizadas = analise_alunos_dietas_somente_uma_data(
+            datetime_autorizacao,
+            data_inicial,
+            data_final,
+            dieta,
+            alunos_com_dietas_autorizadas,
+        )
+    return alunos_com_dietas_autorizadas
+
+
+def trata_filtro_data_relatorio_controle_frequencia_pdf(
+    filtros, query_params, ano, mes, num_dias
+):
+    hoje = date.today()
+    ontem = hoje - timedelta(days=1)
+    mes_seguinte = False
+    _, _, dia_inicial = (
+        query_params.get("data_inicial").split("-")
+        if query_params.get("data_inicial")
+        else [None, None, None]
+    )
+    if int(mes) > hoje.month:
+        filtros["data"] = f"{hoje.year}-{hoje.month}-{ontem.day}"
+        mes_seguinte = True
+    elif (
+        int(mes) == hoje.month
+        and query_params.get("data_inicial") == query_params.get("data_final")
+        and dia_inicial
+        and int(dia_inicial) >= hoje.day
+    ):
+        filtros["data"] = ontem
+    elif int(mes) == hoje.month and query_params.get(
+        "data_inicial"
+    ) != query_params.get("data_final"):
+        if dia_inicial and int(dia_inicial) >= hoje.day:
+            filtros["data"] = ontem
+    else:
+        filtros["data__gte"] = query_params.get("data_inicial", f"{ano}-{mes}-{'01'}")
+        filtros["data__lte"] = query_params.get("data_final", f"{ano}-{mes}-{num_dias}")
+    return mes_seguinte
+
+
+def eh_mes_atual(query_params):
+    mes_ano = query_params.get("mes_ano")
+    mes, _ = mes_ano.split("_")
+    hoje = date.today()
+    return int(mes) == hoje.month
+
+
+def alunos_por_faixa_append(alunos_por_faixa, aluno):
+    if aluno not in alunos_por_faixa:
+        alunos_por_faixa.append(aluno)
+    return alunos_por_faixa
+
+
+def dias_append(dias, dia, alunos_por_dia):
+    return dias.append(
+        {
+            "dia": f"{dia:02d}",
+            "alunos_por_dia": alunos_por_dia,
+        }
+    )
+
+
+def trata_dados_futuro_mes_atual(
+    queryset_periodo_faixa,
+    log_periodo_faixa,
+    dias,
+    alunos_por_dia,
+    num_dias,
+    query_params,
+):
+    data_inicial = query_params.get("data_inicial")
+    data_final = query_params.get("data_final")
+    hoje = date.today()
+    if queryset_periodo_faixa.order_by("data").last().uuid == log_periodo_faixa.uuid:
+        if data_inicial and data_inicial == data_final:
+            ano, mes, dia_inicial = query_params.get("data_inicial").split("-")
+            datetime_inicial = date(int(ano), int(mes), int(dia_inicial))
+            if datetime_inicial >= hoje:
+                dias_append(dias, int(dia_inicial), alunos_por_dia)
+        else:
+            dia = log_periodo_faixa.data.day + 1
+            while int(dia) <= int(num_dias):
+                dias_append(dias, dia, alunos_por_dia)
+                dia += 1
+
+
+def trata_dados_futuro(
+    mes_atual,
+    log_periodo_faixa,
+    alunos_por_dia,
+    alunos_por_faixa,
+    dias,
+    query_params,
+    queryset_periodo,
+    queryset_periodo_faixa,
+    uuid_faixas,
+):
+    for log_aluno_dia in log_periodo_faixa.logs_alunos_por_dia.all():
+        data_nascimento = log_aluno_dia.aluno.data_nascimento
+        aluno = f"{log_aluno_dia.aluno.nome} - {data_nascimento.day:02d}/{data_nascimento.month:02d}/{data_nascimento.year}"
+        alunos_por_dia.append(aluno)
+        alunos_por_faixa_append(alunos_por_faixa, aluno)
+    mes_ano = query_params.get("mes_ano")
+    mes, ano = mes_ano.split("_")
+    _, num_dias = monthrange(
+        int(ano),
+        int(mes),
+    )
+    if mes_atual:
+        dias_append(dias, log_periodo_faixa.data.day, alunos_por_dia)
+        trata_dados_futuro_mes_atual(
+            queryset_periodo_faixa,
+            log_periodo_faixa,
+            dias,
+            alunos_por_dia,
+            num_dias,
+            query_params,
+        )
+    else:
+        dia = 1
+        if query_params.get("data_inicial"):
+            _, _, dia_inicial = query_params.get("data_inicial").split("-")
+            dia = int(dia_inicial)
+            num_dias = 1
+        if query_params.get("data_final"):
+            _, _, dia_final = query_params.get("data_final").split("-")
+            num_dias = int(dia_final)
+        while dia <= num_dias:
+            dias_append(dias, dia, alunos_por_dia)
+            dia += 1
+
+
+def formata_periodos_pdf_controle_frequencia(
+    qtd_matriculados, queryset, query_params, escola, mes_seguinte
+):
+    from .models import FaixaEtaria
+
+    periodos = []
+    mes_atual = eh_mes_atual(query_params)
+    for periodo_key in qtd_matriculados["periodos"].keys():
+        faixas = []
+        queryset_periodo = queryset.filter(periodo_escolar__nome=periodo_key)
+        uuid_faixas = list(
+            set(queryset_periodo.values_list("faixa_etaria__uuid", flat=True))
+        )
+        for uuid_faixa in uuid_faixas:
+            queryset_periodo_faixa = queryset_periodo.filter(
+                faixa_etaria__uuid=uuid_faixa
+            )
+            dias = []
+            alunos_por_faixa = []
+            for log_periodo_faixa in queryset_periodo_faixa:
+                alunos_por_dia = []
+                if mes_seguinte or mes_atual:
+                    trata_dados_futuro(
+                        mes_atual,
+                        log_periodo_faixa,
+                        alunos_por_dia,
+                        alunos_por_faixa,
+                        dias,
+                        query_params,
+                        queryset_periodo,
+                        queryset_periodo_faixa,
+                        uuid_faixas,
+                    )
+                else:
+                    for log_aluno_dia in log_periodo_faixa.logs_alunos_por_dia.all():
+                        data_nascimento = log_aluno_dia.aluno.data_nascimento
+                        aluno = f"{log_aluno_dia.aluno.nome} - {data_nascimento.day:02d}/{data_nascimento.month:02d}/{data_nascimento.year}"
+                        alunos_por_dia.append(aluno)
+                        alunos_por_faixa_append(alunos_por_faixa, aluno)
+                    dias_append(dias, log_periodo_faixa.data.day, alunos_por_dia)
+            faixas.append(
+                {
+                    "nome_faixa": FaixaEtaria.objects.get(uuid=uuid_faixa).__str__(),
+                    "dias": dias,
+                    "alunos_por_faixa": alunos_por_faixa,
+                }
+            )
+        alunos_com_dietas_autorizadas = get_alunos_com_dietas_autorizadas(
+            query_params, escola
+        )
+        periodos.append(
+            {
+                "periodo": periodo_key,
+                "quantidade": qtd_matriculados["periodos"][periodo_key],
+                "faixas": faixas,
+                "alunos_com_dietas_autorizadas": alunos_com_dietas_autorizadas,
+            }
+        )
+    return periodos

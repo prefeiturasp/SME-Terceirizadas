@@ -1,7 +1,7 @@
 from factory import DjangoModelFactory, Sequence
 from faker import Faker
 
-from sme_terceirizadas.terceirizada.models import Terceirizada
+from sme_terceirizadas.terceirizada.models import Edital, Terceirizada
 
 fake = Faker("pt_BR")
 
@@ -15,3 +15,11 @@ class EmpresaFactory(DjangoModelFactory):
     cnpj = Sequence(
         lambda n: fake.unique.cnpj().replace(".", "").replace("/", "").replace("-", "")
     )
+
+
+class EditalFactory(DjangoModelFactory):
+    class Meta:
+        model = Edital
+
+    numero = Sequence(lambda n: fake.unique.random_int(min=1, max=1000))
+    objeto = Sequence(lambda n: f"objeto {fake.unique.name()}")

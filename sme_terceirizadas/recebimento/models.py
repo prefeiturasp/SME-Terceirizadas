@@ -2,6 +2,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from multiselectfield import MultiSelectField
 
+from sme_terceirizadas.pre_recebimento.models import FichaTecnicaDoProduto
+
 from ..dados_comuns.behaviors import ModeloBase
 
 
@@ -48,3 +50,28 @@ class QuestaoConferencia(ModeloBase):
             raise ValidationError(
                 {"posicao": "Posição é obrigatória se a pergunta for obrigatória."}
             )
+
+
+class QuestoesPorProduto(ModeloBase):
+    ficha_tecnica = models.OneToOneField(
+        FichaTecnicaDoProduto,
+        on_delete=models.CASCADE,
+        related_name="questoes_conferencia",
+    )
+    questoes_primarias = models.ManyToManyField(
+        QuestaoConferencia,
+        verbose_name="Questões referentes à Embalagem Primária",
+        related_name="questoes_primarias",
+    )
+    questoes_secundarias = models.ManyToManyField(
+        QuestaoConferencia,
+        verbose_name="Questões referentes à Embalagem Secundária",
+        related_name="questoes_secundarias",
+    )
+
+    def __str__(self):
+        return f"Questões da Ficha: {self.ficha_tecnica}"
+
+    class Meta:
+        verbose_name = "Questões por Produto"
+        verbose_name_plural = "Questões por Produtos"

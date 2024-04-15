@@ -31,6 +31,7 @@ from .constants import (
     DIRETOR_UE,
     ORGAO_FISCALIZADOR,
     PARCEIRA,
+    USUARIO_RELATORIOS,
 )
 
 
@@ -191,6 +192,19 @@ class UsuarioCODAEDietaEspecial(BasePermission):
         )
 
 
+class UsuarioCODAERelatorios(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Relatórios."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome in [USUARIO_RELATORIOS]
+        )
+
+
 class UsuarioCODAEGabinete(BasePermission):
     """Permite acesso a usuários com vinculo a CODAE - Gabinete."""
 
@@ -222,6 +236,19 @@ class UsuarioNutricionista(BasePermission):
                 COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
                 ADMINISTRADOR_MEDICAO,
             ]
+        )
+
+
+class UsuarioMedicao(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - MEDICAO."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_MEDICAO
         )
 
 
@@ -1106,7 +1133,6 @@ class PermissaoParaVisualizarGuiasComOcorrencias(BasePermission):
                         ADMINISTRADOR_CODAE_DILOG_JURIDICO,
                         COORDENADOR_CODAE_DILOG_LOGISTICA,
                         COORDENADOR_LOGISTICA,
-                        DILOG_QUALIDADE,
                         ADMINISTRADOR_CODAE_GABINETE,
                         DILOG_DIRETORIA,
                     ]
@@ -1232,6 +1258,7 @@ class PermissaoParaVisualizarFichaTecnica(BasePermission):
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_CRONOGRAMA,
         DILOG_DIRETORIA,
+        DILOG_QUALIDADE,
     ]
 
     def has_permission(self, request, view):
@@ -1254,6 +1281,18 @@ class PermissaoParaAnalisarFichaTecnica(BasePermission):
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
     ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
+        )
+
+
+class PermissaoParaVisualizarQuestoesConferencia(BasePermission):
+    PERFIS_PERMITIDOS = [DILOG_QUALIDADE]
 
     def has_permission(self, request, view):
         usuario = request.user

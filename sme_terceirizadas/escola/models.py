@@ -1953,8 +1953,26 @@ class LogAlunosMatriculadosFaixaEtariaDia(
         ordering = ("criado_em",)
 
 
+class LogAlunoPorDia(TemChaveExterna, CriadoEm):
+    """Relaciona log LogAlunosMatriculadosFaixaEtariaDia e Aluno."""
+
+    log_alunos_matriculados_faixa_dia = models.ForeignKey(
+        LogAlunosMatriculadosFaixaEtariaDia,
+        related_name="logs_alunos_por_dia",
+        on_delete=models.PROTECT,
+    )
+    aluno = models.ForeignKey(
+        Aluno, related_name="logs_alunos_por_dia", on_delete=models.PROTECT
+    )
+
+    class Meta:
+        verbose_name = "Log aluno por dia"
+        verbose_name_plural = "Logs alunos por dia"
+        ordering = ("criado_em",)
+
+
 class AlunoPeriodoParcial(TemChaveExterna, CriadoEm):
-    """Relaciona alunos em período parcil com a unidade educacional e a solicitação de medição inicial."""
+    """Relaciona alunos em período parcial com a unidade educacional e a solicitação de medição inicial."""
 
     escola = models.ForeignKey(
         Escola, related_name="alunos_periodo_parcial", on_delete=models.PROTECT

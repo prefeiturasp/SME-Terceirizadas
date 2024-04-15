@@ -121,8 +121,31 @@ class SubprefeituraSerializerSimples(serializers.ModelSerializer):
         fields = ("codigo_eol", "nome")
 
 
+class TipoUnidadeEscolarPeriodoEscolarTipoAlimentacaoSerializer(serializers.Serializer):
+    uuid = serializers.CharField(read_only=True)
+    nome = serializers.CharField(read_only=True)
+
+
+class TipoUnidadeEscolarPeriodoEscolarSerializer(serializers.Serializer):
+    uuid = serializers.CharField(read_only=True)
+    nome = serializers.CharField(read_only=True)
+    tipos_alimentacao = TipoUnidadeEscolarPeriodoEscolarTipoAlimentacaoSerializer(
+        read_only=True, many=True
+    )
+    posicao = serializers.IntegerField(read_only=True)
+    tipo_turno = serializers.IntegerField(read_only=True)
+    possui_alunos_regulares = serializers.SerializerMethodField()
+
+    def get_possui_alunos_regulares(self, obj):
+        if "escola" not in self.context:
+            return None
+        return obj.alunos_matriculados.filter(
+            escola=self.context["escola"], tipo_turma="REGULAR"
+        ).exists()
+
+
 class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
-    periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
+    periodos_escolares = TipoUnidadeEscolarPeriodoEscolarSerializer(many=True)
 
     class Meta:
         model = TipoUnidadeEscolar
@@ -243,13 +266,17 @@ class EscolaParaFiltrosReadOnlySerializer(serializers.Serializer):
 
 class EscolaEolSimplesSerializer(serializers.ModelSerializer):
     codigo_eol_escola = serializers.SerializerMethodField()
+    tipo_gestao = serializers.SerializerMethodField()
 
     def get_codigo_eol_escola(self, obj):
         return f"{obj.codigo_eol} - {obj.nome}" if obj.codigo_eol else None
 
+    def get_tipo_gestao(self, obj):
+        return obj.tipo_gestao.nome if obj.tipo_gestao else None
+
     class Meta:
         model = Escola
-        fields = ("codigo_eol", "codigo_eol_escola")
+        fields = ("codigo_eol", "codigo_eol_escola", "tipo_gestao")
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):

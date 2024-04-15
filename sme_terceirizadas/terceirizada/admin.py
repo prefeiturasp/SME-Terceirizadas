@@ -21,6 +21,7 @@ class NutricionistasInline(admin.TabularInline):
 @admin.register(Terceirizada)
 class TerceirizadaModelAdmin(admin.ModelAdmin):
     actions = ("export_usuarios_por_empresa",)
+    list_filter = ("tipo_empresa", "tipo_servico")
 
     def export_usuarios_por_empresa(self, request, queryset):
         qs = queryset.filter(vinculos__content_type__model="terceirizada").annotate(
@@ -66,6 +67,7 @@ class ContratoInline(admin.TabularInline):
 
 @admin.register(Edital)
 class EditalModelAdmin(admin.ModelAdmin):
+    search_fields = ("numero",)
     inlines = [ContratoInline]
 
 

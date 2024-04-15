@@ -36,3 +36,13 @@ class ClausulaDeDescontoFilter(filters.FilterSet):
 
     def filtra_edital(self, queryset, _, value):
         return queryset.filter(edital__uuid=value)
+
+
+class ParametrizacaoFinanceiraFilter(filters.FilterSet):
+    lote = filters.UUIDFilter(field_name="lote__uuid")
+    tipos_unidades = filters.CharFilter(method="filtra_tipos_unidades")
+    edital = filters.UUIDFilter(field_name="edital__uuid")
+
+    def filtra_tipos_unidades(self, queryset, _, value):
+        tipos_unidades_uuids = value.split(",")
+        return queryset.filter(tipos_unidades__uuid__in=tipos_unidades_uuids).distinct()

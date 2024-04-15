@@ -4998,9 +4998,9 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
                 usuario=user,
             )
 
-            nome_empresa = "XXXXXXXXXXXXXXXXXXXXXXXXX"
+            nome_empresa = self.ficha_tecnica.empresa.nome_fantasia
             data_envio = self.log_mais_recente.criado_em.strftime("%d/%m/%Y")
-            numero_cronograma = "XXX/XXXXA"
+            numero_ficha = self.ficha_tecnica.numero
             url_layout_embalagens = (
                 f"/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}"
             )
@@ -5013,7 +5013,8 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             EmailENotificacaoService.enviar_notificacao(
                 template="pre_recebimento_notificacao_fornecedor_envia_layout_embalagem.html",
                 contexto_template={
-                    "numero_cronograna": numero_cronograma,
+                    "numero_ficha": numero_ficha,
+                    "nome_produto": self.ficha_tecnica.produto.nome,
                     "nome_usuario_empresa": user.nome,
                     "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
                 },
@@ -5027,12 +5028,12 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             )
 
             EmailENotificacaoService.enviar_email(
-                titulo=f"Layouts Pendentes de Aprovação\nCronograma {numero_cronograma}",
-                assunto=f"[SIGPAE] Layouts Pendentes de Aprovação | Cronograma {numero_cronograma}",
+                titulo=f"Layouts Pendentes de Aprovação\nFicha Técnica {numero_ficha}",
+                assunto=f"[SIGPAE] Layouts Pendentes de Aprovação | Ficha Técnica {numero_ficha}",
                 template="pre_recebimento_email_fornecedor_envia_layout_embalagem.html",
                 contexto_template={
                     "nome_empresa": nome_empresa,
-                    "numero_cronograma": numero_cronograma,
+                    "numero_ficha": numero_ficha,
                     "data_envio": data_envio,
                     "url_layout_embalagens": base_url + url_layout_embalagens,
                 },
@@ -5058,17 +5059,20 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
                 usuario=user,
             )
 
-            numero_cronograma = "XXX/XXXXA"
+            numero_ficha = self.ficha_tecnica.numero
             url_corrigir_layout_embalagens = (
                 f"/pre-recebimento/corrigir-layout-embalagem?uuid={self.uuid}"
             )
 
             EmailENotificacaoService.enviar_notificacao(
                 template="pre_recebimento_notificacao_codae_solicita_correcao_layout_embalagem.html",
-                contexto_template={"numero_cronograna": numero_cronograma},
+                contexto_template={
+                    "numero_ficha": numero_ficha,
+                    "nome_produto": self.ficha_tecnica.produto.nome,
+                },
                 titulo_notificacao=(
-                    "Solicitação de Alteração do Layout de Embalagens referente ao Cronograma Nº "
-                    + f"{numero_cronograma}"
+                    "Solicitação de Alteração do Layout de Embalagens referente a Ficha Técnica "
+                    + f"{numero_ficha}"
                 ),
                 tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                 categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS,
@@ -5079,11 +5083,11 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             )
 
             EmailENotificacaoService.enviar_email(
-                titulo=f"Solicitação de Correção Layout de Embalagens Cronograma Nº {numero_cronograma}",
-                assunto=f"[SIGPAE] Solicitação de Correção Layout de Embalagens | Cronograma Nº {numero_cronograma}",
+                titulo=f"Solicitação de Correção Layout de Embalagens {numero_ficha}",
+                assunto=f"[SIGPAE] Solicitação de Correção Layout de Embalagens {numero_ficha}",
                 template="pre_recebimento_email_codae_solicita_correcao_layout_embalagem.html",
                 contexto_template={
-                    "numero_cronograma": numero_cronograma,
+                    "numero_ficha": numero_ficha,
                     "data_solicitacao": self.log_mais_recente.criado_em.strftime(
                         "%d/%m/%Y"
                     ),
@@ -5115,7 +5119,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
 
     def _notificar_correcao_ou_atualizacao(self, usuario):
         data_envio = self.log_mais_recente.criado_em.strftime("%d/%m/%Y")
-        nome_empresa = "XXXXXXXXXXXXXXXXXXXXXXXXX"
+        nome_empresa = self.ficha_tecnica.empresa
         perfis_interessados = [
             constants.DILOG_QUALIDADE,
             constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
@@ -5126,11 +5130,12 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             "pre_recebimento_notificacao_fornecedor_corrige_ou_atualiza_layout_embalagem.html",
         )
         contexto_template = {
-            "numero_cronograna": "XXX/XXXXA",
+            "numero_ficha": self.ficha_tecnica.numero,
+            "nome_produto": self.ficha_tecnica.produto.nome,
             "nome_usuario_empresa": usuario.nome,
             "cpf_usuario_empresa": usuario.cpf_formatado_e_censurado,
         }
-        titulo_notificacao = f"Layout de Embalagens atualizado e enviado em {data_envio} pelo Fornecedor {nome_empresa}"
+        titulo_notificacao = f"Layout de Embalagens atualizados e enviados em {data_envio} pelo Fornecedor {nome_empresa}"
         tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
         categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
         link_acesse_aqui = f"/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}"
@@ -5358,6 +5363,7 @@ class FichaTecnicaDoProdutoWorkflow(xwf_models.Workflow):
         ("gpcodae_aprova", ENVIADA_PARA_ANALISE, APROVADA),
         ("gpcodae_envia_para_correcao", ENVIADA_PARA_ANALISE, ENVIADA_PARA_CORRECAO),
         ("fornecedor_corrige", ENVIADA_PARA_CORRECAO, ENVIADA_PARA_ANALISE),
+        ("fornecedor_atualiza", APROVADA, ENVIADA_PARA_ANALISE),
     )
 
     initial_state = RASCUNHO
@@ -5396,6 +5402,15 @@ class FluxoFichaTecnicaDoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition("fornecedor_corrige")
     def _fornecedor_corrige_hook(self, *args, **kwargs):
+        user = kwargs["user"]
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE,
+                usuario=user,
+            )
+
+    @xworkflows.after_transition("fornecedor_atualiza")
+    def _fornecedor_atualiza_hook(self, *args, **kwargs):
         user = kwargs["user"]
         if user:
             self.salvar_log_transicao(
