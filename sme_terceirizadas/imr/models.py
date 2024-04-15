@@ -212,7 +212,7 @@ class FormularioDiretor(ModeloBase):
     )
 
     def __str__(self):
-        return f"{self.formulario_base.solicitacao_medicao_inicial.escola.nome} - {self.formulario_base.data}"
+        return f"{self.solicitacao_medicao_inicial.escola.nome} - {self.formulario_base.data}"
 
     class Meta:
         verbose_name = "Formulário do Diretor - Ocorrências"
@@ -242,7 +242,7 @@ class FormularioSupervisao(ModeloBase):
     )
 
     def __str__(self):
-        return f"{self.formulario_base.solicitacao_medicao_inicial.escola.nome} - {self.formulario_base.data}"
+        return f"{self.escola.nome} - {self.formulario_base.data}"
 
     class Meta:
         verbose_name = "Formulário da Supervisão - Ocorrências"
