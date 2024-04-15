@@ -4,8 +4,12 @@ from django.contrib import admin
 from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
+    FormularioDiretor,
+    FormularioOcorrenciasBase,
+    FormularioSupervisao,
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
+    PeriodoVisita,
     RespostaCampoNumerico,
     RespostaCampoTextoLongo,
     RespostaCampoTextoSimples,
@@ -133,3 +137,7 @@ admin.site.register(RespostaFaixaEtaria)
 admin.site.register(RespostaTipoAlimentacao)
 admin.site.register(RespostaSimNaoNaoSeAplica)
 admin.site.register(TipoRespostaModelo)
+admin.site.register(FormularioOcorrenciasBase)
+admin.site.register(FormularioDiretor)
+admin.site.register(FormularioSupervisao)
+admin.site.register(PeriodoVisita)
