@@ -769,3 +769,13 @@ def get_nome_categoria(nome):
     }
 
     return nomes.get(nome, nome.upper())
+
+
+@register.filter
+def agrupador_milhar_com_decimal(value):
+    try:
+        valor_formatado = "{:,.2f}".format(float(value))
+        return valor_formatado.replace(",", " ").replace(".", ",").replace(" ", ".")
+
+    except (ValueError, TypeError):
+        return value
