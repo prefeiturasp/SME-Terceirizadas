@@ -174,6 +174,15 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
         verbose_name_plural = "Parametrizações de Tipo de Ocorrência"
 
 
+class PeriodoVisita(ModeloBase, Nomeavel):
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Período de Visita"
+        verbose_name_plural = "Períodos de Visita"
+
+
 class FormularioOcorrenciasBase(ModeloBase):
     usuario = models.ForeignKey(
         Usuario,
@@ -189,15 +198,6 @@ class FormularioOcorrenciasBase(ModeloBase):
     class Meta:
         verbose_name = "Formulário Base - Ocorrências"
         verbose_name_plural = "Formulários Base - Ocorrências"
-
-
-class PeriodoVisita(ModeloBase, Nomeavel):
-    def __str__(self):
-        return self.nome
-
-    class Meta:
-        verbose_name = "Período de Visita"
-        verbose_name_plural = "Períodos de Visita"
 
 
 class FormularioDiretor(ModeloBase):
@@ -292,7 +292,7 @@ class RespostaCampoNumerico(ModeloBase):
     )
 
     def __str__(self):
-        return self.resposta
+        return str(self.resposta)
 
     class Meta:
         verbose_name = "Resposta Campo Numérico"
