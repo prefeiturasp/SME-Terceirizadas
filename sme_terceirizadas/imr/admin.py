@@ -124,6 +124,81 @@ class ParametrizacaoAdmin(admin.ModelAdmin):
         return obj.tipo_ocorrencia.perfis
 
 
+class FormularioSupervisaoInline(admin.StackedInline):
+    model = FormularioSupervisao
+    max_num = 1
+    extra = 0
+    autocomplete_fields = ("escola",)
+
+
+class FormularioDiretorInline(admin.StackedInline):
+    model = FormularioDiretor
+    max_num = 1
+    extra = 0
+
+
+class RespostaSimNaoInline(admin.TabularInline):
+    model = RespostaSimNao
+    extra = 1
+
+
+class RespostaCampoNumericoInline(admin.TabularInline):
+    model = RespostaCampoNumerico
+    extra = 1
+
+
+class RespostaCampoTextoSimplesInline(admin.TabularInline):
+    model = RespostaCampoTextoSimples
+    extra = 1
+
+
+class RespostaCampoTextoLongoInline(admin.TabularInline):
+    model = RespostaCampoTextoLongo
+    extra = 1
+
+
+class RespostaDatasInline(admin.TabularInline):
+    model = RespostaDatas
+    extra = 1
+
+
+class RespostaPeriodoInline(admin.TabularInline):
+    model = RespostaPeriodo
+    extra = 1
+
+
+class RespostaFaixaEtariaInline(admin.TabularInline):
+    model = RespostaFaixaEtaria
+    extra = 1
+
+
+class RespostaTipoAlimentacaoInline(admin.TabularInline):
+    model = RespostaTipoAlimentacao
+    extra = 1
+
+
+class RespostaSimNaoNaoSeAplicaInline(admin.TabularInline):
+    model = RespostaSimNaoNaoSeAplica
+    extra = 1
+
+
+@admin.register(FormularioOcorrenciasBase)
+class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
+    inlines = [
+        FormularioSupervisaoInline,
+        FormularioDiretorInline,
+        RespostaSimNaoInline,
+        RespostaCampoNumericoInline,
+        RespostaCampoTextoSimplesInline,
+        RespostaCampoTextoLongoInline,
+        RespostaDatasInline,
+        RespostaPeriodoInline,
+        RespostaFaixaEtariaInline,
+        RespostaTipoAlimentacaoInline,
+        RespostaSimNaoNaoSeAplicaInline,
+    ]
+
+
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
 admin.site.register(TipoPerguntaParametrizacaoOcorrencia)
@@ -137,7 +212,5 @@ admin.site.register(RespostaFaixaEtaria)
 admin.site.register(RespostaTipoAlimentacao)
 admin.site.register(RespostaSimNaoNaoSeAplica)
 admin.site.register(TipoRespostaModelo)
-admin.site.register(FormularioOcorrenciasBase)
 admin.site.register(FormularioDiretor)
-admin.site.register(FormularioSupervisao)
 admin.site.register(PeriodoVisita)
