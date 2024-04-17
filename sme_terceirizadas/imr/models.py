@@ -361,7 +361,7 @@ class RespostaDatas(ModeloBase):
     )
 
     def __str__(self):
-        return self.resposta
+        return str(self.resposta)
 
     class Meta:
         verbose_name = "Resposta Datas"
