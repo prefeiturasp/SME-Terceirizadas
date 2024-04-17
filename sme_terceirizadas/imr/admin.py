@@ -1,11 +1,16 @@
 from django import forms
 from django.contrib import admin
+from rangefilter.filters import DateRangeFilter
 
 from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
+    FormularioDiretor,
+    FormularioOcorrenciasBase,
+    FormularioSupervisao,
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
+    PeriodoVisita,
     RespostaCampoNumerico,
     RespostaCampoTextoLongo,
     RespostaCampoTextoSimples,
@@ -120,6 +125,112 @@ class ParametrizacaoAdmin(admin.ModelAdmin):
         return obj.tipo_ocorrencia.perfis
 
 
+class TipoFormularioFilter(admin.SimpleListFilter):
+    title = "Tipo de formulário"
+    parameter_name = "tipo_formulario"
+
+    def lookups(self, request, model_admin):
+        return [("Diretor", "Diretor"), ("Supervisao", "Supervisao")]
+
+    def queryset(self, request, queryset):
+        if self.value() == "Tudo":
+            return queryset.all()
+        elif self.value() == "Diretor":
+            return queryset.filter(formulariodiretor__isnull=False)
+        elif self.value() == "Supervisao":
+            return queryset.filter(formulariosupervisao__isnull=False)
+
+
+class FormularioSupervisaoInline(admin.StackedInline):
+    model = FormularioSupervisao
+    max_num = 1
+    extra = 0
+    autocomplete_fields = ("escola",)
+
+
+class FormularioDiretorInline(admin.StackedInline):
+    model = FormularioDiretor
+    max_num = 1
+    extra = 0
+
+
+class RespostaSimNaoInline(admin.TabularInline):
+    model = RespostaSimNao
+    extra = 0
+
+
+class RespostaCampoNumericoInline(admin.TabularInline):
+    model = RespostaCampoNumerico
+    extra = 0
+
+
+class RespostaCampoTextoSimplesInline(admin.TabularInline):
+    model = RespostaCampoTextoSimples
+    extra = 0
+
+
+class RespostaCampoTextoLongoInline(admin.TabularInline):
+    model = RespostaCampoTextoLongo
+    extra = 0
+
+
+class RespostaDatasInline(admin.TabularInline):
+    model = RespostaDatas
+    extra = 0
+
+
+class RespostaPeriodoInline(admin.TabularInline):
+    model = RespostaPeriodo
+    extra = 0
+
+
+class RespostaFaixaEtariaInline(admin.TabularInline):
+    model = RespostaFaixaEtaria
+    extra = 0
+
+
+class RespostaTipoAlimentacaoInline(admin.TabularInline):
+    model = RespostaTipoAlimentacao
+    extra = 0
+
+
+class RespostaSimNaoNaoSeAplicaInline(admin.TabularInline):
+    model = RespostaSimNaoNaoSeAplica
+    extra = 0
+
+
+@admin.register(FormularioOcorrenciasBase)
+class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
+    inlines = [
+        FormularioSupervisaoInline,
+        FormularioDiretorInline,
+        RespostaSimNaoInline,
+        RespostaCampoNumericoInline,
+        RespostaCampoTextoSimplesInline,
+        RespostaCampoTextoLongoInline,
+        RespostaDatasInline,
+        RespostaPeriodoInline,
+        RespostaFaixaEtariaInline,
+        RespostaTipoAlimentacaoInline,
+        RespostaSimNaoNaoSeAplicaInline,
+    ]
+    list_filter = (TipoFormularioFilter, ("data", DateRangeFilter))
+
+
+@admin.register(FormularioDiretor)
+class FormularioDiretorAdmin(admin.ModelAdmin):
+    list_filter = (("formulario_base__data", DateRangeFilter),)
+
+
+@admin.register(FormularioSupervisao)
+class FormularioSupervisaoAdmin(admin.ModelAdmin):
+    list_filter = (
+        ("formulario_base__data", DateRangeFilter),
+        "acompanhou_visita",
+        "apresentou_ocorrencias",
+    )
+
+
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
 admin.site.register(TipoPerguntaParametrizacaoOcorrencia)
@@ -133,3 +244,4 @@ admin.site.register(RespostaFaixaEtaria)
 admin.site.register(RespostaTipoAlimentacao)
 admin.site.register(RespostaSimNaoNaoSeAplica)
 admin.site.register(TipoRespostaModelo)
+admin.site.register(PeriodoVisita)
