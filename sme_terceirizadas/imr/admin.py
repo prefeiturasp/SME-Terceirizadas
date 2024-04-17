@@ -139,47 +139,47 @@ class FormularioDiretorInline(admin.StackedInline):
 
 class RespostaSimNaoInline(admin.TabularInline):
     model = RespostaSimNao
-    extra = 1
+    extra = 0
 
 
 class RespostaCampoNumericoInline(admin.TabularInline):
     model = RespostaCampoNumerico
-    extra = 1
+    extra = 0
 
 
 class RespostaCampoTextoSimplesInline(admin.TabularInline):
     model = RespostaCampoTextoSimples
-    extra = 1
+    extra = 0
 
 
 class RespostaCampoTextoLongoInline(admin.TabularInline):
     model = RespostaCampoTextoLongo
-    extra = 1
+    extra = 0
 
 
 class RespostaDatasInline(admin.TabularInline):
     model = RespostaDatas
-    extra = 1
+    extra = 0
 
 
 class RespostaPeriodoInline(admin.TabularInline):
     model = RespostaPeriodo
-    extra = 1
+    extra = 0
 
 
 class RespostaFaixaEtariaInline(admin.TabularInline):
     model = RespostaFaixaEtaria
-    extra = 1
+    extra = 0
 
 
 class RespostaTipoAlimentacaoInline(admin.TabularInline):
     model = RespostaTipoAlimentacao
-    extra = 1
+    extra = 0
 
 
 class RespostaSimNaoNaoSeAplicaInline(admin.TabularInline):
     model = RespostaSimNaoNaoSeAplica
-    extra = 1
+    extra = 0
 
 
 @admin.register(FormularioOcorrenciasBase)
