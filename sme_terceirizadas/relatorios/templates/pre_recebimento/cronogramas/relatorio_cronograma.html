@@ -1,7 +1,5 @@
 {% include 'relatorio_base.html' %}
-{% load index %}
-{% load static %}
-{% load sass_tags %}
+{% load index static sass_tags %}
 
 <html>
 <body>
@@ -27,7 +25,7 @@
 
       <div class="dados pb-3">
         <div>{{cronograma.ficha_tecnica.marca.nome}} </div>
-        <div>{{cronograma.qtd_total_programada}} {{cronograma.unidade_medida.abreviacao}}</div>
+        <div>{{cronograma.qtd_total_programada|agrupador_milhar_com_decimal}} {{cronograma.unidade_medida.abreviacao}}</div>
       </div>
 
 
@@ -72,12 +70,12 @@
           {% for etapa in etapas %}
             <tr>
               <td>{{etapa.numero_empenho}}</td>
-              <td>{{etapa.qtd_total_empenho}} {{cronograma.unidade_medida.abreviacao}}</td>
+              <td>{{etapa.qtd_total_empenho|agrupador_milhar_com_decimal}} {{cronograma.unidade_medida.abreviacao}}</td>
               <td>{{etapa.etapa}}</td>
               <td>{{etapa.parte}}</td>
               <td>{{etapa.data_programada|date:"d/m/Y"}}</td>
-              <td>{{etapa.quantidade}} {{cronograma.unidade_medida.abreviacao}}</td>
-              <td>{{etapa.total_embalagens}} {{cronograma.tipo_embalagem_secundaria.abreviacao}}</td>
+              <td>{{etapa.quantidade|agrupador_milhar_com_decimal}} {{cronograma.unidade_medida.abreviacao}}</td>
+              <td>{{etapa.total_embalagens|agrupador_milhar_com_decimal}} {{cronograma.tipo_embalagem_secundaria.abreviacao}}</td>
             </tr>
           {% endfor %}
           </tbody>

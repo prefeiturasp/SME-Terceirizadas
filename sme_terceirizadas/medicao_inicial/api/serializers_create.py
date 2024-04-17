@@ -1268,12 +1268,21 @@ class ParametrizacaoFinanceiraTabelaValorWriteModelSerializer(
     serializers.ModelSerializer
 ):
     tipo_alimentacao = serializers.SlugRelatedField(
-        slug_field="uuid", queryset=TipoAlimentacao.objects.all()
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=TipoAlimentacao.objects.all(),
+    )
+    faixa_etaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=FaixaEtaria.objects.all(),
     )
 
     class Meta:
         model = ParametrizacaoFinanceiraTabelaValor
-        fields = ["tipo_alimentacao", "grupo", "valor_colunas"]
+        fields = ["faixa_etaria", "tipo_alimentacao", "grupo", "valor_colunas"]
 
     def validate_valor_colunas(self, valor_colunas):
         valores = list(valor_colunas.values())

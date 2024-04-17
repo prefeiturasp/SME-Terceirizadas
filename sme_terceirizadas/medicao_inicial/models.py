@@ -574,16 +574,30 @@ class ParametrizacaoFinanceiraTabelaValor(TemChaveExterna, CriadoEm, TemAlterado
     tabela = models.ForeignKey(
         ParametrizacaoFinanceiraTabela, on_delete=models.CASCADE, related_name="valores"
     )
+    faixa_etaria = models.ForeignKey(
+        "escola.FaixaEtaria",
+        on_delete=models.PROTECT,
+        related_name="parametrizacoes_valores",
+        null=True,
+        blank=True,
+    )
     tipo_alimentacao = models.ForeignKey(
         "cardapio.TipoAlimentacao",
         on_delete=models.PROTECT,
         related_name="parametrizacoes_valores",
+        null=True,
+        blank=True,
     )
     grupo = models.CharField(null=True, blank=True)
     valor_colunas = models.JSONField()
 
     def __str__(self):
-        return f"Tabela {self.tabela} | {self.tipo_alimentacao} {self.grupo}"
+        descricao = (
+            f"{self.tipo_alimentacao} {self.grupo}"
+            if self.faixa_etaria is None
+            else f"{self.faixa_etaria}"
+        )
+        return f"Tabela {self.tabela} | {descricao}"
 
     class Meta:
         verbose_name = "Parametrização Financeira Tabela Valor"
