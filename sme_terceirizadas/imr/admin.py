@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib import admin
+from rangefilter.filters import DateRangeFilter
 
 from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.models import (
@@ -124,6 +125,22 @@ class ParametrizacaoAdmin(admin.ModelAdmin):
         return obj.tipo_ocorrencia.perfis
 
 
+class TipoFormularioFilter(admin.SimpleListFilter):
+    title = "Tipo de formulário"
+    parameter_name = "tipo_formulario"
+
+    def lookups(self, request, model_admin):
+        return [("Diretor", "Diretor"), ("Supervisao", "Supervisao")]
+
+    def queryset(self, request, queryset):
+        if self.value() == "Tudo":
+            return queryset.all()
+        elif self.value() == "Diretor":
+            return queryset.filter(formulariodiretor__isnull=False)
+        elif self.value() == "Supervisao":
+            return queryset.filter(formulariosupervisao__isnull=False)
+
+
 class FormularioSupervisaoInline(admin.StackedInline):
     model = FormularioSupervisao
     max_num = 1
@@ -197,6 +214,21 @@ class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
         RespostaTipoAlimentacaoInline,
         RespostaSimNaoNaoSeAplicaInline,
     ]
+    list_filter = (TipoFormularioFilter, ("data", DateRangeFilter))
+
+
+@admin.register(FormularioDiretor)
+class FormularioDiretorAdmin(admin.ModelAdmin):
+    list_filter = (("formulario_base__data", DateRangeFilter),)
+
+
+@admin.register(FormularioSupervisao)
+class FormularioSupervisaoAdmin(admin.ModelAdmin):
+    list_filter = (
+        ("formulario_base__data", DateRangeFilter),
+        "acompanhou_visita",
+        "apresentou_ocorrencias",
+    )
 
 
 admin.site.register(TipoGravidade)
@@ -212,5 +244,4 @@ admin.site.register(RespostaFaixaEtaria)
 admin.site.register(RespostaTipoAlimentacao)
 admin.site.register(RespostaSimNaoNaoSeAplica)
 admin.site.register(TipoRespostaModelo)
-admin.site.register(FormularioDiretor)
 admin.site.register(PeriodoVisita)
