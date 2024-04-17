@@ -15,7 +15,9 @@ from ..dados_comuns.behaviors import (
     StatusAtivoInativo,
 )
 from ..dados_comuns.validators import validate_file_size_10mb
-from ..escola.models import FaixaEtaria, PeriodoEscolar
+from ..escola.models import Escola, FaixaEtaria, PeriodoEscolar
+from ..medicao_inicial.models import SolicitacaoMedicaoInicial
+from ..perfil.models import Usuario
 
 
 class TipoGravidade(ModeloBase):
@@ -172,12 +174,94 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
         verbose_name_plural = "Parametrizações de Tipo de Ocorrência"
 
 
+class PeriodoVisita(ModeloBase, Nomeavel):
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Período de Visita"
+        verbose_name_plural = "Períodos de Visita"
+
+
+class FormularioOcorrenciasBase(ModeloBase):
+    usuario = models.ForeignKey(
+        Usuario,
+        verbose_name="Usuário",
+        on_delete=models.PROTECT,
+        related_name="formularios_ocorrencias",
+    )
+    data = models.DateField()
+
+    def __str__(self):
+        return f"{self.usuario.nome} - {self.data}"
+
+    class Meta:
+        verbose_name = "Formulário Base - Ocorrências"
+        verbose_name_plural = "Formulários Base - Ocorrências"
+
+
+class FormularioDiretor(ModeloBase):
+    formulario_base = models.OneToOneField(
+        FormularioOcorrenciasBase, on_delete=models.CASCADE
+    )
+    solicitacao_medicao_inicial = models.ForeignKey(
+        SolicitacaoMedicaoInicial,
+        verbose_name="Solicitação Medição Inicial",
+        on_delete=models.PROTECT,
+        related_name="formularios_ocorrencias",
+    )
+
+    def __str__(self):
+        return f"{self.solicitacao_medicao_inicial.escola.nome} - {self.formulario_base.data}"
+
+    class Meta:
+        verbose_name = "Formulário do Diretor - Ocorrências"
+        verbose_name_plural = "Formulários do Diretor - Ocorrências"
+
+
+class FormularioSupervisao(ModeloBase):
+    escola = models.ForeignKey(
+        Escola, on_delete=models.PROTECT, related_name="formularios_supervisao"
+    )
+    formulario_base = models.OneToOneField(
+        FormularioOcorrenciasBase, on_delete=models.CASCADE
+    )
+    periodo_visita = models.ForeignKey(
+        PeriodoVisita,
+        verbose_name="Período da Visita",
+        on_delete=models.PROTECT,
+        related_name="formularios_supervisao",
+    )
+    nome_nutricionista_empresa = models.CharField(
+        "Nome da Nutricionista RT da Empresa", max_length=100
+    )
+    acompanhou_visita = models.BooleanField("Acompanhou a visita?", default=False)
+    apresentou_ocorrencias = models.BooleanField(
+        "No momento da visita, a prestação de serviços apresentou ocorrências?",
+        default=False,
+    )
+
+    def __str__(self):
+        return f"{self.escola.nome} - {self.formulario_base.data}"
+
+    class Meta:
+        verbose_name = "Formulário da Supervisão - Ocorrências"
+        verbose_name_plural = "Formulários da Supervisão - Ocorrências"
+
+
 class RespostaSimNao(ModeloBase):
     SIM = "Sim"
     NAO = "Não"
 
     CHOICES = ((SIM, SIM), (NAO, NAO))
     resposta = models.CharField("Opção", choices=CHOICES, max_length=3)
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_sim_nao",
+        null=True,
+    )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
         on_delete=models.CASCADE,
@@ -194,6 +278,13 @@ class RespostaSimNao(ModeloBase):
 
 class RespostaCampoNumerico(ModeloBase):
     resposta = models.FloatField()
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_campo_numerico",
+        null=True,
+    )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
         on_delete=models.CASCADE,
@@ -201,7 +292,7 @@ class RespostaCampoNumerico(ModeloBase):
     )
 
     def __str__(self):
-        return self.resposta
+        return str(self.resposta)
 
     class Meta:
         verbose_name = "Resposta Campo Numérico"
@@ -210,6 +301,13 @@ class RespostaCampoNumerico(ModeloBase):
 
 class RespostaCampoTextoSimples(ModeloBase):
     resposta = models.CharField(max_length=500)
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_campo_texto_simples",
+        null=True,
+    )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
         on_delete=models.CASCADE,
@@ -226,6 +324,13 @@ class RespostaCampoTextoSimples(ModeloBase):
 
 class RespostaCampoTextoLongo(ModeloBase):
     resposta = models.TextField()
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_campo_texto_longo",
+        null=True,
+    )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
         on_delete=models.CASCADE,
@@ -242,6 +347,13 @@ class RespostaCampoTextoLongo(ModeloBase):
 
 class RespostaDatas(ModeloBase):
     resposta = ArrayField(models.DateField())
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_datas",
+        null=True,
+    )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
         on_delete=models.CASCADE,
@@ -249,7 +361,7 @@ class RespostaDatas(ModeloBase):
     )
 
     def __str__(self):
-        return self.resposta
+        return str(self.resposta)
 
     class Meta:
         verbose_name = "Resposta Datas"
@@ -261,6 +373,13 @@ class RespostaPeriodo(ModeloBase):
         PeriodoEscolar,
         on_delete=models.PROTECT,
         related_name="respostas_relatorio_imr",
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_periodo",
+        null=True,
     )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
@@ -282,6 +401,13 @@ class RespostaFaixaEtaria(ModeloBase):
         on_delete=models.PROTECT,
         related_name="respostas_relatorio_imr",
     )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_faixa_etaria",
+        null=True,
+    )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
         on_delete=models.CASCADE,
@@ -301,6 +427,13 @@ class RespostaTipoAlimentacao(ModeloBase):
         TipoAlimentacao,
         on_delete=models.PROTECT,
         related_name="respostas_relatorio_imr",
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_tipos_alimentacao",
+        null=True,
     )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
@@ -323,6 +456,13 @@ class RespostaSimNaoNaoSeAplica(ModeloBase):
 
     CHOICES = ((SIM, SIM), (NAO, NAO), (NAO_SE_APLICA, NAO_SE_APLICA))
     resposta = models.CharField("Opção", choices=CHOICES, max_length=13)
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_sim_nao_nao_se_aplica",
+        null=True,
+    )
     parametrizacao = models.ForeignKey(
         ParametrizacaoOcorrencia,
         on_delete=models.CASCADE,
