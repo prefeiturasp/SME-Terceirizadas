@@ -3,6 +3,7 @@ from django.contrib import admin
 from rangefilter.filters import DateRangeFilter
 
 from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
+from sme_terceirizadas.dados_comuns.utils import custom_titled_filter
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     FormularioDiretor,
@@ -78,7 +79,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
     search_fields = ("titulo",)
     list_filter = (
         "edital",
-        "categoria",
+        ("categoria__nome", custom_titled_filter("Categoria")),
         "status",
     )
     readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
