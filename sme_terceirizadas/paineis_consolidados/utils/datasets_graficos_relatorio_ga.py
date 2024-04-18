@@ -4,7 +4,7 @@ from sme_terceirizadas.escola.models import (
     Lote,
     TipoUnidadeEscolar,
 )
-from sme_terceirizadas.paineis_consolidados.utils.totalizadores_relatorio_ga import (
+from sme_terceirizadas.paineis_consolidados.utils.totalizadores_relatorio import (
     count_query_set_sem_duplicados,
     filtro_geral_totalizadores,
 )

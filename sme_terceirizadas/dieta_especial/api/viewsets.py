@@ -909,9 +909,9 @@ class SolicitacaoDietaEspecialViewSet(
                 Q(motivo_alteracao_ue__nome__icontains="polo")
                 | Q(motivo_alteracao_ue__nome__icontains="recreio"),
             )
-        return query_set
+        return query_set.order_by("motivo_alteracao_ue__nome")
 
-    def filtrar_queryset_relatorio_dieta_especial(self, request):
+    def filtrar_queryset_relatorio_dieta_especial(self, request, eh_relatorio=False):
         query_set = self.filter_queryset(self.get_queryset())
 
         lotes_filtro = request.query_params.getlist("lotes_selecionados[]", None)
@@ -920,6 +920,11 @@ class SolicitacaoDietaEspecialViewSet(
             if isinstance(instituicao, DiretoriaRegional):
                 lotes_list = list(instituicao.lotes.all().values_list("uuid"))
                 lotes_filtro = [str(u[0]) for u in lotes_list]
+        campo_escola_destino = (
+            "escola_destino__uuid__in"
+            if eh_relatorio
+            else "escola_destino__codigo_eol__in"
+        )
         map_filtros = {
             "protocolo_padrao__uuid__in": request.query_params.getlist(
                 "protocolos_padrao_selecionados[]", None
@@ -931,13 +936,15 @@ class SolicitacaoDietaEspecialViewSet(
                 "classificacoes_selecionadas[]", None
             ),
             "escola_destino__lote__uuid__in": lotes_filtro,
-            "escola_destino__codigo_eol__in": request.query_params.getlist(
+            campo_escola_destino: request.query_params.getlist(
                 "unidades_educacionais_selecionadas[]", None
             ),
             "escola_destino__tipo_unidade__uuid__in": request.query_params.getlist(
                 "tipos_unidades_selecionadas[]", None
             ),
         }
+        if isinstance(instituicao, DiretoriaRegional):
+            map_filtros["escola_destino__diretoria_regional__uuid"] = instituicao.uuid
         filtros = {
             key: value for key, value in map_filtros.items() if value not in [None, []]
         }
@@ -1095,7 +1102,9 @@ class SolicitacaoDietaEspecialViewSet(
         detail=False, methods=("get",), url_path="relatorio-dieta-especial-terceirizada"
     )
     def relatorio_dieta_especial_terceirizada(self, request):  # noqa C901
-        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(
+            request, True
+        ).distinct()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
