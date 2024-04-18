@@ -219,14 +219,20 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     codigo_eol_aluno = models.CharField(max_length=7)
     aluno_nao_matriculado = models.BooleanField(default=False, null=True)
     dieta_alterada_id = models.IntegerField()
+    classificacao_id = models.IntegerField()
     ativo = models.BooleanField()
     em_vigencia = models.BooleanField()
 
     lote_uuid = models.UUIDField(editable=False)
     escola_uuid = models.UUIDField(editable=False)
     escola_tipo_unidade_uuid = models.UUIDField(editable=False)
+    escola_tipo_gestao_uuid = models.UUIDField(editable=False)
+    escola_destino_uuid = models.UUIDField(editable=False)
     escola_destino_id = models.IntegerField()
+    escola_destino_tipo_unidade_uuid = models.UUIDField(editable=False)
+    lote_escola_destino_uuid = models.UUIDField(editable=False)
     dre_uuid = models.UUIDField(editable=False)
+    dre_escola_destino_uuid = models.UUIDField(editable=False)
     terceirizada_uuid = models.UUIDField(editable=False)
 
     tipo_doc = models.CharField(max_length=30)
@@ -1081,6 +1087,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
             "CANCELADOS": "cls.get_cancelados()",
             "NEGADOS": "cls.get_negados()",
             "RECEBIDAS": "cls.get_recebidas()",
+            "DIETAS_AUTORIZADAS": "cls.get_autorizados_dieta_especial()",
         }
         return eval(mapeador[status])  # nosec
 
@@ -1474,6 +1481,7 @@ class SolicitacoesEscola(MoldeConsolidado):
             "CANCELADOS": f'cls.get_cancelados(escola_uuid="{escola_uuid}")',
             "NEGADOS": f'cls.get_negados(escola_uuid="{escola_uuid}")',
             "RECEBIDAS": f'cls.get_recebidas(escola_uuid="{escola_uuid}")',
+            "DIETAS_AUTORIZADAS": f'cls.get_autorizados_dieta_especial(escola_uuid="{escola_uuid}")',
         }
         return eval(mapeador[status])  # nosec
 
@@ -1558,18 +1566,21 @@ class SolicitacoesDRE(MoldeConsolidado):
     @classmethod
     def get_autorizados_dieta_especial(cls, **kwargs):
         dre_uuid = kwargs.get("dre_uuid")
-        return (
-            cls.objects.filter(
-                Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
-                dre_uuid=dre_uuid,
-                status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
-                status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
-                tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
-                ativo=True,
-            )
-            .distinct()
-            .order_by("-data_log")
+        eh_relatorio_dietas_autorizadas = kwargs.get("eh_relatorio_dietas_autorizadas")
+        objects_filtrados = cls.objects.filter(
+            Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            ativo=True,
         )
+        if eh_relatorio_dietas_autorizadas:
+            objects_filtrados = objects_filtrados.filter(
+                dre_escola_destino_uuid=dre_uuid
+            )
+        else:
+            objects_filtrados = objects_filtrados.filter(dre_uuid=dre_uuid)
+        return objects_filtrados.distinct().order_by("-data_log")
 
     @classmethod
     def get_negados_dieta_especial(cls, **kwargs):
@@ -1837,6 +1848,7 @@ class SolicitacoesDRE(MoldeConsolidado):
             "CANCELADOS": f'cls.get_cancelados(dre_uuid="{dre_uuid}")',
             "NEGADOS": f'cls.get_negados(dre_uuid="{dre_uuid}")',
             "RECEBIDAS": f'cls.get_recebidas(dre_uuid="{dre_uuid}")',
+            "DIETAS_AUTORIZADAS": f'cls.get_autorizados_dieta_especial(dre_uuid="{dre_uuid}", eh_relatorio_dietas_autorizadas={True})',
         }
         return eval(mapeador[status])  # nosec
 
@@ -2124,5 +2136,6 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             "CANCELADOS": f'cls.get_cancelados(terceirizada_uuid="{terceirizada_uuid}")',
             "NEGADOS": f'cls.get_negados(terceirizada_uuid="{terceirizada_uuid}")',
             "RECEBIDAS": f'cls.get_recebidas(terceirizada_uuid="{terceirizada_uuid}")',
+            "DIETAS_AUTORIZADAS": f'cls.get_autorizados_dieta_especial(terceirizada_uuid="{terceirizada_uuid}")',
         }
         return eval(mapeador[status])  # nosec
