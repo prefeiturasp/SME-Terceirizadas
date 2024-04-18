@@ -259,27 +259,81 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             request, queryset, list_cards_totalizadores
         )
         if eh_relatorio_dietas_autorizadas:
-            list_cards_totalizadores = totalizador_cei_polo_recreio_ferias(
-                request, model, queryset, list_cards_totalizadores
-            )
-            list_cards_totalizadores = totalizador_lote(
-                request, model, queryset, list_cards_totalizadores
-            )
-            list_cards_totalizadores = totalizador_unidade_educacional(
-                request, model, queryset, list_cards_totalizadores
-            )
-            list_cards_totalizadores = totalizador_tipo_de_gestao(
-                request, model, queryset, list_cards_totalizadores
-            )
-            list_cards_totalizadores = totalizador_tipo_unidade(
-                request, model, queryset, list_cards_totalizadores
-            )
-            list_cards_totalizadores = totalizador_classificacao_dieta(
-                request, model, queryset, list_cards_totalizadores
-            )
-            list_cards_totalizadores = totalizador_relacao_diagnostico(
-                request, model, queryset, list_cards_totalizadores
-            )
+            cei_polo = request.data.get("cei_polo", False)
+            recreio_nas_ferias = request.data.get("recreio_nas_ferias", False)
+            if cei_polo and recreio_nas_ferias:
+                for string_polo_ou_recreio in ["polo", "recreio"]:
+                    list_cards_totalizadores = totalizador_cei_polo_recreio_ferias(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_lote(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_unidade_educacional(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_tipo_de_gestao(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_tipo_unidade(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_classificacao_dieta(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_relacao_diagnostico(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+            else:
+                list_cards_totalizadores = totalizador_cei_polo_recreio_ferias(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_lote(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_unidade_educacional(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_tipo_de_gestao(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_tipo_unidade(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_classificacao_dieta(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_relacao_diagnostico(
+                    request, model, queryset, list_cards_totalizadores
+                )
         else:
             list_cards_totalizadores = totalizador_total(
                 request, model, queryset, list_cards_totalizadores

@@ -1,5 +1,3 @@
-from django.db.models import Q
-
 from sme_terceirizadas.dieta_especial.models import (
     AlergiaIntolerancia,
     ClassificacaoDieta,
@@ -114,7 +112,9 @@ def totalizador_total(request, model, queryset, list_cards_totalizadores):
     return list_cards_totalizadores
 
 
-def totalizador_lote(request, model, queryset, list_cards_totalizadores):
+def totalizador_lote(
+    request, model, queryset, list_cards_totalizadores, string_polo_ou_recreio=None
+):
     eh_relatorio_dietas_autorizadas = request.data.get(
         "relatorio_dietas_autorizadas", None
     )
@@ -161,7 +161,9 @@ def totalizador_lote(request, model, queryset, list_cards_totalizadores):
             qs = queryset.filter(lote_escola_destino_uuid=lote_uuid)
             lista_uuids = [uuid for uuid in set(qs.values_list("uuid", flat=True))]
             qs = SolicitacaoDietaEspecial.objects.filter(uuid__in=lista_uuids)
-            qs = queryset_dietas_lote(qs, alergias_ids, cei_polo, recreio_nas_ferias)
+            qs = queryset_dietas_lote(
+                qs, alergias_ids, cei_polo, recreio_nas_ferias, string_polo_ou_recreio
+            )
         else:
             qs = queryset.filter(lote_uuid=lote_uuid)
         list_cards_totalizadores.append(
@@ -215,7 +217,9 @@ def totalizador_tipo_solicitacao(request, model, queryset, list_cards_totalizado
     return list_cards_totalizadores
 
 
-def totalizador_tipo_unidade(request, model, queryset, list_cards_totalizadores):
+def totalizador_tipo_unidade(
+    request, model, queryset, list_cards_totalizadores, string_polo_ou_recreio=None
+):
     eh_relatorio_dietas_autorizadas = request.data.get(
         "relatorio_dietas_autorizadas", None
     )
@@ -265,7 +269,7 @@ def totalizador_tipo_unidade(request, model, queryset, list_cards_totalizadores)
             lista_uuids = [uuid for uuid in set(qs.values_list("uuid", flat=True))]
             qs = SolicitacaoDietaEspecial.objects.filter(uuid__in=lista_uuids)
             qs = queryset_dietas_tipo_unidade(
-                qs, alergias_ids, cei_polo, recreio_nas_ferias
+                qs, alergias_ids, cei_polo, recreio_nas_ferias, string_polo_ou_recreio
             )
         else:
             qs = queryset.filter(escola_tipo_unidade_uuid=tipo_unidade_uuid)
@@ -275,7 +279,9 @@ def totalizador_tipo_unidade(request, model, queryset, list_cards_totalizadores)
     return list_cards_totalizadores
 
 
-def totalizador_unidade_educacional(request, model, queryset, list_cards_totalizadores):
+def totalizador_unidade_educacional(
+    request, model, queryset, list_cards_totalizadores, string_polo_ou_recreio=None
+):
     eh_relatorio_dietas_autorizadas = request.data.get(
         "relatorio_dietas_autorizadas", None
     )
@@ -316,7 +322,11 @@ def totalizador_unidade_educacional(request, model, queryset, list_cards_totaliz
                 escola_destino__uuid=unidade_educacional_uuid
             )
             contagem = contagem_dietas_unidade_educacional(
-                dietas_filtradas, alergias_ids, cei_polo, recreio_nas_ferias
+                dietas_filtradas,
+                alergias_ids,
+                cei_polo,
+                recreio_nas_ferias,
+                string_polo_ou_recreio,
             )
         else:
             queryset = queryset.values("uuid", "escola_uuid", "escola_nome")
@@ -371,7 +381,9 @@ def totalizador_periodo(request, model, queryset, list_cards_totalizadores):
     return list_cards_totalizadores
 
 
-def totalizador_tipo_de_gestao(request, model, queryset, list_cards_totalizadores):
+def totalizador_tipo_de_gestao(
+    request, model, queryset, list_cards_totalizadores, string_polo_ou_recreio=None
+):
     tipo_gestao_uuid = request.data.get("tipo_gestao", [])
     classificacoes = request.data.get("classificacoes_selecionadas", [])
     tipos_unidade = request.data.get("tipos_unidades_selecionadas", [])
@@ -401,10 +413,12 @@ def totalizador_tipo_de_gestao(request, model, queryset, list_cards_totalizadore
     if recreio_nas_ferias and not cei_polo:
         qs = qs.filter(motivo_alteracao_ue__nome__icontains="recreio")
     if cei_polo and recreio_nas_ferias:
-        qs = qs.filter(
-            Q(motivo_alteracao_ue__nome__icontains="polo")
-            | Q(motivo_alteracao_ue__nome__icontains="recreio"),
+        qs_ = qs
+        qs_cei_polo = qs_.filter(motivo_alteracao_ue__nome__icontains="polo")
+        qs_recreio_nas_ferias = qs_.filter(
+            motivo_alteracao_ue__nome__icontains="recreio"
         )
+        qs = qs_cei_polo if string_polo_ou_recreio == "polo" else qs_recreio_nas_ferias
     tipo_gestao = TipoGestao.objects.get(uuid=tipo_gestao_uuid)
     list_cards_totalizadores.append(
         {f"{tipo_gestao.nome}": count_query_set_sem_duplicados(qs)}
@@ -412,7 +426,9 @@ def totalizador_tipo_de_gestao(request, model, queryset, list_cards_totalizadore
     return list_cards_totalizadores
 
 
-def totalizador_classificacao_dieta(request, model, queryset, list_cards_totalizadores):
+def totalizador_classificacao_dieta(
+    request, model, queryset, list_cards_totalizadores, string_polo_ou_recreio=None
+):
     classificacoes = request.data.get("classificacoes_selecionadas", [])
     tipo_gestao_uuid = request.data.get("tipo_gestao", [])
     tipos_unidade = request.data.get("tipos_unidades_selecionadas", [])
@@ -441,13 +457,20 @@ def totalizador_classificacao_dieta(request, model, queryset, list_cards_totaliz
         dietas_filtradas = dietas.filter(classificacao__id=classificacao_id)
         contagem = dietas_filtradas.count()
         contagem = contagem_dietas_classificacao_dieta(
-            contagem, alergias_ids, dietas_filtradas, cei_polo, recreio_nas_ferias
+            contagem,
+            alergias_ids,
+            dietas_filtradas,
+            cei_polo,
+            recreio_nas_ferias,
+            string_polo_ou_recreio,
         )
         list_cards_totalizadores.append({classificacao.nome: contagem})
     return list_cards_totalizadores
 
 
-def totalizador_relacao_diagnostico(request, model, queryset, list_cards_totalizadores):
+def totalizador_relacao_diagnostico(
+    request, model, queryset, list_cards_totalizadores, string_polo_ou_recreio=None
+):
     alergias_ids = request.data.get("alergias_intolerancias_selecionadas", [])
     tipo_gestao_uuid = request.data.get("tipo_gestao", [])
     tipos_unidade = request.data.get("tipos_unidades_selecionadas", [])
@@ -471,7 +494,7 @@ def totalizador_relacao_diagnostico(request, model, queryset, list_cards_totaliz
     lista_uuids = [uuid for uuid in set(queryset.values_list("uuid", flat=True))]
     dietas = SolicitacaoDietaEspecial.objects.filter(uuid__in=lista_uuids)
     dietas = dietas_polo_recreio_relacao_diagnostico(
-        dietas, cei_polo, recreio_nas_ferias
+        dietas, cei_polo, recreio_nas_ferias, string_polo_ou_recreio
     )
 
     for alergia_id in alergias_ids:
@@ -487,7 +510,7 @@ def totalizador_relacao_diagnostico(request, model, queryset, list_cards_totaliz
 
 
 def totalizador_cei_polo_recreio_ferias(
-    request, model, queryset, list_cards_totalizadores
+    request, model, queryset, list_cards_totalizadores, string_polo_ou_recreio=None
 ):
     cei_polo = request.data.get("cei_polo", False)
     recreio_nas_ferias = request.data.get("recreio_nas_ferias", False)
@@ -522,36 +545,50 @@ def totalizador_cei_polo_recreio_ferias(
             {"RECREIO NAS FÉRIAS": dietas_filtradas.count()}
         )
     if cei_polo and recreio_nas_ferias:
+        titulo_card = (
+            "CEI POLO" if string_polo_ou_recreio == "polo" else "RECREIO NAS FÉRIAS"
+        )
         dietas_cei_polo = dietas.filter(motivo_alteracao_ue__nome__icontains="polo")
         dietas_recreio_nas_ferias = dietas.filter(
             motivo_alteracao_ue__nome__icontains="recreio"
         )
-        dietas_filtradas = dietas.filter(
-            Q(motivo_alteracao_ue__nome__icontains="polo")
-            | Q(motivo_alteracao_ue__nome__icontains="recreio"),
+        quantidade = (
+            dietas_cei_polo.count()
+            if string_polo_ou_recreio == "polo"
+            else dietas_recreio_nas_ferias.count()
         )
-        list_cards_totalizadores.append({"CEI POLO": dietas_cei_polo.count()})
-        list_cards_totalizadores.append(
-            {"RECREIO NAS FÉRIAS": dietas_recreio_nas_ferias.count()}
-        )
+        list_cards_totalizadores.append({titulo_card: quantidade})
     return list_cards_totalizadores
 
 
-def dietas_polo_recreio_relacao_diagnostico(dietas, cei_polo, recreio_nas_ferias):
+def dietas_polo_recreio_relacao_diagnostico(
+    dietas, cei_polo, recreio_nas_ferias, string_polo_ou_recreio
+):
     if cei_polo and not recreio_nas_ferias:
         dietas = dietas.filter(motivo_alteracao_ue__nome__icontains="polo")
     if recreio_nas_ferias and not cei_polo:
         dietas = dietas.filter(motivo_alteracao_ue__nome__icontains="recreio")
     if cei_polo and recreio_nas_ferias:
-        dietas = dietas.filter(
-            Q(motivo_alteracao_ue__nome__icontains="polo")
-            | Q(motivo_alteracao_ue__nome__icontains="recreio"),
+        dietas_ = dietas
+        dietas_cei_polo = dietas_.filter(motivo_alteracao_ue__nome__icontains="polo")
+        dietas_recreio_nas_ferias = dietas_.filter(
+            motivo_alteracao_ue__nome__icontains="recreio"
+        )
+        dietas = (
+            dietas_cei_polo
+            if string_polo_ou_recreio == "polo"
+            else dietas_recreio_nas_ferias
         )
     return dietas
 
 
 def contagem_dietas_classificacao_dieta(
-    contagem, alergias_ids, dietas_filtradas, cei_polo, recreio_nas_ferias
+    contagem,
+    alergias_ids,
+    dietas_filtradas,
+    cei_polo,
+    recreio_nas_ferias,
+    string_polo_ou_recreio,
 ):
     if alergias_ids:
         contagem = (
@@ -568,15 +605,24 @@ def contagem_dietas_classificacao_dieta(
             motivo_alteracao_ue__nome__icontains="recreio"
         ).count()
     if cei_polo and recreio_nas_ferias:
-        contagem = dietas_filtradas.filter(
-            Q(motivo_alteracao_ue__nome__icontains="polo")
-            | Q(motivo_alteracao_ue__nome__icontains="recreio"),
-        ).count()
+        dietas_filtradas_ = dietas_filtradas
+        dietas_filtradas_cei_polo = dietas_filtradas_.filter(
+            motivo_alteracao_ue__nome__icontains="polo"
+        )
+        dietas_filtradas_recreio_nas_ferias = dietas_filtradas_.filter(
+            motivo_alteracao_ue__nome__icontains="recreio"
+        )
+        dietas_filtradas = (
+            dietas_filtradas_cei_polo
+            if string_polo_ou_recreio == "polo"
+            else dietas_filtradas_recreio_nas_ferias
+        )
+        contagem = dietas_filtradas.count()
     return contagem
 
 
 def contagem_dietas_unidade_educacional(
-    dietas_filtradas, alergias_ids, cei_polo, recreio_nas_ferias
+    dietas_filtradas, alergias_ids, cei_polo, recreio_nas_ferias, string_polo_ou_recreio
 ):
     if alergias_ids:
         dietas_filtradas = dietas_filtradas.filter(
@@ -591,15 +637,25 @@ def contagem_dietas_unidade_educacional(
             motivo_alteracao_ue__nome__icontains="recreio"
         )
     if cei_polo and recreio_nas_ferias:
-        dietas_filtradas = dietas_filtradas.filter(
-            Q(motivo_alteracao_ue__nome__icontains="polo")
-            | Q(motivo_alteracao_ue__nome__icontains="recreio"),
+        dietas_filtradas_ = dietas_filtradas
+        dietas_filtradas_cei_polo = dietas_filtradas_.filter(
+            motivo_alteracao_ue__nome__icontains="polo"
+        )
+        dietas_filtradas_recreio_nas_ferias = dietas_filtradas_.filter(
+            motivo_alteracao_ue__nome__icontains="recreio"
+        )
+        dietas_filtradas = (
+            dietas_filtradas_cei_polo
+            if string_polo_ou_recreio == "polo"
+            else dietas_filtradas_recreio_nas_ferias
         )
     contagem = dietas_filtradas.count()
     return contagem
 
 
-def queryset_dietas_tipo_unidade(qs, alergias_ids, cei_polo, recreio_nas_ferias):
+def queryset_dietas_tipo_unidade(
+    qs, alergias_ids, cei_polo, recreio_nas_ferias, string_polo_ou_recreio
+):
     if alergias_ids:
         qs = qs.filter(alergias_intolerancias__in=alergias_ids).distinct()
     if cei_polo and not recreio_nas_ferias:
@@ -607,14 +663,18 @@ def queryset_dietas_tipo_unidade(qs, alergias_ids, cei_polo, recreio_nas_ferias)
     if recreio_nas_ferias and not cei_polo:
         qs = qs.filter(motivo_alteracao_ue__nome__icontains="recreio")
     if cei_polo and recreio_nas_ferias:
-        qs = qs.filter(
-            Q(motivo_alteracao_ue__nome__icontains="polo")
-            | Q(motivo_alteracao_ue__nome__icontains="recreio"),
+        qs_ = qs
+        qs_cei_polo = qs_.filter(motivo_alteracao_ue__nome__icontains="polo")
+        qs_recreio_nas_ferias = qs_.filter(
+            motivo_alteracao_ue__nome__icontains="recreio"
         )
+        qs = qs_cei_polo if string_polo_ou_recreio == "polo" else qs_recreio_nas_ferias
     return qs
 
 
-def queryset_dietas_lote(qs, alergias_ids, cei_polo, recreio_nas_ferias):
+def queryset_dietas_lote(
+    qs, alergias_ids, cei_polo, recreio_nas_ferias, string_polo_ou_recreio
+):
     if alergias_ids:
         qs = qs.filter(alergias_intolerancias__in=alergias_ids)
     if cei_polo and not recreio_nas_ferias:
@@ -622,10 +682,12 @@ def queryset_dietas_lote(qs, alergias_ids, cei_polo, recreio_nas_ferias):
     if recreio_nas_ferias and not cei_polo:
         qs = qs.filter(motivo_alteracao_ue__nome__icontains="recreio")
     if cei_polo and recreio_nas_ferias:
-        qs = qs.filter(
-            Q(motivo_alteracao_ue__nome__icontains="polo")
-            | Q(motivo_alteracao_ue__nome__icontains="recreio"),
+        qs_ = qs
+        qs_cei_polo = qs_.filter(motivo_alteracao_ue__nome__icontains="polo")
+        qs_recreio_nas_ferias = qs_.filter(
+            motivo_alteracao_ue__nome__icontains="recreio"
         )
+        qs = qs_cei_polo if string_polo_ou_recreio == "polo" else qs_recreio_nas_ferias
     return qs
 
 
