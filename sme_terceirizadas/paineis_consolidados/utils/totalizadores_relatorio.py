@@ -288,6 +288,7 @@ def totalizador_unidade_educacional(
     tipo_doc = request.data.get("tipos_solicitacao", [])
     tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
     terceirizada = request.data.get("terceirizada", [])
+    tipos_unidade = request.data.get("tipos_unidades_selecionadas", [])
     unidades_educacionais = (
         request.data.get("unidades_educacionais_selecionadas", [])
         if eh_relatorio_dietas_autorizadas
@@ -306,6 +307,7 @@ def totalizador_unidade_educacional(
         "terceirizada_uuid": terceirizada,
     }
     if eh_relatorio_dietas_autorizadas:
+        map_filtros["escola_destino_tipo_unidade_uuid__in"] = tipos_unidade
         map_filtros["classificacao_id__in"] = classificacoes
     queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros)
     nomes_escolas = Escola.objects.filter(tipo_gestao__nome="TERC TOTAL").values_list(
