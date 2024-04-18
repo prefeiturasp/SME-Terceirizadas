@@ -3,13 +3,10 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sme_terceirizadas.dados_comuns.permissions import (
-    PermissaoParaVisualizarQuestoesConferencia,
-)
-
 from ...dados_comuns.api.paginations import DefaultPagination
 from ..models import QuestaoConferencia, QuestoesPorProduto
 from .filters import QuestoesPorProdutoFilter
+from .permissions import PermissaoParaVisualizarQuestoesConferencia
 from .serializers.serializers import (
     QuestaoConferenciaSerializer,
     QuestaoConferenciaSimplesSerializer,
