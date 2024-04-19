@@ -513,7 +513,10 @@ class FaixaPontuacaoIMR(ModeloBase):
     )
 
     def __str__(self):
-        return f"{self.pontuacao_minima} - {self.pontuacao_maxima or 'sem pontuação máxima'} - {self.porcentagem_desconto}"
+        return (
+            f"{self.pontuacao_minima} - {self.pontuacao_maxima or 'sem pontuação máxima'}"
+            f" - {self.porcentagem_desconto}"
+        )
 
     class Meta:
         verbose_name = "Faixa de Pontuação - IMR"
