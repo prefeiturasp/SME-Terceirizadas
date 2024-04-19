@@ -135,11 +135,13 @@ class EtapasDoCronograma(ModeloBase):
     total_embalagens = models.FloatField("Total de Embalagens", blank=True, null=True)
 
     def __str__(self):
-        if self.etapa and self.cronograma:
-            return f"{self.etapa} do cronogrma {self.cronograma.numero}"
+        if self.etapa and self.parte and self.cronograma:
+            return f"{self.etapa} - {self.parte} - Cronograma {self.cronograma.numero}"
+
         if self.cronograma:
-            return f"Etapa do cronogrma {self.cronograma.numero}"
-        return "Etapa sem cronograma"
+            return f"Etapa do Cronograma {self.cronograma.numero}"
+
+        return "Etapa sem Cronograma"
 
     class Meta:
         ordering = ("etapa", "data_programada")
