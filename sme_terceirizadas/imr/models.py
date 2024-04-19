@@ -499,3 +499,22 @@ class RespostaSimNaoNaoSeAplica(ModeloBase):
     class Meta:
         verbose_name = "Resposta Sim/Não/Não se aplica"
         verbose_name_plural = "Respostas Sim/Não/Não se aplica"
+
+
+class FaixaPontuacaoIMR(ModeloBase):
+    pontuacao_minima = models.PositiveSmallIntegerField("Pontuação Mínima")
+    pontuacao_maxima = models.PositiveSmallIntegerField(
+        "Pontuação Máxima", blank=True, null=True
+    )
+    porcentagem_desconto = models.FloatField(
+        "% de Desconto",
+        validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
+        help_text="Desconto no faturamento do dia",
+    )
+
+    def __str__(self):
+        return f"{self.pontuacao_minima} - {self.pontuacao_maxima or 'sem pontuação máxima'} - {self.porcentagem_desconto}"
+
+    class Meta:
+        verbose_name = "Faixa de Pontuação - IMR"
+        verbose_name_plural = "Faixas de Pontuação - IMR"

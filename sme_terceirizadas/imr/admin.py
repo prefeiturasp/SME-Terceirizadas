@@ -6,6 +6,7 @@ from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.dados_comuns.utils import custom_titled_filter
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
+    FaixaPontuacaoIMR,
     FormularioDiretor,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
@@ -237,6 +238,17 @@ class FormularioSupervisaoAdmin(admin.ModelAdmin):
         ("formulario_base__data", DateRangeFilter),
         "acompanhou_visita",
         "apresentou_ocorrencias",
+    )
+
+
+@admin.register(FaixaPontuacaoIMR)
+class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
+    list_display = (
+        "pontuacao_minima",
+        "pontuacao_maxima",
+        "porcentagem_desconto",
+        "criado_em",
+        "alterado_em",
     )
 
 
