@@ -47,14 +47,21 @@ def _questoes_ordenadas(questoes):
     )
 
 
+def test_url_questoes_conferencia_lista_simples(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get(
+        "/questoes-conferencia/lista-simples-questoes/"
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_url_questoes_por_produto_create(
     client_autenticado_qualidade,
-    payload_questoes_por_produto,
+    payload_create_questoes_por_produto,
 ):
     response = client_autenticado_qualidade.post(
         "/questoes-por-produto/",
         content_type="application/json",
-        data=json.dumps(payload_questoes_por_produto),
+        data=json.dumps(payload_create_questoes_por_produto),
     )
 
     questoes_por_produto = QuestoesPorProduto.objects.first()
@@ -62,8 +69,67 @@ def test_url_questoes_por_produto_create(
     assert response.status_code == status.HTTP_201_CREATED
     assert questoes_por_produto is not None
     assert questoes_por_produto.questoes_primarias.count() == len(
-        payload_questoes_por_produto["questoes_primarias"]
+        payload_create_questoes_por_produto["questoes_primarias"]
     )
     assert questoes_por_produto.questoes_secundarias.count() == len(
-        payload_questoes_por_produto["questoes_secundarias"]
+        payload_create_questoes_por_produto["questoes_secundarias"]
+    )
+
+
+def test_url_questoes_por_produto_list(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get("/questoes-por-produto/")
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert "count" in json
+    assert "next" in json
+    assert "previous" in json
+
+
+def test_url_questoes_por_produto_retrieve(
+    client_autenticado_qualidade,
+    questoes_por_produto_factory,
+):
+    questoes_por_produto = questoes_por_produto_factory()
+
+    response = client_autenticado_qualidade.get(
+        f"/questoes-por-produto/{questoes_por_produto.uuid}/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["ficha_tecnica"]["uuid"] == str(
+        questoes_por_produto.ficha_tecnica.uuid
+    )
+    assert (
+        len(response.json()["questoes_primarias"])
+        == questoes_por_produto.questoes_primarias.count()
+    )
+    assert (
+        len(response.json()["questoes_secundarias"])
+        == questoes_por_produto.questoes_secundarias.count()
+    )
+
+
+def test_url_questoes_por_produto_update(
+    client_autenticado_qualidade,
+    questoes_por_produto_factory,
+    payload_update_questoes_por_produto,
+):
+    questoes_por_produto = questoes_por_produto_factory()
+
+    response = client_autenticado_qualidade.patch(
+        f"/questoes-por-produto/{questoes_por_produto.uuid}/",
+        content_type="application/json",
+        data=json.dumps(payload_update_questoes_por_produto),
+    )
+
+    questoes_por_produto.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert (
+        len(payload_update_questoes_por_produto["questoes_primarias"])
+        == questoes_por_produto.questoes_primarias.count()
+    )
+    assert (
+        len(payload_update_questoes_por_produto["questoes_secundarias"])
+        == questoes_por_produto.questoes_secundarias.count()
     )

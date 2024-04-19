@@ -909,6 +909,30 @@ def payload_analise_ficha_tecnica():
 
 
 @pytest.fixture
+def payload_atualizacao_ficha_tecnica(unidade_medida_logistica, arquivo_pdf_base64):
+    return {
+        "componentes_produto": fake.pystr(max_chars=250),
+        "alergenicos": True,
+        "ingredientes_alergenicos": fake.pystr(max_chars=150),
+        "gluten": True,
+        "porcao": fake.random_number() / 100,
+        "unidade_medida_porcao": str(unidade_medida_logistica.uuid),
+        "valor_unidade_caseira": fake.random_number() / 100,
+        "unidade_medida_caseira": str(unidade_medida_logistica.uuid),
+        "informacoes_nutricionais": [],
+        "condicoes_de_conservacao": fake.pystr(max_chars=150),
+        "embalagem_primaria": fake.pystr(max_chars=150),
+        "embalagem_secundaria": fake.pystr(max_chars=150),
+        "nome_responsavel_tecnico": fake.pystr(max_chars=100),
+        "habilitacao": fake.pystr(max_chars=100),
+        "numero_registro_orgao": fake.pystr(max_chars=50),
+        "arquivo": arquivo_pdf_base64,
+        "modo_de_preparo": fake.pystr(max_chars=50),
+        "informacoes_adicionais": fake.pystr(max_chars=50),
+    }
+
+
+@pytest.fixture
 def analise_ficha_tecnica(
     ficha_tecnica_perecivel_enviada_para_analise,
     payload_analise_ficha_tecnica,

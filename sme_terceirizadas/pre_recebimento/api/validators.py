@@ -74,10 +74,7 @@ def valida_campos_dependentes_ficha_tecnica(attrs):
             "É obrigatório fornecer um valor para o atributo mecanismo_controle quando o produto for orgânico."
         )
 
-    if attrs.get("alergenicos") is True and not attrs.get("ingredientes_alergenicos"):
-        raise serializers.ValidationError(
-            "É obrigatório fornecer um valor para o atributo ingredientes_alergenicos quando o produto for alergênico."
-        )
+    valida_ingredientes_alergenicos_ficha_tecnica(attrs)
 
     if attrs.get("lactose") is True and not attrs.get("lactose_detalhe"):
         raise serializers.ValidationError(
@@ -90,6 +87,13 @@ def valida_campos_dependentes_ficha_tecnica(attrs):
     ):
         raise serializers.ValidationError(
             "É obrigatório fornecer um valor para os atributos volume_embalagem_primaria e unidade_medida_volume_primaria quando o produto for líquido."
+        )
+
+
+def valida_ingredientes_alergenicos_ficha_tecnica(attrs):
+    if attrs.get("alergenicos") is True and not attrs.get("ingredientes_alergenicos"):
+        raise serializers.ValidationError(
+            "É obrigatório fornecer um valor para o atributo ingredientes_alergenicos quando o produto for alergênico."
         )
 
 
