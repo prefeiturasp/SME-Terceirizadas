@@ -88,6 +88,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
+    CronogramaFichaDeRecebimentoSerializer,
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     CronogramaSimplesSerializer,
@@ -105,7 +106,6 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     LaboratorioSimplesFiltroSerializer,
     LayoutDeEmbalagemDetalheSerializer,
     LayoutDeEmbalagemSerializer,
-    NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
     PainelDocumentoDeRecebimentoSerializer,
     PainelFichaTecnicaSerializer,
@@ -115,6 +115,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     SolicitacaoAlteracaoCronogramaSerializer,
     TipoEmbalagemQldSerializer,
     UnidadeMedidaSerialzer,
+    UnidadeMedidaSimplesSerializer,
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
@@ -445,6 +446,26 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         serializer = CronogramaSimplesSerializer(cronogramas, many=True).data
         response = {"results": serializer}
         return Response(response)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-cronogramas-ficha-recebimento",
+    )
+    def lista_cronogramas_ficha_recebimento(self, request):
+        qs = self.get_queryset().filter(status=CronogramaWorkflow.ASSINADO_CODAE)
+
+        return Response({"results": CronogramaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="dados-cronograma-ficha-recebimento",
+    )
+    def dados_cronograma_ficha_recebimento(self, request, uuid):
+        return Response(
+            {"results": CronogramaFichaDeRecebimentoSerializer(self.get_object()).data}
+        )
 
 
 class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -836,7 +857,7 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
     )
     def listar_nomes_abreviacoes(self, request):
         unidades_medida = self.get_queryset()
-        serializer = NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True)
+        serializer = UnidadeMedidaSimplesSerializer(unidades_medida, many=True)
         response = {"results": serializer.data}
         return Response(response)
 
