@@ -521,3 +521,4 @@ class FaixaPontuacaoIMR(ModeloBase):
     class Meta:
         verbose_name = "Faixa de Pontuação - IMR"
         verbose_name_plural = "Faixas de Pontuação - IMR"
+        ordering = ("pontuacao_minima",)
