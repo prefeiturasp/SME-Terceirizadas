@@ -1,5 +1,7 @@
 import pytest
+from django.core.exceptions import ValidationError
 
+from sme_terceirizadas.imr.admin import TipoOcorrenciaForm
 from sme_terceirizadas.imr.models import TipoOcorrencia, TipoPenalidade
 
 pytestmark = pytest.mark.django_db
@@ -39,3 +41,14 @@ def test_tipo_ocorrencia_meta_modelo(tipo_ocorrencia_factory):
     tipo_ocorrencia = tipo_ocorrencia_factory.create()
     assert tipo_ocorrencia._meta.verbose_name == "Tipo de Ocorrência"
     assert tipo_ocorrencia._meta.verbose_name_plural == "Tipos de Ocorrência"
+
+
+def test_validation_error_eh_imr_pontuacao():
+    data = {"eh_imr": False, "pontuacao": 1, "tolerancia": 1}
+    form = TipoOcorrenciaForm(data=data)
+
+    assert form.is_valid() is False
+    assert form.errors["pontuacao"] == ["Pontuação só deve ser preenchida se for IMR."]
+    assert form.errors["tolerancia"] == [
+        "Tolerância só deve ser preenchida se for IMR."
+    ]

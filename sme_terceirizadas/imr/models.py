@@ -2,7 +2,12 @@ import os
 
 from django.apps import apps
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import FileExtensionValidator
+from django.core.validators import (
+    FileExtensionValidator,
+    MaxValueValidator,
+    MinValueValidator,
+    ValidationError,
+)
 from django.db import models
 
 from ..cardapio.models import TipoAlimentacao
@@ -99,10 +104,17 @@ class TipoOcorrencia(
         on_delete=models.PROTECT,
         related_name="tipos_ocorrencia",
     )
+    eh_imr = models.BooleanField("É IMR?", default=False)
     pontuacao = models.PositiveSmallIntegerField(
         "Pontuação (IMR)", blank=True, null=True
     )
     tolerancia = models.PositiveSmallIntegerField("Tolerância", blank=True, null=True)
+    porcentagem_desconto = models.FloatField(
+        "% de desconto",
+        null=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
+        help_text="Caso a opção de É IMR? esteja marcada a % de desconto incidirá sobre a reincidência dos apontamentos. Se não for marcada a opção de É IMR?, a % de desconto será referente a multa da penalidade.",
+    )
     modelo_anexo = models.FileField(
         "Modelo de Anexo",
         upload_to="IMR",
@@ -120,6 +132,18 @@ class TipoOcorrencia(
     class Meta:
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
+
+    def clean(self):
+        super().clean()
+        if not self.eh_imr and (self.pontuacao or self.tolerancia):
+            dict_error = {}
+            if self.pontuacao:
+                dict_error["pontuacao"] = "Pontuação só deve ser preenchida se for IMR."
+            if self.tolerancia:
+                dict_error[
+                    "tolerancia"
+                ] = "Tolerância só deve ser preenchida se for IMR."
+            raise ValidationError(dict_error)
 
     def delete(self, *args, **kwargs):
         if self.modelo_anexo:
