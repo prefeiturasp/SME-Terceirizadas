@@ -1,19 +1,25 @@
 from django_filters import rest_framework as filters
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ...dados_comuns.api.paginations import DefaultPagination
-from ..models import QuestaoConferencia, QuestoesPorProduto
+from ..models import FichaDeRecebimento, QuestaoConferencia, QuestoesPorProduto
 from .filters import QuestoesPorProdutoFilter
-from .permissions import PermissaoParaVisualizarQuestoesConferencia
+from .permissions import (
+    PermissaoParaCadastrarFichaRecebimento,
+    PermissaoParaVisualizarQuestoesConferencia,
+)
 from .serializers.serializers import (
     QuestaoConferenciaSerializer,
     QuestaoConferenciaSimplesSerializer,
     QuestoesPorProdutoSerializer,
     QuestoesPorProdutoSimplesSerializer,
 )
-from .serializers.serializers_create import QuestoesPorProdutoCreateSerializer
+from .serializers.serializers_create import (
+    FichaDeRecebimentoRascunhoSerializer,
+    QuestoesPorProdutoCreateSerializer,
+)
 
 
 class QuestoesConferenciaModelViewSet(viewsets.ReadOnlyModelViewSet):
@@ -66,3 +72,14 @@ class QuestoesPorProdutoModelViewSet(viewsets.ModelViewSet):
             "list": QuestoesPorProdutoSerializer,
             "retrieve": QuestoesPorProdutoSimplesSerializer,
         }.get(self.action, QuestoesPorProdutoCreateSerializer)
+
+
+class FichaDeRecebimentoRascunhoViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    lookup_field = "uuid"
+    serializer_class = FichaDeRecebimentoRascunhoSerializer
+    queryset = FichaDeRecebimento.objects.all().order_by("-criado_em")
+    permission_classes = (PermissaoParaCadastrarFichaRecebimento,)
