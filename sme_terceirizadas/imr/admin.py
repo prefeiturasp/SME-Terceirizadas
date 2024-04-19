@@ -64,6 +64,14 @@ class PerfisMultipleChoiceForm(forms.ModelForm):
     perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
 
 
+class TipoOcorrenciaForm(forms.ModelForm):
+    perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
+
+    class Meta:
+        model = TipoOcorrencia
+        fields = "__all__"
+
+
 @admin.register(TipoOcorrencia)
 class TipoOcorrenciaAdmin(admin.ModelAdmin):
     list_display = (
@@ -84,7 +92,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
     autocomplete_fields = ("edital", "penalidade")
-    form = PerfisMultipleChoiceForm
+    form = TipoOcorrenciaForm
 
     def save_model(self, request, obj, form, change):
         if not change:  # Apenas para novos registros
