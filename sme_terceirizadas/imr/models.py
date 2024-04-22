@@ -512,6 +512,30 @@ class FaixaPontuacaoIMR(ModeloBase):
         help_text="Desconto no faturamento do dia",
     )
 
+    def clean(self):
+        super().clean()
+        faixas = list(
+            FaixaPontuacaoIMR.objects.exclude(uuid=self.uuid).values_list(
+                "pontuacao_minima", "pontuacao_maxima"
+            )
+        )
+        dict_error = {}
+        if any(
+            faixa[0] <= self.pontuacao_minima <= (faixa[1] or faixa[0])
+            for faixa in faixas
+        ):
+            dict_error[
+                "pontuacao_minima"
+            ] = "Esta pontuação mínima já se encontra dentro de outra faixa."
+        if any(
+            faixa[0] <= self.pontuacao_maxima <= (faixa[1] or faixa[0])
+            for faixa in faixas
+        ):
+            dict_error[
+                "pontuacao_maxima"
+            ] = "Esta pontuação máxima já se encontra dentro de outra faixa."
+        raise ValidationError(dict_error)
+
     def __str__(self):
         return (
             f"{self.pontuacao_minima} - {self.pontuacao_maxima or 'sem pontuação máxima'}"
