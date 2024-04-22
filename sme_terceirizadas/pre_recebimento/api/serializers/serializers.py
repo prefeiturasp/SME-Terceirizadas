@@ -4,6 +4,9 @@ from collections import OrderedDict
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
+from sme_terceirizadas.dados_comuns.utils import (
+    numero_com_agrupador_de_milhar_e_decimal,
+)
 from sme_terceirizadas.pre_recebimento.models import (
     AnaliseFichaTecnica,
     ArquivoDoTipoDeDocumento,
@@ -128,21 +131,27 @@ class EtapasDoCronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer
 
     def get_qtd_total_empenho(self, obj):
         try:
-            return f"{obj.qtd_total_empenho} {obj.cronograma.unidade_medida.abreviacao}"
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.qtd_total_empenho)
+            return f"{valor} {obj.cronograma.unidade_medida.abreviacao}"
+
         except AttributeError:
-            return obj.qtd_total_empenho
+            return valor
 
     def get_quantidade(self, obj):
         try:
-            return f"{obj.quantidade} {obj.cronograma.unidade_medida.abreviacao}"
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.quantidade)
+            return f"{valor} {obj.cronograma.unidade_medida.abreviacao}"
+
         except AttributeError:
-            return obj.quantidade
+            return valor
 
     def get_total_embalagens(self, obj):
         try:
-            return f"{obj.total_embalagens} {obj.cronograma.tipo_embalagem_secundaria.abreviacao}"
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.total_embalagens)
+            return f"{valor} {obj.cronograma.tipo_embalagem_secundaria.abreviacao}"
+
         except AttributeError:
-            return obj.total_embalagens
+            return valor
 
     def get_data_programada(self, obj):
         return obj.data_programada.strftime("%d/%m/%Y") if obj.data_programada else None
@@ -398,10 +407,10 @@ class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
             return None
 
     def get_qtd_total_programada(self, obj):
+        valor = numero_com_agrupador_de_milhar_e_decimal(obj.qtd_total_programada)
+
         return (
-            f"{obj.qtd_total_programada} {obj.unidade_medida.abreviacao}"
-            if obj.unidade_medida
-            else None
+            f"{valor} {obj.unidade_medida.abreviacao}" if obj.unidade_medida else valor
         )
 
     def get_peso_liquido_embalagem_primaria(self, obj):
