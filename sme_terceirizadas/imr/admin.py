@@ -241,6 +241,12 @@ class FormularioSupervisaoAdmin(admin.ModelAdmin):
     )
 
 
+class FaixaPontuacaoIMRForm(forms.ModelForm):
+    class Meta:
+        model = FaixaPontuacaoIMR
+        fields = "__all__"
+
+
 @admin.register(FaixaPontuacaoIMR)
 class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
     list_display = (
@@ -250,6 +256,7 @@ class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
         "criado_em",
         "alterado_em",
     )
+    form = FaixaPontuacaoIMRForm
 
 
 admin.site.register(TipoGravidade)

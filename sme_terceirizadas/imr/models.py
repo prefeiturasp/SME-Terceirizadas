@@ -133,17 +133,30 @@ class TipoOcorrencia(
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
 
-    def clean(self):
-        super().clean()
+    def valida_eh_imr(self, dict_error):
+        if self.eh_imr and (not self.pontuacao or not self.tolerancia):
+            if not self.pontuacao:
+                dict_error["pontuacao"] = "Pontuação deve ser preenchida se for IMR."
+            if not self.tolerancia:
+                dict_error["tolerancia"] = "Tolerância deve ser preenchida se for IMR."
+        return dict_error
+
+    def valida_nao_eh_imr(self, dict_error):
         if not self.eh_imr and (self.pontuacao or self.tolerancia):
-            dict_error = {}
             if self.pontuacao:
                 dict_error["pontuacao"] = "Pontuação só deve ser preenchida se for IMR."
             if self.tolerancia:
                 dict_error[
                     "tolerancia"
                 ] = "Tolerância só deve ser preenchida se for IMR."
-            raise ValidationError(dict_error)
+        return dict_error
+
+    def clean(self):
+        super().clean()
+        dict_error = {}
+        dict_error = self.valida_eh_imr(dict_error)
+        dict_error = self.valida_nao_eh_imr(dict_error)
+        raise ValidationError(dict_error)
 
     def delete(self, *args, **kwargs):
         if self.modelo_anexo:
@@ -527,7 +540,7 @@ class FaixaPontuacaoIMR(ModeloBase):
             dict_error[
                 "pontuacao_minima"
             ] = "Esta pontuação mínima já se encontra dentro de outra faixa."
-        if any(
+        if self.pontuacao_maxima and any(
             faixa[0] <= self.pontuacao_maxima <= (faixa[1] or faixa[0])
             for faixa in faixas
         ):
