@@ -1,24 +1,38 @@
 import logging
 from tempfile import NamedTemporaryFile
+from typing import Type
 
 from django.core.files import File
 from openpyxl import Workbook, load_workbook, styles
 
 from sme_terceirizadas.imr.models import ImportacaoPlanilhaTipoPenalidade
 from sme_terceirizadas.perfil.models import Usuario
-from utility.carga_dados.perfil.schemas import (
-    ImportacaoPlanilhaUsuarioPerfilEscolaSchema,
-)
+from utility.carga_dados.imr.schemas import ImportacaoPlanilhaTipoPenalidadeSchema
 
 logger = logging.getLogger("sigpae.carga_dados_tipo_penalidade_importa_dados")
 
 
-class ProcessaPlanilhaTipoPenalidade:
+def importa_tipos_penalidade(
+    usuario: Usuario, arquivo: ImportacaoPlanilhaTipoPenalidade
+) -> None:
+    logger.debug(f"Iniciando o processamento do arquivo: {arquivo.uuid}")
+
+    try:
+        processador = ProcessadorPlanilhaTipoPenalidade(
+            usuario, arquivo, ImportacaoPlanilhaTipoPenalidadeSchema
+        )
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f"Erro genérico: {exc}")
+
+
+class ProcessadorPlanilhaTipoPenalidade:
     def __init__(
         self,
         usuario: Usuario,
         arquivo: ImportacaoPlanilhaTipoPenalidade,
-        class_schema: ImportacaoPlanilhaUsuarioPerfilEscolaSchema,
+        class_schema: Type[ImportacaoPlanilhaTipoPenalidadeSchema],
     ) -> None:
         """Prepara atributos importantes para o processamento da planilha."""
         self.usuario = usuario
