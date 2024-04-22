@@ -133,17 +133,30 @@ class TipoOcorrencia(
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
 
-    def clean(self):
-        super().clean()
+    def valida_eh_imr(self, dict_error):
+        if self.eh_imr and (not self.pontuacao or not self.tolerancia):
+            if not self.pontuacao:
+                dict_error["pontuacao"] = "Pontuação deve ser preenchida se for IMR."
+            if not self.tolerancia:
+                dict_error["tolerancia"] = "Tolerância deve ser preenchida se for IMR."
+        return dict_error
+
+    def valida_nao_eh_imr(self, dict_error):
         if not self.eh_imr and (self.pontuacao or self.tolerancia):
-            dict_error = {}
             if self.pontuacao:
                 dict_error["pontuacao"] = "Pontuação só deve ser preenchida se for IMR."
             if self.tolerancia:
                 dict_error[
                     "tolerancia"
                 ] = "Tolerância só deve ser preenchida se for IMR."
-            raise ValidationError(dict_error)
+        return dict_error
+
+    def clean(self):
+        super().clean()
+        dict_error = {}
+        dict_error = self.valida_eh_imr(dict_error)
+        dict_error = self.valida_nao_eh_imr(dict_error)
+        raise ValidationError(dict_error)
 
     def delete(self, *args, **kwargs):
         if self.modelo_anexo:
@@ -499,3 +512,50 @@ class RespostaSimNaoNaoSeAplica(ModeloBase):
     class Meta:
         verbose_name = "Resposta Sim/Não/Não se aplica"
         verbose_name_plural = "Respostas Sim/Não/Não se aplica"
+
+
+class FaixaPontuacaoIMR(ModeloBase):
+    pontuacao_minima = models.PositiveSmallIntegerField("Pontuação Mínima")
+    pontuacao_maxima = models.PositiveSmallIntegerField(
+        "Pontuação Máxima", blank=True, null=True
+    )
+    porcentagem_desconto = models.FloatField(
+        "% de Desconto",
+        validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
+        help_text="Desconto no faturamento do dia",
+    )
+
+    def clean(self):
+        super().clean()
+        faixas = list(
+            FaixaPontuacaoIMR.objects.exclude(uuid=self.uuid).values_list(
+                "pontuacao_minima", "pontuacao_maxima"
+            )
+        )
+        dict_error = {}
+        if any(
+            faixa[0] <= self.pontuacao_minima <= (faixa[1] or faixa[0])
+            for faixa in faixas
+        ):
+            dict_error[
+                "pontuacao_minima"
+            ] = "Esta pontuação mínima já se encontra dentro de outra faixa."
+        if self.pontuacao_maxima and any(
+            faixa[0] <= self.pontuacao_maxima <= (faixa[1] or faixa[0])
+            for faixa in faixas
+        ):
+            dict_error[
+                "pontuacao_maxima"
+            ] = "Esta pontuação máxima já se encontra dentro de outra faixa."
+        raise ValidationError(dict_error)
+
+    def __str__(self):
+        return (
+            f"{self.pontuacao_minima} - {self.pontuacao_maxima or 'sem pontuação máxima'}"
+            f" - {self.porcentagem_desconto}"
+        )
+
+    class Meta:
+        verbose_name = "Faixa de Pontuação - IMR"
+        verbose_name_plural = "Faixas de Pontuação - IMR"
+        ordering = ("pontuacao_minima",)
