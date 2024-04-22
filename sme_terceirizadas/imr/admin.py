@@ -74,7 +74,7 @@ class ImportacaoPlanilhaTipoPenalidadeAdmin(admin.ModelAdmin):
     readonly_fields = ("resultado", "status", "log")
     list_filter = ("status",)
     actions = ("processa_planilha",)
-    # change_list_template = "admin/perfil/importacao_tipos_penalidade.html"
+    change_list_template = "admin/imr/importacao_tipos_penalidade.html"
 
     def get_urls(self):
         urls = super().get_urls()

@@ -23,6 +23,9 @@ def exportar_planilha_importacao_tipos_penalidade(request, **kwargs):
         "Descrição da Cláusula/Item",
         "Status",
     ]
+    sheet = workbook["Tipos de Penalidade"]
+    for column in "ABCDEFGF":
+        sheet.column_dimensions[column].width = 30
     _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
@@ -37,7 +40,7 @@ def exportar_planilha_importacao_tipos_penalidade(request, **kwargs):
         )
 
     editais = ", ".join([edital.numero for edital in Edital.objects.all()])
-    dv = DataValidation(type="list", formula1=f"{editais}", allow_blank=True)
+    dv = DataValidation(type="list", formula1='"' + editais + '"', allow_blank=True)
     dv.error = "Edital Inválido"
     dv.errorTitle = "Edital não permitido"
     ws.add_data_validation(dv)
