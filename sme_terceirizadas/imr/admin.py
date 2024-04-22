@@ -6,6 +6,7 @@ from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.dados_comuns.utils import custom_titled_filter
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
+    FaixaPontuacaoIMR,
     FormularioDiretor,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
@@ -64,6 +65,14 @@ class PerfisMultipleChoiceForm(forms.ModelForm):
     perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
 
 
+class TipoOcorrenciaForm(forms.ModelForm):
+    perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
+
+    class Meta:
+        model = TipoOcorrencia
+        fields = "__all__"
+
+
 @admin.register(TipoOcorrencia)
 class TipoOcorrenciaAdmin(admin.ModelAdmin):
     list_display = (
@@ -84,7 +93,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
     autocomplete_fields = ("edital", "penalidade")
-    form = PerfisMultipleChoiceForm
+    form = TipoOcorrenciaForm
 
     def save_model(self, request, obj, form, change):
         if not change:  # Apenas para novos registros
@@ -94,6 +103,8 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
 
 @admin.register(CategoriaOcorrencia)
 class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
+    list_display = ("nome", "posicao", "perfis")
+    ordering = ("posicao", "criado_em")
     form = PerfisMultipleChoiceForm
 
 
@@ -230,6 +241,24 @@ class FormularioSupervisaoAdmin(admin.ModelAdmin):
         "acompanhou_visita",
         "apresentou_ocorrencias",
     )
+
+
+class FaixaPontuacaoIMRForm(forms.ModelForm):
+    class Meta:
+        model = FaixaPontuacaoIMR
+        fields = "__all__"
+
+
+@admin.register(FaixaPontuacaoIMR)
+class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
+    list_display = (
+        "pontuacao_minima",
+        "pontuacao_maxima",
+        "porcentagem_desconto",
+        "criado_em",
+        "alterado_em",
+    )
+    form = FaixaPontuacaoIMRForm
 
 
 admin.site.register(TipoGravidade)
