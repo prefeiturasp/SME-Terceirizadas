@@ -9,6 +9,7 @@ from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
 from .imr.fixtures.factories.imr_base_factory import (
     CategoriaOcorrenciaFactory,
+    FaixaPontuacaoFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
@@ -78,6 +79,7 @@ register(TipoPenalidadeFactory)
 register(TipoGravidadeFactory)
 register(CategoriaOcorrenciaFactory)
 register(TipoOcorrenciaFactory)
+register(FaixaPontuacaoFactory)
 
 
 @pytest.fixture

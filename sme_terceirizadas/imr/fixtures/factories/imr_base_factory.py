@@ -3,6 +3,7 @@ from faker import Faker
 
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
+    FaixaPontuacaoIMR,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
@@ -47,3 +48,12 @@ class TipoOcorrenciaFactory(DjangoModelFactory):
     descricao = Sequence(lambda n: f"descrição - {fake.unique.name()}")
     categoria = SubFactory(CategoriaOcorrenciaFactory)
     penalidade = SubFactory(TipoPenalidadeFactory)
+
+
+class FaixaPontuacaoFactory(DjangoModelFactory):
+    class Meta:
+        model = FaixaPontuacaoIMR
+
+    pontuacao_minima = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
+    pontuacao_maxima = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
+    porcentagem_desconto = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
