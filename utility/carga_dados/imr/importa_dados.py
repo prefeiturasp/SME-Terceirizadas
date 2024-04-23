@@ -3,10 +3,18 @@ from tempfile import NamedTemporaryFile
 from typing import Type
 
 from django.core.files import File
+from django.db import transaction
 from openpyxl import Workbook, load_workbook, styles
 
-from sme_terceirizadas.imr.models import ImportacaoPlanilhaTipoPenalidade
+from sme_terceirizadas.dados_comuns.behaviors import StatusAtivoInativo
+from sme_terceirizadas.imr.models import (
+    ImportacaoPlanilhaTipoPenalidade,
+    ObrigacaoPenalidade,
+    TipoGravidade,
+    TipoPenalidade,
+)
 from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.terceirizada.models import Edital
 from utility.carga_dados.imr.schemas import ImportacaoPlanilhaTipoPenalidadeSchema
 
 logger = logging.getLogger("sigpae.carga_dados_tipo_penalidade_importa_dados")
@@ -28,6 +36,8 @@ def importa_tipos_penalidade(
 
 
 class ProcessadorPlanilhaTipoPenalidade:
+    LINHA_2 = 2
+
     def __init__(
         self,
         usuario: Usuario,
@@ -52,6 +62,75 @@ class ProcessadorPlanilhaTipoPenalidade:
         self.arquivo.inicia_processamento()
         if not self.validacao_inicial():
             return
+
+        linhas = list(self.worksheet.rows)
+        logger.info(
+            f"Quantidade de linhas: {len(linhas)} -- Quantidade de colunas: {len(linhas[0])}"
+        )
+
+        for ind, linha in enumerate(
+            linhas[1:], self.LINHA_2
+        ):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
+            try:
+                dicionario_dados = self.monta_dicionario_de_dados(linha)
+                usuario_schema = self.class_schema(**dicionario_dados)
+
+                logger.info(
+                    f"Criando tipo de penalidade: {usuario_schema.edital} -- {usuario_schema.numero_clausula}"
+                )
+                self.cria_tipo_penalidade(ind, usuario_schema)
+            except Exception as exc:
+                self.erros.append(f"Linha {ind} - {exc}")
+
+    def cria_tipo_penalidade(
+        self, ind: int, usuario_schema: ImportacaoPlanilhaTipoPenalidadeSchema
+    ):
+        try:
+            self.__cria_tipo_penalidade(usuario_schema)
+        except Exception as exd:
+            self.erros.append(f"Linha {ind} - {exd}")
+
+    def get_edital(self, numero_edital: str):
+        return Edital.objects.get(numero=numero_edital)
+
+    def get_tipo_gravidade(self, tipo_gravidade: str):
+        return TipoGravidade.objects.get(tipo=tipo_gravidade)
+
+    def __cria_tipo_penalidade_obj(
+        self, usuario_schema: ImportacaoPlanilhaTipoPenalidadeSchema
+    ):
+        edital = self.get_edital(usuario_schema.edital)
+        gravidade = self.get_tipo_gravidade(usuario_schema.gravidade)
+        status = usuario_schema.status == StatusAtivoInativo.ATIVO
+        return TipoPenalidade.objects.create(
+            criado_por=self.usuario,
+            edital=edital,
+            numero_clausula=usuario_schema.numero_clausula,
+            gravidade=gravidade,
+            descricao=usuario_schema.descricao_clausula,
+            status=status,
+        )
+
+    def normaliza_obrigacoes(self, obrigacoes: str):
+        if obrigacoes[-1] == ";":
+            obrigacoes = obrigacoes[: len(obrigacoes) - 1]
+        return obrigacoes.split(";")
+
+    def __cria_obrigacao_penalidade(
+        self, tipo_penalidade: TipoPenalidade, descricao: str
+    ):
+        ObrigacaoPenalidade.objects.create(
+            tipo_penalidade=tipo_penalidade, descricao=descricao
+        )
+
+    @transaction.atomic
+    def __cria_tipo_penalidade(
+        self, usuario_schema: ImportacaoPlanilhaTipoPenalidadeSchema
+    ):
+        tipo_penalidade = self.__cria_tipo_penalidade_obj(usuario_schema)
+        lista_obrigacoes = self.normaliza_obrigacoes(usuario_schema.obrigacoes)
+        for descricao_obrigacao in lista_obrigacoes:
+            self.__cria_obrigacao_penalidade(tipo_penalidade, descricao_obrigacao)
 
     def validacao_inicial(self) -> bool:
         return self.existe_conteudo()
