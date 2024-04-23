@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from sme_terceirizadas.imr.models import TipoGravidade
 from sme_terceirizadas.terceirizada.models import Edital
 
 
@@ -45,6 +46,23 @@ def exportar_planilha_importacao_tipos_penalidade(request, **kwargs):
     dv.errorTitle = "Edital não permitido"
     ws.add_data_validation(dv)
     dv.add("A2:A1048576")
+
+    tipos_gravidade = ", ".join(
+        [gravidade.tipo for gravidade in TipoGravidade.objects.all()]
+    )
+    dv2 = DataValidation(
+        type="list", formula1='"' + tipos_gravidade + '"', allow_blank=True
+    )
+    dv2.error = "Tipo de Gravidade Inválido"
+    dv2.errorTitle = "Tipo de Gravidade não permitido"
+    ws.add_data_validation(dv2)
+    dv2.add("C2:C1048576")
+
+    dv3 = DataValidation(type="list", formula1='"Ativo,Inativo"', allow_blank=True)
+    dv3.error = "Status Inválido"
+    dv3.errorTitle = "Status não permitido"
+    ws.add_data_validation(dv3)
+    dv3.add("F2:F1048576")
 
     workbook.save(response)
 
