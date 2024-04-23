@@ -543,6 +543,10 @@ class FaixaPontuacaoIMR(ModeloBase):
 
     def clean(self):
         super().clean()
+        if self.pontuacao_maxima and self.pontuacao_minima > self.pontuacao_maxima:
+            raise ValidationError(
+                {"pontuacao_minima": "Pontuação mínima não pode ser maior que a máxima"}
+            )
         faixas = list(
             FaixaPontuacaoIMR.objects.exclude(uuid=self.uuid).values_list(
                 "pontuacao_minima", "pontuacao_maxima"

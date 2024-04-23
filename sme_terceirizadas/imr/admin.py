@@ -308,6 +308,7 @@ class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
         "criado_em",
         "alterado_em",
     )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
     form = FaixaPontuacaoIMRForm
 
 
