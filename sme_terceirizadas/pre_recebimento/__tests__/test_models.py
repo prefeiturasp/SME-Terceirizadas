@@ -38,7 +38,18 @@ def test_etapas_do_cronograma_instance_model(etapa):
 
 
 def test_etapas_do_cronograma_srt_model(etapa):
-    assert etapa.__str__() == "Etapa 1 do cronogrma 001/2022A"
+    assert (
+        etapa.__str__()
+        == f"{etapa.etapa} - {etapa.parte} - Cronograma {etapa.cronograma.numero}"
+    )
+
+    etapa.etapa = ""
+    etapa.save()
+    assert str(etapa) == f"Etapa do Cronograma {etapa.cronograma.numero}"
+
+    etapa.cronograma = None
+    etapa.save()
+    assert str(etapa) == "Etapa sem Cronograma"
 
 
 def test_etapas_do_cronograma_meta_modelo(etapa):
@@ -113,16 +124,6 @@ def test_unidade_medida_model_save():
 
 def test_laboratorio_model_str(laboratorio):
     assert str(laboratorio) == laboratorio.nome
-
-
-def test_etapas_cronograma_model_str(etapa):
-    etapa.etapa = ""
-    etapa.save()
-    assert str(etapa) == f"Etapa do cronogrma {etapa.cronograma.numero}"
-
-    etapa.cronograma = None
-    etapa.save()
-    assert str(etapa) == "Etapa sem cronograma"
 
 
 def test_programacao_recebimento_cronograma_model_str(programacao):

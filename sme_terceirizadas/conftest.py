@@ -43,6 +43,9 @@ from .produto.fixtures.factories.produto_factory import (
     ProdutoTerceirizadaFactory,
     TipoDeInformacaoNutricionalFactory,
 )
+from .recebimento.fixtures.factories.ficha_de_recebimento_factory import (
+    FichaDeRecebimentoFactory,
+)
 from .recebimento.fixtures.factories.questao_conferencia_factory import (
     QuestaoConferenciaFactory,
 )
@@ -50,6 +53,7 @@ from .recebimento.fixtures.factories.questoes_por_produto_factory import (
     QuestoesPorProdutoFactory,
 )
 from .terceirizada.fixtures.factories.terceirizada_factory import (
+    ContratoFactory,
     EditalFactory,
     EmpresaFactory,
 )
@@ -79,6 +83,8 @@ register(TipoPenalidadeFactory)
 register(TipoGravidadeFactory)
 register(CategoriaOcorrenciaFactory)
 register(TipoOcorrenciaFactory)
+register(FichaDeRecebimentoFactory)
+register(ContratoFactory)
 register(FaixaPontuacaoFactory)
 
 

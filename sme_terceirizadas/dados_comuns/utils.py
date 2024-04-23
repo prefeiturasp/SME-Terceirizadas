@@ -685,3 +685,16 @@ def custom_titled_filter(title):
             return instance
 
     return Wrapper
+
+
+def numero_com_agrupador_de_milhar_e_decimal(value: int | float) -> str:
+    try:
+        return (
+            "{:,.2f}".format(float(value))
+            .replace(",", " ")
+            .replace(".", ",")
+            .replace(" ", ".")
+        )
+
+    except (ValueError, TypeError):
+        return value

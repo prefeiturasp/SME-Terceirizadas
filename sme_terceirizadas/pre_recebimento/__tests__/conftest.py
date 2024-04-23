@@ -76,7 +76,12 @@ def cronograma_recebido(armazem, contrato, empresa):
 
 @pytest.fixture
 def etapa(cronograma):
-    return mommy.make("EtapasDoCronograma", cronograma=cronograma, etapa="Etapa 1")
+    return mommy.make(
+        "EtapasDoCronograma",
+        cronograma=cronograma,
+        etapa="Etapa 1",
+        parte="Parte 1",
+    )
 
 
 @pytest.fixture

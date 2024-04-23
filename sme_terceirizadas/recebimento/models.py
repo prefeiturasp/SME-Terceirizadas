@@ -3,6 +3,7 @@ from django.db import models
 from multiselectfield import MultiSelectField
 
 from sme_terceirizadas.pre_recebimento.models import FichaTecnicaDoProduto
+from sme_terceirizadas.pre_recebimento.models.cronograma import EtapasDoCronograma
 
 from ..dados_comuns.behaviors import ModeloBase
 
@@ -75,3 +76,28 @@ class QuestoesPorProduto(ModeloBase):
     class Meta:
         verbose_name = "Questões por Produto"
         verbose_name_plural = "Questões por Produtos"
+
+
+class FichaDeRecebimento(ModeloBase):
+    etapa = models.ForeignKey(
+        EtapasDoCronograma,
+        on_delete=models.PROTECT,
+        related_name="ficha_recebimento",
+        verbose_name="Etapa do Cronograma",
+    )
+    data_entrega = models.DateField(
+        "Data de Entrega",
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self) -> str:
+        try:
+            return f"Ficha de Recebimento - {str(self.etapa)}"
+
+        except AttributeError:
+            return f"Ficha de Recebimento {self.id}"
+
+    class Meta:
+        verbose_name = "Ficha de Recebimento"
+        verbose_name_plural = "Fichas de Recebimentos"
