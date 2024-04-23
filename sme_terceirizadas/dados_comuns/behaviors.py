@@ -59,9 +59,12 @@ class Ativavel(models.Model):
 
 
 class StatusAtivoInativo(models.Model):
+    ATIVO = "Ativo"
+    INATIVO = "Inativo"
+
     STATUS_CHOICES = (
-        (True, "Ativo"),
-        (False, "Inativo"),
+        (True, ATIVO),
+        (False, INATIVO),
     )
     status = models.BooleanField("Status", choices=STATUS_CHOICES, default=True)
 

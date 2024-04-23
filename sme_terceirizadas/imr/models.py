@@ -12,6 +12,7 @@ from django.db import models
 
 from ..cardapio.models import TipoAlimentacao
 from ..dados_comuns.behaviors import (
+    ArquivoCargaBase,
     CriadoPor,
     ModeloBase,
     Nomeavel,
@@ -54,6 +55,7 @@ class TipoPenalidade(ModeloBase, CriadoPor, StatusAtivoInativo):
     class Meta:
         verbose_name = "Tipo de Penalidade"
         verbose_name_plural = "Tipos de Penalidades"
+        unique_together = ("edital", "numero_clausula")
 
 
 class ObrigacaoPenalidade(ModeloBase):
@@ -71,6 +73,21 @@ class ObrigacaoPenalidade(ModeloBase):
     class Meta:
         verbose_name = "Obrigação da Penalidade"
         verbose_name_plural = "Obrigações das Penalidades"
+
+
+class ImportacaoPlanilhaTipoPenalidade(ArquivoCargaBase):
+    """Importa dados de planilha de tipos de penalidade."""
+
+    resultado = models.FileField(blank=True, default="")
+
+    class Meta:
+        verbose_name = "Arquivo para importação/atualização de tipos de penalidade"
+        verbose_name_plural = (
+            "Arquivos para importação/atualização de tipos de penalidade"
+        )
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
 
 
 class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao):
