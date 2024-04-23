@@ -21,7 +21,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     FichaTecnicaComAnaliseDetalharSerializer,
     FichaTecnicaDetalharSerializer,
-    NomeEAbreviacaoUnidadeMedidaSerializer,
+    UnidadeMedidaSimplesSerializer,
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
@@ -1122,7 +1122,7 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(
     assert len(response.data["results"]) == len(unidades_medida_logistica)
     assert (
         response.data["results"]
-        == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
+        == UnidadeMedidaSimplesSerializer(unidades_medida, many=True).data
     )
 
 
@@ -1153,6 +1153,39 @@ def test_url_cronograma_action_listar_para_cadastro(
 
     # Testa se a quantidade de cronogramas do response é diferente da quantidade total de cronogramas
     assert len(response.data["results"]) != len(todos_cronogramas)
+
+
+def test_url_cronograma_lista_cronogramas_ficha_recebimento(
+    client_autenticado_qualidade,
+    cronograma_factory,
+):
+    cronogramas_assinados_codae = cronograma_factory.create_batch(
+        size=5, status=CronogramaWorkflow.ASSINADO_CODAE
+    )
+    cronograma_factory(status=CronogramaWorkflow.ASSINADO_DINUTRE)
+
+    response = client_autenticado_qualidade.get(
+        "/cronogramas/lista-cronogramas-ficha-recebimento/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(cronogramas_assinados_codae)
+
+
+def test_url_cronograma_dados_cronograma_ficha_recebimento(
+    client_autenticado_qualidade,
+    cronograma_factory,
+    etapas_do_cronograma_factory,
+):
+    cronograma = cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE)
+    etapas = etapas_do_cronograma_factory.create_batch(size=3, cronograma=cronograma)
+
+    response = client_autenticado_qualidade.get(
+        f"/cronogramas/{cronograma.uuid}/dados-cronograma-ficha-recebimento/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]["etapas"]) == len(etapas)
 
 
 def test_url_layout_de_embalagem_create(

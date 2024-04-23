@@ -103,6 +103,8 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
 
 @admin.register(CategoriaOcorrencia)
 class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
+    list_display = ("nome", "posicao", "perfis")
+    ordering = ("posicao", "criado_em")
     form = PerfisMultipleChoiceForm
 
 
