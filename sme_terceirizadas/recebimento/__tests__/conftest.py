@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import pytest
 
 from sme_terceirizadas.dados_comuns.fluxo_status import FichaTecnicaDoProdutoWorkflow
@@ -38,4 +40,12 @@ def payload_update_questoes_por_produto(questoes_conferencia):
     return {
         "questoes_primarias": questoes,
         "questoes_secundarias": questoes,
+    }
+
+
+@pytest.fixture
+def payload_ficha_recebimento_rascunho(etapas_do_cronograma_factory):
+    return {
+        "etapa": str(etapas_do_cronograma_factory().uuid),
+        "data_entrega": str(date.today() + timedelta(days=10)),
     }

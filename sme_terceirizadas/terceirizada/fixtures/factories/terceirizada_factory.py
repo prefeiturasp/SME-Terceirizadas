@@ -1,7 +1,7 @@
-from factory import DjangoModelFactory, Sequence
+from factory import DjangoModelFactory, LazyFunction, Sequence, SubFactory
 from faker import Faker
 
-from sme_terceirizadas.terceirizada.models import Edital, Terceirizada
+from sme_terceirizadas.terceirizada.models import Contrato, Edital, Terceirizada
 
 fake = Faker("pt_BR")
 
@@ -23,3 +23,16 @@ class EditalFactory(DjangoModelFactory):
 
     numero = Sequence(lambda n: fake.unique.random_int(min=1, max=1000))
     objeto = Sequence(lambda n: f"objeto {fake.unique.name()}")
+
+
+class ContratoFactory(DjangoModelFactory):
+    class Meta:
+        model = Contrato
+
+    numero = Sequence(lambda _: f"{fake.unique.random_int(min=1, max=1000)}")
+    terceirizada = SubFactory(EmpresaFactory)
+    edital = SubFactory(EditalFactory)
+    ata = LazyFunction(lambda: str(fake.random_number(digits=10, fix_len=True)))
+    numero_chamada_publica = LazyFunction(
+        lambda: str(fake.random_number(digits=10, fix_len=True))
+    )

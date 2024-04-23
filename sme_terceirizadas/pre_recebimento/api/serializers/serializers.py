@@ -4,6 +4,9 @@ from collections import OrderedDict
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
+from sme_terceirizadas.dados_comuns.utils import (
+    numero_com_agrupador_de_milhar_e_decimal,
+)
 from sme_terceirizadas.pre_recebimento.models import (
     AnaliseFichaTecnica,
     ArquivoDoTipoDeDocumento,
@@ -119,6 +122,58 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
         )
 
 
+class EtapasDoCronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
+    qtd_total_empenho = serializers.SerializerMethodField()
+    data_programada = serializers.SerializerMethodField()
+    quantidade = serializers.SerializerMethodField()
+    total_embalagens = serializers.SerializerMethodField()
+    desvinculada_recebimento = serializers.SerializerMethodField()
+
+    def get_qtd_total_empenho(self, obj):
+        try:
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.qtd_total_empenho)
+            return f"{valor} {obj.cronograma.unidade_medida.abreviacao}"
+
+        except AttributeError:
+            return valor
+
+    def get_quantidade(self, obj):
+        try:
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.quantidade)
+            return f"{valor} {obj.cronograma.unidade_medida.abreviacao}"
+
+        except AttributeError:
+            return valor
+
+    def get_total_embalagens(self, obj):
+        try:
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.total_embalagens)
+            return f"{valor} {obj.cronograma.tipo_embalagem_secundaria.abreviacao}"
+
+        except AttributeError:
+            return valor
+
+    def get_data_programada(self, obj):
+        return obj.data_programada.strftime("%d/%m/%Y") if obj.data_programada else None
+
+    def get_desvinculada_recebimento(self, obj):
+        return not obj.ficha_recebimento.exists()
+
+    class Meta:
+        model = EtapasDoCronograma
+        fields = (
+            "uuid",
+            "numero_empenho",
+            "qtd_total_empenho",
+            "etapa",
+            "parte",
+            "data_programada",
+            "quantidade",
+            "total_embalagens",
+            "desvinculada_recebimento",
+        )
+
+
 class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
     fornecedor = serializers.CharField(source="cronograma.empresa")
     cronograma = serializers.CharField(source="cronograma.numero")
@@ -148,7 +203,7 @@ class TipoEmbalagemQldSimplesSerializer(serializers.ModelSerializer):
         fields = ("uuid", "nome", "abreviacao")
 
 
-class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
+class UnidadeMedidaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnidadeMedida
         fields = ("uuid", "nome", "abreviacao")
@@ -175,9 +230,9 @@ class FichaTecnicaSimplesSerializer(serializers.ModelSerializer):
 
 class FichaTecnicaCronogramaSerializer(FichaTecnicaSimplesSerializer):
     marca = MarcaSimplesSerializer()
-    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_volume_primaria = UnidadeMedidaSimplesSerializer()
+    unidade_medida_primaria = UnidadeMedidaSimplesSerializer()
+    unidade_medida_secundaria = UnidadeMedidaSimplesSerializer()
 
     class Meta(FichaTecnicaSimplesSerializer.Meta):
         fields = FichaTecnicaSimplesSerializer.Meta.fields + (
@@ -311,6 +366,88 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cronograma
         fields = ("uuid", "numero", "pregao_chamada_publica", "nome_produto")
+
+
+class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
+    fornecedor = serializers.SerializerMethodField()
+    contrato = serializers.SerializerMethodField()
+    pregao_chamada_publica = serializers.SerializerMethodField()
+    ata = serializers.SerializerMethodField()
+    produto = serializers.SerializerMethodField()
+    marca = serializers.SerializerMethodField()
+    qtd_total_programada = serializers.SerializerMethodField()
+    peso_liquido_embalagem_primaria = serializers.SerializerMethodField()
+    peso_liquido_embalagem_secundaria = serializers.SerializerMethodField()
+    embalagem_primaria = serializers.SerializerMethodField()
+    embalagem_secundaria = serializers.SerializerMethodField()
+    etapas = EtapasDoCronogramaFichaDeRecebimentoSerializer(many=True)
+
+    def get_fornecedor(self, obj):
+        return obj.empresa.nome_fantasia if obj.empresa else None
+
+    def get_contrato(self, obj):
+        return obj.contrato.numero if obj.contrato else None
+
+    def get_pregao_chamada_publica(self, obj):
+        return obj.contrato.pregao_chamada_publica if obj.contrato else None
+
+    def get_ata(self, obj):
+        return obj.contrato.ata if obj.contrato else None
+
+    def get_produto(self, obj):
+        try:
+            return obj.ficha_tecnica.produto.nome
+        except AttributeError:
+            return None
+
+    def get_marca(self, obj):
+        try:
+            return obj.ficha_tecnica.marca.nome if obj.ficha_tecnica else None
+        except AttributeError:
+            return None
+
+    def get_qtd_total_programada(self, obj):
+        valor = numero_com_agrupador_de_milhar_e_decimal(obj.qtd_total_programada)
+
+        return (
+            f"{valor} {obj.unidade_medida.abreviacao}" if obj.unidade_medida else valor
+        )
+
+    def get_peso_liquido_embalagem_primaria(self, obj):
+        try:
+            return f"{obj.ficha_tecnica.peso_liquido_embalagem_primaria} {obj.ficha_tecnica.unidade_medida_primaria.abreviacao}"
+        except AttributeError:
+            return None
+
+    def get_peso_liquido_embalagem_secundaria(self, obj):
+        try:
+            return f"{obj.ficha_tecnica.peso_liquido_embalagem_secundaria} {obj.ficha_tecnica.unidade_medida_secundaria.abreviacao}"
+        except AttributeError:
+            return None
+
+    def get_embalagem_primaria(self, obj):
+        return obj.ficha_tecnica.embalagem_primaria if obj.ficha_tecnica else None
+
+    def get_embalagem_secundaria(self, obj):
+        return obj.ficha_tecnica.embalagem_secundaria if obj.ficha_tecnica else None
+
+    class Meta:
+        model = Cronograma
+        fields = (
+            "uuid",
+            "fornecedor",
+            "contrato",
+            "pregao_chamada_publica",
+            "ata",
+            "produto",
+            "marca",
+            "qtd_total_programada",
+            "peso_liquido_embalagem_primaria",
+            "peso_liquido_embalagem_secundaria",
+            "embalagem_primaria",
+            "embalagem_secundaria",
+            "etapas",
+        )
 
 
 class PainelCronogramaSerializer(serializers.ModelSerializer):
@@ -711,7 +848,7 @@ class DataDeFabricacaoEPrazoLookupSerializer(serializers.ModelSerializer):
 
 class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
     laboratorio = LaboratorioCredenciadoSimplesSerializer()
-    unidade_medida = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida = UnidadeMedidaSimplesSerializer()
     datas_fabricacao_e_prazos = DataDeFabricacaoEPrazoLookupSerializer(many=True)
     numero_sei = serializers.SerializerMethodField()
     fornecedor = serializers.SerializerMethodField()
@@ -781,14 +918,14 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     marca = MarcaSimplesSerializer()
     empresa = TerceirizadaLookUpSerializer()
     fabricante = FabricanteSimplesSerializer()
-    unidade_medida_porcao = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_porcao = UnidadeMedidaSimplesSerializer()
     status = serializers.CharField(source="get_status_display", read_only=True)
     informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaSerializer(many=True)
-    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_primaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_secundaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_primaria = UnidadeMedidaSimplesSerializer()
+    unidade_medida_secundaria = UnidadeMedidaSimplesSerializer()
+    unidade_medida_primaria_vazia = UnidadeMedidaSimplesSerializer()
+    unidade_medida_secundaria_vazia = UnidadeMedidaSimplesSerializer()
+    unidade_medida_volume_primaria = UnidadeMedidaSimplesSerializer()
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")

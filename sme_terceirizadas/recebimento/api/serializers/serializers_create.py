@@ -1,7 +1,12 @@
 from rest_framework import serializers
 
 from sme_terceirizadas.pre_recebimento.models import FichaTecnicaDoProduto
-from sme_terceirizadas.recebimento.models import QuestaoConferencia, QuestoesPorProduto
+from sme_terceirizadas.pre_recebimento.models.cronograma import EtapasDoCronograma
+from sme_terceirizadas.recebimento.models import (
+    FichaDeRecebimento,
+    QuestaoConferencia,
+    QuestoesPorProduto,
+)
 
 
 class QuestoesPorProdutoCreateSerializer(serializers.ModelSerializer):
@@ -44,3 +49,15 @@ class QuestoesPorProdutoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestoesPorProduto
         fields = ("ficha_tecnica", "questoes_primarias", "questoes_secundarias")
+
+
+class FichaDeRecebimentoRascunhoSerializer(serializers.ModelSerializer):
+    etapa = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=EtapasDoCronograma.objects.all(),
+    )
+
+    class Meta:
+        model = FichaDeRecebimento
+        exclude = ("id",)

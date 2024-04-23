@@ -103,6 +103,8 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
 
 @admin.register(CategoriaOcorrencia)
 class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
+    list_display = ("nome", "posicao", "perfis")
+    ordering = ("posicao", "criado_em")
     form = PerfisMultipleChoiceForm
 
 
@@ -256,6 +258,7 @@ class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
         "criado_em",
         "alterado_em",
     )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
     form = FaixaPontuacaoIMRForm
 
 
