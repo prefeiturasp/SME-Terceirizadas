@@ -55,6 +55,7 @@ class TipoPenalidade(ModeloBase, CriadoPor, StatusAtivoInativo):
     class Meta:
         verbose_name = "Tipo de Penalidade"
         verbose_name_plural = "Tipos de Penalidades"
+        unique_together = ("edital", "numero_clausula")
 
 
 class ObrigacaoPenalidade(ModeloBase):

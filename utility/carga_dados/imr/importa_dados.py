@@ -102,14 +102,17 @@ class ProcessadorPlanilhaTipoPenalidade:
         edital = self.get_edital(usuario_schema.edital)
         gravidade = self.get_tipo_gravidade(usuario_schema.gravidade)
         status = usuario_schema.status == StatusAtivoInativo.ATIVO
-        return TipoPenalidade.objects.create(
-            criado_por=self.usuario,
+        tipo_penalidade, _ = TipoPenalidade.objects.update_or_create(
             edital=edital,
             numero_clausula=usuario_schema.numero_clausula,
-            gravidade=gravidade,
-            descricao=usuario_schema.descricao_clausula,
-            status=status,
+            defaults={
+                "criado_por": self.usuario,
+                "gravidade": gravidade,
+                "descricao": usuario_schema.descricao_clausula,
+                "status": status,
+            },
         )
+        return tipo_penalidade
 
     def normaliza_obrigacoes(self, obrigacoes: str):
         if obrigacoes[-1] == ";":
