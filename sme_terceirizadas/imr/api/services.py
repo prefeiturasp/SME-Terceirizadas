@@ -41,7 +41,7 @@ def exportar_planilha_importacao_tipos_penalidade(request, **kwargs):
         )
 
     editais = ", ".join([edital.numero for edital in Edital.objects.all()])
-    dv = DataValidation(type="list", formula1='"' + editais + '"', allow_blank=True)
+    dv = DataValidation(type="list", formula1=f'"{editais}"', allow_blank=True)
     dv.error = "Edital Inválido"
     dv.errorTitle = "Edital não permitido"
     ws.add_data_validation(dv)
@@ -50,9 +50,7 @@ def exportar_planilha_importacao_tipos_penalidade(request, **kwargs):
     tipos_gravidade = ", ".join(
         [gravidade.tipo for gravidade in TipoGravidade.objects.all()]
     )
-    dv2 = DataValidation(
-        type="list", formula1='"' + tipos_gravidade + '"', allow_blank=True
-    )
+    dv2 = DataValidation(type="list", formula1=f'"{tipos_gravidade}"', allow_blank=True)
     dv2.error = "Tipo de Gravidade Inválido"
     dv2.errorTitle = "Tipo de Gravidade não permitido"
     ws.add_data_validation(dv2)
