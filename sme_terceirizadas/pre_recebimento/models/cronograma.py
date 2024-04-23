@@ -81,7 +81,7 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
         null=True,
         related_name="cronogramas",
     )
-    ficha_tecnica = models.OneToOneField(
+    ficha_tecnica = models.ForeignKey(
         "FichaTecnicaDoProduto",
         on_delete=models.PROTECT,
         blank=True,
