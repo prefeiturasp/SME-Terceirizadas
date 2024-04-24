@@ -1200,7 +1200,7 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=False, methods=["GET"], url_path="exportar-xlsx")
     def exportar_xlsx(self, request):
         """TODO: ver porque nao pode importar o pandas via pytest."""
-        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(request, True)
         data = request.query_params
         user = request.user.get_username()
         ids_dietas = list(query_set.values_list("id", flat=True))
@@ -1299,7 +1299,7 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=False, methods=["GET"], url_path="exportar-pdf")
     def exportar_pdf(self, request):
         user = request.user.get_username()
-        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(request, True)
         ids_dietas = list(query_set.values_list("id", flat=True))
         filtros = self.build_texto(
             request.query_params.getlist("lotes_selecionados[]", None),
