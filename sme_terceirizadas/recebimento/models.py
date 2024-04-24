@@ -173,7 +173,7 @@ class FichaDeRecebimento(ModeloBase):
         verbose_name_plural = "Fichas de Recebimentos"
 
 
-class VeiculoFichaDeRecebimento(ModeloBase):
+class VeiculoFichaDeRecebimento(models.Model):
     ficha_recebimento = models.ForeignKey(
         FichaDeRecebimento,
         on_delete=models.CASCADE,
@@ -197,11 +197,6 @@ class VeiculoFichaDeRecebimento(ModeloBase):
     )
     placa = models.CharField(
         max_length=15,
-        null=True,
-        blank=True,
-    )
-    lacre = models.CharField(
-        max_length=100,
         null=True,
         blank=True,
     )
