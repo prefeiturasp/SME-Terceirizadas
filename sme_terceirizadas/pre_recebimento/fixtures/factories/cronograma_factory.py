@@ -1,22 +1,18 @@
 from datetime import date, timedelta
 
-from factory import (
-    DjangoModelFactory,
-    LazyAttribute,
-    LazyFunction,
-    Sequence,
-    SubFactory,
-)
+from factory import DjangoModelFactory, LazyFunction, Sequence, SubFactory
 from faker import Faker
 
 from sme_terceirizadas.pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import (
     FichaTecnicaFactory,
 )
+from sme_terceirizadas.pre_recebimento.fixtures.factories.unidade_medida_factory import (
+    UnidadeMedidaFactory,
+)
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
-    UnidadeMedida,
 )
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     ContratoFactory,
@@ -24,14 +20,6 @@ from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory impo
 )
 
 fake = Faker("pt_BR")
-
-
-class UnidadeMedidaFactory(DjangoModelFactory):
-    class Meta:
-        model = UnidadeMedida
-
-    nome = Sequence(lambda n: f"Laboratorio {fake.unique.word()}")
-    abreviacao = LazyAttribute(lambda obj: obj.nome[:3].upper())
 
 
 class CronogramaFactory(DjangoModelFactory):

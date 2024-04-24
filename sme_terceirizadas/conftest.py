@@ -22,9 +22,9 @@ from .pre_recebimento.fixtures.factories.cronograma_factory import (
     CronogramaFactory,
     EtapasDoCronogramaFactory,
     LaboratorioFactory,
-    UnidadeMedidaFactory,
 )
 from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import (
+    DataDeFabricaoEPrazoFactory,
     DocumentoDeRecebimentoFactory,
     TipoDeDocumentoDeRecebimentoFactory,
 )
@@ -34,6 +34,9 @@ from .pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import
 )
 from .pre_recebimento.fixtures.factories.layout_embalagem_factory import (
     LayoutDeEmbalagemFactory,
+)
+from .pre_recebimento.fixtures.factories.unidade_medida_factory import (
+    UnidadeMedidaFactory,
 )
 from .produto.fixtures.factories.produto_factory import (
     FabricanteFactory,
@@ -86,6 +89,7 @@ register(TipoOcorrenciaFactory)
 register(FichaDeRecebimentoFactory)
 register(ContratoFactory)
 register(FaixaPontuacaoFactory)
+register(DataDeFabricaoEPrazoFactory)
 
 
 @pytest.fixture
