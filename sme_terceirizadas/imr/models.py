@@ -182,6 +182,21 @@ class TipoOcorrencia(
         super().delete(*args, **kwargs)
 
 
+class ImportacaoPlanilhaTipoOcorrencia(ArquivoCargaBase):
+    """Importa dados de planilha de tipos de ocorrência."""
+
+    resultado = models.FileField(blank=True, default="")
+
+    class Meta:
+        verbose_name = "Arquivo para importação/atualização de tipos de ocorrência"
+        verbose_name_plural = (
+            "Arquivos para importação/atualização de tipos de ocorrência"
+        )
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
 class TipoRespostaModelo(ModeloBase, Nomeavel):
     def __str__(self):
         return f"{self.nome}"
