@@ -29,7 +29,13 @@ from ...dados_comuns.permissions import (
 )
 from ...dados_comuns.services import enviar_email_codae_atualiza_protocolo
 from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
-from ...escola.models import Aluno, DiretoriaRegional, EscolaPeriodoEscolar, Lote
+from ...escola.models import (
+    Aluno,
+    DiretoriaRegional,
+    EscolaPeriodoEscolar,
+    Lote,
+    TipoGestao,
+)
 from ...escola.services import NovoSGPServicoLogado
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import (
@@ -881,7 +887,31 @@ class SolicitacaoDietaEspecialViewSet(
         except ValidationError as error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-    def filtrar_queryset_relatorio_dieta_especial(self, request):
+    def filtrar_queryset_polo_recreio_ferias(self, query_set, query_params):
+        if query_params.get("cei_polo") == "true" and (
+            query_params.get("recreio_nas_ferias") == "false"
+            or not query_params.get("recreio_nas_ferias")
+        ):
+            query_set = query_set.filter(
+                motivo_alteracao_ue__nome__icontains="polo",
+            )
+        if query_params.get("recreio_nas_ferias") == "true" and (
+            query_params.get("cei_polo") == "false" or not query_params.get("cei_polo")
+        ):
+            query_set = query_set.filter(
+                motivo_alteracao_ue__nome__icontains="recreio",
+            )
+        if (
+            query_params.get("cei_polo") == "true"
+            and query_params.get("recreio_nas_ferias") == "true"
+        ):
+            query_set = query_set.filter(
+                Q(motivo_alteracao_ue__nome__icontains="polo")
+                | Q(motivo_alteracao_ue__nome__icontains="recreio"),
+            )
+        return query_set.order_by("motivo_alteracao_ue__nome")
+
+    def filtrar_queryset_relatorio_dieta_especial(self, request, eh_relatorio=False):
         query_set = self.filter_queryset(self.get_queryset())
 
         lotes_filtro = request.query_params.getlist("lotes_selecionados[]", None)
@@ -890,6 +920,11 @@ class SolicitacaoDietaEspecialViewSet(
             if isinstance(instituicao, DiretoriaRegional):
                 lotes_list = list(instituicao.lotes.all().values_list("uuid"))
                 lotes_filtro = [str(u[0]) for u in lotes_list]
+        campo_escola_destino = (
+            "escola_destino__uuid__in"
+            if eh_relatorio
+            else "escola_destino__codigo_eol__in"
+        )
         map_filtros = {
             "protocolo_padrao__uuid__in": request.query_params.getlist(
                 "protocolos_padrao_selecionados[]", None
@@ -901,15 +936,21 @@ class SolicitacaoDietaEspecialViewSet(
                 "classificacoes_selecionadas[]", None
             ),
             "escola_destino__lote__uuid__in": lotes_filtro,
-            "escola_destino__codigo_eol__in": request.query_params.getlist(
+            campo_escola_destino: request.query_params.getlist(
                 "unidades_educacionais_selecionadas[]", None
             ),
+            "escola_destino__tipo_unidade__uuid__in": request.query_params.getlist(
+                "tipos_unidades_selecionadas[]", None
+            ),
         }
+        if isinstance(instituicao, DiretoriaRegional):
+            map_filtros["escola_destino__diretoria_regional__uuid"] = instituicao.uuid
         filtros = {
             key: value for key, value in map_filtros.items() if value not in [None, []]
         }
         query_set = query_set.filter(**filtros)
         data = request.query_params
+        query_set = self.filtrar_queryset_polo_recreio_ferias(query_set, data)
         if data.get("status_selecionado") == "AUTORIZADAS":
             query_set = query_set.filter(
                 status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
@@ -956,16 +997,19 @@ class SolicitacaoDietaEspecialViewSet(
     def filtros_relatorio_dieta_especial(self, request):
         query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
         instituicao = request.user.vinculo_atual.instituicao
+        lotes_dres = []
         if isinstance(instituicao, DiretoriaRegional):
-            lotes_dict = dict(instituicao.lotes.all().values_list("nome", "uuid"))
+            for lote in instituicao.lotes.all().values_list("nome", "uuid"):
+                lotes_dres.append(tuple([f"{lote[0]} - {instituicao.nome}", lote[1]]))
+            lotes_dict = dict(lotes_dres)
         else:
-            lotes_dict = dict(
-                set(
-                    query_set.values_list(
-                        "escola_destino__lote__nome", "escola_destino__lote__uuid"
-                    )
-                )
-            )
+            for s in query_set.values_list(
+                "escola_destino__lote__nome",
+                "escola_destino__lote__uuid",
+                "escola_destino__diretoria_regional__nome",
+            ):
+                lotes_dres.append(tuple([f"{s[0]} - {s[2]}", s[1]]))
+            lotes_dict = dict(lotes_dres)
         lotes = sorted(
             [
                 {"nome": key, "uuid": lotes_dict[key]}
@@ -1019,12 +1063,37 @@ class SolicitacaoDietaEspecialViewSet(
             key=lambda alergia_intolerancia: alergia_intolerancia["nome"],
         )
 
+        tipos_gestao_dict = dict(
+            set(TipoGestao.objects.all().values_list("nome", "uuid"))
+        )
+        tipos_gestao = [
+            {"nome": key, "uuid": tipos_gestao_dict[key]}
+            for key in tipos_gestao_dict.keys()
+            if key
+        ]
+
+        tipos_unidades_dict = dict(
+            set(
+                query_set.values_list(
+                    "escola_destino__tipo_unidade__iniciais",
+                    "escola_destino__tipo_unidade__uuid",
+                )
+            )
+        )
+        tipos_unidades = [
+            {"nome": key, "uuid": tipos_unidades_dict[key]}
+            for key in tipos_unidades_dict.keys()
+            if key
+        ]
+
         return Response(
             {
                 "alergias_intolerancias": alergias_intolerancias,
                 "classificacoes": classificacoes,
                 "lotes": lotes,
                 "protocolos_padrao": protocolos_padrao,
+                "tipos_gestao": tipos_gestao,
+                "tipos_unidades": tipos_unidades,
             },
             status=status.HTTP_200_OK,
         )
@@ -1033,7 +1102,9 @@ class SolicitacaoDietaEspecialViewSet(
         detail=False, methods=("get",), url_path="relatorio-dieta-especial-terceirizada"
     )
     def relatorio_dieta_especial_terceirizada(self, request):  # noqa C901
-        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(
+            request, True
+        ).distinct()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
