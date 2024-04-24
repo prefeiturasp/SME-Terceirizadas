@@ -1182,7 +1182,11 @@ def test_url_cronograma_dados_cronograma_ficha_recebimento(
     cronograma = cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE)
     etapas = etapas_do_cronograma_factory.create_batch(size=3, cronograma=cronograma)
     docs_recebimento = documento_de_recebimento_factory.create_batch(
-        size=3, cronograma=cronograma
+        size=3, cronograma=cronograma, status=DocumentoDeRecebimentoWorkflow.APROVADO
+    )
+    documento_de_recebimento_factory(
+        cronograma=cronograma,
+        status=DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
     )
     datas_e_prazos = []
     for doc_recebimento in docs_recebimento:

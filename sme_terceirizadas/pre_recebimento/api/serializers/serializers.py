@@ -4,6 +4,7 @@ from collections import OrderedDict
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
+from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWorkflow
 from sme_terceirizadas.dados_comuns.utils import (
     numero_com_agrupador_de_milhar_e_decimal,
 )
@@ -417,7 +418,7 @@ class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
     embalagem_secundaria = serializers.SerializerMethodField()
     categoria = serializers.SerializerMethodField()
     etapas = EtapasDoCronogramaFichaDeRecebimentoSerializer(many=True)
-    documentos_de_recebimento = DocRecebimentoFichaDeRecebimentoSerializer(many=True)
+    documentos_de_recebimento = serializers.SerializerMethodField()
 
     def get_fornecedor(self, obj):
         return obj.empresa.nome_fantasia if obj.empresa else None
@@ -470,6 +471,14 @@ class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
 
     def get_categoria(self, obj):
         return obj.ficha_tecnica.categoria if obj.ficha_tecnica else None
+
+    def get_documentos_de_recebimento(self, obj):
+        return DocRecebimentoFichaDeRecebimentoSerializer(
+            obj.documentos_de_recebimento.filter(
+                status=DocumentoDeRecebimentoWorkflow.APROVADO
+            ),
+            many=True,
+        ).data
 
     class Meta:
         model = Cronograma
