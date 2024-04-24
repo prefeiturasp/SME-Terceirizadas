@@ -48,6 +48,7 @@ from .produto.fixtures.factories.produto_factory import (
 )
 from .recebimento.fixtures.factories.ficha_de_recebimento_factory import (
     FichaDeRecebimentoFactory,
+    VeiculoFichaDeRecebimentoFactory,
 )
 from .recebimento.fixtures.factories.questao_conferencia_factory import (
     QuestaoConferenciaFactory,
@@ -90,6 +91,7 @@ register(FichaDeRecebimentoFactory)
 register(ContratoFactory)
 register(FaixaPontuacaoFactory)
 register(DataDeFabricaoEPrazoFactory)
+register(VeiculoFichaDeRecebimentoFactory)
 
 
 @pytest.fixture
