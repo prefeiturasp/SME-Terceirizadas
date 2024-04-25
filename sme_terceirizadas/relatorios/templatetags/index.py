@@ -756,7 +756,7 @@ def get_nome_header(nome):
         "MANHA": "MANHÃ",
         "NOITE": "NOITE/EJA",
         "TIPO A": "DIETAS TIPO A / ENTERAL / REST. DE AMINOÁCIDOS",
-        "TIPO B": "DIETAS TIPO B",
+        "TIPO B": "DIETAS TIPO B - LANCHE",
         "Infantil INTEGRAL": "INTEGRAL",
         "Infantil MANHA": "MANHÃ",
         "Infantil TARDE": "TARDE",
