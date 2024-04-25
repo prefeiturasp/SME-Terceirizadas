@@ -28,10 +28,10 @@ def cria_validacao_lista_em_sheet_oculto(
 
     workbook.defined_names.append(validacao_lista)
 
-    dv2 = DataValidation(type="list", formula1=nome_validacao, allow_blank=True)
-    dv2.error = f"{nome_elementos} Inválid{artigo}"
-    dv2.errorTitle = f"{nome_elementos} não permitid{artigo}"
-    worksheet.add_data_validation(dv2)
-    dv2.add(f"{str_coluna_headers}2:{str_coluna_headers}1048576")
+    dv = DataValidation(type="list", formula1=nome_validacao, allow_blank=True)
+    dv.error = f"{nome_elementos} Inválid{artigo}"
+    dv.errorTitle = f"{nome_elementos} não permitid{artigo}"
+    worksheet.add_data_validation(dv)
+    dv.add(f"{str_coluna_headers}2:{str_coluna_headers}1048576")
 
     return worksheet
