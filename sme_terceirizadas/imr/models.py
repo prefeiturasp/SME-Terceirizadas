@@ -151,6 +151,7 @@ class TipoOcorrencia(
     class Meta:
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
+        unique_together = ("edital", "categoria", "penalidade")
 
     def valida_eh_imr(self, dict_error):
         if self.eh_imr and (not self.pontuacao or not self.tolerancia):
