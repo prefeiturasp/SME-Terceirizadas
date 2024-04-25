@@ -47,12 +47,13 @@ def exportar_planilha_importacao_tipos_penalidade(request, **kwargs):
             bottom=styles.Side(border_style="thin", color="000000"),
         )
 
-    editais = ", ".join([edital.numero for edital in Edital.objects.all()])
-    dv = DataValidation(type="list", formula1=f'"{editais}"', allow_blank=True)
-    dv.error = "Edital Inválido"
-    dv.errorTitle = "Edital não permitido"
-    ws.add_data_validation(dv)
-    dv.add("A2:A1048576")
+    hidden_sheet = workbook.create_sheet(title="HiddenSheet")
+    hidden_sheet.sheet_state = "hidden"
+
+    editais = [edital.numero for edital in Edital.objects.all()]
+    ws = cria_validacao_lista_em_sheet_oculto(
+        editais, hidden_sheet, ws, workbook, "A", 1, "Edital", "o", "A"
+    )
 
     tipos_gravidade = ", ".join(
         [gravidade.tipo for gravidade in TipoGravidade.objects.all()]
