@@ -68,7 +68,7 @@ class ImportacaoPlanilhaTipoOcorrenciaSchema(BaseModel):
 
     @classmethod
     def eh_inteiro(cls, value, nome_parametro):
-        if value and not value.is_digit():
+        if value and not value.isdigit():
             raise Exception(f"{nome_parametro} deve ser um número inteiro positivo.")
 
     @validator("posicao")
@@ -115,6 +115,7 @@ class ImportacaoPlanilhaTipoOcorrenciaSchema(BaseModel):
     @validator("pontuacao")
     def valida_pontuacao(cls, value):
         cls.eh_inteiro(value, "Pontuação (IMR)")
+
         return value.strip()
 
     @validator("tolerancia")

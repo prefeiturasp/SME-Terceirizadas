@@ -100,8 +100,12 @@ def exportar_planilha_importacao_tipos_ocorrencia(request, **kwargs):
         "Status",
     ]
     sheet = workbook["Tipos de Ocorrência"]
-    for column in "ABCDEFGHIJKL":
+    for column in "ABCHIJKL":
         sheet.column_dimensions[column].width = 20
+    for column in "EF":
+        sheet.column_dimensions[column].width = 35
+    for column in "DG":
+        sheet.column_dimensions[column].width = 50
     _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
@@ -115,26 +119,35 @@ def exportar_planilha_importacao_tipos_ocorrencia(request, **kwargs):
             bottom=styles.Side(border_style="thin", color="000000"),
         )
 
-    editais = ", ".join([edital.numero for edital in Edital.objects.all()])
-    dv = DataValidation(type="list", formula1=f'"{editais}"', allow_blank=True)
-    dv.error = "Edital Inválido"
-    dv.errorTitle = "Edital não permitido"
-    ws.add_data_validation(dv)
-    dv.add("C2:C1048576")
-
     hidden_sheet = workbook.create_sheet(title="HiddenSheet")
     hidden_sheet.sheet_state = "hidden"
 
+    dv = DataValidation(
+        type="list",
+        formula1='"DIRETOR,SUPERVISAO,DIRETOR E SUPERVISAO"',
+        allow_blank=True,
+    )
+    dv.error = "Perfil Inválido"
+    dv.errorTitle = "Perfil não permitido"
+    ws.add_data_validation(dv)
+    dv.add("B2:B1048576")
+
+    editais = [edital.numero for edital in Edital.objects.all()]
+    ws = cria_validacao_lista_em_sheet_oculto(
+        editais, hidden_sheet, ws, workbook, "A", 1, "Edital", "o", "C"
+    )
+
     categorias = [categoria.nome for categoria in CategoriaOcorrencia.objects.all()]
     ws = cria_validacao_lista_em_sheet_oculto(
-        categorias, hidden_sheet, ws, workbook, "A", 1, "Categoria", "a", "D"
+        categorias, hidden_sheet, ws, workbook, "B", 2, "Categoria", "a", "D"
     )
 
     penalidades = [
-        penalidade.numero_clausula for penalidade in TipoPenalidade.objects.all()
+        f"{penalidade.edital.numero} - {penalidade.numero_clausula}"
+        for penalidade in TipoPenalidade.objects.all()
     ]
     ws = cria_validacao_lista_em_sheet_oculto(
-        penalidades, hidden_sheet, ws, workbook, "B", 2, "Penalidade", "a", "G"
+        penalidades, hidden_sheet, ws, workbook, "C", 3, "Penalidade", "a", "G"
     )
 
     dv4 = DataValidation(type="list", formula1='"SIM,NÃO"', allow_blank=True)

@@ -2,10 +2,12 @@ import logging
 
 from sme_terceirizadas.dados_comuns.behaviors import StatusAtivoInativo
 from sme_terceirizadas.imr.models import (
+    CategoriaOcorrencia,
     ImportacaoPlanilhaTipoOcorrencia,
     ImportacaoPlanilhaTipoPenalidade,
     ObrigacaoPenalidade,
     TipoGravidade,
+    TipoOcorrencia,
     TipoPenalidade,
 )
 from sme_terceirizadas.perfil.models import Usuario
@@ -98,8 +100,8 @@ def importa_tipos_ocorrencia(
             usuario,
             arquivo,
             ImportacaoPlanilhaTipoOcorrenciaSchema,
-            "edital",
-            "numero_clausula",
+            "categoria_ocorrencia",
+            "titulo",
             logger,
         )
         processador.processamento()
@@ -109,7 +111,50 @@ def importa_tipos_ocorrencia(
 
 
 class ProcessadorPlanilhaTipoOcorrencia(ProcessadorDePlanilha):
+    def get_perfis(self, perfis: str):
+        perfis_ = []
+        if "DIRETOR" in perfis:
+            perfis_.append("DIRETOR")
+        if "SUPERVISAO" in perfis:
+            perfis_.append("SUPERVISAO")
+        return perfis_
+
+    def get_edital(self, numero_edital: str):
+        return Edital.objects.get(numero=numero_edital)
+
+    def get_categoria(self, nome_categoria: str):
+        return CategoriaOcorrencia.objects.get(nome=nome_categoria)
+
+    def get_penalidade(self, numero_clausula: str, edital: Edital):
+        return TipoPenalidade.objects.get(
+            numero_clausula=numero_clausula.split(" - ")[1], edital=edital
+        )
+
     def cria_objeto(
-        self, index: int, usuario_schema: ImportacaoPlanilhaTipoOcorrenciaSchema
+        self, index: int, tipo_ocorrencia_schema: ImportacaoPlanilhaTipoOcorrenciaSchema
     ):
-        pass
+        perfis = self.get_perfis(tipo_ocorrencia_schema.perfis)
+        edital = self.get_edital(tipo_ocorrencia_schema.edital)
+        categoria = self.get_categoria(tipo_ocorrencia_schema.categoria_ocorrencia)
+        penalidade = self.get_penalidade(tipo_ocorrencia_schema.penalidade, edital)
+        eh_imr = tipo_ocorrencia_schema.eh_imr == "SIM"
+        status = tipo_ocorrencia_schema.status == StatusAtivoInativo.ATIVO
+        tipo_ocorrencia, _ = TipoOcorrencia.objects.update_or_create(
+            edital=edital,
+            categoria=categoria,
+            penalidade=penalidade,
+            defaults={
+                "criado_por": self.usuario,
+                "posicao": tipo_ocorrencia_schema.posicao,
+                "perfis": perfis,
+                "edital": edital,
+                "titulo": tipo_ocorrencia_schema.titulo,
+                "descricao": tipo_ocorrencia_schema.descricao,
+                "eh_imr": eh_imr,
+                "pontuacao": tipo_ocorrencia_schema.pontuacao,
+                "tolerancia": tipo_ocorrencia_schema.tolerancia,
+                "porcentagem_desconto": tipo_ocorrencia_schema.porcentagem_desconto,
+                "status": status,
+            },
+        )
+        return tipo_ocorrencia

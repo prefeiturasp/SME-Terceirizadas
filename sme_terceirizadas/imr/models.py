@@ -53,6 +53,7 @@ class TipoPenalidade(ModeloBase, CriadoPor, StatusAtivoInativo):
         return f"Item: {self.numero_clausula} - Edital: {self.edital.numero}"
 
     class Meta:
+        ordering = ("edital__numero", "numero_clausula")
         verbose_name = "Tipo de Penalidade"
         verbose_name_plural = "Tipos de Penalidades"
         unique_together = ("edital", "numero_clausula")
