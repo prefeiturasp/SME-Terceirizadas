@@ -20,7 +20,9 @@ class DocumentoDeRecebimentoFactory(DjangoModelFactory):
         model = DocumentoDeRecebimento
 
     cronograma = SubFactory(CronogramaFactory)
-    numero_laudo = fake.unique.random_int(min=10**9, max=(10**10) - 1)
+    numero_laudo = LazyFunction(
+        lambda: str(fake.unique.random_int(min=10**9, max=(10**10) - 1))
+    )
     numero_lote_laudo = LazyFunction(
         lambda: ", ".join(
             [
