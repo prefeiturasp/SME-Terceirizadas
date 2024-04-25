@@ -14,12 +14,11 @@ from utility.carga_dados.processador_planilha_generico.models import (
     ProcessadorDePlanilha,
 )
 
-logger = logging.getLogger("sigpae.carga_dados_tipo_penalidade_importa_dados")
-
 
 def importa_tipos_penalidade(
     usuario: Usuario, arquivo: ImportacaoPlanilhaTipoPenalidade
 ) -> None:
+    logger = logging.getLogger("sigpae.carga_dados_tipo_penalidade_importa_dados")
     logger.debug(f"Iniciando o processamento do arquivo: {arquivo.uuid}")
 
     try:
