@@ -35,7 +35,10 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
 )
-from utility.carga_dados.imr.importa_dados import importa_tipos_penalidade
+from utility.carga_dados.imr.importa_dados import (
+    importa_tipos_ocorrencia,
+    importa_tipos_penalidade,
+)
 from utility.carga_dados.perfil.importa_dados import valida_arquivo_importacao_usuarios
 
 
@@ -191,7 +194,7 @@ class ImportacaoPlanilhaTipoOcorrenciaAdmin(admin.ModelAdmin):
             self.message_user(request, "Arquivo não suportado.", messages.ERROR)
             return
 
-        importa_tipos_penalidade(request.user, arquivo)
+        importa_tipos_ocorrencia(request.user, arquivo)
 
         self.message_user(
             request,

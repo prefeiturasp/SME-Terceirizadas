@@ -2,6 +2,7 @@ import logging
 
 from sme_terceirizadas.dados_comuns.behaviors import StatusAtivoInativo
 from sme_terceirizadas.imr.models import (
+    ImportacaoPlanilhaTipoOcorrencia,
     ImportacaoPlanilhaTipoPenalidade,
     ObrigacaoPenalidade,
     TipoGravidade,
@@ -9,7 +10,10 @@ from sme_terceirizadas.imr.models import (
 )
 from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.terceirizada.models import Edital
-from utility.carga_dados.imr.schemas import ImportacaoPlanilhaTipoPenalidadeSchema
+from utility.carga_dados.imr.schemas import (
+    ImportacaoPlanilhaTipoOcorrenciaSchema,
+    ImportacaoPlanilhaTipoPenalidadeSchema,
+)
 from utility.carga_dados.processador_planilha_generico.models import (
     ProcessadorDePlanilha,
 )
@@ -81,3 +85,31 @@ class ProcessadorPlanilhaTipoPenalidade(ProcessadorDePlanilha):
         lista_obrigacoes = self.normaliza_obrigacoes(usuario_schema.obrigacoes)
         for descricao_obrigacao in lista_obrigacoes:
             self.cria_obrigacao_penalidade(tipo_penalidade, descricao_obrigacao)
+
+
+def importa_tipos_ocorrencia(
+    usuario: Usuario, arquivo: ImportacaoPlanilhaTipoOcorrencia
+) -> None:
+    logger = logging.getLogger("sigpae.carga_dados_tipo_ocorrencia_importa_dados")
+    logger.debug(f"Iniciando o processamento do arquivo: {arquivo.uuid}")
+
+    try:
+        processador = ProcessadorPlanilhaTipoOcorrencia(
+            usuario,
+            arquivo,
+            ImportacaoPlanilhaTipoOcorrenciaSchema,
+            "edital",
+            "numero_clausula",
+            logger,
+        )
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f"Erro genérico: {exc}")
+
+
+class ProcessadorPlanilhaTipoOcorrencia(ProcessadorDePlanilha):
+    def cria_objeto(
+        self, index: int, usuario_schema: ImportacaoPlanilhaTipoOcorrenciaSchema
+    ):
+        pass
