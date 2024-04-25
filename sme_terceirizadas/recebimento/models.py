@@ -3,7 +3,10 @@ from django.db import models
 from multiselectfield import MultiSelectField
 
 from sme_terceirizadas.pre_recebimento.models import FichaTecnicaDoProduto
-from sme_terceirizadas.pre_recebimento.models.cronograma import EtapasDoCronograma
+from sme_terceirizadas.pre_recebimento.models.cronograma import (
+    DocumentoDeRecebimento,
+    EtapasDoCronograma,
+)
 
 from ..dados_comuns.behaviors import ModeloBase
 
@@ -91,10 +94,9 @@ class FichaDeRecebimento(ModeloBase):
         blank=True,
     )
 
-    laudos = models.JSONField(
-        "Nº dos laudos dos Documentos de Recebimento",
-        null=True,
-        blank=True,
+    documentos_recebimento = models.ManyToManyField(
+        DocumentoDeRecebimento,
+        related_name="fichas_recebimentos",
     )
     lote_fabricante_de_acordo = models.BooleanField(
         "Lote(s) do Fabricante Observado(s) estão de acordo?",

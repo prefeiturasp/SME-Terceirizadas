@@ -150,30 +150,32 @@ def test_url_ficha_recebimento_rascunho_create_update(
         data=json.dumps(payload_ficha_recebimento_rascunho),
     )
 
-    ultima_ficha_criada = FichaDeRecebimento.objects.last()
+    ficha = FichaDeRecebimento.objects.last()
 
     assert response_create.status_code == status.HTTP_201_CREATED
-    assert ultima_ficha_criada is not None
-    assert ultima_ficha_criada.veiculos.count() == len(
-        payload_ficha_recebimento_rascunho["veiculos"]
+    assert ficha is not None
+    assert ficha.veiculos.count() == len(payload_ficha_recebimento_rascunho["veiculos"])
+    assert ficha.documentos_recebimento.count() == len(
+        payload_ficha_recebimento_rascunho["documentos_recebimento"]
     )
 
     nova_data_entrega = date.today() + timedelta(days=11)
     payload_ficha_recebimento_rascunho["data_entrega"] = str(nova_data_entrega)
     payload_ficha_recebimento_rascunho["veiculos"].pop()
-    payload_ficha_recebimento_rascunho["laudos"].pop()
+    payload_ficha_recebimento_rascunho["documentos_recebimento"].pop()
 
     response_update = client_autenticado_qualidade.put(
         f'/rascunho-ficha-de-recebimento/{response_create.json()["uuid"]}/',
         content_type="application/json",
         data=json.dumps(payload_ficha_recebimento_rascunho),
     )
-    ultima_ficha_criada.refresh_from_db()
+    ficha.refresh_from_db()
 
     assert response_update.status_code == status.HTTP_200_OK
     assert response_update.json()["data_entrega"] == nova_data_entrega.strftime(
         "%d/%m/%Y"
     )
-    assert ultima_ficha_criada.veiculos.count() == len(
-        payload_ficha_recebimento_rascunho["veiculos"]
+    assert ficha.veiculos.count() == len(payload_ficha_recebimento_rascunho["veiculos"])
+    assert ficha.documentos_recebimento.count() == len(
+        payload_ficha_recebimento_rascunho["documentos_recebimento"]
     )

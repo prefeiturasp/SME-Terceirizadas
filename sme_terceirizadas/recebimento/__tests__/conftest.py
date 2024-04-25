@@ -64,7 +64,7 @@ def payload_ficha_recebimento_rascunho(
     return {
         "etapa": str(etapa.uuid),
         "data_entrega": str(date.today() + timedelta(days=10)),
-        "laudos": [doc.numero_laudo for doc in docs_recebimento],
+        "documentos_recebimento": [str(doc.uuid) for doc in docs_recebimento],
         "lote_fabricante_de_acordo": True,
         "lote_fabricante_divergencia": "",
         "data_fabricacao_de_acordo": True,

@@ -1,8 +1,12 @@
 from rest_framework import serializers
 
+from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWorkflow
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import FichaTecnicaDoProduto
-from sme_terceirizadas.pre_recebimento.models.cronograma import EtapasDoCronograma
+from sme_terceirizadas.pre_recebimento.models.cronograma import (
+    DocumentoDeRecebimento,
+    EtapasDoCronograma,
+)
 from sme_terceirizadas.recebimento.models import (
     FichaDeRecebimento,
     QuestaoConferencia,
@@ -65,23 +69,35 @@ class FichaDeRecebimentoRascunhoSerializer(serializers.ModelSerializer):
         required=True,
         queryset=EtapasDoCronograma.objects.all(),
     )
+    documentos_recebimento = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=DocumentoDeRecebimento.objects.filter(
+            status=DocumentoDeRecebimentoWorkflow.APROVADO
+        ),
+        many=True,
+    )
     veiculos = VeiculoFichaDeRecebimentoRascunhoSerializer(many=True)
 
     def create(self, validated_data):
         dados_veiculos = validated_data.pop("veiculos")
+        documentos_recebimento = validated_data.pop("documentos_recebimento")
         instance = FichaDeRecebimento.objects.create(**validated_data)
-
+        instance.documentos_recebimento.set(documentos_recebimento)
         self._cria_veiculos(instance, dados_veiculos)
 
         return instance
 
     def update(self, instance, validated_data):
         instance.veiculos.all().delete()
+        instance.documentos_recebimento.clear()
+
         dados_veiculos = validated_data.pop("veiculos")
+        documentos_recebimento = validated_data.pop("documentos_recebimento")
 
         instance = update_instance_from_dict(instance, validated_data, save=True)
 
         self._cria_veiculos(instance, dados_veiculos)
+        instance.documentos_recebimento.set(documentos_recebimento)
 
         return instance
 
