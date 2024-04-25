@@ -42,10 +42,8 @@ class LaboratorioFactory(DjangoModelFactory):
     class Meta:
         model = Laboratorio
 
-    nome = Sequence(lambda n: f"Laboratorio {fake.unique.name()}")
-    cnpj = Sequence(
-        lambda n: fake.unique.cnpj().replace(".", "").replace("/", "").replace("-", "")
-    )
+    nome = Sequence(lambda n: f"Laboratorio {n}")
+    cnpj = Sequence(lambda n: str(n).zfill(14))
 
 
 class EtapasDoCronogramaFactory(DjangoModelFactory):

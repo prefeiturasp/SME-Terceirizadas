@@ -10,5 +10,5 @@ class UnidadeMedidaFactory(DjangoModelFactory):
     class Meta:
         model = UnidadeMedida
 
-    nome = Sequence(lambda n: f"Laboratorio {fake.unique.word().upper()}")
+    nome = Sequence(lambda n: f"Unidade {n}")
     abreviacao = LazyAttribute(lambda obj: obj.nome[:3])
