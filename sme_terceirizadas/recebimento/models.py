@@ -91,6 +91,11 @@ class FichaDeRecebimento(ModeloBase):
         blank=True,
     )
 
+    laudos = models.JSONField(
+        "Nº dos laudos dos Documentos de Recebimento",
+        null=True,
+        blank=True,
+    )
     lote_fabricante_de_acordo = models.BooleanField(
         "Lote(s) do Fabricante Observado(s) estão de acordo?",
         null=True,

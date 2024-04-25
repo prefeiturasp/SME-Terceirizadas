@@ -3,7 +3,10 @@ from datetime import date, timedelta
 import pytest
 from faker import Faker
 
-from sme_terceirizadas.dados_comuns.fluxo_status import FichaTecnicaDoProdutoWorkflow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    DocumentoDeRecebimentoWorkflow,
+    FichaTecnicaDoProdutoWorkflow,
+)
 from sme_terceirizadas.recebimento.models import QuestaoConferencia
 
 fake = Faker("pt_BR")
@@ -47,10 +50,21 @@ def payload_update_questoes_por_produto(questoes_conferencia):
 
 
 @pytest.fixture
-def payload_ficha_recebimento_rascunho(etapas_do_cronograma_factory):
+def payload_ficha_recebimento_rascunho(
+    etapas_do_cronograma_factory,
+    documento_de_recebimento_factory,
+):
+    etapa = etapas_do_cronograma_factory()
+    docs_recebimento = documento_de_recebimento_factory.create_batch(
+        size=3,
+        cronograma=etapa.cronograma,
+        status=DocumentoDeRecebimentoWorkflow.APROVADO,
+    )
+
     return {
-        "etapa": str(etapas_do_cronograma_factory().uuid),
+        "etapa": str(etapa.uuid),
         "data_entrega": str(date.today() + timedelta(days=10)),
+        "laudos": [doc.numero_laudo for doc in docs_recebimento],
         "lote_fabricante_de_acordo": True,
         "lote_fabricante_divergencia": "",
         "data_fabricacao_de_acordo": True,
