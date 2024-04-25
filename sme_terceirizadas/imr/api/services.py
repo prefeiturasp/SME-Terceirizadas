@@ -2,6 +2,9 @@ from django.http import HttpResponse
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from sme_terceirizadas.dados_comuns.helper_planilha_modelo import (
+    cria_validacao_lista_em_sheet_oculto,
+)
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     TipoGravidade,
@@ -118,23 +121,20 @@ def exportar_planilha_importacao_tipos_ocorrencia(request, **kwargs):
     ws.add_data_validation(dv)
     dv.add("C2:C1048576")
 
-    categorias = ", ".join(
-        [categoria.nome for categoria in CategoriaOcorrencia.objects.all()]
-    )
-    dv2 = DataValidation(type="list", formula1=f'"{categorias}"', allow_blank=True)
-    dv2.error = "Categoria Inválida"
-    dv2.errorTitle = "Categoria não permitida"
-    ws.add_data_validation(dv2)
-    dv2.add("D2:D1048576")
+    hidden_sheet = workbook.create_sheet(title="HiddenSheet")
+    hidden_sheet.sheet_state = "hidden"
 
-    penalidades = ", ".join(
-        [penalidade.numero_clausula for penalidade in TipoPenalidade.objects.all()]
+    categorias = [categoria.nome for categoria in CategoriaOcorrencia.objects.all()]
+    ws = cria_validacao_lista_em_sheet_oculto(
+        categorias, hidden_sheet, ws, workbook, "A", 1, "Categoria", "a", "D"
     )
-    dv3 = DataValidation(type="list", formula1=f'"{penalidades}"', allow_blank=True)
-    dv3.error = "Penalidade Inválida"
-    dv3.errorTitle = "Penalidade não permitida"
-    ws.add_data_validation(dv3)
-    dv3.add("G2:G1048576")
+
+    penalidades = [
+        penalidade.numero_clausula for penalidade in TipoPenalidade.objects.all()
+    ]
+    ws = cria_validacao_lista_em_sheet_oculto(
+        penalidades, hidden_sheet, ws, workbook, "B", 2, "Penalidade", "a", "G"
+    )
 
     dv4 = DataValidation(type="list", formula1='"SIM,NÃO"', allow_blank=True)
     dv4.error = "Opção Inválida"
