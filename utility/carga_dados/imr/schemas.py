@@ -113,15 +113,22 @@ class ImportacaoPlanilhaTipoOcorrenciaSchema(BaseModel):
         return value.strip()
 
     @validator("pontuacao")
-    def valida_pontuacao(cls, value):
+    def valida_pontuacao(cls, value, values):
+        if values["eh_imr"] == "NÃO" and value:
+            raise Exception("Pontuação não deve ser preenchida se é IMR.")
+        if values["eh_imr"] == "SIM" and not value:
+            raise Exception("Pontuação deve ser preenchida se é IMR.")
         cls.eh_inteiro(value, "Pontuação (IMR)")
-
-        return value.strip()
+        return value.strip() if value else None
 
     @validator("tolerancia")
-    def valida_tolerancia(cls, value):
+    def valida_tolerancia(cls, value, values):
+        if values["eh_imr"] == "NÃO" and value:
+            raise Exception("Tolerância não deve ser preenchida se é IMR.")
+        if values["eh_imr"] == "SIM" and not value:
+            raise Exception("Tolerância deve ser preenchida se é IMR.")
         cls.eh_inteiro(value, "Tolerância")
-        return value.strip()
+        return value.strip() if value else None
 
     @validator("porcentagem_desconto")
     def valida_porcentagem_desconto(cls, value):
