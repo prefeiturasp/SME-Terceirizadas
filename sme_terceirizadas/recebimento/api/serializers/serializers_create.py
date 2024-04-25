@@ -75,12 +75,16 @@ class FichaDeRecebimentoRascunhoSerializer(serializers.ModelSerializer):
             status=DocumentoDeRecebimentoWorkflow.APROVADO
         ),
         many=True,
+        required=False,
     )
-    veiculos = VeiculoFichaDeRecebimentoRascunhoSerializer(many=True)
+    veiculos = VeiculoFichaDeRecebimentoRascunhoSerializer(
+        many=True,
+        required=False,
+    )
 
     def create(self, validated_data):
-        dados_veiculos = validated_data.pop("veiculos")
-        documentos_recebimento = validated_data.pop("documentos_recebimento")
+        dados_veiculos = validated_data.pop("veiculos", [])
+        documentos_recebimento = validated_data.pop("documentos_recebimento", [])
         instance = FichaDeRecebimento.objects.create(**validated_data)
         instance.documentos_recebimento.set(documentos_recebimento)
         self._cria_veiculos(instance, dados_veiculos)
@@ -91,8 +95,8 @@ class FichaDeRecebimentoRascunhoSerializer(serializers.ModelSerializer):
         instance.veiculos.all().delete()
         instance.documentos_recebimento.clear()
 
-        dados_veiculos = validated_data.pop("veiculos")
-        documentos_recebimento = validated_data.pop("documentos_recebimento")
+        dados_veiculos = validated_data.pop("veiculos", [])
+        documentos_recebimento = validated_data.pop("documentos_recebimento", [])
 
         instance = update_instance_from_dict(instance, validated_data, save=True)
 
