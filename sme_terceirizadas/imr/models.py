@@ -97,6 +97,7 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
     class Meta:
         verbose_name = "Categoria das Ocorrências"
         verbose_name_plural = "Categorias das Ocorrências"
+        ordering = ("posicao", "nome")
 
 
 class TipoOcorrencia(
