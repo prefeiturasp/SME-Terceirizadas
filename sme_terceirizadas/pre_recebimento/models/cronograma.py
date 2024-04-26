@@ -523,7 +523,9 @@ class DocumentoDeRecebimento(
     ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoDocumentoDeRecebimento
 ):
     cronograma = models.ForeignKey(
-        Cronograma, on_delete=models.PROTECT, related_name="documentos_de_recebimento"
+        Cronograma,
+        on_delete=models.PROTECT,
+        related_name="documentos_de_recebimento",
     )
     numero_laudo = models.CharField("Número do Laudo", blank=True, max_length=50)
     laboratorio = models.ForeignKey(
