@@ -1176,9 +1176,25 @@ def test_url_cronograma_dados_cronograma_ficha_recebimento(
     client_autenticado_qualidade,
     cronograma_factory,
     etapas_do_cronograma_factory,
+    documento_de_recebimento_factory,
+    data_de_fabricao_e_prazo_factory,
 ):
     cronograma = cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE)
     etapas = etapas_do_cronograma_factory.create_batch(size=3, cronograma=cronograma)
+    docs_recebimento = documento_de_recebimento_factory.create_batch(
+        size=3, cronograma=cronograma, status=DocumentoDeRecebimentoWorkflow.APROVADO
+    )
+    documento_de_recebimento_factory(
+        cronograma=cronograma,
+        status=DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+    )
+    datas_e_prazos = []
+    for doc_recebimento in docs_recebimento:
+        datas_e_prazos.extend(
+            data_de_fabricao_e_prazo_factory.create_batch(
+                size=3, documento_recebimento=doc_recebimento
+            )
+        )
 
     response = client_autenticado_qualidade.get(
         f"/cronogramas/{cronograma.uuid}/dados-cronograma-ficha-recebimento/"
@@ -1186,6 +1202,9 @@ def test_url_cronograma_dados_cronograma_ficha_recebimento(
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]["etapas"]) == len(etapas)
+    assert len(response.json()["results"]["documentos_de_recebimento"]) == len(
+        docs_recebimento
+    )
 
 
 def test_url_layout_de_embalagem_create(

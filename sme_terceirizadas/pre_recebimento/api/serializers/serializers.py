@@ -4,6 +4,7 @@ from collections import OrderedDict
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
+from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWorkflow
 from sme_terceirizadas.dados_comuns.utils import (
     numero_com_agrupador_de_milhar_e_decimal,
 )
@@ -119,58 +120,6 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
             "parte",
             "quantidade",
             "status",
-        )
-
-
-class EtapasDoCronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
-    qtd_total_empenho = serializers.SerializerMethodField()
-    data_programada = serializers.SerializerMethodField()
-    quantidade = serializers.SerializerMethodField()
-    total_embalagens = serializers.SerializerMethodField()
-    desvinculada_recebimento = serializers.SerializerMethodField()
-
-    def get_qtd_total_empenho(self, obj):
-        try:
-            valor = numero_com_agrupador_de_milhar_e_decimal(obj.qtd_total_empenho)
-            return f"{valor} {obj.cronograma.unidade_medida.abreviacao}"
-
-        except AttributeError:
-            return valor
-
-    def get_quantidade(self, obj):
-        try:
-            valor = numero_com_agrupador_de_milhar_e_decimal(obj.quantidade)
-            return f"{valor} {obj.cronograma.unidade_medida.abreviacao}"
-
-        except AttributeError:
-            return valor
-
-    def get_total_embalagens(self, obj):
-        try:
-            valor = numero_com_agrupador_de_milhar_e_decimal(obj.total_embalagens)
-            return f"{valor} {obj.cronograma.tipo_embalagem_secundaria.abreviacao}"
-
-        except AttributeError:
-            return valor
-
-    def get_data_programada(self, obj):
-        return obj.data_programada.strftime("%d/%m/%Y") if obj.data_programada else None
-
-    def get_desvinculada_recebimento(self, obj):
-        return not obj.ficha_recebimento.exists()
-
-    class Meta:
-        model = EtapasDoCronograma
-        fields = (
-            "uuid",
-            "numero_empenho",
-            "qtd_total_empenho",
-            "etapa",
-            "parte",
-            "data_programada",
-            "quantidade",
-            "total_embalagens",
-            "desvinculada_recebimento",
         )
 
 
@@ -368,6 +317,93 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
         fields = ("uuid", "numero", "pregao_chamada_publica", "nome_produto")
 
 
+class EtapasDoCronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
+    qtd_total_empenho = serializers.SerializerMethodField()
+    data_programada = serializers.SerializerMethodField()
+    quantidade = serializers.SerializerMethodField()
+    total_embalagens = serializers.SerializerMethodField()
+    desvinculada_recebimento = serializers.SerializerMethodField()
+
+    def get_qtd_total_empenho(self, obj):
+        try:
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.qtd_total_empenho)
+            return f"{valor} {obj.cronograma.unidade_medida.abreviacao}"
+
+        except AttributeError:
+            return valor
+
+    def get_quantidade(self, obj):
+        try:
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.quantidade)
+            return f"{valor} {obj.cronograma.unidade_medida.abreviacao}"
+
+        except AttributeError:
+            return valor
+
+    def get_total_embalagens(self, obj):
+        try:
+            valor = numero_com_agrupador_de_milhar_e_decimal(obj.total_embalagens)
+            return f"{valor} {obj.cronograma.tipo_embalagem_secundaria.abreviacao}"
+
+        except AttributeError:
+            return valor
+
+    def get_data_programada(self, obj):
+        return obj.data_programada.strftime("%d/%m/%Y") if obj.data_programada else None
+
+    def get_desvinculada_recebimento(self, obj):
+        return not obj.ficha_recebimento.exists()
+
+    class Meta:
+        model = EtapasDoCronograma
+        fields = (
+            "uuid",
+            "numero_empenho",
+            "qtd_total_empenho",
+            "etapa",
+            "parte",
+            "data_programada",
+            "quantidade",
+            "total_embalagens",
+            "desvinculada_recebimento",
+        )
+
+
+class DocRecebimentoFichaDeRecebimentoSerializer(serializers.ModelSerializer):
+    datas_fabricacao = serializers.SerializerMethodField()
+    datas_validade = serializers.SerializerMethodField()
+
+    def get_datas_fabricacao(self, obj):
+        return ", ".join(
+            [
+                d.strftime("%d/%m/%Y")
+                for d in obj.datas_fabricacao_e_prazos.values_list(
+                    "data_fabricacao", flat=True
+                )
+            ]
+        )
+
+    def get_datas_validade(self, obj):
+        return ", ".join(
+            [
+                d.strftime("%d/%m/%Y")
+                for d in obj.datas_fabricacao_e_prazos.values_list(
+                    "data_validade", flat=True
+                )
+            ]
+        )
+
+    class Meta:
+        model = DocumentoDeRecebimento
+        fields = (
+            "uuid",
+            "numero_laudo",
+            "numero_lote_laudo",
+            "datas_fabricacao",
+            "datas_validade",
+        )
+
+
 class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
     fornecedor = serializers.SerializerMethodField()
     contrato = serializers.SerializerMethodField()
@@ -380,7 +416,9 @@ class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
     peso_liquido_embalagem_secundaria = serializers.SerializerMethodField()
     embalagem_primaria = serializers.SerializerMethodField()
     embalagem_secundaria = serializers.SerializerMethodField()
+    categoria = serializers.SerializerMethodField()
     etapas = EtapasDoCronogramaFichaDeRecebimentoSerializer(many=True)
+    documentos_de_recebimento = serializers.SerializerMethodField()
 
     def get_fornecedor(self, obj):
         return obj.empresa.nome_fantasia if obj.empresa else None
@@ -431,6 +469,17 @@ class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
     def get_embalagem_secundaria(self, obj):
         return obj.ficha_tecnica.embalagem_secundaria if obj.ficha_tecnica else None
 
+    def get_categoria(self, obj):
+        return obj.ficha_tecnica.categoria if obj.ficha_tecnica else None
+
+    def get_documentos_de_recebimento(self, obj):
+        return DocRecebimentoFichaDeRecebimentoSerializer(
+            obj.documentos_de_recebimento.filter(
+                status=DocumentoDeRecebimentoWorkflow.APROVADO
+            ),
+            many=True,
+        ).data
+
     class Meta:
         model = Cronograma
         fields = (
@@ -446,7 +495,9 @@ class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
             "peso_liquido_embalagem_secundaria",
             "embalagem_primaria",
             "embalagem_secundaria",
+            "categoria",
             "etapas",
+            "documentos_de_recebimento",
         )
 
 

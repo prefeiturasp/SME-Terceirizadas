@@ -1,12 +1,15 @@
 from datetime import date, timedelta
 
-from factory import DjangoModelFactory, LazyFunction, SubFactory
+from factory import DjangoModelFactory, LazyFunction, Sequence, SubFactory
 from faker import Faker
 
 from sme_terceirizadas.pre_recebimento.fixtures.factories.cronograma_factory import (
     EtapasDoCronogramaFactory,
 )
-from sme_terceirizadas.recebimento.models import FichaDeRecebimento
+from sme_terceirizadas.recebimento.models import (
+    FichaDeRecebimento,
+    VeiculoFichaDeRecebimento,
+)
 
 fake = Faker("pt_BR")
 
@@ -21,3 +24,11 @@ class FichaDeRecebimentoFactory(DjangoModelFactory):
             start_date=date.today() + timedelta(days=10)
         ).date()
     )
+
+
+class VeiculoFichaDeRecebimentoFactory(DjangoModelFactory):
+    class Meta:
+        model = VeiculoFichaDeRecebimento
+
+    ficha_recebimento = SubFactory(FichaDeRecebimentoFactory)
+    numero = Sequence(lambda n: f"Veículo {n}")
