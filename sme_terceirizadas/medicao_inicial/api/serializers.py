@@ -39,11 +39,16 @@ from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     EditalSimplesSerializer,
     LoteSimplesSerializer,
 )
+from sme_terceirizadas.terceirizada.models import Edital
 
 
 class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
     tipo_unidade = TipoUnidadeEscolarSerializer()
     criado_por = UsuarioSerializer()
+    edital = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Edital.objects.all()
+    )
+    edital_numero = serializers.CharField(source="edital.numero")
 
     class Meta:
         model = DiaSobremesaDoce
