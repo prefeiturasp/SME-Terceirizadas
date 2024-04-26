@@ -1281,7 +1281,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                 homologacao_produto.inicia_fluxo(
                     user=log_anterior_pedido_analise.usuario
                 )
-            elif log_anterior_pedido_analise.status_evento == status["CODAE homologou"]:
+            elif homologacao_produto.esta_homologado:
                 homologacao_produto.codae_homologa(
                     user=log_anterior_pedido_analise.usuario,
                     anexos=log_anterior_pedido_analise.anexos.all(),
