@@ -21,6 +21,7 @@ from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_MEDICAO,
     COGESTOR_DRE,
+    DILOG_DIRETORIA,
     DINUTRE_DIRETORIA,
     DIRETOR_UE,
 )
@@ -4373,7 +4374,7 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 template="pre_recebimento_notificacao_assinatura_fornecedor.html",
                 contexto_template=contexto,
                 titulo_notificacao=f"Cronograma {self.numero} assinado pelo Fornecedor",
-                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_AVISO,
                 categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_CRONOGRAMA,
                 link_acesse_aqui=url_detalhe_cronograma,
                 usuarios=PartesInteressadasService.usuarios_por_perfis(
@@ -4455,7 +4456,10 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 usuario=user,
             )
 
-            # Montar Notificação
+            url_detalhe_cronograma = (
+                f"/pre-recebimento/detalhe-cronograma?uuid={self.uuid}"
+            )
+
             log_transicao = self.log_mais_recente
             usuarios = PartesInteressadasService.usuarios_por_perfis(
                 ["DILOG_CRONOGRAMA", "DILOG_DIRETORIA"]
@@ -4463,9 +4467,33 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             template_notif = "pre_recebimento_notificacao_assinatura_cronograma.html"
             tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
             titulo_notificacao = f"Cronograma { self.numero } assinado pela DINUTRE"
-            link = f"/pre-recebimento/detalhe-cronograma?uuid={self.uuid}"
             self._cria_notificacao(
-                template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
+                template_notif,
+                titulo_notificacao,
+                usuarios,
+                url_detalhe_cronograma,
+                tipo,
+                log_transicao,
+            )
+
+            contexto = {
+                "numero_cronograma": self.numero,
+                "nome_produto": self.ficha_tecnica.produto.nome,
+                "nome_usuario": user.nome,
+                "registro_funcional": user.registro_funcional,
+                "data_evento": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
+                "url_detalhe_cronograma": base_url + url_detalhe_cronograma,
+            }
+
+            EmailENotificacaoService.enviar_email(
+                titulo=f"Assinatura do Cronograma {self.numero}\npela DINUTRE",
+                assunto=f"[SIGPAE] Assinatura do Cronograma {self.numero} pela DINUTRE",
+                template="pre_recebimento_email_assinatura_dinutre.html",
+                contexto_template=contexto,
+                destinatarios=PartesInteressadasService.usuarios_por_perfis(
+                    DILOG_DIRETORIA,
+                    somente_email=True,
+                ),
             )
 
     @xworkflows.after_transition("codae_assina")
