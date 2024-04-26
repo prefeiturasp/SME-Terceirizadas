@@ -1,12 +1,15 @@
+import base64
 from datetime import date, timedelta
 
 from factory import DjangoModelFactory, LazyFunction, Sequence, SubFactory
 from faker import Faker
 
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.pre_recebimento.fixtures.factories.cronograma_factory import (
     EtapasDoCronogramaFactory,
 )
 from sme_terceirizadas.recebimento.models import (
+    ArquivoFichaRecebimento,
     FichaDeRecebimento,
     VeiculoFichaDeRecebimento,
 )
@@ -32,3 +35,15 @@ class VeiculoFichaDeRecebimentoFactory(DjangoModelFactory):
 
     ficha_recebimento = SubFactory(FichaDeRecebimentoFactory)
     numero = Sequence(lambda n: f"Veículo {n}")
+
+
+class ArquivoFichaDeRecebimentoFactory(DjangoModelFactory):
+    class Meta:
+        model = ArquivoFichaRecebimento
+
+    ficha_recebimento = SubFactory(FichaDeRecebimentoFactory)
+    arquivo = LazyFunction(
+        lambda: convert_base64_to_contentfile(
+            f"data:aplication/pdf;base64,{base64.b64encode(b'arquivo pdf teste').decode('utf-8')}"
+        )
+    )

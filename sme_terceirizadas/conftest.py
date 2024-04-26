@@ -48,6 +48,7 @@ from .produto.fixtures.factories.produto_factory import (
     TipoDeInformacaoNutricionalFactory,
 )
 from .recebimento.fixtures.factories.ficha_de_recebimento_factory import (
+    ArquivoFichaDeRecebimentoFactory,
     FichaDeRecebimentoFactory,
     VeiculoFichaDeRecebimentoFactory,
 )
@@ -93,6 +94,7 @@ register(ContratoFactory)
 register(FaixaPontuacaoFactory)
 register(DataDeFabricaoEPrazoFactory)
 register(VeiculoFichaDeRecebimentoFactory)
+register(ArquivoFichaDeRecebimentoFactory)
 
 
 @pytest.fixture
