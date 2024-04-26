@@ -67,7 +67,7 @@ class VeiculoFichaDeRecebimentoRascunhoSerializer(serializers.ModelSerializer):
         exclude = ("id", "ficha_recebimento")
 
 
-class ArquivoFichaRecebimentoSerializer(serializers.ModelSerializer):
+class ArquivoFichaRecebimentoCreateSerializer(serializers.ModelSerializer):
     arquivo = serializers.CharField()
 
     class Meta:
@@ -93,7 +93,7 @@ class FichaDeRecebimentoRascunhoSerializer(serializers.ModelSerializer):
         many=True,
         required=False,
     )
-    arquivos = ArquivoFichaRecebimentoSerializer(
+    arquivos = ArquivoFichaRecebimentoCreateSerializer(
         many=True,
         required=False,
     )
