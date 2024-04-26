@@ -53,6 +53,7 @@ class TipoPenalidade(ModeloBase, CriadoPor, StatusAtivoInativo):
         return f"Item: {self.numero_clausula} - Edital: {self.edital.numero}"
 
     class Meta:
+        ordering = ("edital__numero", "numero_clausula")
         verbose_name = "Tipo de Penalidade"
         verbose_name_plural = "Tipos de Penalidades"
         unique_together = ("edital", "numero_clausula")
@@ -97,6 +98,7 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
     class Meta:
         verbose_name = "Categoria das Ocorrências"
         verbose_name_plural = "Categorias das Ocorrências"
+        ordering = ("posicao", "nome")
 
 
 class TipoOcorrencia(
@@ -149,6 +151,7 @@ class TipoOcorrencia(
     class Meta:
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
+        unique_together = ("edital", "categoria", "penalidade")
 
     def valida_eh_imr(self, dict_error):
         if self.eh_imr and (not self.pontuacao or not self.tolerancia):
@@ -180,6 +183,21 @@ class TipoOcorrencia(
             if os.path.isfile(self.modelo_anexo.path):
                 os.remove(self.modelo_anexo.path)
         super().delete(*args, **kwargs)
+
+
+class ImportacaoPlanilhaTipoOcorrencia(ArquivoCargaBase):
+    """Importa dados de planilha de tipos de ocorrência."""
+
+    resultado = models.FileField(blank=True, default="")
+
+    class Meta:
+        verbose_name = "Arquivo para importação/atualização de tipos de ocorrência"
+        verbose_name_plural = (
+            "Arquivos para importação/atualização de tipos de ocorrência"
+        )
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
 
 
 class TipoRespostaModelo(ModeloBase, Nomeavel):
