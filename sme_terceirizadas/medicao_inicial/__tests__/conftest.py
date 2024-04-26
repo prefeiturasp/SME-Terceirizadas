@@ -86,10 +86,16 @@ def tipo_unidade_escolar():
 
 @pytest.fixture
 def dia_sobremesa_doce(tipo_unidade_escolar):
+    edital = mommy.make(
+        "Edital",
+        numero="Edital de Pregão nº 13/SME/2020",
+        uuid="3a9082ae-2b8c-44f6-83af-fcab9452f932",
+    )
     return mommy.make(
         "DiaSobremesaDoce",
         data=datetime.date(2022, 8, 8),
         tipo_unidade=tipo_unidade_escolar,
+        edital=edital,
     )
 
 
@@ -141,6 +147,21 @@ def client_autenticado_coordenador_codae(client, django_user_model):
         "TipoUnidadeEscolar",
         iniciais="CIEJA",
         uuid="ac4858ff-1c11-41f3-b539-7a02696d6d1b",
+    )
+    edital = mommy.make(
+        "Edital",
+        numero="Edital de Pregão nº 75/SME/2022",
+        uuid="85d4bdf1-79d3-4f93-87d7-9999ae4cd9c2",
+    )
+    edital = mommy.make(
+        "Edital",
+        numero="Edital de Pregão nº 36/SME/2022",
+        uuid="10b56d45-b82d-4cce-9a14-36bbb082ac4d",
+    )
+    edital = mommy.make(
+        "Edital",
+        numero="Edital de Pregão nº 18/SME/2023",
+        uuid="00f008ea-3410-4547-99e6-4e91e0168af8",
     )
     return client
 

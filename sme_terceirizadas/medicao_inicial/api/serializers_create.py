@@ -97,36 +97,54 @@ class DiaSobremesaDoceCreateSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
-class DiaSobremesaDoceCreateManySerializer(serializers.ModelSerializer):
+class CadastroSobremesaDoceCreateSerializer(serializers.ModelSerializer):
     tipo_unidades = serializers.SlugRelatedField(
         slug_field="uuid",
         queryset=TipoUnidadeEscolar.objects.all(),
-        many=True,
         required=True,
+        many=True,
+    )
+    editais = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Edital.objects.all(),
+        required=True,
+        many=True,
+    )
+
+    class Meta:
+        model = DiaSobremesaDoce
+        fields = ("tipo_unidades", "editais")
+
+
+class DiaSobremesaDoceCreateManySerializer(serializers.ModelSerializer):
+    cadastros_sobremesa_doce = CadastroSobremesaDoceCreateSerializer(
+        many=True, required=True
     )
 
     def create(self, validated_data):
         """Cria ou atualiza dias de sobremesa doce."""
+        DiaSobremesaDoce.objects.filter(data=validated_data["data"]).delete()
         dia_sobremesa_doce = None
-        DiaSobremesaDoce.objects.filter(data=validated_data["data"]).exclude(
-            tipo_unidade__in=validated_data["tipo_unidades"]
-        ).delete()
-        dias_sobremesa_doce = DiaSobremesaDoce.objects.filter(
-            data=validated_data["data"]
-        )
-        for tipo_unidade in validated_data["tipo_unidades"]:
-            if not dias_sobremesa_doce.filter(tipo_unidade=tipo_unidade).exists():
-                dia_sobremesa_doce = DiaSobremesaDoce(
-                    criado_por=self.context["request"].user,
-                    data=validated_data["data"],
-                    tipo_unidade=tipo_unidade,
-                )
-                dia_sobremesa_doce.save()
+        for cadastro in validated_data["cadastros_sobremesa_doce"]:
+            for tipo_unidade in cadastro["tipo_unidades"]:
+                for edital in cadastro["editais"]:
+                    if not DiaSobremesaDoce.objects.filter(
+                        data=validated_data["data"],
+                        tipo_unidade=tipo_unidade,
+                        edital=edital,
+                    ):
+                        dia_sobremesa_doce = DiaSobremesaDoce(
+                            criado_por=self.context["request"].user,
+                            data=validated_data["data"],
+                            tipo_unidade=tipo_unidade,
+                            edital=edital,
+                        )
+                        dia_sobremesa_doce.save()
         return dia_sobremesa_doce
 
     class Meta:
         model = DiaSobremesaDoce
-        fields = ("tipo_unidades", "data", "uuid")
+        fields = ("data", "uuid", "cadastros_sobremesa_doce")
 
 
 class OcorrenciaMedicaoInicialCreateSerializer(serializers.ModelSerializer):

@@ -17,10 +17,26 @@ from sme_terceirizadas.medicao_inicial.models import (
 def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_codae):
     data = {
         "data": "2022-08-08",
-        "tipo_unidades": [
-            "1cc3253b-e297-42b3-8e57-ebfd115a1aba",
-            "40ee89a7-dc70-4abb-ae21-369c67f2b9e3",
-            "ac4858ff-1c11-41f3-b539-7a02696d6d1b",
+        "cadastros_sobremesa_doce": [
+            {
+                "editais": [
+                    "85d4bdf1-79d3-4f93-87d7-9999ae4cd9c2",
+                    "10b56d45-b82d-4cce-9a14-36bbb082ac4d",
+                ],
+                "tipo_unidades": [
+                    "1cc3253b-e297-42b3-8e57-ebfd115a1aba",
+                    "40ee89a7-dc70-4abb-ae21-369c67f2b9e3",
+                ],
+            },
+            {
+                "editais": [
+                    "85d4bdf1-79d3-4f93-87d7-9999ae4cd9c2",
+                    "00f008ea-3410-4547-99e6-4e91e0168af8",
+                ],
+                "tipo_unidades": [
+                    "ac4858ff-1c11-41f3-b539-7a02696d6d1b",
+                ],
+            },
         ],
     }
     response = client_autenticado_coordenador_codae.post(
@@ -29,7 +45,7 @@ def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_co
         data=data,
     )
     assert response.status_code == status.HTTP_201_CREATED
-    assert DiaSobremesaDoce.objects.count() == 3
+    assert DiaSobremesaDoce.objects.count() == 6
 
     response = client_autenticado_coordenador_codae.get(
         "/medicao-inicial/dias-sobremesa-doce/lista-dias/?mes=8&ano=2022"
@@ -44,14 +60,14 @@ def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_co
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 3
+    assert len(response.json()) == 6
     response = client_autenticado_coordenador_codae.get(
         "/medicao-inicial/dias-sobremesa-doce/?mes=9&ano=2022",
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 0
-    data = {"data": "2022-08-08", "tipo_unidades": []}
+    assert len(response.json()) == 0
+    data = {"data": "2022-08-08", "cadastros_sobremesa_doce": []}
     response = client_autenticado_coordenador_codae.post(
         "/medicao-inicial/dias-sobremesa-doce/",
         content_type="application/json",
