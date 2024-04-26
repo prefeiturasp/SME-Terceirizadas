@@ -18,7 +18,12 @@ from sme_terceirizadas.dados_comuns import constants
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
-from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
+from .constants import (
+    ADMINISTRADOR_MEDICAO,
+    COGESTOR_DRE,
+    DINUTRE_DIRETORIA,
+    DIRETOR_UE,
+)
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .services import EmailENotificacaoService, PartesInteressadasService
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
@@ -4348,6 +4353,43 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(
                 status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_FORNECEDOR,
                 usuario=user,
+            )
+
+            url_detalhe_cronograma = (
+                f"/pre-recebimento/detalhe-cronograma?uuid={self.uuid}"
+            )
+
+            contexto = {
+                "numero_cronograma": self.numero,
+                "nome_produto": self.ficha_tecnica.produto.nome,
+                "nome_empresa": self.empresa.nome_fantasia,
+                "nome_usuario_empresa": user.nome,
+                "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
+                "data_evento": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
+                "url_detalhe_cronograma": base_url + url_detalhe_cronograma,
+            }
+
+            EmailENotificacaoService.enviar_notificacao(
+                template="pre_recebimento_notificacao_assinatura_fornecedor.html",
+                contexto_template=contexto,
+                titulo_notificacao=f"Cronograma {self.numero} assinado pelo Fornecedor",
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_CRONOGRAMA,
+                link_acesse_aqui=url_detalhe_cronograma,
+                usuarios=PartesInteressadasService.usuarios_por_perfis(
+                    DINUTRE_DIRETORIA
+                ),
+            )
+
+            EmailENotificacaoService.enviar_email(
+                titulo=f"Assinatura do Cronograma {self.numero}\npelo Fornecedor",
+                assunto=f"[SIGPAE] Assinatura do Cronograma {self.numero} pelo Fornecedor",
+                template="pre_recebimento_email_assinatura_fornecedor.html",
+                contexto_template=contexto,
+                destinatarios=PartesInteressadasService.usuarios_por_perfis(
+                    DINUTRE_DIRETORIA,
+                    somente_email=True,
+                ),
             )
 
     def _envia_email_solicita_alteracao_para_cronograma(self, user):
