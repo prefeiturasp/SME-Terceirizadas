@@ -28,17 +28,23 @@ from ..dados_comuns.fluxo_status import (
 from ..escola.constants import INFANTIL_OU_FUNDAMENTAL
 from ..escola.models import TipoUnidadeEscolar
 from ..perfil.models import Usuario
+from ..terceirizada.models import Edital
 
 
 class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.CASCADE)
+    edital = models.ForeignKey(Edital, on_delete=models.CASCADE, blank=True, null=True)
 
     @property
     def tipo_unidades(self):
         return None
 
+    @property
+    def cadastros_sobremesa_doce(self):
+        return None
+
     def __str__(self):
-        return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'
+        return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais} - Edital {self.edital}'
 
     class Meta:
         verbose_name = "Dia de sobremesa doce"
@@ -46,6 +52,7 @@ class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
         unique_together = (
             "tipo_unidade",
             "data",
+            "edital",
         )
         ordering = ("data",)
 

@@ -1,4 +1,4 @@
-from factory import DjangoModelFactory, Sequence
+from factory import DjangoModelFactory, LazyFunction, Sequence
 from faker import Faker
 
 from sme_terceirizadas.recebimento.models import QuestaoConferencia
@@ -10,5 +10,5 @@ class QuestaoConferenciaFactory(DjangoModelFactory):
     class Meta:
         model = QuestaoConferencia
 
-    questao = Sequence(lambda n: f"Questao {fake.unique.name()}")
-    posicao = Sequence(lambda n: fake.unique.random_int(min=1, max=1000))
+    questao = LazyFunction(lambda: f"{fake.text(max_nb_chars=50).replace('.', '?')}")
+    posicao = Sequence(lambda n: n + 1)

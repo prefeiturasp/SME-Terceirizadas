@@ -151,6 +151,7 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
     }
     queryset = DiaSobremesaDoce.objects.all()
     lookup_field = "uuid"
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
@@ -177,6 +178,13 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
         except AssertionError as error:
             if str(error) == "`create()` did not return an object instance.":
                 return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        DiaSobremesaDoce.objects.filter(
+            data=instance.data, tipo_unidade=instance.tipo_unidade
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=["GET"], url_path="lista-dias")
     def lista_dias(self, request):
