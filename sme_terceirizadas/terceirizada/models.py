@@ -49,6 +49,7 @@ class Edital(ExportModelOperationsMixin("edital"), TemChaveExterna):
         help_text="Processo administrativo do edital",
     )
     objeto = models.TextField("objeto resumido")
+    eh_imr = models.BooleanField("É IMR?", default=False)
 
     objects = EditalManager()
 
