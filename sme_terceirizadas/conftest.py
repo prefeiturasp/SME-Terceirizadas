@@ -109,6 +109,7 @@ def client_admin_django(client, django_user_model):
         email=email,
         registro_funcional="8888888",
         is_staff=True,
+        is_superuser=True,
     )
     client.login(username=email, password=password)
     return client
