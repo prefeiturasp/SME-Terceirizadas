@@ -21,6 +21,7 @@ from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_MEDICAO,
     COGESTOR_DRE,
+    DILOG_CRONOGRAMA,
     DILOG_DIRETORIA,
     DINUTRE_DIRETORIA,
     DIRETOR_UE,
@@ -4460,22 +4461,6 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 f"/pre-recebimento/detalhe-cronograma?uuid={self.uuid}"
             )
 
-            log_transicao = self.log_mais_recente
-            usuarios = PartesInteressadasService.usuarios_por_perfis(
-                ["DILOG_CRONOGRAMA", "DILOG_DIRETORIA"]
-            )
-            template_notif = "pre_recebimento_notificacao_assinatura_cronograma.html"
-            tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
-            titulo_notificacao = f"Cronograma { self.numero } assinado pela DINUTRE"
-            self._cria_notificacao(
-                template_notif,
-                titulo_notificacao,
-                usuarios,
-                url_detalhe_cronograma,
-                tipo,
-                log_transicao,
-            )
-
             contexto = {
                 "numero_cronograma": self.numero,
                 "nome_produto": self.ficha_tecnica.produto.nome,
@@ -4484,6 +4469,18 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 "data_evento": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
                 "url_detalhe_cronograma": base_url + url_detalhe_cronograma,
             }
+
+            EmailENotificacaoService.enviar_notificacao(
+                template="pre_recebimento_notificacao_assinatura_cronograma.html",
+                contexto_template=contexto,
+                titulo_notificacao=f"Cronograma { self.numero } assinado pela DINUTRE",
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_AVISO,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_CRONOGRAMA,
+                link_acesse_aqui=url_detalhe_cronograma,
+                usuarios=PartesInteressadasService.usuarios_por_perfis(
+                    [DILOG_CRONOGRAMA, DILOG_DIRETORIA]
+                ),
+            )
 
             EmailENotificacaoService.enviar_email(
                 titulo=f"Assinatura do Cronograma {self.numero}\npela DINUTRE",
