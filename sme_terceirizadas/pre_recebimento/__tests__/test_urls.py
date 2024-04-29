@@ -424,16 +424,22 @@ def test_url_analise_dilog_erro_transicao_estado(
 
 
 def test_url_fornecedor_assina_cronograma_authorized(
-    client_autenticado_fornecedor, cronograma_recebido
+    client_autenticado_fornecedor,
+    cronograma_factory,
 ):
+    cronograma = cronograma_factory(
+        status=CronogramaWorkflow.ASSINADO_E_ENVIADO_AO_FORNECEDOR
+    )
+
     data = json.dumps({"password": constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
-        f"/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/",
+        f"/cronogramas/{cronograma.uuid}/fornecedor-assina-cronograma/",
         data,
         content_type="application/json",
     )
+    obj = Cronograma.objects.get(uuid=cronograma.uuid)
+
     assert response.status_code == status.HTTP_200_OK
-    obj = Cronograma.objects.get(uuid=cronograma_recebido.uuid)
     assert obj.status == "ASSINADO_FORNECEDOR"
 
 
@@ -689,16 +695,20 @@ def test_url_perfil_cronograma_assina_not_authorized(client_autenticado_dilog):
 
 
 def test_url_dinutre_assina_cronograma_authorized(
-    client_autenticado_dinutre_diretoria, cronograma_assinado_fornecedor
+    client_autenticado_dinutre_diretoria,
+    cronograma_factory,
 ):
+    cronograma = cronograma_factory(status=CronogramaWorkflow.ASSINADO_FORNECEDOR)
+
     data = json.dumps({"password": constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dinutre_diretoria.patch(
-        f"/cronogramas/{cronograma_assinado_fornecedor.uuid}/dinutre-assina/",
+        f"/cronogramas/{cronograma.uuid}/dinutre-assina/",
         data,
         content_type="application/json",
     )
+    obj = Cronograma.objects.get(uuid=cronograma.uuid)
+
     assert response.status_code == status.HTTP_200_OK
-    obj = Cronograma.objects.get(uuid=cronograma_assinado_fornecedor.uuid)
     assert obj.status == "ASSINADO_DINUTRE"
 
 
