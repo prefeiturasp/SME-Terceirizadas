@@ -202,7 +202,7 @@ class ImportacaoPlanilhaTipoOcorrenciaAdmin(admin.ModelAdmin):
         )
 
     processa_planilha.short_description = (
-        "Realizar a importação dos tipos de penalidade"
+        "Realizar a importação dos tipos de ocorrência"
     )
 
 
