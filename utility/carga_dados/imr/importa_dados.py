@@ -126,9 +126,14 @@ class ProcessadorPlanilhaTipoOcorrencia(ProcessadorDePlanilha):
         return CategoriaOcorrencia.objects.get(nome=nome_categoria)
 
     def get_penalidade(self, numero_clausula: str, edital: Edital):
-        return TipoPenalidade.objects.get(
-            numero_clausula=numero_clausula.split(" - ")[1], edital=edital
-        )
+        try:
+            return TipoPenalidade.objects.get(
+                numero_clausula=numero_clausula.split(" - ")[1], edital=edital
+            )
+        except TipoPenalidade.DoesNotExist:
+            raise Exception(
+                "O edital do tipo de penalidade precisa ser o mesmo selecionado na coluna Edital"
+            )
 
     def cria_objeto(
         self, index: int, tipo_ocorrencia_schema: ImportacaoPlanilhaTipoOcorrenciaSchema
