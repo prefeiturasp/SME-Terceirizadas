@@ -6,6 +6,7 @@ from rangefilter.filters import DateRangeFilter
 from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.dados_comuns.utils import custom_titled_filter
 from sme_terceirizadas.imr.api.services import (
+    exportar_planilha_importacao_tipos_ocorrencia,
     exportar_planilha_importacao_tipos_penalidade,
 )
 from sme_terceirizadas.imr.models import (
@@ -14,6 +15,7 @@ from sme_terceirizadas.imr.models import (
     FormularioDiretor,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
+    ImportacaoPlanilhaTipoOcorrencia,
     ImportacaoPlanilhaTipoPenalidade,
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
@@ -33,7 +35,10 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
 )
-from utility.carga_dados.imr.importa_dados import importa_tipos_penalidade
+from utility.carga_dados.imr.importa_dados import (
+    importa_tipos_ocorrencia,
+    importa_tipos_penalidade,
+)
 from utility.carga_dados.perfil.importa_dados import valida_arquivo_importacao_usuarios
 
 
@@ -156,6 +161,49 @@ class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
     list_display = ("nome", "posicao", "perfis")
     ordering = ("posicao", "criado_em")
     form = PerfisMultipleChoiceForm
+
+
+@admin.register(ImportacaoPlanilhaTipoOcorrencia)
+class ImportacaoPlanilhaTipoOcorrenciaAdmin(admin.ModelAdmin):
+    list_display = ("id", "uuid", "__str__", "criado_em", "status")
+    readonly_fields = ("resultado", "status", "log")
+    list_filter = ("status",)
+    actions = ("processa_planilha",)
+    change_list_template = "admin/imr/importacao_tipos_ocorrencia.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                "exportar_planilha_importacao_tipos_ocorrencia/",
+                self.admin_site.admin_view(self.exporta_planilha, cacheable=True),
+            ),
+        ]
+        return my_urls + urls
+
+    def exporta_planilha(self, request):
+        return exportar_planilha_importacao_tipos_ocorrencia(request)
+
+    def processa_planilha(self, request, queryset):
+        arquivo = queryset.first()
+
+        if len(queryset) > 1:
+            self.message_user(request, "Escolha somente uma planilha.", messages.ERROR)
+            return
+        if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
+            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            return
+
+        importa_tipos_ocorrencia(request.user, arquivo)
+
+        self.message_user(
+            request,
+            f"Processo Terminado. Verifique o status do processo: {arquivo.uuid}",
+        )
+
+    processa_planilha.short_description = (
+        "Realizar a importação dos tipos de ocorrência"
+    )
 
 
 class PerfisFilter(admin.SimpleListFilter):
