@@ -53,6 +53,7 @@ def payload_update_questoes_por_produto(questoes_conferencia):
 def payload_ficha_recebimento_rascunho(
     etapas_do_cronograma_factory,
     documento_de_recebimento_factory,
+    arquivo_pdf_base64,
 ):
     etapa = etapas_do_cronograma_factory()
     docs_recebimento = documento_de_recebimento_factory.create_batch(
@@ -108,5 +109,11 @@ def payload_ficha_recebimento_rascunho(
                 "estado_higienico_adequado": True,
                 "termografo": True,
             },
+        ],
+        "sistema_vedacao_embalagem_secundaria": fake.text(max_nb_chars=100),
+        "observacao": fake.text(max_nb_chars=100),
+        "arquivos": [
+            {"arquivo": arquivo_pdf_base64, "nome": "Arquivo1.pdf"},
+            {"arquivo": arquivo_pdf_base64, "nome": "Arquivo2.pdf"},
         ],
     }

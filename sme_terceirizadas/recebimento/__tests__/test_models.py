@@ -37,3 +37,9 @@ def test_model_ficha_recebimento_str(ficha_de_recebimento_factory):
         str(ficha_recebimento)
         == f"Ficha de Recebimento - {str(ficha_recebimento.etapa)}"
     )
+
+
+def test_model_arquivo_ficha_recebimento_str(arquivo_ficha_de_recebimento_factory):
+    arquivo = arquivo_ficha_de_recebimento_factory(nome="arquivo-teste.pdf")
+
+    assert str(arquivo) == f"{arquivo.nome} - {arquivo.ficha_recebimento}"

@@ -1,3 +1,4 @@
+import base64
 import datetime
 
 import pytest
@@ -47,6 +48,7 @@ from .produto.fixtures.factories.produto_factory import (
     TipoDeInformacaoNutricionalFactory,
 )
 from .recebimento.fixtures.factories.ficha_de_recebimento_factory import (
+    ArquivoFichaDeRecebimentoFactory,
     FichaDeRecebimentoFactory,
     VeiculoFichaDeRecebimentoFactory,
 )
@@ -92,6 +94,7 @@ register(ContratoFactory)
 register(FaixaPontuacaoFactory)
 register(DataDeFabricaoEPrazoFactory)
 register(VeiculoFichaDeRecebimentoFactory)
+register(ArquivoFichaDeRecebimentoFactory)
 
 
 @pytest.fixture
@@ -542,3 +545,15 @@ def inclusoes_normais(terceirizada, escola_um):
 @pytest.fixture
 def alteracoes_cardapio(terceirizada, escola_um):
     return mommy.make("AlteracaoCardapio")
+
+
+@pytest.fixture
+def arquivo_pdf_base64():
+    arquivo = f"data:aplication/pdf;base64,{base64.b64encode(b'arquivo pdf teste').decode('utf-8')}"
+    return arquivo
+
+
+@pytest.fixture
+def arquivo_base64():
+    arquivo = f"data:image/jpeg;base64,{base64.b64encode(b'arquivo imagem teste').decode('utf-8')}"
+    return arquivo
