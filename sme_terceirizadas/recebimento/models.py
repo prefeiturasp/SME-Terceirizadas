@@ -1,14 +1,19 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from multiselectfield import MultiSelectField
 
+from sme_terceirizadas.dados_comuns.behaviors import (
+    ModeloBase,
+    TemArquivosDeletaveis,
+    TemChaveExterna,
+)
+from sme_terceirizadas.dados_comuns.validators import validate_file_size_10mb
 from sme_terceirizadas.pre_recebimento.models import FichaTecnicaDoProduto
 from sme_terceirizadas.pre_recebimento.models.cronograma import (
     DocumentoDeRecebimento,
     EtapasDoCronograma,
 )
-
-from ..dados_comuns.behaviors import ModeloBase
 
 
 class QuestaoConferencia(ModeloBase):
@@ -168,6 +173,17 @@ class FichaDeRecebimento(ModeloBase):
         blank=True,
     )
 
+    sistema_vedacao_embalagem_secundaria = models.TextField(
+        "Sistema de Vedação da Embalagem Secundária",
+        null=True,
+        blank=True,
+    )
+
+    observacao = models.TextField(
+        null=True,
+        blank=True,
+    )
+
     def __str__(self) -> str:
         try:
             return f"Ficha de Recebimento - {str(self.etapa)}"
@@ -261,3 +277,34 @@ class VeiculoFichaDeRecebimento(models.Model):
     class Meta:
         verbose_name = "Veículo Ficha de Recebimento"
         verbose_name_plural = "Veículos Fichas de Recebimentos"
+
+
+class ArquivoFichaRecebimento(TemChaveExterna, TemArquivosDeletaveis):
+    ficha_recebimento = models.ForeignKey(
+        FichaDeRecebimento,
+        on_delete=models.CASCADE,
+        related_name="arquivos",
+    )
+    arquivo = models.FileField(
+        upload_to="arquivos_fichas_de_recebimentos",
+        validators=[
+            FileExtensionValidator(allowed_extensions=["PDF", "PNG", "JPG", "JPEG"]),
+            validate_file_size_10mb,
+        ],
+    )
+    nome = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return (
+            f"{self.nome} - {self.ficha_recebimento}"
+            if self.nome
+            else f"Arquivo {self.ficha_recebimento}"
+        )
+
+    class Meta:
+        verbose_name = "Arquivo Ficha de Recebimento"
+        verbose_name_plural = "Arquivos Fichas de Recebimentos"
