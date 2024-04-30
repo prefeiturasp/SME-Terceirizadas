@@ -1332,7 +1332,8 @@ class ParametrizacaoFinanceiraWriteModelSerializer(serializers.ModelSerializer):
         fields = ["edital", "lote", "tipos_unidades", "legenda", "tabelas"]
 
     def validate(self, attrs):
-        attrs = super().validate(attrs)
+        if self.instance:
+            return attrs
 
         if ParametrizacaoFinanceira.objects.filter(
             edital=attrs["edital"],
@@ -1366,3 +1367,35 @@ class ParametrizacaoFinanceiraWriteModelSerializer(serializers.ModelSerializer):
             )
 
         return parametrizacao_financeira
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+
+        tabelas = validated_data.pop("tabelas")
+
+        for tabela in tabelas:
+            valores = tabela.pop("valores")
+
+            _tabela, created = ParametrizacaoFinanceiraTabela.objects.get_or_create(
+                **tabela, parametrizacao_financeira=instance
+            )
+
+            for valor in valores:
+                tipo_alimentacao_id = (
+                    valor.get("tipo_alimentacao").id
+                    if valor.get("tipo_alimentacao")
+                    else None
+                )
+                faixa_etaria_id = (
+                    valor.get("faixa_etaria").id if valor.get("faixa_etaria") else None
+                )
+
+                ParametrizacaoFinanceiraTabelaValor.objects.update_or_create(
+                    tabela=_tabela,
+                    grupo=valor.get("grupo"),
+                    tipo_alimentacao_id=tipo_alimentacao_id,
+                    faixa_etaria_id=faixa_etaria_id,
+                    defaults=valor,
+                )
+
+        return instance
