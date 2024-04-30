@@ -14,7 +14,9 @@ from sme_terceirizadas.escola.api.serializers import (
     AlunoPeriodoParcialSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplissimaSerializer,
+    FaixaEtariaSerializer,
     PeriodoEscolarSerializer,
+    TipoAlimentacaoSerializer,
     TipoUnidadeEscolarSerializer,
     TipoUnidadeEscolarSimplesSerializer,
 )
@@ -28,6 +30,8 @@ from sme_terceirizadas.medicao_inicial.models import (
     Medicao,
     OcorrenciaMedicaoInicial,
     ParametrizacaoFinanceira,
+    ParametrizacaoFinanceiraTabela,
+    ParametrizacaoFinanceiraTabelaValor,
     PermissaoLancamentoEspecial,
     Responsavel,
     SolicitacaoMedicaoInicial,
@@ -281,11 +285,29 @@ class ClausulaDeDescontoSerializer(serializers.ModelSerializer):
         exclude = ("id", "criado_em", "alterado_em")
 
 
+class ParametrizacaoFinanceiraTabelaValorSerializer(serializers.ModelSerializer):
+    faixa_etaria = FaixaEtariaSerializer()
+    tipo_alimentacao = TipoAlimentacaoSerializer()
+
+    class Meta:
+        model = ParametrizacaoFinanceiraTabelaValor
+        fields = ["faixa_etaria", "tipo_alimentacao", "grupo", "valor_colunas"]
+
+
+class ParametrizacaoFinanceiraTabelaSerializer(serializers.ModelSerializer):
+    valores = ParametrizacaoFinanceiraTabelaValorSerializer(many=True)
+
+    class Meta:
+        model = ParametrizacaoFinanceiraTabela
+        fields = ["nome", "valores"]
+
+
 class ParametrizacaoFinanceiraSerializer(serializers.ModelSerializer):
     edital = EditalSimplesSerializer()
     dre = serializers.CharField(source="lote.diretoria_regional.nome")
     lote = LoteSimplesSerializer()
     tipos_unidades = TipoUnidadeEscolarSimplesSerializer(many=True)
+    tabelas = ParametrizacaoFinanceiraTabelaSerializer(many=True)
 
     class Meta:
         model = ParametrizacaoFinanceira
