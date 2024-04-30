@@ -987,7 +987,8 @@ class PermissaoParaDarCienciaAlteracaoCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    and usuario.vinculo_atual.perfil.nome
+                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
@@ -1002,7 +1003,8 @@ class PermissaoParaCriarSolicitacoesAlteracaoCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    and usuario.vinculo_atual.perfil.nome
+                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
                 or usuario.eh_fornecedor
             )
