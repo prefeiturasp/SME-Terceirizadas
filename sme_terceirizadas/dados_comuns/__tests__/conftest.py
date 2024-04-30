@@ -1,6 +1,8 @@
 import datetime
+import os
 
 import pytest
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from model_mommy import mommy
@@ -627,3 +629,19 @@ def logs_quantidade_dietas_autorizadas_escola_cemei(
 @pytest.fixture
 def obj_central_download():
     return mommy.make("CentralDeDownload")
+
+
+@pytest.fixture
+def arquivo_temporario():
+    try:
+        file_path = os.path.join(settings.MEDIA_ROOT, "test_file.pdf")
+        with open(file_path, "w") as f:
+            f.write("Teste de arquivo para exclusão")
+
+        yield file_path
+
+    finally:
+        try:
+            os.remove(file_path)
+        except:
+            pass
