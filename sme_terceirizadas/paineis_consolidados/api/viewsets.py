@@ -358,6 +358,11 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def filtrar_solicitacoes_para_relatorio_graficos(self, request, instituicao, model):
         status = request.data.get("status", None)
+        eh_relatorio_dietas_autorizadas = request.data.get(
+            "relatorio_dietas_autorizadas", None
+        )
+        if eh_relatorio_dietas_autorizadas:
+            status = "DIETAS_AUTORIZADAS"
         instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
         queryset = model.map_queryset_por_status(
             status, instituicao_uuid=instituicao_uuid
@@ -365,21 +370,31 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
         datasets = []
 
-        datasets = get_dataset_grafico_total_dre_lote(
-            datasets, request, model, instituicao, queryset
-        )
-        datasets = get_dataset_grafico_total_tipo_solicitacao(
-            datasets, request, model, queryset
-        )
-        datasets = get_dataset_grafico_total_status(
-            datasets, request, model, instituicao
-        )
-        datasets = get_dataset_grafico_total_tipo_unidade(
-            datasets, request, model, instituicao, queryset
-        )
-        datasets = get_dataset_grafico_total_terceirizadas(
-            datasets, request, model, instituicao, queryset
-        )
+        if eh_relatorio_dietas_autorizadas:
+            datasets = get_dataset_grafico_total_dre_lote(
+                datasets,
+                request,
+                model,
+                instituicao,
+                queryset,
+                eh_relatorio_dietas_autorizadas,
+            )
+        else:
+            datasets = get_dataset_grafico_total_dre_lote(
+                datasets, request, model, instituicao, queryset
+            )
+            datasets = get_dataset_grafico_total_tipo_solicitacao(
+                datasets, request, model, queryset
+            )
+            datasets = get_dataset_grafico_total_status(
+                datasets, request, model, instituicao
+            )
+            datasets = get_dataset_grafico_total_tipo_unidade(
+                datasets, request, model, instituicao, queryset
+            )
+            datasets = get_dataset_grafico_total_terceirizadas(
+                datasets, request, model, instituicao, queryset
+            )
 
         return datasets
 
@@ -463,10 +478,10 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=False,
         methods=["POST"],
-        url_path="filtrar-solicitacoes-ga-graficos",
+        url_path="filtrar-solicitacoes-graficos",
         permission_classes=(IsAuthenticated,),
     )
-    def filtrar_solicitacoes_ga_graficos(self, request):
+    def filtrar_solicitacoes_graficos(self, request):
         # queryset por status
         instituicao = request.user.vinculo_atual.instituicao
         dataset = self.filtrar_solicitacoes_para_relatorio_graficos(
