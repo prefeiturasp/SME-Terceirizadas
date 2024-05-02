@@ -13,6 +13,7 @@ from sme_terceirizadas.dieta_especial.models import (
     LogQuantidadeDietasAutorizadas,
     LogQuantidadeDietasAutorizadasCEI,
 )
+from sme_terceirizadas.escola.models import Lote
 from sme_terceirizadas.medicao_inicial.models import SolicitacaoMedicaoInicial
 from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.relatorios.relatorios import relatorio_dieta_especial_conteudo
@@ -1078,3 +1079,15 @@ def criar_logs_integral_parcial(
         )
         logs.append(log)
     return logs
+
+
+def trata_lotes_dict_duplicados(lotes_dict):
+    lotes_ = []
+    for lote_uuid in lotes_dict.values():
+        try:
+            lotes_.append(
+                tuple([Lote.objects.get(uuid=lote_uuid).__str__(), lote_uuid])
+            )
+        except Lote.DoesNotExist:
+            continue
+    return dict(lotes_)

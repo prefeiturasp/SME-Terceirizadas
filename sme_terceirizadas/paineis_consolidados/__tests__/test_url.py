@@ -793,7 +793,7 @@ def test_filtrar_solicitacoes_ga_graficos(
 ):
     data = {"status": "AUTORIZADOS"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -802,7 +802,7 @@ def test_filtrar_solicitacoes_ga_graficos(
 
     data = {"status": "AUTORIZADOS", "unidades_educacionais": [escola.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -811,7 +811,7 @@ def test_filtrar_solicitacoes_ga_graficos(
 
     data = {"status": "AUTORIZADOS", "lotes": [escola.lote.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -828,7 +828,7 @@ def test_filtrar_solicitacoes_ga_graficos_tipo_unidade(
 ):
     data = {"status": "AUTORIZADOS"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -846,7 +846,7 @@ def test_filtrar_solicitacoes_ga_graficos_tipo_unidade(
 
     data = {"status": "AUTORIZADOS", "tipos_unidade": [escola.tipo_unidade.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -863,7 +863,7 @@ def test_filtrar_solicitacoes_ga_graficos_empresa_terceirizada_codae(
 ):
     data = {"status": "AUTORIZADOS"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
