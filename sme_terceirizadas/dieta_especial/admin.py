@@ -377,6 +377,7 @@ class LogQuantidadeDietasAutorizadasCEIAdmin(admin.ModelAdmin):
         ("data", DateRangeFilter),
         "classificacao",
         "periodo_escolar",
+        "faixa_etaria",
     )
 
 
