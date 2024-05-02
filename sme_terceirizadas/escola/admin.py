@@ -9,6 +9,7 @@ from rangefilter.filters import DateRangeFilter
 from .api.viewsets import exportar_planilha_importacao_tipo_gestao_escola
 from .models import (
     Aluno,
+    AlunoPeriodoParcial,
     AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
@@ -344,6 +345,11 @@ class HistoricoMatriculaAlunoAdmin(admin.ModelAdmin):
         ("data_fim", DateRangeFilter),
     )
     readonly_fields = ("aluno", "escola")
+
+
+@admin.register(AlunoPeriodoParcial)
+class AlunoPeriodoParcialAdmin(admin.ModelAdmin):
+    list_display = ("aluno", "escola", "solicitacao_medicao_inicial")
 
 
 admin.site.register(Codae)
