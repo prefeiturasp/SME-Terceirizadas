@@ -1019,7 +1019,7 @@ def append_periodo_parcial(periodos, solicitacao_medicao):
 
 def quantidade_meses(d1, d2):
     delta = relativedelta(d1, d2)
-    return delta.months
+    return (delta.years * 12) + delta.months
 
 
 def append_faixas_dietas(dietas, escola):
