@@ -70,6 +70,26 @@ def tipo_alimentacao_lanche():
 
 
 @pytest.fixture
+def tipo_alimentacao_lanche_4h():
+    return mommy.make("TipoAlimentacao", nome="Lanche 4h")
+
+
+@pytest.fixture
+def tipo_alimentacao_sobremesa():
+    return mommy.make("TipoAlimentacao", nome="Sobremesa")
+
+
+@pytest.fixture
+def tipo_alimentacao_almoco():
+    return mommy.make("TipoAlimentacao", nome="Almoço")
+
+
+@pytest.fixture
+def tipo_alimentacao_lanche_emergencial():
+    return mommy.make("TipoAlimentacao", nome="Lanche Emergencial")
+
+
+@pytest.fixture
 def classificacao_dieta_tipo_a():
     return mommy.make("ClassificacaoDieta", nome="Tipo A")
 
@@ -82,6 +102,26 @@ def classificacao_dieta_tipo_a_enteral():
 @pytest.fixture
 def tipo_unidade_escolar():
     return mommy.make("TipoUnidadeEscolar", iniciais="EMEF")
+
+
+@pytest.fixture
+def tipo_unidade_escolar_ceu_emef():
+    return mommy.make("TipoUnidadeEscolar", iniciais="CEU EMEF")
+
+
+@pytest.fixture
+def tipo_unidade_escolar_emefm():
+    return mommy.make("TipoUnidadeEscolar", iniciais="EMEFM")
+
+
+@pytest.fixture
+def tipo_unidade_escolar_cieja():
+    return mommy.make("TipoUnidadeEscolar", iniciais="CIEJA")
+
+
+@pytest.fixture
+def tipo_unidade_escolar_ceu_gestao():
+    return mommy.make("TipoUnidadeEscolar", iniciais="CEU GESTAO")
 
 
 @pytest.fixture
@@ -175,7 +215,7 @@ def escola(tipo_unidade_escolar):
         uuid="9640fef4-a068-474e-8979-2e1b2654357a",
     )
     lote = mommy.make(
-        "Lote", terceirizada=terceirizada, diretoria_regional=diretoria_regional
+        "Lote", nome="1", terceirizada=terceirizada, diretoria_regional=diretoria_regional
     )
     tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
     return mommy.make(
@@ -272,9 +312,11 @@ def escola_emebs():
 @pytest.fixture
 def escola_ceu_gestao():
     terceirizada = mommy.make("Terceirizada")
-    lote = mommy.make("Lote", terceirizada=terceirizada)
     diretoria_regional = mommy.make(
         "DiretoriaRegional", nome="DIRETORIA REGIONAL TESTE"
+    )
+    lote = mommy.make(
+        "Lote", terceirizada=terceirizada, diretoria_regional=diretoria_regional
     )
     tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
     tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEU GESTAO")
@@ -1686,6 +1728,176 @@ def solicitacao_medicao_inicial_sem_arquivo(escola):
     )
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     return solicitacao_medicao
+
+
+@pytest.fixture
+def parametrizacao_financeira_emef(
+    edital,
+    escola,
+    tipo_unidade_escolar,
+    tipo_unidade_escolar_ceu_emef,
+    tipo_unidade_escolar_emefm,
+    tipo_unidade_escolar_cieja,
+    tipo_unidade_escolar_ceu_gestao,
+    tipo_alimentacao_refeicao,
+    tipo_alimentacao_almoco,
+    tipo_alimentacao_lanche,
+    tipo_alimentacao_lanche_4h,
+    tipo_alimentacao_lanche_emergencial,
+    tipo_alimentacao_sobremesa,
+):
+    parametrizacao_financeira = mommy.make(
+        "ParametrizacaoFinanceira",
+        edital=edital,
+        lote=escola.lote,
+        tipos_unidades=[
+            tipo_unidade_escolar,
+            tipo_unidade_escolar_ceu_emef,
+            tipo_unidade_escolar_emefm,
+            tipo_unidade_escolar_cieja,
+            tipo_unidade_escolar_ceu_gestao,
+        ],
+        legenda="Parametrização Financeira: Legenda Inicial",
+    )
+
+    parametrizacao_financeira_tabela = mommy.make(
+        "ParametrizacaoFinanceiraTabela",
+        parametrizacao_financeira=parametrizacao_financeira,
+        nome="Preço das Alimentações",
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela,
+        tipo_alimentacao=tipo_alimentacao_refeicao,
+        grupo="EMEF / CEUEMEF / EMEFM",
+        valor_colunas={
+            "valor_unitario": 2,
+            "valor_unitario_reajuste": 3,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela,
+        tipo_alimentacao=tipo_alimentacao_refeicao,
+        grupo="CIEJA / EJA",
+        valor_colunas={
+            "valor_unitario": 8,
+            "valor_unitario_reajuste": 5,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela,
+        tipo_alimentacao=tipo_alimentacao_almoco,
+        valor_colunas={
+            "valor_unitario": 5,
+            "valor_unitario_reajuste": 2,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela,
+        tipo_alimentacao=tipo_alimentacao_lanche,
+        valor_colunas={
+            "valor_unitario": 7,
+            "valor_unitario_reajuste": 5,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela,
+        tipo_alimentacao=tipo_alimentacao_lanche_4h,
+        valor_colunas={
+            "valor_unitario": 4,
+            "valor_unitario_reajuste": 2,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela,
+        tipo_alimentacao=tipo_alimentacao_sobremesa,
+        valor_colunas={
+            "valor_unitario": 8,
+            "valor_unitario_reajuste": 6,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela,
+        tipo_alimentacao=tipo_alimentacao_lanche_emergencial,
+        valor_colunas={
+            "valor_unitario": 12,
+            "valor_unitario_reajuste": 10,
+        },
+    )
+
+    parametrizacao_financeira_tabela_dietas_a = mommy.make(
+        "ParametrizacaoFinanceiraTabela",
+        parametrizacao_financeira=parametrizacao_financeira,
+        nome="Dietas Tipo A e Tipo A Enteral",
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela_dietas_a,
+        grupo="Dieta Enteral",
+        tipo_alimentacao=tipo_alimentacao_refeicao,
+        valor_colunas={
+            "percentual_acrescimo": 3,
+            "valor_unitario": 7,
+            "valor_unitario_total": 7.21,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela_dietas_a,
+        grupo="Dieta Enteral",
+        tipo_alimentacao=tipo_alimentacao_lanche,
+        valor_colunas={
+            "percentual_acrescimo": 6,
+            "valor_unitario": 8,
+            "valor_unitario_total": 8.48,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela_dietas_a,
+        grupo="Dieta Enteral",
+        tipo_alimentacao=tipo_alimentacao_lanche_4h,
+        valor_colunas={
+            "percentual_acrescimo": 6,
+            "valor_unitario": 7,
+            "valor_unitario_total": 7.42,
+        },
+    )
+
+    parametrizacao_financeira_tabela_dietas_b = mommy.make(
+        "ParametrizacaoFinanceiraTabela",
+        parametrizacao_financeira=parametrizacao_financeira,
+        nome="Dietas Tipo B",
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela_dietas_b,
+        grupo="Dieta Enteral",
+        tipo_alimentacao=tipo_alimentacao_lanche,
+        valor_colunas={
+            "percentual_acrescimo": 6,
+            "valor_unitario": 7,
+            "valor_unitario_total": 7.42,
+        },
+    )
+    mommy.make(
+        "ParametrizacaoFinanceiraTabelaValor",
+        tabela=parametrizacao_financeira_tabela_dietas_b,
+        grupo="Dieta Enteral",
+        tipo_alimentacao=tipo_alimentacao_lanche_4h,
+        valor_colunas={
+            "percentual_acrescimo": 6,
+            "valor_unitario": 7,
+            "valor_unitario_total": 7.42,
+        },
+    )
+    return parametrizacao_financeira
 
 
 @pytest.fixture
