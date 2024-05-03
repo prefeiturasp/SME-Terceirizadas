@@ -598,3 +598,13 @@ class FaixaPontuacaoIMR(ModeloBase):
         verbose_name = "Faixa de Pontuação - IMR"
         verbose_name_plural = "Faixas de Pontuação - IMR"
         ordering = ("pontuacao_minima",)
+
+class UtensilioMesa(ModeloBase, Nomeavel, StatusAtivoInativo):
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Utensílio de Mesa"
+        verbose_name_plural = "Utensílios de Mesa"
+        ordering = ("nome",)

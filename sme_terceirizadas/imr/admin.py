@@ -34,6 +34,7 @@ from sme_terceirizadas.imr.models import (
     TipoPenalidade,
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
+    UtensilioMesa
 )
 from utility.carga_dados.imr.importa_dados import (
     importa_tipos_ocorrencia,
@@ -359,6 +360,15 @@ class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     form = FaixaPontuacaoIMRForm
 
+@admin.register(UtensilioMesa)
+class UtensilioMesaAdmin(admin.ModelAdmin):
+    list_display = (
+        "nome",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome", )
+    list_filter = ("status", )
 
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
