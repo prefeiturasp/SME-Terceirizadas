@@ -7,6 +7,7 @@ from sme_terceirizadas.imr.models import (
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
+    UtensilioMesa
 )
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EditalFactory,
@@ -57,3 +58,10 @@ class FaixaPontuacaoFactory(DjangoModelFactory):
     pontuacao_minima = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
     pontuacao_maxima = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
     porcentagem_desconto = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
+
+class UtensilioMesaFactory(DjangoModelFactory):
+
+    class Meta:
+        model = UtensilioMesa
+
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
