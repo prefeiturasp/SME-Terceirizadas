@@ -25,6 +25,7 @@ from sme_terceirizadas.imr.models import (
     RespostaCampoTextoSimples,
     RespostaDatas,
     RespostaFaixaEtaria,
+    RespostaNaoSeAplica,
     RespostaPeriodo,
     RespostaSimNao,
     RespostaSimNaoNaoSeAplica,
@@ -309,6 +310,11 @@ class RespostaSimNaoNaoSeAplicaInline(admin.TabularInline):
     extra = 0
 
 
+class RespostaNaoSeAplicaInline(admin.TabularInline):
+    model = RespostaNaoSeAplica
+    extra = 0
+
+
 @admin.register(FormularioOcorrenciasBase)
 class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
     inlines = [
@@ -323,6 +329,7 @@ class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
         RespostaFaixaEtariaInline,
         RespostaTipoAlimentacaoInline,
         RespostaSimNaoNaoSeAplicaInline,
+        RespostaNaoSeAplicaInline,
     ]
     list_filter = (TipoFormularioFilter, ("data", DateRangeFilter))
 
@@ -372,5 +379,6 @@ admin.site.register(RespostaPeriodo)
 admin.site.register(RespostaFaixaEtaria)
 admin.site.register(RespostaTipoAlimentacao)
 admin.site.register(RespostaSimNaoNaoSeAplica)
+admin.site.register(RespostaNaoSeAplica)
 admin.site.register(TipoRespostaModelo)
 admin.site.register(PeriodoVisita)
