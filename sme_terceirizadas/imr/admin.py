@@ -34,7 +34,8 @@ from sme_terceirizadas.imr.models import (
     TipoPenalidade,
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
-    UtensilioMesa
+    UtensilioMesa,
+    EditalUtensilioMesa
 )
 from utility.carga_dados.imr.importa_dados import (
     importa_tipos_ocorrencia,
@@ -369,6 +370,16 @@ class UtensilioMesaAdmin(admin.ModelAdmin):
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     search_fields = ("nome", )
     list_filter = ("status", )
+
+@admin.register(EditalUtensilioMesa)
+class EditalUtensilioMesaAdmin(admin.ModelAdmin):
+    filter_horizontal = ('utensilios_mesa', )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = (
+        "edital__numero",
+    )
+    search_help_text = "Pesquise por: número de edital"
 
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
