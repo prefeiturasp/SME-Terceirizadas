@@ -549,6 +549,29 @@ class RespostaSimNaoNaoSeAplica(ModeloBase):
         verbose_name_plural = "Respostas Sim/Não/Não se aplica"
 
 
+class RespostaNaoSeAplica(ModeloBase):
+    resposta = models.TextField("Descrição", blank=True)
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_nao_se_aplica",
+        null=True,
+    )
+    tipo_ocorrencia = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_nao_se_aplica",
+    )
+
+    def __str__(self):
+        return self.resposta
+
+    class Meta:
+        verbose_name = "Resposta Não se aplica"
+        verbose_name_plural = "Respostas Não se aplica"
+
+
 class FaixaPontuacaoIMR(ModeloBase):
     pontuacao_minima = models.PositiveSmallIntegerField("Pontuação Mínima")
     pontuacao_maxima = models.PositiveSmallIntegerField(
