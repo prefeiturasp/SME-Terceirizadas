@@ -92,6 +92,17 @@ class ImportacaoPlanilhaTipoPenalidade(ArquivoCargaBase):
 
 
 class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao):
+    SIM = "Sim"
+    NAO = "Não"
+
+    STATUS_CHOICES = (
+        (True, SIM),
+        (False, NAO),
+    )
+    gera_notificacao = models.BooleanField(
+        "Gera Notificação?", choices=STATUS_CHOICES, default=False
+    )
+
     def __str__(self):
         return f"{self.nome}"
 
@@ -132,17 +143,10 @@ class TipoOcorrencia(
         "% de desconto",
         null=True,
         validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
-        help_text="Caso a opção de É IMR? esteja marcada a % de desconto incidirá sobre a reincidência dos apontamentos. Se não for marcada a opção de É IMR?, a % de desconto será referente a multa da penalidade.",
-    )
-    modelo_anexo = models.FileField(
-        "Modelo de Anexo",
-        upload_to="IMR",
-        validators=[
-            FileExtensionValidator(allowed_extensions=["XLS", "XLSX"]),
-            validate_file_size_10mb,
-        ],
-        blank=True,
-        null=True,
+        help_text=(
+            "Caso a opção de É IMR? esteja marcada a % de desconto incidirá sobre a reincidência dos apontamentos. "
+            "Se não for marcada a opção de É IMR?, a % de desconto será referente a multa da penalidade."
+        ),
     )
 
     def __str__(self):
@@ -177,12 +181,6 @@ class TipoOcorrencia(
         dict_error = self.valida_eh_imr(dict_error)
         dict_error = self.valida_nao_eh_imr(dict_error)
         raise ValidationError(dict_error)
-
-    def delete(self, *args, **kwargs):
-        if self.modelo_anexo:
-            if os.path.isfile(self.modelo_anexo.path):
-                os.remove(self.modelo_anexo.path)
-        super().delete(*args, **kwargs)
 
 
 class ImportacaoPlanilhaTipoOcorrencia(ArquivoCargaBase):
@@ -270,6 +268,76 @@ class FormularioOcorrenciasBase(ModeloBase):
     class Meta:
         verbose_name = "Formulário Base - Ocorrências"
         verbose_name_plural = "Formulários Base - Ocorrências"
+
+
+class AnexosFormularioBase(ModeloBase):
+    anexo = models.FileField(
+        "Anexo",
+        upload_to="IMR",
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    "PDF",
+                    "XLS",
+                    "XLSX",
+                    "DOC",
+                    "DOCX",
+                    "PNG",
+                    "JPG",
+                    "JPEG",
+                ]
+            ),
+            validate_file_size_10mb,
+        ],
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase, on_delete=models.CASCADE, related_name="anexos"
+    )
+
+    def __str__(self):
+        return f"{self.anexo.name} - {self.formulario_base.__str__()}"
+
+    def delete(self, *args, **kwargs):
+        if self.anexo:
+            if os.path.isfile(self.anexo.path):
+                os.remove(self.anexo.path)
+        super().delete(*args, **kwargs)
+
+
+class NotificacoesAssinadasFormularioBase(ModeloBase):
+    notificacao_assinada = models.FileField(
+        "Notificação Assinada",
+        upload_to="IMR",
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    "PDF",
+                    "XLS",
+                    "XLSX",
+                    "DOC",
+                    "DOCX",
+                    "PNG",
+                    "JPG",
+                    "JPEG",
+                ]
+            ),
+            validate_file_size_10mb,
+        ],
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        on_delete=models.CASCADE,
+        related_name="notificacoes_assinadas",
+    )
+
+    def __str__(self):
+        return f"{self.notificacao_assinada.name} - {self.formulario_base.__str__()}"
+
+    def delete(self, *args, **kwargs):
+        if self.notificacao_assinada:
+            if os.path.isfile(self.notificacao_assinada.path):
+                os.remove(self.notificacao_assinada.path)
+        super().delete(*args, **kwargs)
 
 
 class FormularioDiretor(ModeloBase):
@@ -624,7 +692,6 @@ class FaixaPontuacaoIMR(ModeloBase):
 
 
 class UtensilioMesa(ModeloBase, Nomeavel, StatusAtivoInativo):
-
     def __str__(self):
         return self.nome
 
@@ -635,7 +702,6 @@ class UtensilioMesa(ModeloBase, Nomeavel, StatusAtivoInativo):
 
 
 class EditalUtensilioMesa(ModeloBase):
-
     edital = models.ForeignKey(
         "terceirizada.Edital",
         on_delete=models.PROTECT,
