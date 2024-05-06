@@ -1106,15 +1106,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 faixa_etaria=valor_medicao.get("faixa_etaria", None),
                 infantil_ou_fundamental=infantil_ou_fundamental,
                 defaults={
-                    "medicao": medicao,
-                    "dia": valor_medicao.get("dia", ""),
-                    "semana": semana,
                     "valor": valor_medicao.get("valor", ""),
-                    "nome_campo": valor_medicao.get("nome_campo", ""),
-                    "categoria_medicao": valor_medicao.get("categoria_medicao", ""),
-                    "tipo_alimentacao": valor_medicao.get("tipo_alimentacao", None),
-                    "faixa_etaria": valor_medicao.get("faixa_etaria", None),
-                    "infantil_ou_fundamental": infantil_ou_fundamental,
                 },
             )
 
@@ -1150,19 +1142,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         faixa_etaria=valor_medicao.get("faixa_etaria", None),
                         infantil_ou_fundamental=infantil_ou_fundamental,
                         defaults={
-                            "medicao": instance,
-                            "dia": valor_medicao.get("dia", ""),
-                            "semana": semana,
                             "valor": valor_medicao.get("valor", ""),
-                            "nome_campo": valor_medicao.get("nome_campo", ""),
-                            "categoria_medicao": valor_medicao.get(
-                                "categoria_medicao", ""
-                            ),
-                            "tipo_alimentacao": valor_medicao.get(
-                                "tipo_alimentacao", None
-                            ),
-                            "faixa_etaria": valor_medicao.get("faixa_etaria", None),
-                            "infantil_ou_fundamental": infantil_ou_fundamental,
                         },
                     )
                 except ValorMedicao.MultipleObjectsReturned:
@@ -1175,7 +1155,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
                         faixa_etaria=valor_medicao.get("faixa_etaria", None),
                         infantil_ou_fundamental=infantil_ou_fundamental,
-                    ).first().delete()
+                    ).delete()
                     ValorMedicao.objects.update_or_create(
                         medicao=instance,
                         dia=valor_medicao.get("dia", ""),
@@ -1186,19 +1166,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         faixa_etaria=valor_medicao.get("faixa_etaria", None),
                         infantil_ou_fundamental=infantil_ou_fundamental,
                         defaults={
-                            "medicao": instance,
-                            "dia": valor_medicao.get("dia", ""),
-                            "semana": semana,
                             "valor": valor_medicao.get("valor", ""),
-                            "nome_campo": valor_medicao.get("nome_campo", ""),
-                            "categoria_medicao": valor_medicao.get(
-                                "categoria_medicao", ""
-                            ),
-                            "tipo_alimentacao": valor_medicao.get(
-                                "tipo_alimentacao", None
-                            ),
-                            "faixa_etaria": valor_medicao.get("faixa_etaria", None),
-                            "infantil_ou_fundamental": infantil_ou_fundamental,
                         },
                     )
         eh_observacao = self.context["request"].data.get(
