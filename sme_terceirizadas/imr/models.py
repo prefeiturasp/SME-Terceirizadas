@@ -303,6 +303,10 @@ class AnexosFormularioBase(ModeloBase):
                 os.remove(self.anexo.path)
         super().delete(*args, **kwargs)
 
+    class Meta:
+        verbose_name = "Anexo Formulário Base"
+        verbose_name_plural = "Anexos Formulário Base"
+
 
 class NotificacoesAssinadasFormularioBase(ModeloBase):
     notificacao_assinada = models.FileField(
@@ -338,6 +342,10 @@ class NotificacoesAssinadasFormularioBase(ModeloBase):
             if os.path.isfile(self.notificacao_assinada.path):
                 os.remove(self.notificacao_assinada.path)
         super().delete(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Notificação Assinada Formulário Base"
+        verbose_name_plural = "Notificações Assinadas Formulário Base"
 
 
 class FormularioDiretor(ModeloBase):
