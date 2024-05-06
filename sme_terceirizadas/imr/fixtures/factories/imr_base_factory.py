@@ -59,6 +59,7 @@ class FaixaPontuacaoFactory(DjangoModelFactory):
     pontuacao_maxima = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
     porcentagem_desconto = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
 
+
 class UtensilioMesaFactory(DjangoModelFactory):
 
     class Meta:

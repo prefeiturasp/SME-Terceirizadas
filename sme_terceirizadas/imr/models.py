@@ -599,6 +599,7 @@ class FaixaPontuacaoIMR(ModeloBase):
         verbose_name_plural = "Faixas de Pontuação - IMR"
         ordering = ("pontuacao_minima",)
 
+
 class UtensilioMesa(ModeloBase, Nomeavel, StatusAtivoInativo):
 
     def __str__(self):
@@ -624,7 +625,7 @@ class EditalUtensilioMesa(ModeloBase):
     )
 
     def __str__(self):
-            return f"Edital: {self.edital} - {self.utensilios_mesa.count()} utensílios"
+        return f"Edital: {self.edital} - {self.utensilios_mesa.count()} utensílios"
 
     class Meta:
         verbose_name = "Utensílio de Mesa Por Edital"

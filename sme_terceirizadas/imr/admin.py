@@ -361,6 +361,7 @@ class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     form = FaixaPontuacaoIMRForm
 
+
 @admin.register(UtensilioMesa)
 class UtensilioMesaAdmin(admin.ModelAdmin):
     list_display = (
@@ -371,6 +372,7 @@ class UtensilioMesaAdmin(admin.ModelAdmin):
     search_fields = ("nome", )
     list_filter = ("status", )
 
+
 @admin.register(EditalUtensilioMesa)
 class EditalUtensilioMesaAdmin(admin.ModelAdmin):
     filter_horizontal = ('utensilios_mesa', )
@@ -380,6 +382,7 @@ class EditalUtensilioMesaAdmin(admin.ModelAdmin):
         "edital__numero",
     )
     search_help_text = "Pesquise por: número de edital"
+
 
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
