@@ -621,3 +621,35 @@ class FaixaPontuacaoIMR(ModeloBase):
         verbose_name = "Faixa de Pontuação - IMR"
         verbose_name_plural = "Faixas de Pontuação - IMR"
         ordering = ("pontuacao_minima",)
+
+
+class UtensilioMesa(ModeloBase, Nomeavel, StatusAtivoInativo):
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Utensílio de Mesa"
+        verbose_name_plural = "Utensílios de Mesa"
+        ordering = ("nome",)
+
+
+class EditalUtensilioMesa(ModeloBase):
+
+    edital = models.ForeignKey(
+        "terceirizada.Edital",
+        on_delete=models.PROTECT,
+    )
+
+    utensilios_mesa = models.ManyToManyField(
+        "UtensilioMesa",
+        verbose_name="Utensílios de Mesa",
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"Edital: {self.edital} - {self.utensilios_mesa.count()} utensílios"
+
+    class Meta:
+        verbose_name = "Utensílio de Mesa Por Edital"
+        verbose_name_plural = "Utensílios de Mesa Por Edital"
