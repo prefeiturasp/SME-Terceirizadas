@@ -1,14 +1,22 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.urls import path
 from rangefilter.filters import DateRangeFilter
 
 from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.dados_comuns.utils import custom_titled_filter
+from sme_terceirizadas.imr.api.services import (
+    exportar_planilha_importacao_tipos_ocorrencia,
+    exportar_planilha_importacao_tipos_penalidade,
+)
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
+    FaixaPontuacaoIMR,
     FormularioDiretor,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
+    ImportacaoPlanilhaTipoOcorrencia,
+    ImportacaoPlanilhaTipoPenalidade,
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
@@ -27,6 +35,11 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
 )
+from utility.carga_dados.imr.importa_dados import (
+    importa_tipos_ocorrencia,
+    importa_tipos_penalidade,
+)
+from utility.carga_dados.perfil.importa_dados import valida_arquivo_importacao_usuarios
 
 
 class ObrigacaoPenalidadeInline(admin.StackedInline):
@@ -60,8 +73,59 @@ class TipoPenalidadeAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+@admin.register(ImportacaoPlanilhaTipoPenalidade)
+class ImportacaoPlanilhaTipoPenalidadeAdmin(admin.ModelAdmin):
+    list_display = ("id", "uuid", "__str__", "criado_em", "status")
+    readonly_fields = ("resultado", "status", "log")
+    list_filter = ("status",)
+    actions = ("processa_planilha",)
+    change_list_template = "admin/imr/importacao_tipos_penalidade.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                "exportar_planilha_importacao_tipos_penalidade/",
+                self.admin_site.admin_view(self.exporta_planilha, cacheable=True),
+            ),
+        ]
+        return my_urls + urls
+
+    def exporta_planilha(self, request):
+        return exportar_planilha_importacao_tipos_penalidade(request)
+
+    def processa_planilha(self, request, queryset):
+        arquivo = queryset.first()
+
+        if len(queryset) > 1:
+            self.message_user(request, "Escolha somente uma planilha.", messages.ERROR)
+            return
+        if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
+            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            return
+
+        importa_tipos_penalidade(request.user, arquivo)
+
+        self.message_user(
+            request,
+            f"Processo Terminado. Verifique o status do processo: {arquivo.uuid}",
+        )
+
+    processa_planilha.short_description = (
+        "Realizar a importação dos tipos de penalidade"
+    )
+
+
 class PerfisMultipleChoiceForm(forms.ModelForm):
     perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
+
+
+class TipoOcorrenciaForm(forms.ModelForm):
+    perfis = forms.MultipleChoiceField(choices=PerfilDiretorSupervisao.PERFIS)
+
+    class Meta:
+        model = TipoOcorrencia
+        fields = "__all__"
 
 
 @admin.register(TipoOcorrencia)
@@ -84,7 +148,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
     autocomplete_fields = ("edital", "penalidade")
-    form = PerfisMultipleChoiceForm
+    form = TipoOcorrenciaForm
 
     def save_model(self, request, obj, form, change):
         if not change:  # Apenas para novos registros
@@ -94,7 +158,52 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
 
 @admin.register(CategoriaOcorrencia)
 class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
+    list_display = ("nome", "posicao", "perfis")
+    ordering = ("posicao", "criado_em")
     form = PerfisMultipleChoiceForm
+
+
+@admin.register(ImportacaoPlanilhaTipoOcorrencia)
+class ImportacaoPlanilhaTipoOcorrenciaAdmin(admin.ModelAdmin):
+    list_display = ("id", "uuid", "__str__", "criado_em", "status")
+    readonly_fields = ("resultado", "status", "log")
+    list_filter = ("status",)
+    actions = ("processa_planilha",)
+    change_list_template = "admin/imr/importacao_tipos_ocorrencia.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                "exportar_planilha_importacao_tipos_ocorrencia/",
+                self.admin_site.admin_view(self.exporta_planilha, cacheable=True),
+            ),
+        ]
+        return my_urls + urls
+
+    def exporta_planilha(self, request):
+        return exportar_planilha_importacao_tipos_ocorrencia(request)
+
+    def processa_planilha(self, request, queryset):
+        arquivo = queryset.first()
+
+        if len(queryset) > 1:
+            self.message_user(request, "Escolha somente uma planilha.", messages.ERROR)
+            return
+        if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
+            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            return
+
+        importa_tipos_ocorrencia(request.user, arquivo)
+
+        self.message_user(
+            request,
+            f"Processo Terminado. Verifique o status do processo: {arquivo.uuid}",
+        )
+
+    processa_planilha.short_description = (
+        "Realizar a importação dos tipos de ocorrência"
+    )
 
 
 class PerfisFilter(admin.SimpleListFilter):
@@ -230,6 +339,25 @@ class FormularioSupervisaoAdmin(admin.ModelAdmin):
         "acompanhou_visita",
         "apresentou_ocorrencias",
     )
+
+
+class FaixaPontuacaoIMRForm(forms.ModelForm):
+    class Meta:
+        model = FaixaPontuacaoIMR
+        fields = "__all__"
+
+
+@admin.register(FaixaPontuacaoIMR)
+class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
+    list_display = (
+        "pontuacao_minima",
+        "pontuacao_maxima",
+        "porcentagem_desconto",
+        "criado_em",
+        "alterado_em",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    form = FaixaPontuacaoIMRForm
 
 
 admin.site.register(TipoGravidade)

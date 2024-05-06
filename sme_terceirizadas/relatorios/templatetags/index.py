@@ -3,6 +3,10 @@ import re
 
 from django import template
 
+from sme_terceirizadas.dados_comuns.utils import (
+    numero_com_agrupador_de_milhar_e_decimal,
+)
+
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -752,7 +756,7 @@ def get_nome_header(nome):
         "MANHA": "MANHÃ",
         "NOITE": "NOITE/EJA",
         "TIPO A": "DIETAS TIPO A / ENTERAL / REST. DE AMINOÁCIDOS",
-        "TIPO B": "DIETAS TIPO B",
+        "TIPO B": "DIETAS TIPO B - LANCHE",
         "Infantil INTEGRAL": "INTEGRAL",
         "Infantil MANHA": "MANHÃ",
         "Infantil TARDE": "TARDE",
@@ -772,10 +776,5 @@ def get_nome_categoria(nome):
 
 
 @register.filter
-def agrupador_milhar_com_decimal(value):
-    try:
-        valor_formatado = "{:,.2f}".format(float(value))
-        return valor_formatado.replace(",", " ").replace(".", ",").replace(" ", ".")
-
-    except (ValueError, TypeError):
-        return value
+def agrupador_milhar_com_decimal(value: int | float) -> str:
+    return numero_com_agrupador_de_milhar_e_decimal(value)

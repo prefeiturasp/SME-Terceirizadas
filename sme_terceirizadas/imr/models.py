@@ -2,11 +2,17 @@ import os
 
 from django.apps import apps
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import FileExtensionValidator
+from django.core.validators import (
+    FileExtensionValidator,
+    MaxValueValidator,
+    MinValueValidator,
+    ValidationError,
+)
 from django.db import models
 
 from ..cardapio.models import TipoAlimentacao
 from ..dados_comuns.behaviors import (
+    ArquivoCargaBase,
     CriadoPor,
     ModeloBase,
     Nomeavel,
@@ -47,8 +53,10 @@ class TipoPenalidade(ModeloBase, CriadoPor, StatusAtivoInativo):
         return f"Item: {self.numero_clausula} - Edital: {self.edital.numero}"
 
     class Meta:
+        ordering = ("edital__numero", "numero_clausula")
         verbose_name = "Tipo de Penalidade"
         verbose_name_plural = "Tipos de Penalidades"
+        unique_together = ("edital", "numero_clausula")
 
 
 class ObrigacaoPenalidade(ModeloBase):
@@ -68,6 +76,21 @@ class ObrigacaoPenalidade(ModeloBase):
         verbose_name_plural = "Obrigações das Penalidades"
 
 
+class ImportacaoPlanilhaTipoPenalidade(ArquivoCargaBase):
+    """Importa dados de planilha de tipos de penalidade."""
+
+    resultado = models.FileField(blank=True, default="")
+
+    class Meta:
+        verbose_name = "Arquivo para importação/atualização de tipos de penalidade"
+        verbose_name_plural = (
+            "Arquivos para importação/atualização de tipos de penalidade"
+        )
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
 class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao):
     def __str__(self):
         return f"{self.nome}"
@@ -75,6 +98,7 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
     class Meta:
         verbose_name = "Categoria das Ocorrências"
         verbose_name_plural = "Categorias das Ocorrências"
+        ordering = ("posicao", "nome")
 
 
 class TipoOcorrencia(
@@ -99,10 +123,17 @@ class TipoOcorrencia(
         on_delete=models.PROTECT,
         related_name="tipos_ocorrencia",
     )
+    eh_imr = models.BooleanField("É IMR?", default=False)
     pontuacao = models.PositiveSmallIntegerField(
         "Pontuação (IMR)", blank=True, null=True
     )
     tolerancia = models.PositiveSmallIntegerField("Tolerância", blank=True, null=True)
+    porcentagem_desconto = models.FloatField(
+        "% de desconto",
+        null=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
+        help_text="Caso a opção de É IMR? esteja marcada a % de desconto incidirá sobre a reincidência dos apontamentos. Se não for marcada a opção de É IMR?, a % de desconto será referente a multa da penalidade.",
+    )
     modelo_anexo = models.FileField(
         "Modelo de Anexo",
         upload_to="IMR",
@@ -120,12 +151,53 @@ class TipoOcorrencia(
     class Meta:
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
+        unique_together = ("edital", "categoria", "penalidade")
+
+    def valida_eh_imr(self, dict_error):
+        if self.eh_imr and (not self.pontuacao or not self.tolerancia):
+            if not self.pontuacao:
+                dict_error["pontuacao"] = "Pontuação deve ser preenchida se for IMR."
+            if not self.tolerancia:
+                dict_error["tolerancia"] = "Tolerância deve ser preenchida se for IMR."
+        return dict_error
+
+    def valida_nao_eh_imr(self, dict_error):
+        if not self.eh_imr and (self.pontuacao or self.tolerancia):
+            if self.pontuacao:
+                dict_error["pontuacao"] = "Pontuação só deve ser preenchida se for IMR."
+            if self.tolerancia:
+                dict_error[
+                    "tolerancia"
+                ] = "Tolerância só deve ser preenchida se for IMR."
+        return dict_error
+
+    def clean(self):
+        super().clean()
+        dict_error = {}
+        dict_error = self.valida_eh_imr(dict_error)
+        dict_error = self.valida_nao_eh_imr(dict_error)
+        raise ValidationError(dict_error)
 
     def delete(self, *args, **kwargs):
         if self.modelo_anexo:
             if os.path.isfile(self.modelo_anexo.path):
                 os.remove(self.modelo_anexo.path)
         super().delete(*args, **kwargs)
+
+
+class ImportacaoPlanilhaTipoOcorrencia(ArquivoCargaBase):
+    """Importa dados de planilha de tipos de ocorrência."""
+
+    resultado = models.FileField(blank=True, default="")
+
+    class Meta:
+        verbose_name = "Arquivo para importação/atualização de tipos de ocorrência"
+        verbose_name_plural = (
+            "Arquivos para importação/atualização de tipos de ocorrência"
+        )
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
 
 
 class TipoRespostaModelo(ModeloBase, Nomeavel):
@@ -475,3 +547,54 @@ class RespostaSimNaoNaoSeAplica(ModeloBase):
     class Meta:
         verbose_name = "Resposta Sim/Não/Não se aplica"
         verbose_name_plural = "Respostas Sim/Não/Não se aplica"
+
+
+class FaixaPontuacaoIMR(ModeloBase):
+    pontuacao_minima = models.PositiveSmallIntegerField("Pontuação Mínima")
+    pontuacao_maxima = models.PositiveSmallIntegerField(
+        "Pontuação Máxima", blank=True, null=True
+    )
+    porcentagem_desconto = models.FloatField(
+        "% de Desconto",
+        validators=[MinValueValidator(0.0), MaxValueValidator(100.0)],
+        help_text="Desconto no faturamento do dia",
+    )
+
+    def clean(self):
+        super().clean()
+        if self.pontuacao_maxima and self.pontuacao_minima > self.pontuacao_maxima:
+            raise ValidationError(
+                {"pontuacao_minima": "Pontuação mínima não pode ser maior que a máxima"}
+            )
+        faixas = list(
+            FaixaPontuacaoIMR.objects.exclude(uuid=self.uuid).values_list(
+                "pontuacao_minima", "pontuacao_maxima"
+            )
+        )
+        dict_error = {}
+        if any(
+            faixa[0] <= self.pontuacao_minima <= (faixa[1] or faixa[0])
+            for faixa in faixas
+        ):
+            dict_error[
+                "pontuacao_minima"
+            ] = "Esta pontuação mínima já se encontra dentro de outra faixa."
+        if self.pontuacao_maxima and any(
+            faixa[0] <= self.pontuacao_maxima <= (faixa[1] or faixa[0])
+            for faixa in faixas
+        ):
+            dict_error[
+                "pontuacao_maxima"
+            ] = "Esta pontuação máxima já se encontra dentro de outra faixa."
+        raise ValidationError(dict_error)
+
+    def __str__(self):
+        return (
+            f"{self.pontuacao_minima} - {self.pontuacao_maxima or 'sem pontuação máxima'}"
+            f" - {self.porcentagem_desconto}"
+        )
+
+    class Meta:
+        verbose_name = "Faixa de Pontuação - IMR"
+        verbose_name_plural = "Faixas de Pontuação - IMR"
+        ordering = ("pontuacao_minima",)

@@ -687,9 +687,6 @@ class PermissaoParaListarEntregas(BasePermission):
 
 
 class PermissaoParaVisualizarCronograma(BasePermission):
-    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente p/ visualização do cronograma.
-    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
-    #  COORDENADOR_LOGISTICA deste permissionamento.
     def has_permission(self, request, view):
         usuario = request.user
         return (
@@ -714,9 +711,6 @@ class PermissaoParaVisualizarCronograma(BasePermission):
 
 
 class PermissaoParaCriarCronograma(BasePermission):
-    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente ao Cadastro de Cronograma.
-    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
-    #  COORDENADOR_LOGISTICA deste permissionamento.
     def has_permission(self, request, view):
         usuario = request.user
         return (
@@ -725,7 +719,8 @@ class PermissaoParaCriarCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    and usuario.vinculo_atual.perfil.nome
+                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
@@ -987,7 +982,8 @@ class PermissaoParaDarCienciaAlteracaoCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    and usuario.vinculo_atual.perfil.nome
+                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
@@ -1002,7 +998,8 @@ class PermissaoParaCriarSolicitacoesAlteracaoCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    and usuario.vinculo_atual.perfil.nome
+                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
                 or usuario.eh_fornecedor
             )
@@ -1281,18 +1278,6 @@ class PermissaoParaAnalisarFichaTecnica(BasePermission):
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
     ]
-
-    def has_permission(self, request, view):
-        usuario = request.user
-        return (
-            not usuario.is_anonymous
-            and usuario.vinculo_atual
-            and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
-        )
-
-
-class PermissaoParaVisualizarQuestoesConferencia(BasePermission):
-    PERFIS_PERMITIDOS = [DILOG_QUALIDADE]
 
     def has_permission(self, request, view):
         usuario = request.user

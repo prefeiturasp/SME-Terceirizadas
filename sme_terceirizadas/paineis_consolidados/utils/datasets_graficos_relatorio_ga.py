@@ -10,36 +10,56 @@ from sme_terceirizadas.paineis_consolidados.utils.totalizadores_relatorio import
 )
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
+from .utils import (
+    get_label_dataset_grafico_total_dre_lote,
+    get_lotes_dataset_grafico_total_dre_lote,
+    get_queryset_filtrado_dataset_grafico_total_dre_lote,
+)
 
-def get_dataset_grafico_total_dre_lote(datasets, request, model, instituicao, queryset):
+
+def get_dataset_grafico_total_dre_lote(
+    datasets,
+    request,
+    model,
+    instituicao,
+    queryset,
+    eh_relatorio_dietas_autorizadas=False,
+):
     if isinstance(instituicao, Escola) or request.data.get("unidades_educacionais", []):
         return datasets
 
     lotes = request.data.get("lotes", [])
+    tipo_gestao_uuid = request.data.get("tipo_gestao", [])
+    tipos_unidade = request.data.get("tipos_unidades_selecionadas", [])
+    unidades_educacionais = request.data.get("unidades_educacionais_selecionadas", [])
+    classificacoes = request.data.get("classificacoes_selecionadas", [])
 
-    label_data = {
-        "AUTORIZADOS": "Autorizadas",
-        "CANCELADOS": "Canceladas",
-        "NEGADOS": "Negadas",
-        "RECEBIDAS": "Recebidas",
-    }
-
-    if not lotes:
-        if isinstance(instituicao, Terceirizada):
-            lotes = Lote.objects.filter(terceirizada=instituicao)
-        elif isinstance(instituicao, DiretoriaRegional):
-            lotes = Lote.objects.filter(
-                uuid__in=list(set(queryset.values_list("lote_uuid", flat=True)))
-            )
-        else:
-            lotes = Lote.objects.all()
-        lotes = lotes.values_list("uuid", flat=True)
-    queryset = filtro_geral_totalizadores(request, model, queryset, map_filtros_=None)
+    lotes = get_lotes_dataset_grafico_total_dre_lote(
+        lotes, request, instituicao, queryset, eh_relatorio_dietas_autorizadas
+    )
+    if eh_relatorio_dietas_autorizadas:
+        map_filtros = {
+            "lote_escola_destino_uuid__in": lotes,
+            "escola_tipo_gestao_uuid": tipo_gestao_uuid,
+            "escola_destino_tipo_unidade_uuid__in": tipos_unidade,
+            "escola_destino_uuid__in": unidades_educacionais,
+            "classificacao_id__in": classificacoes,
+        }
+        queryset = filtro_geral_totalizadores(
+            request, model, queryset, map_filtros_=map_filtros
+        )
+        queryset = queryset.order_by("uuid").distinct("uuid")
+    else:
+        queryset = filtro_geral_totalizadores(
+            request, model, queryset, map_filtros_=None
+        )
     dataset = {
         "labels": [],
         "datasets": [
             {
-                "label": f"Total de Solicitações {label_data[request.data.get('status')]} por DRE e Lote",
+                "label": get_label_dataset_grafico_total_dre_lote(
+                    request, eh_relatorio_dietas_autorizadas
+                ),
                 "data": [],
                 "maxBarThickness": 80,
                 "backgroundColor": "#198459",
@@ -48,13 +68,17 @@ def get_dataset_grafico_total_dre_lote(datasets, request, model, instituicao, qu
     }
 
     for lote_uuid in lotes:
-        lote = Lote.objects.get(uuid=lote_uuid)
+        try:
+            lote = Lote.objects.get(uuid=lote_uuid)
+        except Lote.DoesNotExist:
+            continue
         dataset["labels"].append(
             f"{lote.nome} - {lote.diretoria_regional.nome if lote.diretoria_regional else 'sem DRE'}"
         )
-        dataset["datasets"][0]["data"].append(
-            count_query_set_sem_duplicados(queryset.filter(lote_uuid=lote_uuid))
+        qs = get_queryset_filtrado_dataset_grafico_total_dre_lote(
+            queryset, lote_uuid, request, eh_relatorio_dietas_autorizadas
         )
+        dataset["datasets"][0]["data"].append(count_query_set_sem_duplicados(qs))
 
     datasets.append(dataset)
     return datasets

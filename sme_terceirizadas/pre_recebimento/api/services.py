@@ -255,6 +255,9 @@ class ServiceQuerysetAlteracaoCronograma:
         USUARIO_EMPRESA: [
             CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
         ],
+        COORDENADOR_CODAE_DILOG_LOGISTICA: [
+            CronogramaAlteracaoWorkflow.EM_ANALISE,
+        ],
         DILOG_CRONOGRAMA: [
             CronogramaAlteracaoWorkflow.EM_ANALISE,
         ],

@@ -90,18 +90,15 @@ def criar_nova_solicitacao(solicitacao_anterior, escola, data_hoje):
         "ano": data_hoje.year,
         "mes": f"{data_hoje.month:02d}",
         "criado_por": solicitacao_anterior.criado_por,
+        "ue_possui_alunos_periodo_parcial": solicitacao_anterior.ue_possui_alunos_periodo_parcial,
     }
 
-    if not solicitacao_anterior.escola.eh_cei:
-        attrs[
-            "tipo_contagem_alimentacoes"
-        ] = solicitacao_anterior.tipo_contagem_alimentacoes
-    else:
-        attrs[
-            "ue_possui_alunos_periodo_parcial"
-        ] = solicitacao_anterior.ue_possui_alunos_periodo_parcial
-
-    return SolicitacaoMedicaoInicial.objects.create(**attrs)
+    solicitacao_mes_atual = SolicitacaoMedicaoInicial.objects.create(**attrs)
+    solicitacao_mes_atual.tipos_contagem_alimentacao.set(
+        solicitacao_anterior.tipos_contagem_alimentacao.all()
+    )
+    solicitacao_mes_atual.save()
+    return solicitacao_mes_atual
 
 
 def copiar_responsaveis(solicitacao_origem, solicitacao_destino):
