@@ -76,6 +76,7 @@ from ..utils import (
     ProtocoloPadraoPagination,
     RelatorioPagination,
     filtrar_alunos_com_dietas_nos_status_e_rastro_escola,
+    trata_lotes_dict_duplicados,
 )
 from .filters import (
     AlimentoFilter,
@@ -1010,6 +1011,7 @@ class SolicitacaoDietaEspecialViewSet(
             ):
                 lotes_dres.append(tuple([f"{s[0]} - {s[2]}", s[1]]))
             lotes_dict = dict(lotes_dres)
+        lotes_dict = trata_lotes_dict_duplicados(lotes_dict)
         lotes = sorted(
             [
                 {"nome": key, "uuid": lotes_dict[key]}

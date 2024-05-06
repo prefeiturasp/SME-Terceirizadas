@@ -97,36 +97,54 @@ class DiaSobremesaDoceCreateSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
-class DiaSobremesaDoceCreateManySerializer(serializers.ModelSerializer):
+class CadastroSobremesaDoceCreateSerializer(serializers.ModelSerializer):
     tipo_unidades = serializers.SlugRelatedField(
         slug_field="uuid",
         queryset=TipoUnidadeEscolar.objects.all(),
-        many=True,
         required=True,
+        many=True,
+    )
+    editais = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Edital.objects.all(),
+        required=True,
+        many=True,
+    )
+
+    class Meta:
+        model = DiaSobremesaDoce
+        fields = ("tipo_unidades", "editais")
+
+
+class DiaSobremesaDoceCreateManySerializer(serializers.ModelSerializer):
+    cadastros_sobremesa_doce = CadastroSobremesaDoceCreateSerializer(
+        many=True, required=True
     )
 
     def create(self, validated_data):
         """Cria ou atualiza dias de sobremesa doce."""
+        DiaSobremesaDoce.objects.filter(data=validated_data["data"]).delete()
         dia_sobremesa_doce = None
-        DiaSobremesaDoce.objects.filter(data=validated_data["data"]).exclude(
-            tipo_unidade__in=validated_data["tipo_unidades"]
-        ).delete()
-        dias_sobremesa_doce = DiaSobremesaDoce.objects.filter(
-            data=validated_data["data"]
-        )
-        for tipo_unidade in validated_data["tipo_unidades"]:
-            if not dias_sobremesa_doce.filter(tipo_unidade=tipo_unidade).exists():
-                dia_sobremesa_doce = DiaSobremesaDoce(
-                    criado_por=self.context["request"].user,
-                    data=validated_data["data"],
-                    tipo_unidade=tipo_unidade,
-                )
-                dia_sobremesa_doce.save()
+        for cadastro in validated_data["cadastros_sobremesa_doce"]:
+            for tipo_unidade in cadastro["tipo_unidades"]:
+                for edital in cadastro["editais"]:
+                    if not DiaSobremesaDoce.objects.filter(
+                        data=validated_data["data"],
+                        tipo_unidade=tipo_unidade,
+                        edital=edital,
+                    ):
+                        dia_sobremesa_doce = DiaSobremesaDoce(
+                            criado_por=self.context["request"].user,
+                            data=validated_data["data"],
+                            tipo_unidade=tipo_unidade,
+                            edital=edital,
+                        )
+                        dia_sobremesa_doce.save()
         return dia_sobremesa_doce
 
     class Meta:
         model = DiaSobremesaDoce
-        fields = ("tipo_unidades", "data", "uuid")
+        fields = ("data", "uuid", "cadastros_sobremesa_doce")
 
 
 class OcorrenciaMedicaoInicialCreateSerializer(serializers.ModelSerializer):
@@ -1314,7 +1332,8 @@ class ParametrizacaoFinanceiraWriteModelSerializer(serializers.ModelSerializer):
         fields = ["edital", "lote", "tipos_unidades", "legenda", "tabelas"]
 
     def validate(self, attrs):
-        attrs = super().validate(attrs)
+        if self.instance:
+            return attrs
 
         if ParametrizacaoFinanceira.objects.filter(
             edital=attrs["edital"],
@@ -1348,3 +1367,35 @@ class ParametrizacaoFinanceiraWriteModelSerializer(serializers.ModelSerializer):
             )
 
         return parametrizacao_financeira
+
+    def update(self, instance, validated_data):
+        tabelas = validated_data.pop("tabelas")
+
+        instance = super().update(instance, validated_data)
+
+        for tabela in tabelas:
+            valores = tabela.pop("valores")
+
+            _tabela, created = ParametrizacaoFinanceiraTabela.objects.get_or_create(
+                **tabela, parametrizacao_financeira=instance
+            )
+
+            for valor in valores:
+                tipo_alimentacao_id = (
+                    valor.get("tipo_alimentacao").id
+                    if valor.get("tipo_alimentacao")
+                    else None
+                )
+                faixa_etaria_id = (
+                    valor.get("faixa_etaria").id if valor.get("faixa_etaria") else None
+                )
+
+                ParametrizacaoFinanceiraTabelaValor.objects.update_or_create(
+                    tabela=_tabela,
+                    grupo=valor.get("grupo"),
+                    tipo_alimentacao_id=tipo_alimentacao_id,
+                    faixa_etaria_id=faixa_etaria_id,
+                    defaults=valor,
+                )
+
+        return instance

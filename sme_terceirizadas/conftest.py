@@ -1,3 +1,4 @@
+import base64
 import datetime
 
 import pytest
@@ -9,6 +10,7 @@ from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
 from .imr.fixtures.factories.imr_base_factory import (
     CategoriaOcorrenciaFactory,
+    FaixaPontuacaoFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
@@ -21,9 +23,9 @@ from .pre_recebimento.fixtures.factories.cronograma_factory import (
     CronogramaFactory,
     EtapasDoCronogramaFactory,
     LaboratorioFactory,
-    UnidadeMedidaFactory,
 )
 from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import (
+    DataDeFabricaoEPrazoFactory,
     DocumentoDeRecebimentoFactory,
     TipoDeDocumentoDeRecebimentoFactory,
 )
@@ -34,6 +36,9 @@ from .pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import
 from .pre_recebimento.fixtures.factories.layout_embalagem_factory import (
     LayoutDeEmbalagemFactory,
 )
+from .pre_recebimento.fixtures.factories.unidade_medida_factory import (
+    UnidadeMedidaFactory,
+)
 from .produto.fixtures.factories.produto_factory import (
     FabricanteFactory,
     InformacaoNutricionalFactory,
@@ -42,6 +47,11 @@ from .produto.fixtures.factories.produto_factory import (
     ProdutoTerceirizadaFactory,
     TipoDeInformacaoNutricionalFactory,
 )
+from .recebimento.fixtures.factories.ficha_de_recebimento_factory import (
+    ArquivoFichaDeRecebimentoFactory,
+    FichaDeRecebimentoFactory,
+    VeiculoFichaDeRecebimentoFactory,
+)
 from .recebimento.fixtures.factories.questao_conferencia_factory import (
     QuestaoConferenciaFactory,
 )
@@ -49,6 +59,7 @@ from .recebimento.fixtures.factories.questoes_por_produto_factory import (
     QuestoesPorProdutoFactory,
 )
 from .terceirizada.fixtures.factories.terceirizada_factory import (
+    ContratoFactory,
     EditalFactory,
     EmpresaFactory,
 )
@@ -78,6 +89,12 @@ register(TipoPenalidadeFactory)
 register(TipoGravidadeFactory)
 register(CategoriaOcorrenciaFactory)
 register(TipoOcorrenciaFactory)
+register(FichaDeRecebimentoFactory)
+register(ContratoFactory)
+register(FaixaPontuacaoFactory)
+register(DataDeFabricaoEPrazoFactory)
+register(VeiculoFichaDeRecebimentoFactory)
+register(ArquivoFichaDeRecebimentoFactory)
 
 
 @pytest.fixture
@@ -101,6 +118,7 @@ def client_admin_django(client, django_user_model):
         email=email,
         registro_funcional="8888888",
         is_staff=True,
+        is_superuser=True,
     )
     client.login(username=email, password=password)
     return client
@@ -527,3 +545,15 @@ def inclusoes_normais(terceirizada, escola_um):
 @pytest.fixture
 def alteracoes_cardapio(terceirizada, escola_um):
     return mommy.make("AlteracaoCardapio")
+
+
+@pytest.fixture
+def arquivo_pdf_base64():
+    arquivo = f"data:aplication/pdf;base64,{base64.b64encode(b'arquivo pdf teste').decode('utf-8')}"
+    return arquivo
+
+
+@pytest.fixture
+def arquivo_base64():
+    arquivo = f"data:image/jpeg;base64,{base64.b64encode(b'arquivo imagem teste').decode('utf-8')}"
+    return arquivo

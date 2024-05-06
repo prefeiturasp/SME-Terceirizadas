@@ -13,5 +13,9 @@ router.register(
     "questoes-por-produto",
     viewsets.QuestoesPorProdutoModelViewSet,
 )
+router.register(
+    "rascunho-ficha-de-recebimento",
+    viewsets.FichaDeRecebimentoRascunhoViewSet,
+)
 
 urlpatterns = [path("", include(router.urls))]

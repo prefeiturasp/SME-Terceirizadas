@@ -1,10 +1,12 @@
 import datetime
+import os
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
+from django.db.models.fields.files import FileField
 
 from .constants import (
     LIMITE_INFERIOR,
@@ -59,9 +61,12 @@ class Ativavel(models.Model):
 
 
 class StatusAtivoInativo(models.Model):
+    ATIVO = "Ativo"
+    INATIVO = "Inativo"
+
     STATUS_CHOICES = (
-        (True, "Ativo"),
-        (False, "Inativo"),
+        (True, ATIVO),
+        (False, INATIVO),
     )
     status = models.BooleanField("Status", choices=STATUS_CHOICES, default=True)
 
@@ -542,6 +547,25 @@ class PerfilDiretorSupervisao(models.Model):
         null=True,
         blank=True,
     )
+
+    class Meta:
+        abstract = True
+
+
+class TemArquivosDeletaveis(models.Model):
+    """Busca campos do tipo FileField e apaga os arquivos durante ao deletar a instância"""
+
+    def delete(self, *args, **kwargs):
+        file_fields = [
+            field.name for field in self._meta.fields if isinstance(field, FileField)
+        ]
+
+        for field_name in file_fields:
+            field = getattr(self, field_name)
+            if os.path.isfile(field.path):
+                os.remove(field.path)
+
+        super().delete(*args, **kwargs)
 
     class Meta:
         abstract = True

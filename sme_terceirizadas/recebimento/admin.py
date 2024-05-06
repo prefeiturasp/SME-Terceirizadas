@@ -1,7 +1,13 @@
 from django.contrib import admin
 
 from sme_terceirizadas.recebimento.forms import QuestaoForm
-from sme_terceirizadas.recebimento.models import QuestaoConferencia, QuestoesPorProduto
+from sme_terceirizadas.recebimento.models import (
+    ArquivoFichaRecebimento,
+    FichaDeRecebimento,
+    QuestaoConferencia,
+    QuestoesPorProduto,
+    VeiculoFichaDeRecebimento,
+)
 
 
 @admin.register(QuestaoConferencia)
@@ -31,3 +37,22 @@ class QuestaoConferenciaAdmin(admin.ModelAdmin):
 class QuestoesPorProdutoAdmin(admin.ModelAdmin):
     list_display = ("ficha_tecnica",)
     filter_horizontal = ("questoes_primarias", "questoes_secundarias")
+
+
+class VeiculoFichaDeRecebimentoInline(admin.StackedInline):
+    model = VeiculoFichaDeRecebimento
+    extra = 0
+
+
+class ArquivoFichaRecebimentoInline(admin.StackedInline):
+    model = ArquivoFichaRecebimento
+    extra = 0
+
+
+@admin.register(FichaDeRecebimento)
+class FichaDeRecebimentoAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "data_entrega")
+    inlines = [
+        VeiculoFichaDeRecebimentoInline,
+        ArquivoFichaRecebimentoInline,
+    ]
