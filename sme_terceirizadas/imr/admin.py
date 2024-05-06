@@ -10,13 +10,16 @@ from sme_terceirizadas.imr.api.services import (
     exportar_planilha_importacao_tipos_penalidade,
 )
 from sme_terceirizadas.imr.models import (
+    AnexosFormularioBase,
     CategoriaOcorrencia,
+    EditalUtensilioMesa,
     FaixaPontuacaoIMR,
     FormularioDiretor,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
     ImportacaoPlanilhaTipoOcorrencia,
     ImportacaoPlanilhaTipoPenalidade,
+    NotificacoesAssinadasFormularioBase,
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
@@ -36,7 +39,6 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
     UtensilioMesa,
-    EditalUtensilioMesa
 )
 from utility.carga_dados.imr.importa_dados import (
     importa_tipos_ocorrencia,
@@ -61,6 +63,7 @@ class TipoPenalidadeAdmin(admin.ModelAdmin):
     )
     ordering = ("criado_em",)
     search_fields = ("numero_clausula",)
+    search_help_text = "Pesquise por: número da cláusula"
     list_filter = (
         "edital",
         "gravidade",
@@ -144,6 +147,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
     )
     ordering = ("criado_em",)
     search_fields = ("titulo",)
+    search_help_text = "Pesquise por: título"
     list_filter = (
         "edital",
         ("categoria__nome", custom_titled_filter("Categoria")),
@@ -161,8 +165,9 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
 
 @admin.register(CategoriaOcorrencia)
 class CategoriaOcorrenciaAdmin(admin.ModelAdmin):
-    list_display = ("nome", "posicao", "perfis")
+    list_display = ("nome", "posicao", "perfis", "gera_notificacao")
     ordering = ("posicao", "criado_em")
+    list_filter = ("gera_notificacao",)
     form = PerfisMultipleChoiceForm
 
 
@@ -227,7 +232,8 @@ class PerfisFilter(admin.SimpleListFilter):
 class ParametrizacaoAdmin(admin.ModelAdmin):
     list_display = ("edital", "titulo", "tipo_pergunta", "perfis")
     ordering = ("criado_em",)
-    search_fields = ("edital", "titulo")
+    search_fields = ("edital__numero", "titulo")
+    search_help_text = "Pesquise por: número do edital, título"
     list_filter = ("tipo_ocorrencia__edital", PerfisFilter)
     autocomplete_fields = ("tipo_ocorrencia",)
 
@@ -317,6 +323,16 @@ class RespostaNaoSeAplicaInline(admin.TabularInline):
     extra = 0
 
 
+class AnexosFormularioBaseInline(admin.TabularInline):
+    model = AnexosFormularioBase
+    extra = 0
+
+
+class NotificacoesAssinadasFormularioBaseInline(admin.TabularInline):
+    model = NotificacoesAssinadasFormularioBase
+    extra = 0
+
+
 @admin.register(FormularioOcorrenciasBase)
 class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
     inlines = [
@@ -332,6 +348,8 @@ class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
         RespostaTipoAlimentacaoInline,
         RespostaSimNaoNaoSeAplicaInline,
         RespostaNaoSeAplicaInline,
+        AnexosFormularioBaseInline,
+        NotificacoesAssinadasFormularioBaseInline,
     ]
     list_filter = (TipoFormularioFilter, ("data", DateRangeFilter))
 
@@ -376,19 +394,18 @@ class UtensilioMesaAdmin(admin.ModelAdmin):
         "status",
     )
     readonly_fields = ("uuid", "criado_em", "alterado_em")
-    search_fields = ("nome", )
-    list_filter = ("status", )
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome"
+    list_filter = ("status",)
 
 
 @admin.register(EditalUtensilioMesa)
 class EditalUtensilioMesaAdmin(admin.ModelAdmin):
-    filter_horizontal = ('utensilios_mesa', )
+    filter_horizontal = ("utensilios_mesa",)
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     autocomplete_fields = ("edital",)
-    search_fields = (
-        "edital__numero",
-    )
-    search_help_text = "Pesquise por: número de edital"
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
 
 
 admin.site.register(TipoGravidade)
