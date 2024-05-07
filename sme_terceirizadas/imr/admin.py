@@ -389,16 +389,31 @@ class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
     form = FaixaPontuacaoIMRForm
 
 
+class UtensilioMesaAdminForm(forms.ModelForm):
+    class Meta:
+        model = UtensilioMesa
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome do Utensílio de Mesa'
+        }
+
+
 @admin.register(UtensilioMesa)
 class UtensilioMesaAdmin(admin.ModelAdmin):
+    form = UtensilioMesaAdminForm
     list_display = (
-        "nome",
+        "nome_label",
         "status",
     )
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     search_fields = ("nome",)
-    search_help_text = "Pesquise por: nome"
+    search_help_text = "Pesquise por: nome do utensílio de mesa"
     list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Nome do Utensílio de Mesa"
 
 
 @admin.register(EditalUtensilioMesa)
