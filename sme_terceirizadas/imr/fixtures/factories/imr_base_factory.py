@@ -83,7 +83,4 @@ class EquipamentoFactory(DjangoModelFactory):
     class Meta:
         model = Equipamento
 
-    class Meta:
-        model = UtensilioCozinha
-
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
