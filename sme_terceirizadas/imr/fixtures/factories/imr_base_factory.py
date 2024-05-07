@@ -8,7 +8,8 @@ from sme_terceirizadas.imr.models import (
     TipoOcorrencia,
     TipoPenalidade,
     UtensilioMesa,
-    UtensilioCozinha
+    UtensilioCozinha,
+    Equipamento
 )
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EditalFactory,
@@ -70,6 +71,17 @@ class UtensilioMesaFactory(DjangoModelFactory):
 
 
 class UtensilioCozinhaFactory(DjangoModelFactory):
+
+    class Meta:
+        model = UtensilioCozinha
+
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EquipamentoFactory(DjangoModelFactory):
+
+    class Meta:
+        model = Equipamento
 
     class Meta:
         model = UtensilioCozinha
