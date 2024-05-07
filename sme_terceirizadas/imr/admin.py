@@ -427,16 +427,32 @@ class EditalUtensilioMesaAdmin(admin.ModelAdmin):
     search_help_text = "Pesquise por: número do edital"
 
 
+class UtensilioCozinhaAdminForm(forms.ModelForm):
+    class Meta:
+        model = UtensilioCozinha
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome do Utensílio de Cozinha'
+        }
+
+
 @admin.register(UtensilioCozinha)
 class UtensilioCozinhaAdmin(admin.ModelAdmin):
+    form = UtensilioCozinhaAdminForm
+
     list_display = (
-        "nome",
+        "nome_label",
         "status",
     )
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     search_fields = ("nome",)
-    search_help_text = "Pesquise por: nome"
+    search_help_text = "Pesquise por: nome do utensílio de cozinha"
     list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Nome do Utensílio de Cozinha"
 
 
 @admin.register(EditalUtensilioCozinha)
