@@ -749,3 +749,33 @@ class EditalUtensilioMesa(ModeloBase):
     class Meta:
         verbose_name = "Utensílio de Mesa Por Edital"
         verbose_name_plural = "Utensílios de Mesa Por Edital"
+
+
+class UtensilioCozinha(ModeloBase, Nomeavel, StatusAtivoInativo):
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Utensílio de Cozinha"
+        verbose_name_plural = "Utensílios de Cozinha"
+        ordering = ("nome",)
+
+
+class EditalUtensilioCozinha(ModeloBase):
+    edital = models.ForeignKey(
+        "terceirizada.Edital",
+        on_delete=models.PROTECT,
+    )
+
+    utensilios_cozinha = models.ManyToManyField(
+        "UtensilioCozinha",
+        verbose_name="Utensílios de Cozinha",
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"Edital: {self.edital} - {self.utensilios_cozinha.count()} utensílios"
+
+    class Meta:
+        verbose_name = "Utensílio de Cozinha Por Edital"
+        verbose_name_plural = "Utensílios de Cozinha Por Edital"
