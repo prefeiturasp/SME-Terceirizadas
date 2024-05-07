@@ -13,6 +13,7 @@ from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
     EditalUtensilioMesa,
+    EditalUtensilioCozinha,
     FaixaPontuacaoIMR,
     FormularioDiretor,
     FormularioOcorrenciasBase,
@@ -39,6 +40,7 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
     UtensilioMesa,
+    UtensilioCozinha
 )
 from utility.carga_dados.imr.importa_dados import (
     importa_tipos_ocorrencia,
@@ -419,6 +421,27 @@ class UtensilioMesaAdmin(admin.ModelAdmin):
 @admin.register(EditalUtensilioMesa)
 class EditalUtensilioMesaAdmin(admin.ModelAdmin):
     filter_horizontal = ("utensilios_mesa",)
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
+
+
+@admin.register(UtensilioCozinha)
+class UtensilioCozinhaAdmin(admin.ModelAdmin):
+    list_display = (
+        "nome",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome"
+    list_filter = ("status",)
+
+
+@admin.register(EditalUtensilioCozinha)
+class EditalUtensilioCozinhaAdmin(admin.ModelAdmin):
+    filter_horizontal = ("utensilios_cozinha",)
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     autocomplete_fields = ("edital",)
     search_fields = ("edital__numero",)
