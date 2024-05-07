@@ -569,3 +569,10 @@ class TemArquivosDeletaveis(models.Model):
 
     class Meta:
         abstract = True
+
+
+class Grupo(models.Model):
+    grupo = models.PositiveSmallIntegerField("Grupo de respostas", default=1)
+
+    class Meta:
+        abstract = True
