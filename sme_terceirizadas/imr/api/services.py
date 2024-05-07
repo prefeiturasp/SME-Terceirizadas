@@ -98,11 +98,12 @@ def exportar_planilha_importacao_tipos_ocorrencia(request, **kwargs):
         "Tolerância",
         "% de Desconto",
         "Status",
+        "Aceita múltiplas respostas?",
     ]
     sheet = workbook["Tipos de Ocorrência"]
     for column in "ABCHIJKL":
         sheet.column_dimensions[column].width = 20
-    for column in "EF":
+    for column in "EFM":
         sheet.column_dimensions[column].width = 35
     for column in "DG":
         sheet.column_dimensions[column].width = 50
@@ -161,6 +162,12 @@ def exportar_planilha_importacao_tipos_ocorrencia(request, **kwargs):
     dv5.errorTitle = "Status não permitido"
     ws.add_data_validation(dv5)
     dv5.add("L2:L1048576")
+
+    dv6 = DataValidation(type="list", formula1='"Sim,Não"', allow_blank=True)
+    dv6.error = "Valor Inválido"
+    dv6.errorTitle = "Valor não permitido"
+    ws.add_data_validation(dv6)
+    dv6.add("M2:M1048576")
 
     workbook.save(response)
 

@@ -60,6 +60,7 @@ class ImportacaoPlanilhaTipoOcorrenciaSchema(BaseModel):
     tolerancia: Optional[str]
     porcentagem_desconto: Optional[str]
     status: Optional[str]
+    aceita_multiplas_respostas: Optional[str]
 
     @classmethod
     def checa_vazio(cls, value, nome_parametro):
@@ -138,4 +139,9 @@ class ImportacaoPlanilhaTipoOcorrenciaSchema(BaseModel):
     @validator("status")
     def valida_status(cls, value):
         cls.checa_vazio(value, "Status")
+        return value.strip()
+
+    @validator("aceita_multiplas_respostas")
+    def valida_aceita_multiplas_respostas(cls, value):
+        cls.checa_vazio(value, "Aceita múltiplas respostas")
         return value.strip()

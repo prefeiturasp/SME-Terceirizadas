@@ -116,6 +116,14 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
 class TipoOcorrencia(
     ModeloBase, CriadoPor, Posicao, PerfilDiretorSupervisao, StatusAtivoInativo
 ):
+    SIM = "Sim"
+    NAO = "Não"
+
+    CHOICES = (
+        (True, SIM),
+        (False, NAO),
+    )
+
     edital = models.ForeignKey(
         "terceirizada.Edital",
         on_delete=models.PROTECT,
@@ -148,6 +156,9 @@ class TipoOcorrencia(
             "Caso a opção de É IMR? esteja marcada a % de desconto incidirá sobre a reincidência dos apontamentos. "
             "Se não for marcada a opção de É IMR?, a % de desconto será referente a multa da penalidade."
         ),
+    )
+    aceita_multiplas_respostas = models.BooleanField(
+        "Aceita múltiplas respostas?", choices=CHOICES, default=False
     )
 
     def __str__(self):

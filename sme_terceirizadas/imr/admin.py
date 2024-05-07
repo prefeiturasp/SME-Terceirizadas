@@ -144,6 +144,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
         "pontuacao",
         "perfis",
         "status",
+        "aceita_multiplas_respostas",
     )
     ordering = ("criado_em",)
     search_fields = ("titulo",)
@@ -152,6 +153,7 @@ class TipoOcorrenciaAdmin(admin.ModelAdmin):
         "edital",
         ("categoria__nome", custom_titled_filter("Categoria")),
         "status",
+        "aceita_multiplas_respostas",
     )
     readonly_fields = ("uuid", "criado_em", "criado_por", "alterado_em")
     autocomplete_fields = ("edital", "penalidade")
