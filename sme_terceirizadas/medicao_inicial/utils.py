@@ -41,6 +41,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     SolicitacaoMedicaoInicial,
     ValorMedicao,
 )
+from sme_terceirizadas.terceirizada.models import Edital
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
 
 logger = logging.getLogger(__name__)
@@ -1115,7 +1116,11 @@ def get_numero_campos(tabela, periodo_corrente, categoria_corrente):
         lambda x, y: x + y, len_categorias[:indice_categoria], 0
     )
 
-    indice_inicial = soma_periodos_anteriores if indice_categoria else 0
+    indice_inicial = (
+        soma_periodos_anteriores
+        if (indice_categoria and len(tabela["faixas_etarias"]) == 0)
+        else 0
+    )
     indice_final = len_categoria_corrente + soma_periodos_anteriores
 
     return indice_inicial, indice_final
@@ -1240,7 +1245,16 @@ def popula_campo_total_refeicoes_pagamento(
                 or solicitacao.escola.eh_cemei
                 or eh_emebs_infantil
             ):
-                valores_dia += [int(valor_refeicao) + int(valor_segunda_refeicao)]
+                valores_dia = get_valor_total_emei_cemei(
+                    solicitacao,
+                    valores_dia,
+                    valor_refeicao,
+                    valor_repeticao_refeicao,
+                    valor_segunda_refeicao,
+                    valor_repeticao_segunda_refeicao,
+                    valor_matriculados,
+                    valor_numero_de_alunos,
+                )
             else:
                 total_refeicao = (
                     int(valor_refeicao)
@@ -1257,6 +1271,38 @@ def popula_campo_total_refeicoes_pagamento(
                 valores_dia += [total_refeicao]
         except Exception:
             valores_dia += ["0"]
+
+
+def get_valor_total_emei_cemei(
+    solicitacao,
+    valores_dia,
+    valor_refeicao,
+    valor_repeticao_refeicao,
+    valor_segunda_refeicao,
+    valor_repeticao_segunda_refeicao,
+    valor_matriculados,
+    valor_numero_de_alunos,
+):
+    editais = Edital.objects.filter(uuid__in=solicitacao.escola.editais)
+    tem_edital_imr = editais.filter(eh_imr=True).exists()
+
+    if tem_edital_imr and (solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei):
+        total_refeicao = (
+            int(valor_refeicao)
+            + int(valor_repeticao_refeicao)
+            + int(valor_segunda_refeicao)
+            + int(valor_repeticao_segunda_refeicao)
+        )
+        valor_comparativo = (
+            valor_matriculados
+            if int(valor_matriculados) > 0
+            else valor_numero_de_alunos
+        )
+        total_refeicao = min(int(total_refeicao), int(valor_comparativo))
+        valores_dia += [total_refeicao]
+    else:
+        valores_dia += [int(valor_refeicao) + int(valor_segunda_refeicao)]
+    return valores_dia
 
 
 def get_valor_campo(
@@ -1423,7 +1469,16 @@ def popula_campo_total_sobremesas_pagamento(
                 or solicitacao.escola.eh_cemei
                 or eh_emebs_infantil
             ):
-                valores_dia += [int(valor_sobremesa) + int(valor_segunda_sobremesa)]
+                valores_dia = get_valor_total_emei_cemei(
+                    solicitacao,
+                    valores_dia,
+                    valor_sobremesa,
+                    valor_repeticao_sobremesa,
+                    valor_segunda_sobremesa,
+                    valor_repeticao_segunda_sobremesa,
+                    valor_matriculados,
+                    valor_numero_de_alunos,
+                )
             else:
                 total_sobremesa = (
                     int(valor_sobremesa)
@@ -2569,41 +2624,40 @@ def somar_valores_semelhantes(
     dict_total_sobremesas,
     tipo_turma=None,
 ):
-    if not solicitacao.escola.eh_emei:
-        medicao_nome = get_medicao_nome(solicitacao, medicao, tipo_turma)
+    medicao_nome = get_medicao_nome(solicitacao, medicao, tipo_turma)
 
-        if campo == "refeicao":
-            if medicao_nome in dict_total_refeicoes.keys():
-                values = dict_total_refeicoes[medicao_nome]
-            else:
-                values_repeticao_refeicao = medicao.valores_medicao.filter(
-                    categoria_medicao__nome="ALIMENTAÇÃO",
-                    nome_campo__in=[
-                        "repeticao_refeicao",
-                        "2_refeicao_1_oferta",
-                        "repeticao_2_refeicao",
-                    ],
-                    infantil_ou_fundamental=(
-                        tipo_turma if tipo_turma is not None else "N/A"
-                    ),
-                )
-                values = values | values_repeticao_refeicao
-        if campo == "sobremesa":
-            if medicao_nome in dict_total_sobremesas.keys():
-                values = dict_total_sobremesas[medicao_nome]
-            else:
-                values_repeticao_sobremesa = medicao.valores_medicao.filter(
-                    categoria_medicao__nome="ALIMENTAÇÃO",
-                    nome_campo__in=[
-                        "repeticao_sobremesa",
-                        "2_sobremesa_1_oferta",
-                        "repeticao_2_sobremesa",
-                    ],
-                    infantil_ou_fundamental=(
-                        tipo_turma if tipo_turma is not None else "N/A"
-                    ),
-                )
-                values = values | values_repeticao_sobremesa
+    if campo == "refeicao":
+        if medicao_nome in dict_total_refeicoes.keys():
+            values = dict_total_refeicoes[medicao_nome]
+        else:
+            values_repeticao_refeicao = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=[
+                    "repeticao_refeicao",
+                    "2_refeicao_1_oferta",
+                    "repeticao_2_refeicao",
+                ],
+                infantil_ou_fundamental=(
+                    tipo_turma if tipo_turma is not None else "N/A"
+                ),
+            )
+            values = values | values_repeticao_refeicao
+    if campo == "sobremesa":
+        if medicao_nome in dict_total_sobremesas.keys():
+            values = dict_total_sobremesas[medicao_nome]
+        else:
+            values_repeticao_sobremesa = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=[
+                    "repeticao_sobremesa",
+                    "2_sobremesa_1_oferta",
+                    "repeticao_2_sobremesa",
+                ],
+                infantil_ou_fundamental=(
+                    tipo_turma if tipo_turma is not None else "N/A"
+                ),
+            )
+            values = values | values_repeticao_sobremesa
     values = somar_lanches(values, medicao, campo, tipo_turma)
     return values
 
@@ -3568,9 +3622,9 @@ def gerar_dicionario_e_buscar_valores_medicao(data, medicao):
             valor_medicao.exists()
             and valor_medicao.first().valor != valor_atualizado.get("valor")
         ):
-            dicionario_alteracoes[
-                str(valor_medicao.first().uuid)
-            ] = valor_atualizado.get("valor")
+            dicionario_alteracoes[str(valor_medicao.first().uuid)] = (
+                valor_atualizado.get("valor")
+            )
 
     valores_medicao = ValorMedicao.objects.filter(uuid__in=dicionario_alteracoes.keys())
     return dicionario_alteracoes, valores_medicao
