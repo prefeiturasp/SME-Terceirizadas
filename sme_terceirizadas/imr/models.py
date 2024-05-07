@@ -14,6 +14,7 @@ from ..cardapio.models import TipoAlimentacao
 from ..dados_comuns.behaviors import (
     ArquivoCargaBase,
     CriadoPor,
+    Grupo,
     ModeloBase,
     Nomeavel,
     PerfilDiretorSupervisao,
@@ -397,7 +398,7 @@ class FormularioSupervisao(ModeloBase):
         verbose_name_plural = "Formulários da Supervisão - Ocorrências"
 
 
-class RespostaSimNao(ModeloBase):
+class RespostaSimNao(ModeloBase, Grupo):
     SIM = "Sim"
     NAO = "Não"
 
@@ -422,9 +423,10 @@ class RespostaSimNao(ModeloBase):
     class Meta:
         verbose_name = "Resposta Sim/Não"
         verbose_name_plural = "Respostas Sim/Não"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaCampoNumerico(ModeloBase):
+class RespostaCampoNumerico(ModeloBase, Grupo):
     resposta = models.FloatField()
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
@@ -445,9 +447,10 @@ class RespostaCampoNumerico(ModeloBase):
     class Meta:
         verbose_name = "Resposta Campo Numérico"
         verbose_name_plural = "Respostas Campo Numérico"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaCampoTextoSimples(ModeloBase):
+class RespostaCampoTextoSimples(ModeloBase, Grupo):
     resposta = models.CharField(max_length=500)
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
@@ -468,9 +471,10 @@ class RespostaCampoTextoSimples(ModeloBase):
     class Meta:
         verbose_name = "Resposta Campo Texto Simples"
         verbose_name_plural = "Respostas Campo Texto Simples"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaCampoTextoLongo(ModeloBase):
+class RespostaCampoTextoLongo(ModeloBase, Grupo):
     resposta = models.TextField()
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
@@ -491,9 +495,10 @@ class RespostaCampoTextoLongo(ModeloBase):
     class Meta:
         verbose_name = "Resposta Campo Texto Longo"
         verbose_name_plural = "Respostas Campo Texto Longo"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaDatas(ModeloBase):
+class RespostaDatas(ModeloBase, Grupo):
     resposta = ArrayField(models.DateField())
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
@@ -514,9 +519,10 @@ class RespostaDatas(ModeloBase):
     class Meta:
         verbose_name = "Resposta Datas"
         verbose_name_plural = "Respostas Datas"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaPeriodo(ModeloBase):
+class RespostaPeriodo(ModeloBase, Grupo):
     resposta = models.ForeignKey(
         PeriodoEscolar,
         on_delete=models.PROTECT,
@@ -541,9 +547,10 @@ class RespostaPeriodo(ModeloBase):
     class Meta:
         verbose_name = "Resposta Período"
         verbose_name_plural = "Respostas Período"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaFaixaEtaria(ModeloBase):
+class RespostaFaixaEtaria(ModeloBase, Grupo):
     resposta = models.ForeignKey(
         FaixaEtaria,
         on_delete=models.PROTECT,
@@ -568,9 +575,10 @@ class RespostaFaixaEtaria(ModeloBase):
     class Meta:
         verbose_name = "Resposta Faixa Etária"
         verbose_name_plural = "Respostas Faixa Etária"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaTipoAlimentacao(ModeloBase):
+class RespostaTipoAlimentacao(ModeloBase, Grupo):
     resposta = models.ForeignKey(
         TipoAlimentacao,
         on_delete=models.PROTECT,
@@ -595,9 +603,10 @@ class RespostaTipoAlimentacao(ModeloBase):
     class Meta:
         verbose_name = "Resposta Tipo Alimentação"
         verbose_name_plural = "Respostas Tipo Alimentação"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaSimNaoNaoSeAplica(ModeloBase):
+class RespostaSimNaoNaoSeAplica(ModeloBase, Grupo):
     SIM = "Sim"
     NAO = "Não"
     NAO_SE_APLICA = "Não se aplica"
@@ -623,9 +632,10 @@ class RespostaSimNaoNaoSeAplica(ModeloBase):
     class Meta:
         verbose_name = "Resposta Sim/Não/Não se aplica"
         verbose_name_plural = "Respostas Sim/Não/Não se aplica"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaNaoSeAplica(ModeloBase):
+class RespostaNaoSeAplica(ModeloBase, Grupo):
     resposta = models.TextField("Descrição", blank=True)
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
@@ -646,6 +656,7 @@ class RespostaNaoSeAplica(ModeloBase):
     class Meta:
         verbose_name = "Resposta Não se aplica"
         verbose_name_plural = "Respostas Não se aplica"
+        unique_together = ("formulario_base", "tipo_ocorrencia", "grupo")
 
 
 class FaixaPontuacaoIMR(ModeloBase):
