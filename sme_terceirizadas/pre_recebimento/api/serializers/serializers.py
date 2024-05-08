@@ -510,6 +510,105 @@ class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
         )
 
 
+class EtapaCronogramaRelatorioSerializer(serializers.ModelSerializer):
+    numero_cronograma = serializers.SerializerMethodField()
+    produto = serializers.SerializerMethodField()
+    empresa = serializers.SerializerMethodField()
+    marca = serializers.SerializerMethodField()
+    qtd_total_programada = serializers.SerializerMethodField()
+    unidade_medida = serializers.SerializerMethodField()
+    custo_unitario_produto = serializers.SerializerMethodField()
+    armazem = serializers.SerializerMethodField()
+    status_cronograma = serializers.SerializerMethodField()
+    total_embalagens = serializers.SerializerMethodField()
+    situacao = serializers.SerializerMethodField()
+
+    def get_numero_cronograma(self, obj):
+        try:
+            return obj.cronograma.numero
+        except AttributeError:
+            return "-"
+
+    def get_produto(self, obj):
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return "-"
+
+    def get_empresa(self, obj):
+        try:
+            return obj.cronograma.empresa.nome_fantasia
+        except AttributeError:
+            return "-"
+
+    def get_marca(self, obj):
+        try:
+            return obj.cronograma.ficha_tecnica.marca.nome
+        except AttributeError:
+            return "-"
+
+    def get_qtd_total_programada(self, obj):
+        try:
+            return obj.cronograma.qtd_total_programada
+        except AttributeError:
+            return "-"
+
+    def get_unidade_medida(self, obj):
+        try:
+            return obj.cronograma.unidade_medida.abreviacao
+        except AttributeError:
+            return "-"
+
+    def get_custo_unitario_produto(self, obj):
+        return (
+            f"R$ {numero_com_agrupador_de_milhar_e_decimal(obj.cronograma.custo_unitario_produto)}"
+            if obj.cronograma.custo_unitario_produto
+            else "-"
+        )
+
+    def get_armazem(self, obj):
+        try:
+            return obj.cronograma.armazem.nome_fantasia
+        except AttributeError:
+            return "-"
+
+    def get_status_cronograma(self, obj):
+        try:
+            return obj.cronograma.get_status_display()
+        except AttributeError:
+            return "-"
+
+    def get_total_embalagens(self, obj):
+        try:
+            return f"{obj.total_embalagens} {obj.cronograma.tipo_embalagem_secundaria.abreviacao}"
+
+        except AttributeError:
+            return "-"
+
+    def get_situacao(self, obj):
+        return "-"
+
+    class Meta:
+        model = EtapasDoCronograma
+        fields = (
+            "numero_cronograma",
+            "produto",
+            "empresa",
+            "marca",
+            "qtd_total_programada",
+            "unidade_medida",
+            "custo_unitario_produto",
+            "armazem",
+            "status_cronograma",
+            "etapa",
+            "parte",
+            "data_programada",
+            "quantidade",
+            "total_embalagens",
+            "situacao",
+        )
+
+
 class PainelCronogramaSerializer(serializers.ModelSerializer):
     produto = serializers.SerializerMethodField()
     empresa = serializers.SerializerMethodField()
