@@ -314,6 +314,14 @@ USUARIOS = [
         "nome": "USUARIO RELATORIOS",
         "cargo": "Coordenador",
     },
+    {
+        "email": "usariogticcodae@admin.com",
+        "password": DJANGO_ADMIN_PASSWORD,
+        "cpf": "61583337865",
+        "registro_funcional": "1242099",
+        "nome": "USUÁRIO GTIC CODAE",
+        "cargo": "Coordenador",
+    },
 ]
 
 
