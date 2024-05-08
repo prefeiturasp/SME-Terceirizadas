@@ -31,6 +31,7 @@ from .constants import (
     DIRETOR_UE,
     ORGAO_FISCALIZADOR,
     PARCEIRA,
+    USUARIO_GTIC_CODAE,
     USUARIO_RELATORIOS,
 )
 
@@ -228,6 +229,19 @@ class UsuarioCODAEGabinete(BasePermission):
             and usuario.vinculo_atual
             and isinstance(usuario.vinculo_atual.instituicao, Codae)
             and usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_GABINETE]
+        )
+
+
+class UsuarioGticCODAE(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - GTIC."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome in [USUARIO_GTIC_CODAE]
         )
 
 
@@ -500,6 +514,7 @@ class UsuarioPodeAlterarVinculo(BasePermission):
                 COORDENADOR_CODAE_DILOG_LOGISTICA,
                 COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                 ADMINISTRADOR_REPRESENTANTE_CODAE,
+                USUARIO_GTIC_CODAE,
             ]
             or usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]
         )
@@ -522,6 +537,7 @@ class UsuarioPodeFinalizarVinculo(BasePermission):
                 COORDENADOR_DIETA_ESPECIAL,
                 COORDENADOR_GESTAO_PRODUTO,
                 COORDENADOR_SUPERVISAO_NUTRICAO,
+                USUARIO_GTIC_CODAE,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional)
             and usuario.vinculo_atual.perfil.nome in [COGESTOR_DRE]
@@ -562,6 +578,7 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
                 COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                 ADMINISTRADOR_REPRESENTANTE_CODAE,
                 COORDENADOR_SUPERVISAO_NUTRICAO,
+                USUARIO_GTIC_CODAE,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, Escola)
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]
@@ -589,6 +606,7 @@ class PermissaoParaListarVinculosAtivos(BasePermission):
                 COORDENADOR_SUPERVISAO_NUTRICAO,
                 ADMINISTRADOR_CODAE_GABINETE,
                 DILOG_DIRETORIA,
+                USUARIO_GTIC_CODAE,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, Escola)
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]

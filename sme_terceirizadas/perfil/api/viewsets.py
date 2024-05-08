@@ -30,6 +30,7 @@ from ...dados_comuns.constants import (
 from ...dados_comuns.permissions import (
     PermissaoParaCriarUsuarioComCoresso,
     PermissaoParaListarVinculosAtivos,
+    UsuarioGticCODAE,
     UsuarioPodeAlterarVinculo,
     UsuarioPodeFinalizarVinculo,
     UsuarioSuperCodae,
@@ -660,7 +661,7 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
 
     @action(
         detail=True,
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         url_path="alterar-email",
         methods=["patch"],
     )
@@ -711,7 +712,7 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = (UsuarioSuperCodae,)
+    permission_classes = [UsuarioSuperCodae | UsuarioGticCODAE]
     lookup_field = "uuid"
     queryset = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.all().order_by(
         "-criado_em"
@@ -730,7 +731,7 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         url_path="download-planilha-servidor",
     )
     def exportar_planilha_servidor(self, request):
@@ -738,7 +739,7 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
 
     @action(
         detail=True,
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         methods=["post"],
         url_path="processar-importacao",
     )
@@ -765,7 +766,7 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
 
     @action(
         detail=True,
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         methods=["patch"],
         url_path="remover",
     )
@@ -790,7 +791,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = (UsuarioSuperCodae,)
+    permission_classes = [UsuarioSuperCodae | UsuarioGticCODAE]
     lookup_field = "uuid"
     queryset = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.all().order_by(
         "-criado_em"
@@ -809,7 +810,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         url_path="download-planilha-nao-servidor",
     )
     def exportar_planilha_externos(self, request):
@@ -817,7 +818,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
 
     @action(
         detail=True,
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         methods=["post"],
         url_path="processar-importacao",
     )
@@ -845,7 +846,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
 
     @action(
         detail=True,
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         methods=["patch"],
         url_path="remover",
     )
@@ -870,7 +871,7 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = (UsuarioSuperCodae,)
+    permission_classes = [UsuarioSuperCodae | UsuarioGticCODAE]
     lookup_field = "uuid"
     queryset = ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.objects.all().order_by(
         "-criado_em"
@@ -889,7 +890,7 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         url_path="download-planilha-ue-parceira",
     )
     def exportar_planilha_ue_parceira(self, request):
@@ -897,7 +898,7 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
 
     @action(
         detail=True,
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         methods=["post"],
         url_path="processar-importacao",
     )
@@ -924,7 +925,7 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
 
     @action(
         detail=True,
-        permission_classes=(UsuarioSuperCodae,),
+        permission_classes=[UsuarioSuperCodae | UsuarioGticCODAE],
         methods=["patch"],
         url_path="remover",
     )
