@@ -39,6 +39,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaDashboardDocumentosDeRecebimento,
     PermissaoParaDashboardFichaTecnica,
     PermissaoParaDashboardLayoutEmbalagem,
+    PermissaoParaGerarRelatorioCronogramas,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCalendarioCronograma,
     PermissaoParaVisualizarCronograma,
@@ -133,6 +134,9 @@ from sme_terceirizadas.pre_recebimento.models import (
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
     UnidadeMedida,
+)
+from sme_terceirizadas.pre_recebimento.tasks import (
+    gerar_relatorio_cronogramas_xlsx_async,
 )
 
 from ...dados_comuns.api.paginations import DefaultPagination
@@ -465,6 +469,23 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     def dados_cronograma_ficha_recebimento(self, request, uuid):
         return Response(
             {"results": CronogramaFichaDeRecebimentoSerializer(self.get_object()).data}
+        )
+
+    @action(
+        detail=False,
+        permission_classes=(PermissaoParaGerarRelatorioCronogramas,),
+        methods=["GET"],
+        url_path="gerar-relatorio-xlsx-async",
+    )
+    def gerar_relatorio_xlsx_async(self, request):
+        user_id = request.user.id
+        filters = request.GET
+
+        gerar_relatorio_cronogramas_xlsx_async.delay(user_id, filters)
+
+        return Response(
+            {"detail": "Solicitação de geração de arquivo recebida com sucesso."},
+            status=HTTP_200_OK,
         )
 
 
