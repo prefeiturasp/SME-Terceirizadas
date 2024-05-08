@@ -17,6 +17,7 @@ from sme_terceirizadas.dados_comuns.fluxo_status import (
     FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
 )
+from sme_terceirizadas.dados_comuns.models import CentralDeDownload
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     FichaTecnicaComAnaliseDetalharSerializer,
@@ -515,6 +516,20 @@ def test_url_endpoint_cronograma_editar(
     obj = Cronograma.objects.last()
     assert cronograma_rascunho.status == "RASCUNHO"
     assert obj.status == "ASSINADO_E_ENVIADO_AO_FORNECEDOR"
+
+
+def test_url_cronograma_gerar_relatorio_xlsx_async(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.get(
+        "/cronogramas/gerar-relatorio-xlsx-async/"
+    )
+
+    obj_central_download = CentralDeDownload.objects.first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert obj_central_download is not None
+    assert obj_central_download.status == CentralDeDownload.STATUS_CONCLUIDO
+    assert obj_central_download.arquivo is not None
+    assert obj_central_download.arquivo.size > 0
 
 
 def test_url_endpoint_laboratorio(client_autenticado_qualidade):
