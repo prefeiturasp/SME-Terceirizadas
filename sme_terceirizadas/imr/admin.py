@@ -12,6 +12,7 @@ from sme_terceirizadas.imr.api.services import (
 from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
+    EditalMobiliario,
     EditalUtensilioMesa,
     EditalUtensilioCozinha,
     Equipamento,
@@ -22,6 +23,7 @@ from sme_terceirizadas.imr.models import (
     FormularioSupervisao,
     ImportacaoPlanilhaTipoOcorrencia,
     ImportacaoPlanilhaTipoPenalidade,
+    Mobiliario,
     NotificacoesAssinadasFormularioBase,
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
@@ -498,6 +500,43 @@ class EquipamentoAdmin(admin.ModelAdmin):
 @admin.register(EditalEquipamento)
 class EditalEquipamentoAdmin(admin.ModelAdmin):
     filter_horizontal = ("equipamentos",)
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
+
+
+class MobiliarioAdminForm(forms.ModelForm):
+    class Meta:
+        model = Mobiliario
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome do Mobiliário'
+        }
+
+
+@admin.register(Mobiliario)
+class MobiliarioAdmin(admin.ModelAdmin):
+    form = MobiliarioAdminForm
+
+    list_display = (
+        "nome_label",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome do mobiliário"
+    list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Nome do Mobiliário"
+
+
+@admin.register(EditalMobiliario)
+class EditalMobiliarioAdmin(admin.ModelAdmin):
+    filter_horizontal = ("mobiliarios",)
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     autocomplete_fields = ("edital",)
     search_fields = ("edital__numero",)
