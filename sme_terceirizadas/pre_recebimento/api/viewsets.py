@@ -46,6 +46,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarDocumentosDeRecebimento,
     PermissaoParaVisualizarFichaTecnica,
     PermissaoParaVisualizarLayoutDeEmbalagem,
+    PermissaoParaVisualizarRelatorioCronograma,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     PermissaoParaVisualizarUnidadesMedida,
     UsuarioEhDilogQualidade,
@@ -91,6 +92,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
     CronogramaFichaDeRecebimentoSerializer,
     CronogramaRascunhosSerializer,
+    CronogramaRelatorioSerializer,
     CronogramaSerializer,
     CronogramaSimplesSerializer,
     DocRecebimentoDetalharCodaeSerializer,
@@ -306,6 +308,25 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             return response
 
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(
+        detail=False,
+        permission_classes=(PermissaoParaVisualizarRelatorioCronograma,),
+        methods=["GET"],
+        url_path="listagem-relatorio",
+    )
+    def lista_relatorio(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.order_by("-alterado_em").distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = CronogramaRelatorioSerializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return response
+
+        serializer = CronogramaRelatorioSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, url_path="opcoes-etapas")

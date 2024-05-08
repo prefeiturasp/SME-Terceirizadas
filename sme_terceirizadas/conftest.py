@@ -14,6 +14,9 @@ from .imr.fixtures.factories.imr_base_factory import (
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
+    UtensilioMesaFactory,
+    UtensilioCozinhaFactory,
+    EquipamentoFactory
 )
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -95,6 +98,9 @@ register(FaixaPontuacaoFactory)
 register(DataDeFabricaoEPrazoFactory)
 register(VeiculoFichaDeRecebimentoFactory)
 register(ArquivoFichaDeRecebimentoFactory)
+register(UtensilioMesaFactory)
+register(UtensilioCozinhaFactory)
+register(EquipamentoFactory)
 
 
 @pytest.fixture
