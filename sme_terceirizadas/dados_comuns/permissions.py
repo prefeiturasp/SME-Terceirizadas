@@ -740,11 +740,12 @@ class PermissaoParaVisualizarRelatorioCronograma(BasePermission):
                     and usuario.vinculo_atual.perfil.nome
                     in [
                         DILOG_CRONOGRAMA,
-                        # TODO: COLOCAR PERFIL NOVO
+                        USUARIO_RELATORIOS,
                         DILOG_DIRETORIA,
                         DINUTRE_DIRETORIA,
                         COORDENADOR_CODAE_DILOG_LOGISTICA,
                         ADMINISTRADOR_CODAE_GABINETE,
+                        USUARIO_GTIC_CODAE,
                     ]
                 )
                 or usuario.eh_fornecedor
