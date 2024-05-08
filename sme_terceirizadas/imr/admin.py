@@ -13,6 +13,9 @@ from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
     EditalUtensilioMesa,
+    EditalUtensilioCozinha,
+    Equipamento,
+    EditalEquipamento,
     FaixaPontuacaoIMR,
     FormularioDiretor,
     FormularioOcorrenciasBase,
@@ -39,6 +42,8 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
     UtensilioMesa,
+    UtensilioCozinha,
+
 )
 from utility.carga_dados.imr.importa_dados import (
     importa_tipos_ocorrencia,
@@ -419,6 +424,80 @@ class UtensilioMesaAdmin(admin.ModelAdmin):
 @admin.register(EditalUtensilioMesa)
 class EditalUtensilioMesaAdmin(admin.ModelAdmin):
     filter_horizontal = ("utensilios_mesa",)
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
+
+
+class UtensilioCozinhaAdminForm(forms.ModelForm):
+    class Meta:
+        model = UtensilioCozinha
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome do Utensílio de Cozinha'
+        }
+
+
+@admin.register(UtensilioCozinha)
+class UtensilioCozinhaAdmin(admin.ModelAdmin):
+    form = UtensilioCozinhaAdminForm
+
+    list_display = (
+        "nome_label",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome do utensílio de cozinha"
+    list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Nome do Utensílio de Cozinha"
+
+
+@admin.register(EditalUtensilioCozinha)
+class EditalUtensilioCozinhaAdmin(admin.ModelAdmin):
+    filter_horizontal = ("utensilios_cozinha",)
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
+
+
+class EquipamentoAdminForm(forms.ModelForm):
+    class Meta:
+        model = Equipamento
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome do Equipamento'
+        }
+
+
+@admin.register(Equipamento)
+class EquipamentoAdmin(admin.ModelAdmin):
+    form = EquipamentoAdminForm
+
+    list_display = (
+        "nome_label",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome do equipamento"
+    list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Nome do Equipamento"
+
+
+@admin.register(EditalEquipamento)
+class EditalEquipamentoAdmin(admin.ModelAdmin):
+    filter_horizontal = ("equipamentos",)
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     autocomplete_fields = ("edital",)
     search_fields = ("edital__numero",)
