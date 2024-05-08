@@ -163,7 +163,7 @@ def gerar_relatorio_cronogramas_xlsx_async(user_id, filters):
             0,
             LINHA_SUBTITULO,
             ULTIMA_COLUNA,
-            _subtitulo_relatorio_cronogramas(cronogramas, dict(**(filters or {}))),
+            _subtitulo_relatorio_cronogramas(cronogramas),
             subtitulo_format,
         )
 
@@ -203,39 +203,27 @@ def gerar_relatorio_cronogramas_xlsx_async(user_id, filters):
         )
 
 
-def _subtitulo_relatorio_cronogramas(qs_cronogramas, filters):
+def _subtitulo_relatorio_cronogramas(qs_cronogramas):
     result = "Total de Cronogramas Criados"
-
-    if filters:
-        filters.pop("status", None)
-        initial_date = filters.pop("data_inicial", None)
-        final_date = filters.pop("data_final", None)
-        filter_map = {
-            "nome_empresa": "Empresa",
-            "nome_produto": "Produto",
-            "numero": "Cronograma Nº",
-        }
-        filter_data = "".join(
-            f" - {filter_map.get(k, k)} {v}" for k, v in filters.items()
-        )
-        filter_data += (
-            f" - de {initial_date} até {final_date}"
-            if initial_date and final_date
-            else ""
-        )
-
-        result += filter_data
 
     result += f": {qs_cronogramas.count()}"
 
-    status_list = qs_cronogramas.values_list("status", flat=True).distinct()
-    status_count = "".join(
-        [
-            f" | {CronogramaWorkflow.states[s].title}: {qs_cronogramas.filter(status=s).count()}"
-            for s in status_list
-        ]
+    status_count = dict(
+        sorted(
+            {
+                CronogramaWorkflow.states[s]
+                .title: qs_cronogramas.filter(status=s)
+                .count()
+                for s in CronogramaWorkflow.states
+            }.items(),
+            key=lambda e: e[1],
+            reverse=True,
+        )
     )
-    result += status_count
+    status_count_string = "".join(
+        [f" | {status}: {count}" for status, count in status_count.items()]
+    )
+    result += status_count_string
 
     result += f" | Data de Extração do Relatório: {date.today().strftime('%d/%m/%Y')}"
 
