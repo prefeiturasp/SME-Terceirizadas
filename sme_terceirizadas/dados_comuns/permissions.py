@@ -710,6 +710,30 @@ class PermissaoParaVisualizarCronograma(BasePermission):
         )
 
 
+class PermissaoParaVisualizarRelatorioCronograma(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae)
+                    and usuario.vinculo_atual.perfil.nome
+                    in [
+                        DILOG_CRONOGRAMA,
+                        # TODO: COLOCAR PERFIL NOVO
+                        DILOG_DIRETORIA,
+                        DINUTRE_DIRETORIA,
+                        COORDENADOR_CODAE_DILOG_LOGISTICA,
+                        ADMINISTRADOR_CODAE_GABINETE,
+                    ]
+                )
+                or usuario.eh_fornecedor
+            )
+        )
+
+
 class PermissaoParaCriarCronograma(BasePermission):
     def has_permission(self, request, view):
         usuario = request.user

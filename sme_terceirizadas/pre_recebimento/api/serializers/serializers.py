@@ -501,6 +501,54 @@ class CronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer):
         )
 
 
+class CronogramaRelatorioSerializer(serializers.ModelSerializer):
+    etapas = EtapasDoCronogramaFichaDeRecebimentoSerializer(many=True)
+    produto = serializers.SerializerMethodField()
+    empresa = serializers.SerializerMethodField()
+    armazem = serializers.SerializerMethodField()
+    marca = serializers.SerializerMethodField()
+    status = serializers.CharField(source="get_status_display")
+
+    def get_produto(self, obj):
+        try:
+            return obj.ficha_tecnica.produto.nome
+        except AttributeError:
+            return None
+
+    def get_empresa(self, obj):
+        try:
+            return obj.empresa.nome_fantasia
+        except AttributeError:
+            return None
+
+    def get_armazem(self, obj):
+        try:
+            return obj.armazem.nome_fantasia
+        except AttributeError:
+            return None
+
+    def get_marca(self, obj):
+        try:
+            return obj.ficha_tecnica.marca.nome if obj.ficha_tecnica else None
+        except AttributeError:
+            return None
+
+    class Meta:
+        model = Cronograma
+        fields = (
+            "uuid",
+            "numero",
+            "produto",
+            "empresa",
+            "qtd_total_programada",
+            "armazem",
+            "status",
+            "marca",
+            "custo_unitario_produto",
+            "etapas",
+        )
+
+
 class PainelCronogramaSerializer(serializers.ModelSerializer):
     produto = serializers.SerializerMethodField()
     empresa = serializers.SerializerMethodField()
