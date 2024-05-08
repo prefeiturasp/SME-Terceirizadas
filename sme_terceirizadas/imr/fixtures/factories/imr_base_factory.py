@@ -3,13 +3,14 @@ from faker import Faker
 
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
+    Equipamento,
     FaixaPontuacaoIMR,
+    Mobiliario,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
     UtensilioMesa,
     UtensilioCozinha,
-    Equipamento
 )
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EditalFactory,
@@ -82,5 +83,13 @@ class EquipamentoFactory(DjangoModelFactory):
 
     class Meta:
         model = Equipamento
+
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class MobiliarioFactory(DjangoModelFactory):
+
+    class Meta:
+        model = Mobiliario
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")

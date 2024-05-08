@@ -10,13 +10,14 @@ from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
 from .imr.fixtures.factories.imr_base_factory import (
     CategoriaOcorrenciaFactory,
+    EquipamentoFactory,
     FaixaPontuacaoFactory,
+    MobiliarioFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
     UtensilioMesaFactory,
     UtensilioCozinhaFactory,
-    EquipamentoFactory
 )
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -101,6 +102,7 @@ register(ArquivoFichaDeRecebimentoFactory)
 register(UtensilioMesaFactory)
 register(UtensilioCozinhaFactory)
 register(EquipamentoFactory)
+register(MobiliarioFactory)
 
 
 @pytest.fixture
