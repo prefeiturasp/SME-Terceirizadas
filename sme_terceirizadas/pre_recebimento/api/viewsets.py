@@ -503,7 +503,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         user_id = request.user.id
         cronogramas = self.filter_queryset(self.get_queryset()).distinct()
         etapas = EtapasDoCronograma.objects.filter(cronograma__in=cronogramas).order_by(
-            "cronograma__numero",
+            "-cronograma__alterado_em",
             "etapa",
             "parte",
         )
