@@ -721,6 +721,8 @@ class PermissaoParaVisualizarCronograma(BasePermission):
                         DINUTRE_DIRETORIA,
                         COORDENADOR_CODAE_DILOG_LOGISTICA,
                         ADMINISTRADOR_CODAE_GABINETE,
+                        USUARIO_RELATORIOS,
+                        USUARIO_GTIC_CODAE,
                     ]
                 )
                 or usuario.eh_fornecedor

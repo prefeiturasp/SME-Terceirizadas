@@ -809,3 +809,63 @@ class EditalEquipamento(ModeloBase):
     class Meta:
         verbose_name = "Equipamento Por Edital"
         verbose_name_plural = "Equipamentos Por Edital"
+
+
+class Mobiliario(ModeloBase, Nomeavel, StatusAtivoInativo):
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Mobiliário"
+        verbose_name_plural = "Mobiliários"
+        ordering = ("nome",)
+
+
+class EditalMobiliario(ModeloBase):
+    edital = models.ForeignKey(
+        "terceirizada.Edital",
+        on_delete=models.PROTECT,
+    )
+
+    mobiliarios = models.ManyToManyField(
+        "Mobiliario",
+        verbose_name="Mobiliários",
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"Edital: {self.edital} - {self.mobiliarios.count()} mobiliários"
+
+    class Meta:
+        verbose_name = "Mobiliário Por Edital"
+        verbose_name_plural = "Mobiliários Por Edital"
+
+
+class ReparoEAdaptacao(ModeloBase, Nomeavel, StatusAtivoInativo):
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Reparo e Adaptação"
+        verbose_name_plural = "Reparos e Adaptações"
+        ordering = ("nome",)
+
+
+class EditalReparoEAdaptacao(ModeloBase):
+    edital = models.ForeignKey(
+        "terceirizada.Edital",
+        on_delete=models.PROTECT,
+    )
+
+    reparos_e_adaptacoes = models.ManyToManyField(
+        "ReparoEAdaptacao",
+        verbose_name="Reparos e Adaptações",
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"Edital: {self.edital} - {self.reparos_e_adaptacoes.count()} reparos e adaptações"
+
+    class Meta:
+        verbose_name = "Reparo e Adaptação Por Edital"
+        verbose_name_plural = "Reparos e Adaptações Por Edital"
