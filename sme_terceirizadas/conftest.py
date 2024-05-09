@@ -13,6 +13,7 @@ from .imr.fixtures.factories.imr_base_factory import (
     EquipamentoFactory,
     FaixaPontuacaoFactory,
     MobiliarioFactory,
+    ReparoEAdaptacaoFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
@@ -103,6 +104,7 @@ register(UtensilioMesaFactory)
 register(UtensilioCozinhaFactory)
 register(EquipamentoFactory)
 register(MobiliarioFactory)
+register(ReparoEAdaptacaoFactory)
 
 
 @pytest.fixture
