@@ -17,6 +17,7 @@ from sme_terceirizadas.imr.models import (
     EditalUtensilioCozinha,
     Equipamento,
     EditalEquipamento,
+    EditalReparoEAdaptacao,
     FaixaPontuacaoIMR,
     FormularioDiretor,
     FormularioOcorrenciasBase,
@@ -38,6 +39,7 @@ from sme_terceirizadas.imr.models import (
     RespostaSimNao,
     RespostaSimNaoNaoSeAplica,
     RespostaTipoAlimentacao,
+    ReparoEAdaptacao,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
@@ -537,6 +539,43 @@ class MobiliarioAdmin(admin.ModelAdmin):
 @admin.register(EditalMobiliario)
 class EditalMobiliarioAdmin(admin.ModelAdmin):
     filter_horizontal = ("mobiliarios",)
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
+
+
+class ReparoEAdaptacaoAdminForm(forms.ModelForm):
+    class Meta:
+        model = ReparoEAdaptacao
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome do Reparo e Adaptação'
+        }
+
+
+@admin.register(ReparoEAdaptacao)
+class ReparoEAdaptacaoAdmin(admin.ModelAdmin):
+    form = ReparoEAdaptacaoAdminForm
+
+    list_display = (
+        "nome_label",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome do reparo e adaptação"
+    list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Reparo e Adaptação"
+
+
+@admin.register(EditalReparoEAdaptacao)
+class EditalReparoEAdaptacaoAdmin(admin.ModelAdmin):
+    filter_horizontal = ("reparos_e_adaptacoes",)
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     autocomplete_fields = ("edital",)
     search_fields = ("edital__numero",)
