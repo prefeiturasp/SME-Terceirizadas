@@ -139,7 +139,7 @@ def test_url_list_cronogramas_relatorio(
     assert "previous" in json
 
 
-def test_url_list_cronogramas_relatorio(
+def test_url_list_cronogramas_relatorio_filtros(
     client_autenticado_codae_dilog, empresa_factory, cronograma_factory
 ):
     empresa1 = empresa_factory.create(tipo_servico=Terceirizada.FORNECEDOR)
