@@ -17,6 +17,7 @@ from sme_terceirizadas.dados_comuns.fluxo_status import (
     FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
 )
+from sme_terceirizadas.dados_comuns.models import CentralDeDownload
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     FichaTecnicaComAnaliseDetalharSerializer,
@@ -40,6 +41,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoEmbalagemQld,
     UnidadeMedida,
 )
+from sme_terceirizadas.terceirizada.models import Terceirizada
 
 fake = Faker("pt_BR")
 
@@ -124,6 +126,39 @@ def test_url_list_cronogramas_fornecedor(client_autenticado_fornecedor):
     assert "count" in json
     assert "next" in json
     assert "previous" in json
+
+
+def test_url_list_cronogramas_relatorio(
+    client_autenticado_codae_dilog, cronograma_factory
+):
+    cronograma_factory.create_batch(size=11)
+    response = client_autenticado_codae_dilog.get(f"/cronogramas/listagem-relatorio/")
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert "count" in json
+    assert "next" in json
+    assert "previous" in json
+
+
+def test_url_list_cronogramas_relatorio_filtros(
+    client_autenticado_codae_dilog, empresa_factory, cronograma_factory
+):
+    empresa1 = empresa_factory.create(tipo_servico=Terceirizada.FORNECEDOR)
+    empresa2 = empresa_factory.create(tipo_servico=Terceirizada.FORNECEDOR)
+    cronograma_factory.create_batch(size=2, empresa=empresa1)
+    cronograma_factory.create_batch(size=2, empresa=empresa2)
+    response1 = client_autenticado_codae_dilog.get(
+        f"/cronogramas/listagem-relatorio/?empresa={empresa1.uuid}"
+    )
+    response2 = client_autenticado_codae_dilog.get(
+        f"/cronogramas/listagem-relatorio/?empresa={empresa1.uuid}&empresa={empresa2.uuid}"
+    )
+    assert response1.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_200_OK
+    json1 = response1.json()
+    json2 = response2.json()
+    assert json1["count"] == 2
+    assert json2["count"] == 4
 
 
 def test_url_list_solicitacoes_alteracao_cronograma(
@@ -515,6 +550,20 @@ def test_url_endpoint_cronograma_editar(
     obj = Cronograma.objects.last()
     assert cronograma_rascunho.status == "RASCUNHO"
     assert obj.status == "ASSINADO_E_ENVIADO_AO_FORNECEDOR"
+
+
+def test_url_cronograma_gerar_relatorio_xlsx_async(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.get(
+        "/cronogramas/gerar-relatorio-xlsx-async/"
+    )
+
+    obj_central_download = CentralDeDownload.objects.first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert obj_central_download is not None
+    assert obj_central_download.status == CentralDeDownload.STATUS_CONCLUIDO
+    assert obj_central_download.arquivo is not None
+    assert obj_central_download.arquivo.size > 0
 
 
 def test_url_endpoint_laboratorio(client_autenticado_qualidade):
