@@ -5,6 +5,7 @@ from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     Equipamento,
     FaixaPontuacaoIMR,
+    Insumo,
     Mobiliario,
     ReparoEAdaptacao,
     TipoGravidade,
@@ -100,5 +101,13 @@ class ReparoEAdaptacaoFactory(DjangoModelFactory):
 
     class Meta:
         model = ReparoEAdaptacao
+
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class InsumoFactory(DjangoModelFactory):
+
+    class Meta:
+        model = Insumo
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
