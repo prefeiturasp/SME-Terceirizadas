@@ -106,3 +106,7 @@
   fields:
     nome: USUARIO_RELATORIOS
     visao: CODAE
+      - model: perfil.perfil
+        fields:
+          nome: USUARIO_GTIC_CODAE
+          visao: CODAE
