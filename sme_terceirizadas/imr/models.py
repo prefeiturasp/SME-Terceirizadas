@@ -20,6 +20,7 @@ from ..dados_comuns.behaviors import (
     PerfilDiretorSupervisao,
     Posicao,
     StatusAtivoInativo,
+    TemNomeMaior,
 )
 from ..dados_comuns.validators import validate_file_size_10mb
 from ..escola.models import Escola, FaixaEtaria, PeriodoEscolar
@@ -869,3 +870,33 @@ class EditalReparoEAdaptacao(ModeloBase):
     class Meta:
         verbose_name = "Reparo e Adaptação Por Edital"
         verbose_name_plural = "Reparos e Adaptações Por Edital"
+
+
+class Insumo(ModeloBase, TemNomeMaior, StatusAtivoInativo):
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Insumo"
+        verbose_name_plural = "Insumos"
+        ordering = ("nome",)
+
+
+class EditalInsumo(ModeloBase):
+    edital = models.ForeignKey(
+        "terceirizada.Edital",
+        on_delete=models.PROTECT,
+    )
+
+    insumos = models.ManyToManyField(
+        "Insumo",
+        verbose_name="Insumos",
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"Edital: {self.edital} - {self.insumos.count()} insumos"
+
+    class Meta:
+        verbose_name = "Insumo Por Edital"
+        verbose_name_plural = "Insumos Por Edital"
