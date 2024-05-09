@@ -12,14 +12,6 @@ from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download,
 )
-from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter
-from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
-    EtapaCronogramaRelatorioSerializer,
-)
-from sme_terceirizadas.pre_recebimento.models.cronograma import (
-    Cronograma,
-    EtapasDoCronograma,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +22,7 @@ logger = logging.getLogger(__name__)
     time_limit=3000,
     soft_time_limit=3000,
 )
-def gerar_relatorio_cronogramas_xlsx_async(user_id, filters):
+def gerar_relatorio_cronogramas_xlsx_async(user_id, dados, subtitulo):
     logger.info(
         "x-x-x-x Iniciando a geração do arquivo relatorio_cronogramas.xlsx x-x-x-x"
     )
@@ -93,20 +85,12 @@ def gerar_relatorio_cronogramas_xlsx_async(user_id, filters):
         identificador=TITULO_ARQUIVO,
     )
 
-    cronogramas = CronogramaFilter(filters, Cronograma.objects.all()).qs
-    etapas = EtapasDoCronograma.objects.filter(cronograma__in=cronogramas).order_by(
-        "cronograma__numero",
-        "etapa",
-        "parte",
-    )
-    serializer = EtapaCronogramaRelatorioSerializer(etapas, many=True)
-
     output = io.BytesIO()
     xlsxwriter = pd.ExcelWriter(output, engine="xlsxwriter")
 
     try:
-        if serializer.data:
-            df = pd.DataFrame(serializer.data)
+        if dados:
+            df = pd.DataFrame(dados)
             df.insert(13, "unidade_etapa", value=df.iloc[:, 5])
 
         else:
@@ -163,7 +147,7 @@ def gerar_relatorio_cronogramas_xlsx_async(user_id, filters):
             0,
             LINHA_SUBTITULO,
             ULTIMA_COLUNA,
-            _subtitulo_relatorio_cronogramas(cronogramas),
+            subtitulo,
             subtitulo_format,
         )
 
@@ -203,7 +187,7 @@ def gerar_relatorio_cronogramas_xlsx_async(user_id, filters):
         )
 
 
-def _subtitulo_relatorio_cronogramas(qs_cronogramas):
+def subtitulo_relatorio_cronogramas(qs_cronogramas):
     result = "Total de Cronogramas Criados"
 
     result += f": {qs_cronogramas.count()}"
