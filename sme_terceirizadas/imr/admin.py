@@ -12,13 +12,13 @@ from sme_terceirizadas.imr.api.services import (
 from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
-    EditalMobiliario,
-    EditalUtensilioMesa,
-    EditalUtensilioCozinha,
-    EditalInsumo,
-    Equipamento,
     EditalEquipamento,
+    EditalInsumo,
+    EditalMobiliario,
     EditalReparoEAdaptacao,
+    EditalUtensilioCozinha,
+    EditalUtensilioMesa,
+    Equipamento,
     FaixaPontuacaoIMR,
     FormularioDiretor,
     FormularioOcorrenciasBase,
@@ -32,30 +32,29 @@ from sme_terceirizadas.imr.models import (
     OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
+    ReparoEAdaptacao,
     RespostaCampoNumerico,
     RespostaCampoTextoLongo,
     RespostaCampoTextoSimples,
     RespostaDatas,
+    RespostaEquipamento,
     RespostaFaixaEtaria,
+    RespostaInsumo,
+    RespostaMobiliario,
     RespostaPeriodo,
+    RespostaReparoEAdaptacao,
     RespostaSimNao,
     RespostaSimNaoNaoSeAplica,
     RespostaTipoAlimentacao,
-    RespostaEquipamento,
-    RespostaInsumo,
-    RespostaMobiliario,
-    RespostaReparoEAdaptacao,
     RespostaUtensilioCozinha,
     RespostaUtensilioMesa,
-    ReparoEAdaptacao,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
-    UtensilioMesa,
     UtensilioCozinha,
-
+    UtensilioMesa,
 )
 from utility.carga_dados.imr.importa_dados import (
     importa_tipos_ocorrencia,
@@ -377,7 +376,6 @@ class FormularioSupervisaoAdmin(admin.ModelAdmin):
     list_filter = (
         ("formulario_base__data", DateRangeFilter),
         "acompanhou_visita",
-        "apresentou_ocorrencias",
     )
 
 
@@ -403,10 +401,8 @@ class FaixaPontuacaoIMRAdmin(admin.ModelAdmin):
 class UtensilioMesaAdminForm(forms.ModelForm):
     class Meta:
         model = UtensilioMesa
-        fields = '__all__'
-        labels = {
-            'nome': 'Nome do Utensílio de Mesa'
-        }
+        fields = "__all__"
+        labels = {"nome": "Nome do Utensílio de Mesa"}
 
 
 @admin.register(UtensilioMesa)
@@ -439,10 +435,8 @@ class EditalUtensilioMesaAdmin(admin.ModelAdmin):
 class UtensilioCozinhaAdminForm(forms.ModelForm):
     class Meta:
         model = UtensilioCozinha
-        fields = '__all__'
-        labels = {
-            'nome': 'Nome do Utensílio de Cozinha'
-        }
+        fields = "__all__"
+        labels = {"nome": "Nome do Utensílio de Cozinha"}
 
 
 @admin.register(UtensilioCozinha)
@@ -476,10 +470,8 @@ class EditalUtensilioCozinhaAdmin(admin.ModelAdmin):
 class EquipamentoAdminForm(forms.ModelForm):
     class Meta:
         model = Equipamento
-        fields = '__all__'
-        labels = {
-            'nome': 'Nome do Equipamento'
-        }
+        fields = "__all__"
+        labels = {"nome": "Nome do Equipamento"}
 
 
 @admin.register(Equipamento)
@@ -513,10 +505,8 @@ class EditalEquipamentoAdmin(admin.ModelAdmin):
 class MobiliarioAdminForm(forms.ModelForm):
     class Meta:
         model = Mobiliario
-        fields = '__all__'
-        labels = {
-            'nome': 'Nome do Mobiliário'
-        }
+        fields = "__all__"
+        labels = {"nome": "Nome do Mobiliário"}
 
 
 @admin.register(Mobiliario)
@@ -550,10 +540,8 @@ class EditalMobiliarioAdmin(admin.ModelAdmin):
 class ReparoEAdaptacaoAdminForm(forms.ModelForm):
     class Meta:
         model = ReparoEAdaptacao
-        fields = '__all__'
-        labels = {
-            'nome': 'Nome do Reparo e Adaptação'
-        }
+        fields = "__all__"
+        labels = {"nome": "Nome do Reparo e Adaptação"}
 
 
 @admin.register(ReparoEAdaptacao)
@@ -587,10 +575,8 @@ class EditalReparoEAdaptacaoAdmin(admin.ModelAdmin):
 class InsumoAdminForm(forms.ModelForm):
     class Meta:
         model = Insumo
-        fields = '__all__'
-        labels = {
-            'nome': 'Nome do Insumo'
-        }
+        fields = "__all__"
+        labels = {"nome": "Nome do Insumo"}
 
 
 @admin.register(Insumo)
@@ -624,18 +610,17 @@ class EditalInsumoAdmin(admin.ModelAdmin):
 @admin.register(OcorrenciaNaoSeAplica)
 class OcorrenciaNaoSeAplicaAdmin(admin.ModelAdmin):
     readonly_fields = ("uuid", "criado_em", "alterado_em")
-    autocomplete_fields = ("tipo_ocorrencia", )
-    search_fields = ("tipo_ocorrencia__edital__numero", "formulario_base__usuario__email", "formulario_base__usuario__nome",)
-    search_help_text = "Pesquise por: número do edital; (email, nome) do usuário do formulário."
-    list_display = (
-        "tipo_ocorrencia",
-        "formulario_base",
-        "descricao",
-        "criado_em"
+    autocomplete_fields = ("tipo_ocorrencia",)
+    search_fields = (
+        "tipo_ocorrencia__edital__numero",
+        "formulario_base__usuario__email",
+        "formulario_base__usuario__nome",
     )
-    list_filter = (
-        "tipo_ocorrencia",
+    search_help_text = (
+        "Pesquise por: número do edital; (email, nome) do usuário do formulário."
     )
+    list_display = ("tipo_ocorrencia", "formulario_base", "descricao", "criado_em")
+    list_filter = ("tipo_ocorrencia",)
 
 
 admin.site.register(TipoGravidade)
