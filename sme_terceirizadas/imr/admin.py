@@ -13,7 +13,9 @@ from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
     EditalEquipamento,
+    EditalInsumo,
     EditalMobiliario,
+    EditalReparoEAdaptacao,
     EditalUtensilioCozinha,
     EditalUtensilioMesa,
     Equipamento,
@@ -23,21 +25,29 @@ from sme_terceirizadas.imr.models import (
     FormularioSupervisao,
     ImportacaoPlanilhaTipoOcorrencia,
     ImportacaoPlanilhaTipoPenalidade,
+    Insumo,
     Mobiliario,
     NotificacoesAssinadasFormularioBase,
     ObrigacaoPenalidade,
+    OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
+    ReparoEAdaptacao,
     RespostaCampoNumerico,
     RespostaCampoTextoLongo,
     RespostaCampoTextoSimples,
     RespostaDatas,
+    RespostaEquipamento,
     RespostaFaixaEtaria,
-    RespostaNaoSeAplica,
+    RespostaInsumo,
+    RespostaMobiliario,
     RespostaPeriodo,
+    RespostaReparoEAdaptacao,
     RespostaSimNao,
     RespostaSimNaoNaoSeAplica,
     RespostaTipoAlimentacao,
+    RespostaUtensilioCozinha,
+    RespostaUtensilioMesa,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
@@ -326,11 +336,6 @@ class RespostaSimNaoNaoSeAplicaInline(admin.TabularInline):
     extra = 0
 
 
-class RespostaNaoSeAplicaInline(admin.TabularInline):
-    model = RespostaNaoSeAplica
-    extra = 0
-
-
 class AnexosFormularioBaseInline(admin.TabularInline):
     model = AnexosFormularioBase
     extra = 0
@@ -355,7 +360,6 @@ class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
         RespostaFaixaEtariaInline,
         RespostaTipoAlimentacaoInline,
         RespostaSimNaoNaoSeAplicaInline,
-        RespostaNaoSeAplicaInline,
         AnexosFormularioBaseInline,
         NotificacoesAssinadasFormularioBaseInline,
     ]
@@ -533,6 +537,92 @@ class EditalMobiliarioAdmin(admin.ModelAdmin):
     search_help_text = "Pesquise por: número do edital"
 
 
+class ReparoEAdaptacaoAdminForm(forms.ModelForm):
+    class Meta:
+        model = ReparoEAdaptacao
+        fields = "__all__"
+        labels = {"nome": "Nome do Reparo e Adaptação"}
+
+
+@admin.register(ReparoEAdaptacao)
+class ReparoEAdaptacaoAdmin(admin.ModelAdmin):
+    form = ReparoEAdaptacaoAdminForm
+
+    list_display = (
+        "nome_label",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome do reparo e adaptação"
+    list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Reparo e Adaptação"
+
+
+@admin.register(EditalReparoEAdaptacao)
+class EditalReparoEAdaptacaoAdmin(admin.ModelAdmin):
+    filter_horizontal = ("reparos_e_adaptacoes",)
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
+
+
+class InsumoAdminForm(forms.ModelForm):
+    class Meta:
+        model = Insumo
+        fields = "__all__"
+        labels = {"nome": "Nome do Insumo"}
+
+
+@admin.register(Insumo)
+class InsumoAdmin(admin.ModelAdmin):
+    form = InsumoAdminForm
+
+    list_display = (
+        "nome_label",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome do insumo"
+    list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Insumo"
+
+
+@admin.register(EditalInsumo)
+class EditalInsumoAdmin(admin.ModelAdmin):
+    filter_horizontal = ("insumos",)
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
+
+
+@admin.register(OcorrenciaNaoSeAplica)
+class OcorrenciaNaoSeAplicaAdmin(admin.ModelAdmin):
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("tipo_ocorrencia",)
+    search_fields = (
+        "tipo_ocorrencia__edital__numero",
+        "formulario_base__usuario__email",
+        "formulario_base__usuario__nome",
+    )
+    search_help_text = (
+        "Pesquise por: número do edital; (email, nome) do usuário do formulário."
+    )
+    list_display = ("tipo_ocorrencia", "formulario_base", "descricao", "criado_em")
+    list_filter = ("tipo_ocorrencia",)
+
+
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
 admin.site.register(TipoPerguntaParametrizacaoOcorrencia)
@@ -545,6 +635,11 @@ admin.site.register(RespostaPeriodo)
 admin.site.register(RespostaFaixaEtaria)
 admin.site.register(RespostaTipoAlimentacao)
 admin.site.register(RespostaSimNaoNaoSeAplica)
-admin.site.register(RespostaNaoSeAplica)
+admin.site.register(RespostaEquipamento)
+admin.site.register(RespostaInsumo)
+admin.site.register(RespostaMobiliario)
+admin.site.register(RespostaReparoEAdaptacao)
+admin.site.register(RespostaUtensilioCozinha)
+admin.site.register(RespostaUtensilioMesa)
 admin.site.register(TipoRespostaModelo)
 admin.site.register(PeriodoVisita)

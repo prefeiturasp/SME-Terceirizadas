@@ -45,6 +45,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarDocumentosDeRecebimento,
     PermissaoParaVisualizarFichaTecnica,
     PermissaoParaVisualizarLayoutDeEmbalagem,
+    PermissaoParaVisualizarRelatorioCronograma,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     PermissaoParaVisualizarUnidadesMedida,
     UsuarioEhDilogQualidade,
@@ -90,11 +91,13 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
     CronogramaFichaDeRecebimentoSerializer,
     CronogramaRascunhosSerializer,
+    CronogramaRelatorioSerializer,
     CronogramaSerializer,
     CronogramaSimplesSerializer,
     DocRecebimentoDetalharCodaeSerializer,
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
+    EtapaCronogramaRelatorioSerializer,
     EtapasDoCronogramaCalendarioSerializer,
     FichaTecnicaComAnaliseDetalharSerializer,
     FichaTecnicaCronogramaSerializer,
@@ -133,6 +136,10 @@ from sme_terceirizadas.pre_recebimento.models import (
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
     UnidadeMedida,
+)
+from sme_terceirizadas.pre_recebimento.tasks import (
+    gerar_relatorio_cronogramas_xlsx_async,
+    subtitulo_relatorio_cronogramas,
 )
 
 from ...dados_comuns.api.paginations import DefaultPagination
@@ -304,6 +311,25 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(
+        detail=False,
+        permission_classes=(PermissaoParaVisualizarRelatorioCronograma,),
+        methods=["GET"],
+        url_path="listagem-relatorio",
+    )
+    def lista_relatorio(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.order_by("-alterado_em").distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = CronogramaRelatorioSerializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return response
+
+        serializer = CronogramaRelatorioSerializer(queryset, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, url_path="opcoes-etapas")
     def etapas(self, _):
         return Response(EtapasDoCronograma.etapas_to_json())
@@ -465,6 +491,30 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     def dados_cronograma_ficha_recebimento(self, request, uuid):
         return Response(
             {"results": CronogramaFichaDeRecebimentoSerializer(self.get_object()).data}
+        )
+
+    @action(
+        detail=False,
+        permission_classes=(PermissaoParaVisualizarRelatorioCronograma,),
+        methods=["GET"],
+        url_path="gerar-relatorio-xlsx-async",
+    )
+    def gerar_relatorio_xlsx_async(self, request):
+        user_id = request.user.id
+        cronogramas = self.filter_queryset(self.get_queryset()).distinct()
+        etapas = EtapasDoCronograma.objects.filter(cronograma__in=cronogramas).order_by(
+            "-cronograma__alterado_em",
+            "etapa",
+            "parte",
+        )
+        dados = EtapaCronogramaRelatorioSerializer(etapas, many=True).data
+        subtitulo = subtitulo_relatorio_cronogramas(cronogramas)
+
+        gerar_relatorio_cronogramas_xlsx_async.delay(user_id, dados, subtitulo)
+
+        return Response(
+            {"detail": "Solicitação de geração de arquivo recebida com sucesso."},
+            status=HTTP_200_OK,
         )
 
 

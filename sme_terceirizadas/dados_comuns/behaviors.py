@@ -39,6 +39,13 @@ class Nomeavel(models.Model):
         abstract = True
 
 
+class TemNomeMaior(models.Model):
+    nome = models.CharField("Nome", blank=True, max_length=250)
+
+    class Meta:
+        abstract = True
+
+
 class Motivo(models.Model):
     motivo = models.TextField("Motivo", blank=True)
 
