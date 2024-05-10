@@ -35,6 +35,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
         data = attrs.get("data", None)
         if not data:
             raise serializers.ValidationError({"data": ["Este campo é obrigatório!"]})
+        return attrs
 
     def create(self, validated_data):
         usuario = self.context["request"].user
