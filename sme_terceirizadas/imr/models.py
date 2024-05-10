@@ -647,8 +647,8 @@ class RespostaSimNaoNaoSeAplica(ModeloBase, Grupo):
         unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaNaoSeAplica(ModeloBase, Grupo):
-    resposta = models.TextField("Descrição", blank=True)
+class OcorrenciaNaoSeAplica(ModeloBase, Grupo):
+    descricao = models.TextField("Descrição", blank=True)
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
         verbose_name="Formulário de Ocorrências",
@@ -657,17 +657,17 @@ class RespostaNaoSeAplica(ModeloBase, Grupo):
         null=True,
     )
     tipo_ocorrencia = models.ForeignKey(
-        ParametrizacaoOcorrencia,
+        TipoOcorrencia,
         on_delete=models.CASCADE,
-        related_name="respostas_nao_se_aplica",
+        related_name="ocorrencias_nao_se_aplica",
     )
 
     def __str__(self):
-        return self.resposta
+        return self.descricao
 
     class Meta:
-        verbose_name = "Resposta Não se aplica"
-        verbose_name_plural = "Respostas Não se aplica"
+        verbose_name = "Ocorrência Não se aplica"
+        verbose_name_plural = "Ocorrências Não se aplica"
         unique_together = ("formulario_base", "tipo_ocorrencia", "grupo")
 
 
