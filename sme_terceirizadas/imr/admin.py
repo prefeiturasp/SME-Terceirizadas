@@ -15,6 +15,7 @@ from sme_terceirizadas.imr.models import (
     EditalMobiliario,
     EditalUtensilioMesa,
     EditalUtensilioCozinha,
+    EditalInsumo,
     Equipamento,
     EditalEquipamento,
     EditalReparoEAdaptacao,
@@ -24,6 +25,7 @@ from sme_terceirizadas.imr.models import (
     FormularioSupervisao,
     ImportacaoPlanilhaTipoOcorrencia,
     ImportacaoPlanilhaTipoPenalidade,
+    Insumo,
     Mobiliario,
     NotificacoesAssinadasFormularioBase,
     ObrigacaoPenalidade,
@@ -576,6 +578,43 @@ class ReparoEAdaptacaoAdmin(admin.ModelAdmin):
 @admin.register(EditalReparoEAdaptacao)
 class EditalReparoEAdaptacaoAdmin(admin.ModelAdmin):
     filter_horizontal = ("reparos_e_adaptacoes",)
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("edital",)
+    search_fields = ("edital__numero",)
+    search_help_text = "Pesquise por: número do edital"
+
+
+class InsumoAdminForm(forms.ModelForm):
+    class Meta:
+        model = Insumo
+        fields = '__all__'
+        labels = {
+            'nome': 'Nome do Insumo'
+        }
+
+
+@admin.register(Insumo)
+class InsumoAdmin(admin.ModelAdmin):
+    form = InsumoAdminForm
+
+    list_display = (
+        "nome_label",
+        "status",
+    )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    search_fields = ("nome",)
+    search_help_text = "Pesquise por: nome do insumo"
+    list_filter = ("status",)
+
+    def nome_label(self, obj):
+        return obj.nome
+
+    nome_label.short_description = "Insumo"
+
+
+@admin.register(EditalInsumo)
+class EditalInsumoAdmin(admin.ModelAdmin):
+    filter_horizontal = ("insumos",)
     readonly_fields = ("uuid", "criado_em", "alterado_em")
     autocomplete_fields = ("edital",)
     search_fields = ("edital__numero",)
