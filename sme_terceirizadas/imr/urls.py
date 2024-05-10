@@ -6,6 +6,9 @@ from .api import viewsets
 router = routers.DefaultRouter()
 
 router.register("periodos-de-visita", viewsets.PeriodoVisitaModelViewSet)
+router.register(
+    "formulario-supervisao", viewsets.FormularioSupervisaoRascunhoModelViewSet
+)
 
 
 urlpatterns = [

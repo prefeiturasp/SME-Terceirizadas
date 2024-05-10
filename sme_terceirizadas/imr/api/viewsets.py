@@ -3,8 +3,12 @@ from rest_framework import mixins, viewsets
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.permissions import UsuarioCODAENutriSupervisao
 
-from ..models import PeriodoVisita
-from .serializers.serializers import PeriodoVisitaSerializer
+from ..models import FormularioSupervisao, PeriodoVisita
+from .serializers.serializers import (
+    FormularioSupervisaoSerializer,
+    PeriodoVisitaSerializer,
+)
+from .serializers.serializers_create import FormularioSupervisaoRascunhoCreateSerializer
 
 
 class PeriodoVisitaModelViewSet(
@@ -17,3 +21,21 @@ class PeriodoVisitaModelViewSet(
     permission_classes = (UsuarioCODAENutriSupervisao,)
     serializer_class = PeriodoVisitaSerializer
     pagination_class = DefaultPagination
+
+
+class FormularioSupervisaoRascunhoModelViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    lookup_field = "uuid"
+    queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
+    permission_classes = (UsuarioCODAENutriSupervisao,)
+    serializer_class = FormularioSupervisaoSerializer
+    pagination_class = DefaultPagination
+
+    def get_serializer_class(self):
+        return {
+            "list": FormularioSupervisaoSerializer,
+            "retrieve": FormularioSupervisaoSerializer,
+        }.get(self.action, FormularioSupervisaoRascunhoCreateSerializer)
