@@ -41,6 +41,12 @@ from sme_terceirizadas.imr.models import (
     RespostaSimNao,
     RespostaSimNaoNaoSeAplica,
     RespostaTipoAlimentacao,
+    RespostaEquipamento,
+    RespostaInsumo,
+    RespostaMobiliario,
+    RespostaReparoEAdaptacao,
+    RespostaUtensilioCozinha,
+    RespostaUtensilioMesa,
     ReparoEAdaptacao,
     TipoGravidade,
     TipoOcorrencia,
@@ -634,5 +640,11 @@ admin.site.register(RespostaFaixaEtaria)
 admin.site.register(RespostaTipoAlimentacao)
 admin.site.register(RespostaSimNaoNaoSeAplica)
 admin.site.register(RespostaNaoSeAplica)
+admin.site.register(RespostaEquipamento)
+admin.site.register(RespostaInsumo)
+admin.site.register(RespostaMobiliario)
+admin.site.register(RespostaReparoEAdaptacao)
+admin.site.register(RespostaUtensilioCozinha)
+admin.site.register(RespostaUtensilioMesa)
 admin.site.register(TipoRespostaModelo)
 admin.site.register(PeriodoVisita)
