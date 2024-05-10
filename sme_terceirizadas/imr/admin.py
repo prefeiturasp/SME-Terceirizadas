@@ -29,6 +29,7 @@ from sme_terceirizadas.imr.models import (
     Mobiliario,
     NotificacoesAssinadasFormularioBase,
     ObrigacaoPenalidade,
+    OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
     RespostaCampoNumerico,
@@ -36,11 +37,16 @@ from sme_terceirizadas.imr.models import (
     RespostaCampoTextoSimples,
     RespostaDatas,
     RespostaFaixaEtaria,
-    RespostaNaoSeAplica,
     RespostaPeriodo,
     RespostaSimNao,
     RespostaSimNaoNaoSeAplica,
     RespostaTipoAlimentacao,
+    RespostaEquipamento,
+    RespostaInsumo,
+    RespostaMobiliario,
+    RespostaReparoEAdaptacao,
+    RespostaUtensilioCozinha,
+    RespostaUtensilioMesa,
     ReparoEAdaptacao,
     TipoGravidade,
     TipoOcorrencia,
@@ -331,11 +337,6 @@ class RespostaSimNaoNaoSeAplicaInline(admin.TabularInline):
     extra = 0
 
 
-class RespostaNaoSeAplicaInline(admin.TabularInline):
-    model = RespostaNaoSeAplica
-    extra = 0
-
-
 class AnexosFormularioBaseInline(admin.TabularInline):
     model = AnexosFormularioBase
     extra = 0
@@ -360,7 +361,6 @@ class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
         RespostaFaixaEtariaInline,
         RespostaTipoAlimentacaoInline,
         RespostaSimNaoNaoSeAplicaInline,
-        RespostaNaoSeAplicaInline,
         AnexosFormularioBaseInline,
         NotificacoesAssinadasFormularioBaseInline,
     ]
@@ -621,6 +621,23 @@ class EditalInsumoAdmin(admin.ModelAdmin):
     search_help_text = "Pesquise por: número do edital"
 
 
+@admin.register(OcorrenciaNaoSeAplica)
+class OcorrenciaNaoSeAplicaAdmin(admin.ModelAdmin):
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
+    autocomplete_fields = ("tipo_ocorrencia", )
+    search_fields = ("tipo_ocorrencia__edital__numero", "formulario_base__usuario__email", "formulario_base__usuario__nome",)
+    search_help_text = "Pesquise por: número do edital; (email, nome) do usuário do formulário."
+    list_display = (
+        "tipo_ocorrencia",
+        "formulario_base",
+        "descricao",
+        "criado_em"
+    )
+    list_filter = (
+        "tipo_ocorrencia",
+    )
+
+
 admin.site.register(TipoGravidade)
 admin.site.register(ObrigacaoPenalidade)
 admin.site.register(TipoPerguntaParametrizacaoOcorrencia)
@@ -633,6 +650,11 @@ admin.site.register(RespostaPeriodo)
 admin.site.register(RespostaFaixaEtaria)
 admin.site.register(RespostaTipoAlimentacao)
 admin.site.register(RespostaSimNaoNaoSeAplica)
-admin.site.register(RespostaNaoSeAplica)
+admin.site.register(RespostaEquipamento)
+admin.site.register(RespostaInsumo)
+admin.site.register(RespostaMobiliario)
+admin.site.register(RespostaReparoEAdaptacao)
+admin.site.register(RespostaUtensilioCozinha)
+admin.site.register(RespostaUtensilioMesa)
 admin.site.register(TipoRespostaModelo)
 admin.site.register(PeriodoVisita)
