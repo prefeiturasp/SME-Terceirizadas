@@ -179,6 +179,19 @@ class UsuarioCODAENutriManifestacao(BasePermission):
         )
 
 
+class UsuarioCODAENutriSupervisao(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Nutri Supervisão."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO]
+        )
+
+
 class UsuarioCODAEDietaEspecial(BasePermission):
     """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
 

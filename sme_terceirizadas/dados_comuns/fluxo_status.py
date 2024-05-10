@@ -5487,3 +5487,23 @@ class FluxoFichaTecnicaDoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class FormularioSupervisaoWorkflow(xwf_models.Workflow):
+    log_model = ""  # Disable logging to database
+
+    EM_PREENCHIMENTO = "EM_PREENCHIMENTO"
+
+    states = ((EM_PREENCHIMENTO, "Em Preenchimento"),)
+
+    transitions = ()
+
+    initial_state = EM_PREENCHIMENTO
+
+
+class FluxoFormularioSupervisao(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = FormularioSupervisaoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    class Meta:
+        abstract = True
