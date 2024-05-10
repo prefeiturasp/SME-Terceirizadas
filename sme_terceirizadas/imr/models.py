@@ -21,6 +21,7 @@ from ..dados_comuns.behaviors import (
     Posicao,
     StatusAtivoInativo,
 )
+from ..dados_comuns.fluxo_status import FluxoFormularioSupervisao
 from ..dados_comuns.validators import validate_file_size_10mb
 from ..escola.models import Escola, FaixaEtaria, PeriodoEscolar
 from ..medicao_inicial.models import SolicitacaoMedicaoInicial
@@ -379,7 +380,7 @@ class FormularioDiretor(ModeloBase):
         verbose_name_plural = "Formulários do Diretor - Ocorrências"
 
 
-class FormularioSupervisao(ModeloBase):
+class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao):
     escola = models.ForeignKey(
         Escola, on_delete=models.PROTECT, related_name="formularios_supervisao"
     )
@@ -391,15 +392,16 @@ class FormularioSupervisao(ModeloBase):
         verbose_name="Período da Visita",
         on_delete=models.PROTECT,
         related_name="formularios_supervisao",
+        null=True,
+        blank=True,
     )
     nome_nutricionista_empresa = models.CharField(
-        "Nome da Nutricionista RT da Empresa", max_length=100
+        "Nome da Nutricionista RT da Empresa",
+        max_length=100,
+        null=True,
+        blank=True,
     )
     acompanhou_visita = models.BooleanField("Acompanhou a visita?", default=False)
-    apresentou_ocorrencias = models.BooleanField(
-        "No momento da visita, a prestação de serviços apresentou ocorrências?",
-        default=False,
-    )
 
     def __str__(self):
         return f"{self.escola.nome} - {self.formulario_base.data}"
