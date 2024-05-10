@@ -9,7 +9,7 @@ from sme_terceirizadas.imr.models import (
 
 
 class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
-    data_visita = serializers.DateField(required=True, allow_null=False)
+    data = serializers.DateField(required=True, allow_null=False)
     escola = serializers.SlugRelatedField(
         slug_field="uuid",
         required=True,
@@ -24,10 +24,16 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
     )
     nome_nutricionista_empresa = serializers.CharField(required=False, allow_null=True)
     acompanhou_visita = serializers.BooleanField(required=False)
+    formulario_base = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=FormularioOcorrenciasBase.objects.all(),
+    )
 
     def create(self, validated_data):
         usuario = self.context["request"].user
-        data_visita = validated_data.pop("data_visita", None)
+        data_visita = validated_data.pop("data", None)
 
         form_base = FormularioOcorrenciasBase.objects.create(
             usuario=usuario, data=data_visita
