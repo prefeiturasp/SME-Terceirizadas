@@ -9,7 +9,7 @@ from sme_terceirizadas.imr.models import (
 
 
 class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
-    data = serializers.DateField(required=True, allow_null=False)
+    data = serializers.DateField(required=False, allow_null=True)
     escola = serializers.SlugRelatedField(
         slug_field="uuid",
         required=True,
@@ -30,6 +30,11 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
         allow_null=True,
         queryset=FormularioOcorrenciasBase.objects.all(),
     )
+
+    def validate(self, attrs):
+        data = attrs.get("data", None)
+        if not data:
+            raise serializers.ValidationError({"data": ["Este campo é obrigatório!"]})
 
     def create(self, validated_data):
         usuario = self.context["request"].user
