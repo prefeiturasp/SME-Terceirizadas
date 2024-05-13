@@ -1,0 +1,17 @@
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+  <body>
+    <header>
+      <div class="titulo">
+        <img src="{% static 'images/LOGO_FUNDO_CLARO.png' %}" alt=""/>
+        <span>SIGPAE - Relatório de Cronogramas</span>
+      </div>
+      <div class="subtitulo">
+        {{ subtitulo }}
+      </div>
+    </header>
+  </body>
+</html>
