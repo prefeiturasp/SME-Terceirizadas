@@ -17,8 +17,9 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     UsuarioTerceirizada,
 )
+from ...escola.api.viewsets import PeriodoEscolarViewSet
 from ...escola.constants import PERIODOS_ESPECIAIS_CEMEI
-from ...escola.models import Escola
+from ...escola.models import Escola, PeriodoEscolar
 from ...inclusao_alimentacao.api.viewsets import (
     CodaeAutoriza,
     CodaeQuestionaTerceirizadaResponde,
@@ -207,13 +208,33 @@ class VinculoTipoAlimentacaoViewSet(
         serializer = self.get_serializer(vinculos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def trata_inclusao_continua_medicao_inicial(self, request, escola, ano):
+        mes = request.query_params.get("mes", None)
+        periodos_escolares_inclusao_continua = None
+        if mes:
+            periodoEscolarViewset = PeriodoEscolarViewSet()
+            response = periodoEscolarViewset.inclusao_continua_por_mes(request)
+            if response.data and response.data.get("periodos", None):
+                periodos_escolares_inclusao_continua = PeriodoEscolar.objects.filter(
+                    uuid__in=list(response.data["periodos"].values())
+                )
+        periodos_para_filtrar = escola.periodos_escolares(ano)
+        if periodos_escolares_inclusao_continua:
+            periodos_para_filtrar = (
+                periodos_para_filtrar | periodos_escolares_inclusao_continua
+            )
+        return periodos_para_filtrar
+
     @action(detail=False, url_path="escola/(?P<escola_uuid>[^/.]+)")
     def filtro_por_escola(self, request, escola_uuid=None):
         escola = Escola.objects.get(uuid=escola_uuid)
         ano = request.query_params.get("ano", datetime.date.today().year)
+        periodos_para_filtrar = self.trata_inclusao_continua_medicao_inicial(
+            request, escola, ano
+        )
         vinculos = (
             VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-                periodo_escolar__in=escola.periodos_escolares(ano), ativo=True
+                periodo_escolar__in=periodos_para_filtrar, ativo=True
             ).order_by("periodo_escolar__posicao")
         )
         if escola.eh_cemei:
