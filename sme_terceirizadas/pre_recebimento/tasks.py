@@ -6,12 +6,12 @@ import pandas as pd
 from celery import shared_task
 from django.contrib.auth import get_user_model
 
-from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download,
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download,
 )
+from sme_terceirizadas.pre_recebimento.api.helpers import contador_relatorio_cronograma
 
 logger = logging.getLogger(__name__)
 
@@ -204,13 +204,7 @@ def subtitulo_relatorio_cronogramas(qs_cronogramas):
     result = "Total de Cronogramas Criados"
     result += f": {qs_cronogramas.count()}"
 
-    status_count = {
-        CronogramaWorkflow.states[s].title: qs_cronogramas.filter(status=s).count()
-        for s in CronogramaWorkflow.states
-    }
-    ordered_status_count = dict(
-        sorted(status_count.items(), key=lambda e: e[1], reverse=True)
-    )
+    ordered_status_count = contador_relatorio_cronograma(qs_cronogramas)
     status_count_string = "".join(
         [f" | {status}: {count}" for status, count in ordered_status_count.items()]
     )
