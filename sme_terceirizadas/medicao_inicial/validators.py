@@ -299,7 +299,7 @@ def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
         quantidade_dietas_autorizadas = get_quantidade_dietas_autorizadas(
             medicao, ano, mes, dia, faixa_etaria
         )
-        if quantidade == 0 or (quantidade - quantidade_dietas_autorizadas == 0):
+        if quantidade == 0 or (quantidade - quantidade_dietas_autorizadas <= 0):
             continue
         valor_medicao = next(
             (
