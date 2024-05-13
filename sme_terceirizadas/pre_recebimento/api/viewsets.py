@@ -97,7 +97,6 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharCodaeSerializer,
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
-    EtapaCronogramaRelatorioSerializer,
     EtapasDoCronogramaCalendarioSerializer,
     FichaTecnicaComAnaliseDetalharSerializer,
     FichaTecnicaCronogramaSerializer,
@@ -138,8 +137,8 @@ from sme_terceirizadas.pre_recebimento.models import (
     UnidadeMedida,
 )
 from sme_terceirizadas.pre_recebimento.tasks import (
+    gerar_relatorio_cronogramas_pdf_async,
     gerar_relatorio_cronogramas_xlsx_async,
-    subtitulo_relatorio_cronogramas,
 )
 
 from ...dados_comuns.api.paginations import DefaultPagination
@@ -500,17 +499,27 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         url_path="gerar-relatorio-xlsx-async",
     )
     def gerar_relatorio_xlsx_async(self, request):
-        user_id = request.user.id
-        cronogramas = self.filter_queryset(self.get_queryset()).distinct()
-        etapas = EtapasDoCronograma.objects.filter(cronograma__in=cronogramas).order_by(
-            "-cronograma__alterado_em",
-            "etapa",
-            "parte",
+        gerar_relatorio_cronogramas_xlsx_async.delay(
+            request.user.username,
+            dict(request.query_params),
         )
-        dados = EtapaCronogramaRelatorioSerializer(etapas, many=True).data
-        subtitulo = subtitulo_relatorio_cronogramas(cronogramas)
 
-        gerar_relatorio_cronogramas_xlsx_async.delay(user_id, dados, subtitulo)
+        return Response(
+            {"detail": "Solicitação de geração de arquivo recebida com sucesso."},
+            status=HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        permission_classes=(PermissaoParaVisualizarRelatorioCronograma,),
+        methods=["GET"],
+        url_path="gerar-relatorio-pdf-async",
+    )
+    def gerar_relatorio_pdf_async(self, request):
+        gerar_relatorio_cronogramas_pdf_async.delay(
+            request.user.username,
+            dict(request.query_params),
+        )
 
         return Response(
             {"detail": "Solicitação de geração de arquivo recebida com sucesso."},
