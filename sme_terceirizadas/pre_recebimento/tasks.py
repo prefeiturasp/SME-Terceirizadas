@@ -4,7 +4,7 @@ from datetime import date
 
 import pandas as pd
 from celery import shared_task
-from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
 
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.utils import (
@@ -12,6 +12,16 @@ from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download,
 )
+from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter
+from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
+    CronogramaRelatorioSerializer,
+    EtapaCronogramaRelatorioSerializer,
+)
+from sme_terceirizadas.pre_recebimento.models.cronograma import (
+    Cronograma,
+    EtapasDoCronograma,
+)
+from sme_terceirizadas.relatorios.utils import html_to_pdf_file
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +32,7 @@ logger = logging.getLogger(__name__)
     time_limit=3000,
     soft_time_limit=3000,
 )
-def gerar_relatorio_cronogramas_xlsx_async(user_id, dados, subtitulo):
+def gerar_relatorio_cronogramas_xlsx_async(user, query_params):
     logger.info(
         "x-x-x-x Iniciando a geração do arquivo relatorio_cronogramas.xlsx x-x-x-x"
     )
@@ -52,7 +62,7 @@ def gerar_relatorio_cronogramas_xlsx_async(user_id, dados, subtitulo):
     TITULO_RELATORIO = "Relatório de Cronogramas"
 
     obj_central_download = gera_objeto_na_central_download(
-        user=get_user_model().objects.get(id=user_id),
+        user=user,
         identificador=TITULO_ARQUIVO,
     )
 
@@ -60,6 +70,8 @@ def gerar_relatorio_cronogramas_xlsx_async(user_id, dados, subtitulo):
     xlsxwriter = pd.ExcelWriter(output, engine="xlsxwriter")
 
     try:
+        dados, subtitulo = _dados_relatorio_cronograma_xlsx(query_params)
+
         if dados:
             df = pd.DataFrame(dados)
             df.insert(13, "unidade_etapa", value=df.iloc[:, 5])
@@ -98,6 +110,100 @@ def gerar_relatorio_cronogramas_xlsx_async(user_id, dados, subtitulo):
         logger.info(
             "x-x-x-x Finaliza a geração do arquivo relatorio_cronogramas.xlsx x-x-x-x"
         )
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def gerar_relatorio_cronogramas_pdf_async(user, query_params):
+    logger.info(
+        "x-x-x-x Iniciando a geração do arquivo relatorio_cronogramas.xlsx x-x-x-x"
+    )
+
+    TEMPLATE_HTML = "relatorio_cronogramas.html"
+    TITULO_ARQUIVO = "relatorio_cronogramas.pdf"
+
+    obj_central_download = gera_objeto_na_central_download(
+        user=user,
+        identificador=TITULO_ARQUIVO,
+    )
+
+    try:
+        dados, subtitulo = _dados_relatorio_cronograma_pdf(query_params)
+        html_string = render_to_string(
+            TEMPLATE_HTML,
+            {"cronogramas": dados, "subtitulo": subtitulo},
+        )
+        arquivo_relatorio = html_to_pdf_file(
+            html_string,
+            TITULO_ARQUIVO,
+            True,
+        )
+
+        atualiza_central_download(
+            obj_central_download,
+            TITULO_ARQUIVO,
+            arquivo_relatorio,
+        )
+
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    finally:
+        logger.info(
+            "x-x-x-x Finaliza a geração do arquivo relatorio_cronogramas.xlsx x-x-x-x"
+        )
+
+
+def _dados_relatorio_cronograma_xlsx(query_params):
+    cronogramas = CronogramaFilter(
+        data=query_params,
+        queryset=Cronograma.objects.all(),
+    ).qs.distinct()
+    etapas = EtapasDoCronograma.objects.filter(cronograma__in=cronogramas).order_by(
+        "-cronograma__alterado_em",
+        "etapa",
+        "parte",
+    )
+    dados = EtapaCronogramaRelatorioSerializer(etapas, many=True).data
+    subtitulo = _subtitulo_relatorio_cronogramas(cronogramas)
+
+    return dados, subtitulo
+
+
+def _dados_relatorio_cronograma_pdf(query_params):
+    cronogramas = CronogramaFilter(
+        data=query_params,
+        queryset=Cronograma.objects.all(),
+    ).qs.distinct()
+    dados = CronogramaRelatorioSerializer(cronogramas, many=True).data
+    subtitulo = _subtitulo_relatorio_cronogramas(cronogramas)
+
+    return dados, subtitulo
+
+
+def _subtitulo_relatorio_cronogramas(qs_cronogramas):
+    result = "Total de Cronogramas Criados"
+    result += f": {qs_cronogramas.count()}"
+
+    status_count = {
+        CronogramaWorkflow.states[s].title: qs_cronogramas.filter(status=s).count()
+        for s in CronogramaWorkflow.states
+    }
+    ordered_status_count = dict(
+        sorted(status_count.items(), key=lambda e: e[1], reverse=True)
+    )
+    status_count_string = "".join(
+        [f" | {status}: {count}" for status, count in ordered_status_count.items()]
+    )
+    result += status_count_string
+
+    result += f" | Data de Extração do Relatório: {date.today().strftime('%d/%m/%Y')}"
+
+    return result
 
 
 def _definir_largura_colunas(worksheet):
@@ -198,24 +304,3 @@ def _formatar_headers(HEADERS, workbook, worksheet):
             header,
             headers_format,
         )
-
-
-def subtitulo_relatorio_cronogramas(qs_cronogramas):
-    result = "Total de Cronogramas Criados"
-    result += f": {qs_cronogramas.count()}"
-
-    status_count = {
-        CronogramaWorkflow.states[s].title: qs_cronogramas.filter(status=s).count()
-        for s in CronogramaWorkflow.states
-    }
-    ordered_status_count = dict(
-        sorted(status_count.items(), key=lambda e: e[1], reverse=True)
-    )
-    status_count_string = "".join(
-        [f" | {status}: {count}" for status, count in ordered_status_count.items()]
-    )
-    result += status_count_string
-
-    result += f" | Data de Extração do Relatório: {date.today().strftime('%d/%m/%Y')}"
-
-    return result
