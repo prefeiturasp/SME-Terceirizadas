@@ -13,7 +13,7 @@ def test_tipos_ocorrencias(
     tipo_ocorrencia_factory
 ):
 
-    edital = edital_factory.create(eh_imr=True)
+    edital = edital_factory.create()
 
     categoria = categoria_ocorrencia_factory.create(perfis=[PerfilDiretorSupervisao.SUPERVISAO])
 
