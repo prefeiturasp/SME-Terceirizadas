@@ -377,6 +377,7 @@ class FormularioSupervisaoAdmin(admin.ModelAdmin):
         ("formulario_base__data", DateRangeFilter),
         "acompanhou_visita",
     )
+    readonly_fields = ("uuid", "criado_em", "alterado_em")
 
 
 class FaixaPontuacaoIMRForm(forms.ModelForm):
@@ -560,7 +561,7 @@ class ReparoEAdaptacaoAdmin(admin.ModelAdmin):
     def nome_label(self, obj):
         return obj.nome
 
-    nome_label.short_description = "Reparo e Adaptação"
+    nome_label.short_description = "Nome do Reparo e Adaptação"
 
 
 @admin.register(EditalReparoEAdaptacao)
@@ -595,7 +596,7 @@ class InsumoAdmin(admin.ModelAdmin):
     def nome_label(self, obj):
         return obj.nome
 
-    nome_label.short_description = "Insumo"
+    nome_label.short_description = "Nome do Insumo"
 
 
 @admin.register(EditalInsumo)

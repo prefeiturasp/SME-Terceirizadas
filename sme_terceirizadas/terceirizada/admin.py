@@ -69,6 +69,7 @@ class ContratoInline(admin.TabularInline):
 class EditalModelAdmin(admin.ModelAdmin):
     search_fields = ("numero",)
     inlines = [ContratoInline]
+    readonly_fields = ("uuid",)
 
 
 @admin.register(Modulo)

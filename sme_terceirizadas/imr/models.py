@@ -115,6 +115,17 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
         ordering = ("posicao", "nome")
 
 
+class TipoOcorrenciaParaNutriSupervisor(models.Manager):
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .filter(
+                perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
+                categoria__perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
+            )
+        )
+
+
 class TipoOcorrencia(
     ModeloBase, CriadoPor, Posicao, PerfilDiretorSupervisao, StatusAtivoInativo
 ):
@@ -162,6 +173,8 @@ class TipoOcorrencia(
     aceita_multiplas_respostas = models.BooleanField(
         "Aceita múltiplas respostas?", choices=CHOICES, default=False
     )
+
+    para_nutrisupervisores = TipoOcorrenciaParaNutriSupervisor()
 
     def __str__(self):
         return f"{self.edital.numero} - {self.titulo}"
