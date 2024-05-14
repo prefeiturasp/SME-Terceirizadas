@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -52,6 +53,8 @@ class FormularioSupervisaoRascunhoModelViewSet(
             edital = Edital.objects.get(uuid=edital_uuid, eh_imr=True)
         except Edital.DoesNotExist:
             return Response({'detail': 'Edital do tipo IMR com o UUID informado não foi encontrado.'}, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as error:
+            return Response({'detail': error}, status=status.HTTP_400_BAD_REQUEST)
 
         queryset = TipoOcorrencia.para_nutrisupervisores.filter(edital=edital)
 
