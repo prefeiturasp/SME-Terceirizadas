@@ -83,7 +83,6 @@ main {
 }
 
 table {
-  border-radius: 50%;
   width: 100%;
   color: $cinza-meio-escuro;
   border-collapse: collapse;
@@ -104,15 +103,15 @@ table {
   }
 }
 
-.tabela-externa {
-  border-radius: 10px;
-}
-
 .celula-sem-borda {
+  padding: 0.25cm 0.5cm;
   border: none;
 }
 
-.container-tabela-interna {
-  padding: 0.5cm;
-  color: aqua;
+.tabela-externa {
+  page-break-after: always;
+}
+
+.tabela-interna {
+  page-break-inside: auto;
 }

@@ -135,7 +135,10 @@ def gerar_relatorio_cronogramas_pdf_async(user, query_params):
         dados, subtitulo = _dados_relatorio_cronograma_pdf(query_params)
         html_string = render_to_string(
             TEMPLATE_HTML,
-            {"cronogramas": dados, "subtitulo": subtitulo},
+            {
+                "dados": dados,
+                "subtitulo": subtitulo,
+            },
         )
         arquivo_relatorio = html_to_pdf_file(
             html_string,
@@ -177,12 +180,57 @@ def _dados_relatorio_cronograma_xlsx(query_params):
 def _dados_relatorio_cronograma_pdf(query_params):
     cronogramas = CronogramaFilter(
         data=query_params,
-        queryset=Cronograma.objects.all(),
-    ).qs.distinct()
+        queryset=Cronograma.objects.prefetch_related("etapas").order_by("-alterado_em"),
+    ).qs
     dados = CronogramaRelatorioSerializer(cronogramas, many=True).data
+    dados_paginados = _paginar_dados_relatorio_pdf(dados)
     subtitulo = _subtitulo_relatorio_cronogramas(cronogramas)
 
-    return dados, subtitulo
+    return dados_paginados, subtitulo
+
+
+def _paginar_dados_relatorio_pdf(dados):
+    """
+    Pagina os cronogramas em uma lista de listas, respeitando as seguintes regras:
+
+    - Cada página pode conter:
+        - Até 3 cronogramas.
+        - No máximo 6 etapas, no total.
+        - Exceções:
+            - Se houver apenas 2 cronogramas, a página pode conter até 9 etapas.
+            - Se houver apenas 1 cronograma, a página não levará em consideração o número de etapas.
+
+    Parâmetros:
+    dados (list): Lista de dicionários, onde cada dicionário representa um cronograma
+                  e possui uma chave 'etapas' que é uma lista de etapas.
+
+    Retorna:
+    dados_paginados: Uma lista de listas, onde cada lista interna contém cronogramas paginados
+                     de acordo com as regras definidas.
+    """
+
+    dados_paginados = []
+    pagina_atual = []
+    for cronograma in dados:
+        qtd_cronogramas = len(pagina_atual)
+        qtd_etapas_atual = sum([len(c["etapas"]) for c in pagina_atual])
+        qtd_etapas_adicionais = len(cronograma["etapas"])
+
+        if (
+            qtd_cronogramas > 2 or qtd_etapas_atual + qtd_etapas_adicionais > 6
+        ) and not (
+            (qtd_cronogramas == 1 and qtd_etapas_atual + qtd_etapas_adicionais < 10)
+            or (qtd_cronogramas == 0)
+        ):
+            dados_paginados.append([*pagina_atual])
+            pagina_atual.clear()
+
+        pagina_atual.append(cronograma)
+
+    if pagina_atual:
+        dados_paginados.append(pagina_atual)
+
+    return dados_paginados
 
 
 def _subtitulo_relatorio_cronogramas(qs_cronogramas):
