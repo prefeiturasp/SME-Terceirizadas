@@ -1,4 +1,7 @@
-from sme_terceirizadas.dados_comuns.fluxo_status import FichaTecnicaDoProdutoWorkflow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    CronogramaWorkflow,
+    FichaTecnicaDoProdutoWorkflow,
+)
 from sme_terceirizadas.dados_comuns.utils import (
     convert_base64_to_contentfile,
     update_instance_from_dict,
@@ -229,3 +232,14 @@ def retorna_status_ficha_tecnica(status):
         return state
     else:
         return state.title
+
+
+def contador_relatorio_cronograma(queryset):
+    status_count = {
+        CronogramaWorkflow.states[s].title: queryset.filter(status=s).count()
+        for s in CronogramaWorkflow.states
+    }
+    ordered_status_count = dict(
+        sorted(status_count.items(), key=lambda e: e[1], reverse=True)
+    )
+    return ordered_status_count

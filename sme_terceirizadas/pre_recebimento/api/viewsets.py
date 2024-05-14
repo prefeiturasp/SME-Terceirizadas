@@ -62,6 +62,7 @@ from sme_terceirizadas.pre_recebimento.api.filters import (
     TipoEmbalagemQldFilter,
     UnidadeMedidaFilter,
 )
+from sme_terceirizadas.pre_recebimento.api.helpers import contador_relatorio_cronograma
 from sme_terceirizadas.pre_recebimento.api.paginations import (
     CronogramaPagination,
     LaboratorioPagination,
@@ -325,6 +326,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         if page is not None:
             serializer = CronogramaRelatorioSerializer(page, many=True)
             response = self.get_paginated_response(serializer.data)
+            response.data["totalizadores"] = contador_relatorio_cronograma(queryset)
             return response
 
         serializer = CronogramaRelatorioSerializer(queryset, many=True)
