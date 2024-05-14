@@ -1,15 +1,17 @@
 from django.core.exceptions import ValidationError
-from rest_framework import mixins, viewsets, status
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.permissions import UsuarioCODAENutriSupervisao
+from sme_terceirizadas.terceirizada.models import Edital
 
 from ..models import FormularioSupervisao, PeriodoVisita, TipoOcorrencia
 from .serializers.serializers import (
     FormularioSupervisaoSerializer,
     PeriodoVisitaSerializer,
-    TipoOcorrenciaSerializer
+    TipoOcorrenciaSerializer,
 )
 from .serializers.serializers_create import FormularioSupervisaoRascunhoCreateSerializer
 
@@ -43,18 +45,21 @@ class FormularioSupervisaoRascunhoModelViewSet(
             "retrieve": FormularioSupervisaoSerializer,
         }.get(self.action, FormularioSupervisaoRascunhoCreateSerializer)
 
-    @action(detail=False, url_path='tipos-ocorrencias')
-    def tipos_ocorrencias(self, request, uuid=None):
-        from sme_terceirizadas.terceirizada.models import Edital
-
-        edital_uuid = self.request.query_params.get('edital_uuid')
+    @action(detail=False, url_path="tipos-ocorrencias")
+    def tipos_ocorrencias(self, request):
+        edital_uuid = request.query_params.get("edital_uuid")
 
         try:
-            edital = Edital.objects.get(uuid=edital_uuid, eh_imr=True)
+            edital = Edital.objects.get(uuid=edital_uuid)
         except Edital.DoesNotExist:
-            return Response({'detail': 'Edital do tipo IMR com o UUID informado não foi encontrado.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "detail": "Edital do tipo IMR com o UUID informado não foi encontrado."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except ValidationError as error:
-            return Response({'detail': error}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
         queryset = TipoOcorrencia.para_nutrisupervisores.filter(edital=edital)
 
