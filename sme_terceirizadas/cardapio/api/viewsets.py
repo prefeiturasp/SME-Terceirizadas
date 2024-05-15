@@ -1667,7 +1667,7 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
             rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
             data = paginate_list(request, rows, serializer=serialize_relatorio_controle_sobras)
             return Response(data)
-        except AssertionError as e:
+        except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
@@ -1688,7 +1688,7 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
             )
             return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                             status=status.HTTP_200_OK)
-        except AssertionError as e:
+        except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     class Meta:
@@ -1751,7 +1751,7 @@ class ControleRestosViewSet(viewsets.ModelViewSet):
             rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
             data = paginate_list(request, rows, serializer=serialize_relatorio_controle_restos)
             return Response(data)
-        except AssertionError as e:
+        except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
@@ -1772,7 +1772,7 @@ class ControleRestosViewSet(viewsets.ModelViewSet):
             )
             return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                             status=status.HTTP_200_OK)
-        except AssertionError as e:
+        except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     class Meta:
