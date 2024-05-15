@@ -4,6 +4,7 @@
   size: A4 landscape;
   margin: 5cm -2mm 0.75cm -2mm;
   padding: 0;
+  font-family: "Roboto";
 
   @top-center {
     content: element(relatorio_cronogramas_cabecalho);
@@ -68,7 +69,7 @@ header {
   }
 
   .subtitulo {
-    font-size: 12px;
+    font-size: 12.5px;
     line-height: 25px;
     margin-top: 0.25cm;
     padding: 0.25cm 0.5cm;

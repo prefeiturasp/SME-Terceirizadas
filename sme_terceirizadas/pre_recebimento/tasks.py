@@ -174,7 +174,7 @@ def _dados_relatorio_cronograma_xlsx(query_params):
         "parte",
     )
     dados = EtapaCronogramaRelatorioSerializer(etapas, many=True).data
-    subtitulo = _subtitulo_relatorio_cronogramas(cronogramas)
+    subtitulo = _subtitulo_relatorio_cronogramas_xlsx(cronogramas)
 
     return dados, subtitulo
 
@@ -186,7 +186,7 @@ def _dados_relatorio_cronograma_pdf(query_params):
     ).qs
     dados = CronogramaRelatorioSerializer(cronogramas, many=True).data
     dados_paginados = _paginar_dados_relatorio_pdf(dados)
-    subtitulo = _subtitulo_relatorio_cronogramas(cronogramas)
+    subtitulo = _subtitulo_relatorio_cronogramas_pdf(cronogramas)
 
     return dados_paginados, subtitulo
 
@@ -235,7 +235,7 @@ def _paginar_dados_relatorio_pdf(dados):
     return dados_paginados
 
 
-def _subtitulo_relatorio_cronogramas(qs_cronogramas):
+def _subtitulo_relatorio_cronogramas_xlsx(qs_cronogramas):
     result = "Total de Cronogramas Criados"
     result += f": {qs_cronogramas.count()}"
 
@@ -246,6 +246,30 @@ def _subtitulo_relatorio_cronogramas(qs_cronogramas):
     result += status_count_string
 
     result += f" | Data de Extração do Relatório: {date.today().strftime('%d/%m/%Y')}"
+
+    return result
+
+
+def _subtitulo_relatorio_cronogramas_pdf(qs_cronogramas):
+    result = "Total de Cronogramas Criados"
+    result += f": <strong>{qs_cronogramas.count()}</strong>"
+
+    ordered_status_count = totalizador_relatorio_cronograma(qs_cronogramas)
+
+    status_count_string = "".join(
+        [
+            (
+                f" |<br>{status}: <strong>{count}</strong>"
+                if idx == len(ordered_status_count) - 3
+                else f" | {status}: <strong>{count}</strong>"
+            )
+            for idx, (status, count) in enumerate(ordered_status_count.items())
+        ]
+    )
+
+    result += status_count_string
+
+    result += f" | Data de Extração do Relatório: <strong>{date.today().strftime('%d/%m/%Y')}</strong>"
 
     return result
 
