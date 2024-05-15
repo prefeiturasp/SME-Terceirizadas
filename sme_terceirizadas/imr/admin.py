@@ -278,6 +278,12 @@ class TipoFormularioFilter(admin.SimpleListFilter):
             return queryset.filter(formulariosupervisao__isnull=False)
 
 
+class OcorrenciaNaoSeAplicaInline(admin.StackedInline):
+    model = OcorrenciaNaoSeAplica
+    max_num = 1
+    extra = 0
+
+
 class FormularioSupervisaoInline(admin.StackedInline):
     model = FormularioSupervisao
     max_num = 1
@@ -360,6 +366,7 @@ class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
         RespostaFaixaEtariaInline,
         RespostaTipoAlimentacaoInline,
         RespostaSimNaoNaoSeAplicaInline,
+        OcorrenciaNaoSeAplicaInline,
         AnexosFormularioBaseInline,
         NotificacoesAssinadasFormularioBaseInline,
     ]
