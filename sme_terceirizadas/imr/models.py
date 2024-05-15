@@ -175,6 +175,7 @@ class TipoOcorrencia(
         "Aceita múltiplas respostas?", choices=CHOICES, default=False
     )
 
+    objects = models.Manager()
     para_nutrisupervisores = TipoOcorrenciaParaNutriSupervisor()
 
     def __str__(self):
