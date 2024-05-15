@@ -134,11 +134,11 @@ def gerar_relatorio_cronogramas_pdf_async(user, query_params):
     )
 
     try:
-        dados, subtitulo = _dados_relatorio_cronograma_pdf(query_params)
+        paginas, subtitulo = _dados_relatorio_cronograma_pdf(query_params)
         html_string = render_to_string(
             TEMPLATE_HTML,
             {
-                "dados": dados,
+                "paginas": paginas,
                 "subtitulo": subtitulo,
             },
         )

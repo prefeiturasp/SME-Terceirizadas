@@ -2,7 +2,8 @@
 
 @page {
   size: A4 landscape;
-  margin: 5cm -2mm 0.75cm -2mm;
+  // margin-top calculados individualmente (nth)
+  margin: 0 -2mm 0.75cm -2mm;
   padding: 0;
   font-family: "Roboto";
 
@@ -22,13 +23,15 @@
 }
 
 @page :nth(n+2) {
+  margin-top: 4.9cm;
+
   @top-center {
-    margin-bottom: 0.8cm;
+    margin-bottom: 0.5cm;
   }
 }
 
 @page :nth(1) {
-  margin-top: 4.5cm;
+  margin-top: 4.3cm;
 
   @top-center {
     margin-bottom: -0.2cm;
@@ -45,8 +48,8 @@ body {
 header {
   position: running(relatorio_cronogramas_cabecalho);
 
-  height: 3cm;
-  padding: 0.75cm;
+  height: 4cm;
+  padding: 0.25cm 0.75cm;
   background-color: #f1f1f1;
 
   .titulo {
@@ -58,8 +61,8 @@ header {
     width: 100%;
 
     img {
-      width: 97.22px;
-      height: 35px;
+      width: 60px;
+      height: 60px;
     }
 
     span {

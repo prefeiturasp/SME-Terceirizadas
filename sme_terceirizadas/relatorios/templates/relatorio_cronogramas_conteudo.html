@@ -5,7 +5,7 @@
 <html>
   <body>
     <main>
-      {% for cronogramas in dados %}
+      {% for pagina in paginas %}
         <table class="tabela-externa">
           <thead>
             <tr>
@@ -19,7 +19,7 @@
           </thead>
 
           <tbody>
-            {% for cronograma in cronogramas %}
+            {% for cronograma in pagina %}
               <tr>
                 <td>{{ cronograma.numero|default:"-" }}</td>
                 <td>{{ cronograma.produto|default:"-" }}</td>
