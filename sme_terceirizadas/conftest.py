@@ -14,10 +14,14 @@ from .imr.fixtures.factories.imr_base_factory import (
     FaixaPontuacaoFactory,
     InsumoFactory,
     MobiliarioFactory,
+    ObrigacaoPenalidadeFactory,
+    ParametrizacaoOcorrenciaFactory,
     ReparoEAdaptacaoFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
+    TipoPerguntaParametrizacaoOcorrenciaFactory,
+    TipoRespostaModeloFactory,
     UtensilioMesaFactory,
     UtensilioCozinhaFactory,
 )
@@ -107,6 +111,10 @@ register(EquipamentoFactory)
 register(MobiliarioFactory)
 register(ReparoEAdaptacaoFactory)
 register(InsumoFactory)
+register(TipoPerguntaParametrizacaoOcorrenciaFactory)
+register(TipoRespostaModeloFactory)
+register(ParametrizacaoOcorrenciaFactory)
+register(ObrigacaoPenalidadeFactory)
 
 
 @pytest.fixture

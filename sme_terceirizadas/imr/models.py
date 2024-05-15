@@ -22,6 +22,7 @@ from ..dados_comuns.behaviors import (
     StatusAtivoInativo,
     TemNomeMaior,
 )
+from ..dados_comuns.fluxo_status import FluxoFormularioSupervisao
 from ..dados_comuns.validators import validate_file_size_10mb
 from ..escola.models import Escola, FaixaEtaria, PeriodoEscolar
 from ..medicao_inicial.models import SolicitacaoMedicaoInicial
@@ -114,6 +115,18 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
         ordering = ("posicao", "nome")
 
 
+class TipoOcorrenciaParaNutriSupervisor(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
+                categoria__perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
+            )
+        )
+
+
 class TipoOcorrencia(
     ModeloBase, CriadoPor, Posicao, PerfilDiretorSupervisao, StatusAtivoInativo
 ):
@@ -162,13 +175,15 @@ class TipoOcorrencia(
         "Aceita múltiplas respostas?", choices=CHOICES, default=False
     )
 
+    para_nutrisupervisores = TipoOcorrenciaParaNutriSupervisor()
+
     def __str__(self):
         return f"{self.edital.numero} - {self.titulo}"
 
     class Meta:
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
-        unique_together = ("edital", "categoria", "penalidade")
+        unique_together = ("edital", "categoria", "penalidade", "titulo")
 
     def valida_eh_imr(self, dict_error):
         if self.eh_imr and (not self.pontuacao or not self.tolerancia):
@@ -380,7 +395,7 @@ class FormularioDiretor(ModeloBase):
         verbose_name_plural = "Formulários do Diretor - Ocorrências"
 
 
-class FormularioSupervisao(ModeloBase):
+class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao):
     escola = models.ForeignKey(
         Escola, on_delete=models.PROTECT, related_name="formularios_supervisao"
     )
@@ -392,15 +407,16 @@ class FormularioSupervisao(ModeloBase):
         verbose_name="Período da Visita",
         on_delete=models.PROTECT,
         related_name="formularios_supervisao",
+        null=True,
+        blank=True,
     )
     nome_nutricionista_empresa = models.CharField(
-        "Nome da Nutricionista RT da Empresa", max_length=100
+        "Nome da Nutricionista RT da Empresa",
+        max_length=100,
+        null=True,
+        blank=True,
     )
     acompanhou_visita = models.BooleanField("Acompanhou a visita?", default=False)
-    apresentou_ocorrencias = models.BooleanField(
-        "No momento da visita, a prestação de serviços apresentou ocorrências?",
-        default=False,
-    )
 
     def __str__(self):
         return f"{self.escola.nome} - {self.formulario_base.data}"
@@ -647,8 +663,8 @@ class RespostaSimNaoNaoSeAplica(ModeloBase, Grupo):
         unique_together = ("formulario_base", "parametrizacao", "grupo")
 
 
-class RespostaNaoSeAplica(ModeloBase, Grupo):
-    resposta = models.TextField("Descrição", blank=True)
+class OcorrenciaNaoSeAplica(ModeloBase, Grupo):
+    descricao = models.TextField("Descrição", blank=True)
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
         verbose_name="Formulário de Ocorrências",
@@ -657,17 +673,17 @@ class RespostaNaoSeAplica(ModeloBase, Grupo):
         null=True,
     )
     tipo_ocorrencia = models.ForeignKey(
-        ParametrizacaoOcorrencia,
+        TipoOcorrencia,
         on_delete=models.CASCADE,
-        related_name="respostas_nao_se_aplica",
+        related_name="ocorrencias_nao_se_aplica",
     )
 
     def __str__(self):
-        return self.resposta
+        return self.descricao
 
     class Meta:
-        verbose_name = "Resposta Não se aplica"
-        verbose_name_plural = "Respostas Não se aplica"
+        verbose_name = "Ocorrência Não se aplica"
+        verbose_name_plural = "Ocorrências Não se aplica"
         unique_together = ("formulario_base", "tipo_ocorrencia", "grupo")
 
 
@@ -900,3 +916,171 @@ class EditalInsumo(ModeloBase):
     class Meta:
         verbose_name = "Insumo Por Edital"
         verbose_name_plural = "Insumos Por Edital"
+
+
+class RespostaUtensilioMesa(ModeloBase, Grupo):
+    resposta = models.ForeignKey(
+        UtensilioMesa,
+        on_delete=models.PROTECT,
+        related_name="respostas_relatorio_imr",
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_utensilios_mesa",
+        null=True,
+    )
+    parametrizacao = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_utensilios_mesa",
+    )
+
+    def __str__(self):
+        return self.resposta.nome
+
+    class Meta:
+        verbose_name = "Resposta Utensílio de Mesa"
+        verbose_name_plural = "Respostas Utensílio de Mesa"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
+
+
+class RespostaUtensilioCozinha(ModeloBase, Grupo):
+    resposta = models.ForeignKey(
+        UtensilioCozinha,
+        on_delete=models.PROTECT,
+        related_name="respostas_relatorio_imr",
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_utensilios_cozinha",
+        null=True,
+    )
+    parametrizacao = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_utensilios_cozinha",
+    )
+
+    def __str__(self):
+        return self.resposta.nome
+
+    class Meta:
+        verbose_name = "Resposta Utensílio de Cozinha"
+        verbose_name_plural = "Respostas Utensílio de Cozinha"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
+
+
+class RespostaEquipamento(ModeloBase, Grupo):
+    resposta = models.ForeignKey(
+        Equipamento,
+        on_delete=models.PROTECT,
+        related_name="respostas_relatorio_imr",
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_equipamentos",
+        null=True,
+    )
+    parametrizacao = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_equipamentos",
+    )
+
+    def __str__(self):
+        return self.resposta.nome
+
+    class Meta:
+        verbose_name = "Resposta Equipamento"
+        verbose_name_plural = "Respostas Equipamento"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
+
+
+class RespostaMobiliario(ModeloBase, Grupo):
+    resposta = models.ForeignKey(
+        Mobiliario,
+        on_delete=models.PROTECT,
+        related_name="respostas_relatorio_imr",
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_mobiliarios",
+        null=True,
+    )
+    parametrizacao = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_mobiliarios",
+    )
+
+    def __str__(self):
+        return self.resposta.nome
+
+    class Meta:
+        verbose_name = "Resposta Mobiliário"
+        verbose_name_plural = "Respostas Mobiliário"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
+
+
+class RespostaReparoEAdaptacao(ModeloBase, Grupo):
+    resposta = models.ForeignKey(
+        ReparoEAdaptacao,
+        on_delete=models.PROTECT,
+        related_name="respostas_relatorio_imr",
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_reparos_e_adaptacoes",
+        null=True,
+    )
+    parametrizacao = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_reparos_e_adaptacoes",
+    )
+
+    def __str__(self):
+        return self.resposta.nome
+
+    class Meta:
+        verbose_name = "Resposta Reparo e Adaptação"
+        verbose_name_plural = "Respostas Reparo e Adaptação"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
+
+
+class RespostaInsumo(ModeloBase, Grupo):
+    resposta = models.ForeignKey(
+        Insumo,
+        on_delete=models.PROTECT,
+        related_name="respostas_relatorio_imr",
+    )
+    formulario_base = models.ForeignKey(
+        FormularioOcorrenciasBase,
+        verbose_name="Formulário de Ocorrências",
+        on_delete=models.CASCADE,
+        related_name="respostas_insumos",
+        null=True,
+    )
+    parametrizacao = models.ForeignKey(
+        ParametrizacaoOcorrencia,
+        on_delete=models.CASCADE,
+        related_name="respostas_insumos",
+    )
+
+    def __str__(self):
+        return self.resposta.nome
+
+    class Meta:
+        verbose_name = "Resposta Insumo"
+        verbose_name_plural = "Respostas Insumo"
+        unique_together = ("formulario_base", "parametrizacao", "grupo")
