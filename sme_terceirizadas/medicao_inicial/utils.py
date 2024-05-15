@@ -855,10 +855,10 @@ def get_nome_periodo(periodo_corrente):
 def popula_campo_matriculados_cei(
     solicitacao, tabela, faixa_id, dia, indice_periodo, categoria_corrente, valores_dia
 ):
+    periodo = tabela["periodos"][indice_periodo]
+    medicoes = solicitacao.medicoes.all()
+    medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
     try:
-        periodo = tabela["periodos"][indice_periodo]
-        medicoes = solicitacao.medicoes.all()
-        medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         valores_dia += [
             medicao.valores_medicao.get(
                 dia=f"{dia:02d}",
@@ -869,6 +869,25 @@ def popula_campo_matriculados_cei(
         ]
     except ValorMedicao.DoesNotExist:
         valores_dia += ["0"]
+    except ValorMedicao.MultipleObjectsReturned:
+        valor_para_nao_excluir = (
+            medicao.valores_medicao.filter(
+                dia=f"{dia:02d}",
+                categoria_medicao__nome=categoria_corrente,
+                faixa_etaria=faixa_id,
+                nome_campo="matriculados",
+            )
+            .order_by("-valor")
+            .first()
+        )
+
+        medicao.valores_medicao.filter(
+            dia=f"{dia:02d}",
+            categoria_medicao__nome=categoria_corrente,
+            faixa_etaria=faixa_id,
+            nome_campo="matriculados",
+        ).exclude(uuid=valor_para_nao_excluir.uuid).delete()
+        valores_dia += [valor_para_nao_excluir.valor]
 
 
 def popula_campo_aprovadas(
