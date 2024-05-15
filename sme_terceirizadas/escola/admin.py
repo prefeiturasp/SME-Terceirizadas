@@ -74,6 +74,7 @@ class EscolaAdmin(admin.ModelAdmin):
     )
     ordering = ("codigo_eol", "nome")
     actions = ("marcar_para_receber_email", "marcar_para_nao_receber_email")
+    readonly_fields = ("uuid", )
 
     def marcar_para_receber_email(self, request, queryset):
         count = queryset.update(enviar_email_por_produto=True)
