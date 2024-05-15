@@ -533,46 +533,26 @@ class Escola(
     def quantidade_alunos_cei_da_cemei(self):
         if not self.eh_cemei:
             return None
-        return self.aluno_set.filter(
-            Q(serie__icontains="1")
-            | Q(serie__icontains="2")
-            | Q(serie__icontains="3")
-            | Q(serie__icontains="4")
-        ).count()
+        return self.aluno_set.filter(ciclo=Aluno.CICLO_ALUNO_CEI).count()
 
     def quantidade_alunos_cei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
-        return (
-            self.aluno_set.filter(periodo_escolar__nome=periodo)
-            .filter(
-                Q(serie__icontains="1")
-                | Q(serie__icontains="2")
-                | Q(serie__icontains="3")
-                | Q(serie__icontains="4")
-            )
-            .count()
-        )
+        return self.aluno_set.filter(
+            periodo_escolar__nome=periodo, ciclo=Aluno.CICLO_ALUNO_CEI
+        ).count()
 
     def quantidade_alunos_cei_por_periodo_por_faixa(self, periodo, faixa):
         if not self.eh_cemei:
             return None
         data_inicio = datetime.date.today() - relativedelta(months=faixa.inicio)
         data_fim = datetime.date.today() - relativedelta(months=faixa.fim)
-        return (
-            self.aluno_set.filter(
-                periodo_escolar__nome=periodo,
-                data_nascimento__lte=data_inicio,
-                data_nascimento__gte=data_fim,
-            )
-            .filter(
-                Q(serie__icontains="1")
-                | Q(serie__icontains="2")
-                | Q(serie__icontains="3")
-                | Q(serie__icontains="4")
-            )
-            .count()
-        )
+        return self.aluno_set.filter(
+            periodo_escolar__nome=periodo,
+            data_nascimento__lte=data_inicio,
+            data_nascimento__gte=data_fim,
+            ciclo=Aluno.CICLO_ALUNO_CEI,
+        ).count()
 
     def quantidade_alunos_emebs_por_periodo_infantil(self, nome_periodo_escolar):
         if not self.eh_emebs:
@@ -595,27 +575,15 @@ class Escola(
     def quantidade_alunos_emei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
-        return (
-            self.aluno_set.filter(periodo_escolar__nome=periodo)
-            .exclude(
-                Q(serie__icontains="1")
-                | Q(serie__icontains="2")
-                | Q(serie__icontains="3")
-                | Q(serie__icontains="4")
-            )
-            .count()
-        )
+        return self.aluno_set.filter(
+            periodo_escolar__nome=periodo, ciclo=Aluno.CICLO_ALUNO_EMEI
+        ).count()
 
     @property
     def quantidade_alunos_emei_da_cemei(self):
         if not self.eh_cemei:
             return None
-        return self.aluno_set.exclude(
-            Q(serie__icontains="1")
-            | Q(serie__icontains="2")
-            | Q(serie__icontains="3")
-            | Q(serie__icontains="4")
-        ).count()
+        return self.aluno_set.filter(ciclo=Aluno.CICLO_ALUNO_EMEI).count()
 
     @property
     def alunos_por_periodo_escolar(self):
@@ -903,11 +871,8 @@ class Escola(
         data_referencia = self.obter_data_referencia(data_referencia)
         faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
 
-        lista_alunos = Aluno.objects.filter(escola__codigo_eol=self.codigo_eol).filter(
-            Q(serie__icontains="1")
-            | Q(serie__icontains="2")
-            | Q(serie__icontains="3")
-            | Q(serie__icontains="4")
+        lista_alunos = Aluno.objects.filter(
+            escola__codigo_eol=self.codigo_eol, ciclo=Aluno.CICLO_ALUNO_CEI
         )
         seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         resultados = {}
@@ -1487,6 +1452,9 @@ class Responsavel(Nomeavel, TemChaveExterna, CriadoEm):
 
 class Aluno(TemChaveExterna):
     ETAPA_INFANTIL = 10
+
+    CICLO_ALUNO_CEI = 1
+    CICLO_ALUNO_EMEI = 2
 
     nome = models.CharField("Nome Completo do Aluno", max_length=100)
     codigo_eol = models.CharField(  # noqa DJ01
