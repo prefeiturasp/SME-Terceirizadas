@@ -887,7 +887,7 @@ def popula_campo_matriculados_cei(
             faixa_etaria=faixa_id,
             nome_campo="matriculados",
         ).exclude(uuid=valor_para_nao_excluir.uuid).delete()
-        valores_dia += valor_para_nao_excluir.valor
+        valores_dia += [valor_para_nao_excluir.valor]
 
 
 def popula_campo_aprovadas(
