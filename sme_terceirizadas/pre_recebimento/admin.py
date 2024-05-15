@@ -168,10 +168,19 @@ class FichaTecnicaDoProdutoAdmin(admin.ModelAdmin):
     )
 
 
+class EtapasInline(admin.TabularInline):
+    model = EtapasDoCronograma
+    extra = 0
+
+
+class CronogramaAdmin(admin.ModelAdmin):
+    inlines = (EtapasInline,)
+
+
 admin.site.register(DocumentoDeRecebimento, DocumentoDeRecebimentoAdmin)
 admin.site.register(DataDeFabricaoEPrazo)
 admin.site.register(LayoutDeEmbalagem, LayoutDeEmbalagemAdmin)
-admin.site.register(Cronograma)
 admin.site.register(EtapasDoCronograma)
 admin.site.register(ProgramacaoDoRecebimentoDoCronograma)
 admin.site.register(FichaTecnicaDoProduto, FichaTecnicaDoProdutoAdmin)
+admin.site.register(Cronograma, CronogramaAdmin)

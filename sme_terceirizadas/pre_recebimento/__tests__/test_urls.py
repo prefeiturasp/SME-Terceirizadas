@@ -566,6 +566,20 @@ def test_url_cronograma_gerar_relatorio_xlsx_async(client_autenticado_dilog_cron
     assert obj_central_download.arquivo.size > 0
 
 
+def test_url_cronograma_gerar_relatorio_pdf_async(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.get(
+        "/cronogramas/gerar-relatorio-pdf-async/"
+    )
+
+    obj_central_download = CentralDeDownload.objects.first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert obj_central_download is not None
+    assert obj_central_download.status == CentralDeDownload.STATUS_CONCLUIDO
+    assert obj_central_download.arquivo is not None
+    assert obj_central_download.arquivo.size > 0
+
+
 def test_url_endpoint_laboratorio(client_autenticado_qualidade):
     data = {
         "contatos": [
