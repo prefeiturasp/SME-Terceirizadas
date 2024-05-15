@@ -106,8 +106,20 @@ def escola_cemei(periodo_escolar):
         tipo_gestao=tipo_gestao,
         tipo_unidade=tipo_unidade_escolar,
     )
-    mommy.make("Aluno", serie="1", escola=escola, periodo_escolar=periodo_escolar)
-    mommy.make("Aluno", serie="5", escola=escola, periodo_escolar=periodo_escolar)
+    mommy.make(
+        "Aluno",
+        serie="1",
+        escola=escola,
+        periodo_escolar=periodo_escolar,
+        ciclo=Aluno.CICLO_ALUNO_CEI,
+    )
+    mommy.make(
+        "Aluno",
+        serie="5",
+        escola=escola,
+        periodo_escolar=periodo_escolar,
+        ciclo=Aluno.CICLO_ALUNO_EMEI,
+    )
     return escola
 
 
@@ -647,6 +659,7 @@ def alunos(escola_cei, periodo_escolar):
             escola=escola_cei,
             periodo_escolar=periodo_escolar,
             serie=f"{i}A",
+            ciclo=Aluno.CICLO_ALUNO_CEI,
         )
     return models.Aluno.objects.all()
 

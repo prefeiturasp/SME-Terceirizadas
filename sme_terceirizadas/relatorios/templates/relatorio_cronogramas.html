@@ -1,0 +1,14 @@
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+  <head>
+    <link rel="stylesheet" href="{% sass_src 'css/pre_recebimento/relatorio_de_cronogramas.scss' %}" type="text/css">
+  </head>
+
+  <body>
+    {% include "relatorio_cronogramas_cabecalho.html" %}
+    {% include "relatorio_cronogramas_conteudo.html" %}
+  </body>
+</html>

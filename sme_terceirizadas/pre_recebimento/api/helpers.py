@@ -234,7 +234,7 @@ def retorna_status_ficha_tecnica(status):
         return state.title
 
 
-def contador_relatorio_cronograma(queryset):
+def totalizador_relatorio_cronograma(queryset):
     status_count = {
         CronogramaWorkflow.states[s].title: queryset.filter(status=s).count()
         for s in CronogramaWorkflow.states

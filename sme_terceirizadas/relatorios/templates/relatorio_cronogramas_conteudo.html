@@ -1,0 +1,77 @@
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+  <body>
+    <main>
+      {% for pagina in paginas %}
+        <table class="tabela-externa">
+          <thead>
+            <tr>
+              <th>Nº do Cronograma</th>
+              <th>Produto</th>
+              <th>Empresa</th>
+              <th>Quantidade</th>
+              <th>Armazém</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for cronograma in pagina %}
+              <tr>
+                <td>{{ cronograma.numero|default:"-" }}</td>
+                <td>{{ cronograma.produto|default:"-" }}</td>
+                <td>{{ cronograma.empresa|default:"-" }}</td>
+                <td>{{ cronograma.qtd_total_programada|default:"-" }}</td>
+                <td>{{ cronograma.armazem|default:"-" }}</td>
+                <td>{{ cronograma.status|default:"-" }}</td>
+              </tr>
+
+              <tr>
+                <td colspan="3" class="celula-sem-borda">
+                  Marca: <strong>{{ cronograma.marca|default:"-" }}</strong>
+                </td>
+                <td colspan="3" class="celula-sem-borda">
+                  Custo unitário: <strong>{{ cronograma.custo_unitario_produto|default:"-" }}</strong>
+                </td>
+              </tr>
+
+              <tr>
+                <td colspan="6" class="celula-sem-borda">
+                  <table class="tabela-interna">
+                    <thead>
+                      <tr>
+                        <th>Etapa</th>
+                        <th>Parte</th>
+                        <th>Data programada</th>
+                        <th>Quantidade</th>
+                        <th>Total de Embalagens</th>
+                        <th>Situação</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {% for etapa in cronograma.etapas %}
+                        <tr>
+                          <td>{{ etapa.etapa|default:"-" }}</td>
+                          <td>{{ etapa.parte|default:"-" }}</td>
+                          <td>{{ etapa.data_programada|default:"-" }}</td>
+                          <td>{{ etapa.quantidade|default:"-" }}</td>
+                          <td>{{ etapa.total_embalagens|default:"-" }}</td>
+                          <td>{{ etapa.situacao|default:"-" }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endfor %}
+    </main>
+
+  </body>
+</html>
