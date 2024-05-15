@@ -1659,31 +1659,37 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
             methods=['GET'],
             url_path=f'{constants.RELATORIO}')
     def relatorio(self, request):
-        form = ControleSobrasRelatorioForm(self.request.GET)
-        if not form.is_valid():
-            raise ValidationError(form.errors)
+        try:
+            form = ControleSobrasRelatorioForm(self.request.GET)
+            if not form.is_valid():
+                raise ValidationError(form.errors)
 
-        rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
-        data = paginate_list(request, rows, serializer=serialize_relatorio_controle_sobras)
-        return Response(data)
+            rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
+            data = paginate_list(request, rows, serializer=serialize_relatorio_controle_sobras)
+            return Response(data)
+        except AssertionError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
             methods=['GET'],
             url_path=f'{constants.RELATORIO}/exportar-xlsx')
     def relatorio_exportar_xlsx(self, request):
-        form = ControleSobrasRelatorioForm(self.request.GET)
-        if not form.is_valid():
-            raise ValidationError(form.errors)
+        try:
+            form = ControleSobrasRelatorioForm(self.request.GET)
+            if not form.is_valid():
+                raise ValidationError(form.errors)
 
-        rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
-        user = request.user.get_username()
-        gera_xls_relatorio_controle_sobras_async.delay(
-            user=user,
-            nome_arquivo='relatorio_controle_sobras.xlsx',
-            data=rows,
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
+            rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
+            user = request.user.get_username()
+            gera_xls_relatorio_controle_sobras_async.delay(
+                user=user,
+                nome_arquivo='relatorio_controle_sobras.xlsx',
+                data=rows,
+            )
+            return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                            status=status.HTTP_200_OK)
+        except AssertionError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     class Meta:
         model = ControleSobras
@@ -1737,31 +1743,37 @@ class ControleRestosViewSet(viewsets.ModelViewSet):
             methods=['GET'],
             url_path=f'{constants.RELATORIO}')
     def relatorio(self, request):
-        form = ControleRestosRelatorioForm(self.request.GET)
-        if not form.is_valid():
-            raise ValidationError(form.errors)
+        try:
+            form = ControleRestosRelatorioForm(self.request.GET)
+            if not form.is_valid():
+                raise ValidationError(form.errors)
 
-        rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
-        data = paginate_list(request, rows, serializer=serialize_relatorio_controle_restos)
-        return Response(data)
+            rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
+            data = paginate_list(request, rows, serializer=serialize_relatorio_controle_restos)
+            return Response(data)
+        except AssertionError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
             methods=['GET'],
             url_path=f'{constants.RELATORIO}/exportar-xlsx')
     def relatorio_exportar_xlsx(self, request):
-        form = ControleRestosRelatorioForm(self.request.GET)
-        if not form.is_valid():
-            raise ValidationError(form.errors)
+        try:
+            form = ControleRestosRelatorioForm(self.request.GET)
+            if not form.is_valid():
+                raise ValidationError(form.errors)
 
-        rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
-        user = request.user.get_username()
-        gera_xls_relatorio_controle_restos_async.delay(
-            user=user,
-            nome_arquivo='relatorio_controle_restos.xlsx',
-            data=rows,
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
+            rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
+            user = request.user.get_username()
+            gera_xls_relatorio_controle_restos_async.delay(
+                user=user,
+                nome_arquivo='relatorio_controle_restos.xlsx',
+                data=rows,
+            )
+            return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                            status=status.HTTP_200_OK)
+        except AssertionError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     class Meta:
         model = ControleRestos
