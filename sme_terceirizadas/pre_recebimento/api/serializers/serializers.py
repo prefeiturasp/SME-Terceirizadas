@@ -615,6 +615,7 @@ class CronogramaRelatorioSerializer(serializers.ModelSerializer):
     empresa = serializers.SerializerMethodField()
     armazem = serializers.SerializerMethodField()
     marca = serializers.SerializerMethodField()
+    custo_unitario_produto = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
 
     def get_produto(self, obj):
@@ -640,6 +641,13 @@ class CronogramaRelatorioSerializer(serializers.ModelSerializer):
             return obj.ficha_tecnica.marca.nome if obj.ficha_tecnica else None
         except AttributeError:
             return None
+
+    def get_custo_unitario_produto(self, obj):
+        return (
+            f"R$ {numero_com_agrupador_de_milhar_e_decimal(obj.custo_unitario_produto)}"
+            if obj.custo_unitario_produto
+            else None
+        )
 
     class Meta:
         model = Cronograma
