@@ -118,7 +118,8 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
 class TipoOcorrenciaParaNutriSupervisor(models.Manager):
     def get_queryset(self):
         return (
-            super().get_queryset()
+            super()
+            .get_queryset()
             .filter(
                 perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
                 categoria__perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
@@ -182,7 +183,7 @@ class TipoOcorrencia(
     class Meta:
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
-        unique_together = ("edital", "categoria", "penalidade")
+        unique_together = ("edital", "categoria", "penalidade", "titulo")
 
     def valida_eh_imr(self, dict_error):
         if self.eh_imr and (not self.pontuacao or not self.tolerancia):

@@ -151,12 +151,12 @@ class ProcessadorPlanilhaTipoOcorrencia(ProcessadorDePlanilha):
             edital=edital,
             categoria=categoria,
             penalidade=penalidade,
+            titulo=tipo_ocorrencia_schema.titulo,
             defaults={
                 "criado_por": self.usuario,
                 "posicao": tipo_ocorrencia_schema.posicao,
                 "perfis": perfis,
                 "edital": edital,
-                "titulo": tipo_ocorrencia_schema.titulo,
                 "descricao": tipo_ocorrencia_schema.descricao,
                 "eh_imr": eh_imr,
                 "pontuacao": tipo_ocorrencia_schema.pontuacao,
