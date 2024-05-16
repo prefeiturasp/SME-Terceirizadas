@@ -330,6 +330,28 @@ ORDEM_CAMPOS = [
 
 MAX_COLUNAS = 15
 
+ORDEM_UNIDADES_GRUPO_EMEF = {
+    "EMEF": 1,
+    "EMEFM": 2,
+    "CIEJA": 3,
+    "CEU GESTAO": 4,
+    "CEU EMEF": 5,
+}
+
+ORDEM_HEADERS = {
+    "Solicitações de Alimentação": 1,
+    "MANHA": 2,
+    "TARDE": 3,
+    "INTEGRAL": 4,
+    "NOITE": 5,
+    "VESPERTINO": 6,
+    "Programas e Projetos": 7,
+    "ETEC": 8,
+    "DIETA ESPECIAL - TIPO A": 9,
+    "DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS": 10,
+    "DIETA ESPECIAL - TIPO B - LANCHE": 11,
+}
+
 
 class StatusProcessamentoArquivo(Enum):
     PENDENTE = "PENDENTE"
