@@ -57,6 +57,7 @@ def test_rascunho_cronograma_create_ok(
 ):
     qtd_total_empenho = fake.random_number() / 100
     custo_unitario_produto = fake.random_number() / 100
+    observacoes = "aaaa"
 
     payload = {
         "contrato": str(contrato.uuid),
@@ -84,6 +85,7 @@ def test_rascunho_cronograma_create_ok(
         "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
         "tipo_embalagem_secundaria": str(tipo_emabalagem_qld.uuid),
         "custo_unitario_produto": custo_unitario_produto,
+        "observacoes": observacoes,
     }
 
     response = client_autenticado_dilog_cronograma.post(
@@ -101,6 +103,7 @@ def test_rascunho_cronograma_create_ok(
     assert obj.tipo_embalagem_secundaria == tipo_emabalagem_qld
     assert obj.custo_unitario_produto == custo_unitario_produto
     assert obj.etapas.first().qtd_total_empenho == qtd_total_empenho
+    assert obj.observacoes == observacoes
 
 
 def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):

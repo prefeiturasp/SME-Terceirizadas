@@ -233,6 +233,7 @@ class CronogramaSerializer(serializers.ModelSerializer):
             "ficha_tecnica",
             "tipo_embalagem_secundaria",
             "custo_unitario_produto",
+            "observacoes",
         )
 
 
@@ -269,6 +270,7 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
             "tipo_embalagem_secundaria",
             "custo_unitario_produto",
             "logs",
+            "observacoes",
         )
 
 
