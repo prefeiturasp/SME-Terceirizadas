@@ -320,8 +320,11 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         url_path="listagem-relatorio",
     )
     def lista_relatorio(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.order_by("-alterado_em").distinct()
+        queryset = (
+            self.filter_queryset(self.get_queryset())
+            .order_by("-alterado_em")
+            .distinct()
+        )
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -503,9 +506,17 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         url_path="gerar-relatorio-xlsx-async",
     )
     def gerar_relatorio_xlsx_async(self, request):
+        ids_cronogramas = list(
+            (
+                self.filter_queryset(self.get_queryset())
+                .order_by("-alterado_em")
+                .distinct()
+            ).values_list("id", flat=True)
+        )
+
         gerar_relatorio_cronogramas_xlsx_async.delay(
             request.user.username,
-            dict(request.query_params),
+            ids_cronogramas,
         )
 
         return Response(
@@ -520,9 +531,17 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         url_path="gerar-relatorio-pdf-async",
     )
     def gerar_relatorio_pdf_async(self, request):
+        ids_cronogramas = list(
+            (
+                self.filter_queryset(self.get_queryset())
+                .order_by("-alterado_em")
+                .distinct()
+            ).values_list("id", flat=True)
+        )
+
         gerar_relatorio_cronogramas_pdf_async.delay(
             request.user.username,
-            dict(request.query_params),
+            ids_cronogramas,
         )
 
         return Response(
