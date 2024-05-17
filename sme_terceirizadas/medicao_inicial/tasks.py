@@ -12,6 +12,9 @@ from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_excel import (
 from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_pdf import (
     gera_relatorio_adesao_pdf,
 )
+from sme_terceirizadas.medicao_inicial.services.relatorio_consolidado_excel import (
+    gera_relatorio_consolidado_xlsx,
+)
 from sme_terceirizadas.medicao_inicial.services.relatorio_controle_frequencia_pdf import (
     gera_relatorio_controle_frequencia_pdf,
 )
@@ -23,7 +26,6 @@ from ..dados_comuns.utils import (
 )
 from ..escola.models import AlunoPeriodoParcial, Escola
 from ..relatorios.relatorios import (
-    relatorio_consolidado_medicoes_iniciais_emef,
     relatorio_solicitacao_medicao_por_escola,
     relatorio_solicitacao_medicao_por_escola_cei,
     relatorio_solicitacao_medicao_por_escola_cemei,
@@ -178,25 +180,9 @@ def gera_pdf_relatorio_unificado_async(
 
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
-        logger.error(f"Erro ao gerar relatório consolidado: {e}")
+        logger.error(f"Erro ao gerar relatório unificado: {e}")
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
-
-
-def processa_relatorio_somatorio(
-    ids_solicitacoes, tipos_de_unidade, merger_somatorio, obj_central_download
-):
-    try:
-        id_solicitacao = ids_solicitacoes[0]
-        solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=id_solicitacao)
-        arquivo_somatorio = relatorio_consolidado_medicoes_iniciais_emef(
-            ids_solicitacoes, solicitacao, tipos_de_unidade
-        )
-        arquivo_somatorio_io = BytesIO(arquivo_somatorio)
-        merger_somatorio.append(arquivo_somatorio_io)
-    except Exception as e:
-        atualiza_central_download_com_erro(obj_central_download, str(e))
-        logger.error(f"Erro ao gerar relatório somatorio: {e}")
 
 
 def processa_relatorio_lançamentos(
@@ -292,5 +278,31 @@ def exporta_relatorio_controle_frequencia_para_pdf(
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def exporta_relatorio_consolidado_xlsx(
+    user, nome_arquivo, solicitacoes, tipos_de_unidade, query_params
+):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        arquivo = gera_relatorio_consolidado_xlsx(
+            solicitacoes, tipos_de_unidade, query_params
+        )
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+        logger.error(f"Erro ao gerar relatório consolidado: {e}")
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
