@@ -653,11 +653,11 @@ class ControleRestosCreateSerializer(serializers.Serializer):
 def serialize_relatorio_controle_restos(row):
     data_medicao, dre_nome, escola_nome, quantidade_distribuida_soma, peso_resto_soma, num_refeicoes, resto_per_capita, percent_resto = row
 
-    def format_float(value, format=True):
+    def format_float(value):
         if (value is None):
             return None
-
-        return "{:,.2f}".format(float(value))
+        
+        return "{:,.2f}".format(float(value)).replace(",", "X").replace(".", ",").replace("X", ".")
 
     def format_int(value):
         if (value is None):
@@ -681,11 +681,11 @@ def serialize_relatorio_controle_sobras(row):
 
     data_medicao, dre_nome, escola_nome, tipo_alimentacao_nome, tipo_alimento_nome, quantidade_distribuida, peso_sobra, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao = row
 
-    def format_float(value, format=True):
+    def format_float(value):
         if (value is None):
             return None
-
-        return "{:,.2f}".format(float(value))
+        return "{:,.2f}".format(float(value)).replace(",", "X").replace(".", ",").replace("X", ".")
+    
 
     def format_int(value):
         if (value is None):
