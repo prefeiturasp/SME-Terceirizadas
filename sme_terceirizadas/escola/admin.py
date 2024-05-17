@@ -333,6 +333,7 @@ class DiaCalendarioAdmin(admin.ModelAdmin):
 class PeriodoEscolarAdmin(admin.ModelAdmin):
     list_display = ("nome", "posicao")
     search_fields = ("nome",)
+    readonly_fields = ("uuid",)
 
 
 @admin.register(HistoricoMatriculaAluno)

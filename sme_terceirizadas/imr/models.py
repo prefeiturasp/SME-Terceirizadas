@@ -417,7 +417,12 @@ class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao):
         null=True,
         blank=True,
     )
+
     acompanhou_visita = models.BooleanField("Acompanhou a visita?", default=False)
+
+    maior_frequencia_no_periodo = models.PositiveIntegerField("Maior Nº de Frequentes no Período",
+                                                              null=True,
+                                                              blank=True,)
 
     def __str__(self):
         return f"{self.escola.nome} - {self.formulario_base.data}"

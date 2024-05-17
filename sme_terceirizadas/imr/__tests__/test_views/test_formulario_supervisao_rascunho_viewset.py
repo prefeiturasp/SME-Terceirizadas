@@ -19,6 +19,7 @@ def test_formulario_supervisao(
     payload = {
         "data": "2024-05-15",
         "escola": str(escola.uuid),
+        "maior_frequencia_no_periodo": 6,
         "ocorrencias_nao_se_aplica": [
             {
                 "tipo_ocorrencia": str(tipo_ocorrencia_1.uuid),
@@ -43,6 +44,7 @@ def test_formulario_supervisao(
     assert response.status_code == status.HTTP_201_CREATED
     assert data["escola"] == str(escola.uuid)
     assert data["status"] == "EM_PREENCHIMENTO"
+    assert data["maior_frequencia_no_periodo"] == 6
     assert instance.respostas_nao_se_aplica.count() == 2
 
 
