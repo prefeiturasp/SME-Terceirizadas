@@ -10,56 +10,56 @@
   padding-top: 6.6cm !important;
 }
 
-.dados{
+.dados {
   display: flex;
   flex-wrap: wrap;
   padding: 6px 0;
 
-  div{
+  div {
     flex-basis: 33.3%;
   }
 }
 
-.titulo-secao{
+.titulo-secao {
   font-size: 16px;
   color: $verde-escuro;
 }
 
-.assinaturas{
+.assinaturas {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
   padding-top: 8px;
 
-  .logo-sigpae{
+  .logo-sigpae {
     img {
-      max-width:60px;
-      max-height:60px;
+      max-width: 60px;
+      max-height: 60px;
       width: auto;
       height: auto;
     }
   }
 
-  .assinatura{
+  .assinatura {
     flex-basis: 49%;
     padding-bottom: 16px;
 
-    .titulo-assinatura{
+    .titulo-assinatura {
       font-size: 12px;
       color: $verde-escuro;
       padding-bottom: 4px;
     }
 
-    .assinatura-container{
+    .assinatura-container {
       height: 2.3cm;
-      border: 1px solid #A4A4A4;
+      border: 1px solid #a4a4a4;
       border-radius: 4px;
       display: flex;
       align-items: center;
       padding: 4px;
     }
 
-    .texto-assinatura{
+    .texto-assinatura {
       font-size: 12px;
       font-weight: normal;
       line-height: 14px;
@@ -67,9 +67,16 @@
   }
 }
 
-.table-cronograma{
-  th{
-    background-color: #F5F6F8;
+.table-cronograma {
+  th {
+    background-color: #f5f6f8;
     color: #666666;
+  }
+
+  th,
+  td {
+    height: 100%;
+    text-align: center;
+    vertical-align: middle;
   }
 }

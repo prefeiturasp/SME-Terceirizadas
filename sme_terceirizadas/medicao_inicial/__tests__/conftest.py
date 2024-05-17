@@ -215,7 +215,10 @@ def escola(tipo_unidade_escolar):
         uuid="9640fef4-a068-474e-8979-2e1b2654357a",
     )
     lote = mommy.make(
-        "Lote", nome="1", terceirizada=terceirizada, diretoria_regional=diretoria_regional
+        "Lote",
+        nome="1",
+        terceirizada=terceirizada,
+        diretoria_regional=diretoria_regional,
     )
     tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
     return mommy.make(
@@ -2523,11 +2526,24 @@ def logs_alunos_matriculados_periodo_escola_cemei(escola_cemei):
 
 
 @pytest.fixture
-def grupo_escolar():
+def grupo_escolar(
+    tipo_unidade_escolar,
+    tipo_unidade_escolar_ceu_emef,
+    tipo_unidade_escolar_emefm,
+    tipo_unidade_escolar_cieja,
+    tipo_unidade_escolar_ceu_gestao,
+):
     grupo_escolar = mommy.make(
         "GrupoUnidadeEscolar",
         nome="Grupo 4",
         uuid="5bd9ad5c-e0ab-4812-b2b6-336fc8988960",
+        tipos_unidades=[
+            tipo_unidade_escolar,
+            tipo_unidade_escolar_ceu_emef,
+            tipo_unidade_escolar_emefm,
+            tipo_unidade_escolar_cieja,
+            tipo_unidade_escolar_ceu_gestao,
+        ],
     )
     return grupo_escolar.uuid
 

@@ -11,7 +11,6 @@ from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download,
 )
-from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter
 from sme_terceirizadas.pre_recebimento.api.helpers import (
     totalizador_relatorio_cronograma,
 )
@@ -34,7 +33,7 @@ logger = logging.getLogger(__name__)
     time_limit=3000,
     soft_time_limit=3000,
 )
-def gerar_relatorio_cronogramas_xlsx_async(user, query_params):
+def gerar_relatorio_cronogramas_xlsx_async(user, ids_cronogramas):
     logger.info(
         "x-x-x-x Iniciando a geração do arquivo relatorio_cronogramas.xlsx x-x-x-x"
     )
@@ -72,7 +71,7 @@ def gerar_relatorio_cronogramas_xlsx_async(user, query_params):
     xlsxwriter = pd.ExcelWriter(output, engine="xlsxwriter")
 
     try:
-        dados, subtitulo = _dados_relatorio_cronograma_xlsx(query_params)
+        dados, subtitulo = _dados_relatorio_cronograma_xlsx(ids_cronogramas)
 
         if dados:
             df = pd.DataFrame(dados)
@@ -120,7 +119,7 @@ def gerar_relatorio_cronogramas_xlsx_async(user, query_params):
     time_limit=3000,
     soft_time_limit=3000,
 )
-def gerar_relatorio_cronogramas_pdf_async(user, query_params):
+def gerar_relatorio_cronogramas_pdf_async(user, ids_cronogramas):
     logger.info(
         "x-x-x-x Iniciando a geração do arquivo relatorio_cronogramas.xlsx x-x-x-x"
     )
@@ -134,7 +133,7 @@ def gerar_relatorio_cronogramas_pdf_async(user, query_params):
     )
 
     try:
-        paginas, subtitulo = _dados_relatorio_cronograma_pdf(query_params)
+        paginas, subtitulo = _dados_relatorio_cronograma_pdf(ids_cronogramas)
         html_string = render_to_string(
             TEMPLATE_HTML,
             {
@@ -163,11 +162,12 @@ def gerar_relatorio_cronogramas_pdf_async(user, query_params):
         )
 
 
-def _dados_relatorio_cronograma_xlsx(query_params):
-    cronogramas = CronogramaFilter(
-        data=query_params,
-        queryset=Cronograma.objects.all(),
-    ).qs.distinct()
+def _dados_relatorio_cronograma_xlsx(ids_cronogramas):
+    cronogramas = (
+        Cronograma.objects.filter(id__in=ids_cronogramas)
+        .order_by("-alterado_em")
+        .distinct()
+    )
     etapas = EtapasDoCronograma.objects.filter(cronograma__in=cronogramas).order_by(
         "-cronograma__alterado_em",
         "etapa",
@@ -179,11 +179,13 @@ def _dados_relatorio_cronograma_xlsx(query_params):
     return dados, subtitulo
 
 
-def _dados_relatorio_cronograma_pdf(query_params):
-    cronogramas = CronogramaFilter(
-        data=query_params,
-        queryset=Cronograma.objects.prefetch_related("etapas").order_by("-alterado_em"),
-    ).qs
+def _dados_relatorio_cronograma_pdf(ids_cronogramas):
+    cronogramas = (
+        Cronograma.objects.prefetch_related("etapas")
+        .filter(id__in=ids_cronogramas)
+        .order_by("-alterado_em")
+        .distinct()
+    )
     dados = CronogramaRelatorioSerializer(cronogramas, many=True).data
     dados_paginados = _paginar_dados_relatorio_pdf(dados)
     subtitulo = _subtitulo_relatorio_cronogramas_pdf(cronogramas)
