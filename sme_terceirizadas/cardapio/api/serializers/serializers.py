@@ -1,6 +1,5 @@
 import environ
 from rest_framework import serializers
-import locale
 from ....dados_comuns.validators import deve_ter_extensao_valida
 from ....dados_comuns.utils import convert_base64_to_contentfile
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -654,13 +653,11 @@ class ControleRestosCreateSerializer(serializers.Serializer):
 def serialize_relatorio_controle_restos(row):
     data_medicao, dre_nome, escola_nome, quantidade_distribuida_soma, peso_resto_soma, num_refeicoes, resto_per_capita, percent_resto = row
 
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-
     def format_float(value, format=True):
         if (value is None):
             return None
 
-        return locale.format_string('%.2f', float(value), grouping=True)
+        return "{:,.2f}".format(float(value))
 
     def format_int(value):
         if (value is None):
@@ -684,13 +681,11 @@ def serialize_relatorio_controle_sobras(row):
 
     data_medicao, dre_nome, escola_nome, tipo_alimentacao_nome, tipo_alimento_nome, quantidade_distribuida, peso_sobra, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao = row
 
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-
     def format_float(value, format=True):
         if (value is None):
             return None
 
-        return locale.format_string('%.2f', float(value), grouping=True)
+        return "{:,.2f}".format(float(value))
 
     def format_int(value):
         if (value is None):
