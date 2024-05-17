@@ -30,8 +30,8 @@
 
 
     <div class="dados font-weight-bold">
-        <div>Peso da Embalagem Primária: </div>
-        <div>Peso da Embalagem Secundária: </div>
+        <div>Embalagem Primária: </div>
+        <div>Embalagem Secundária: </div>
       </div>
 
       <div class="dados pb-3">
@@ -101,6 +101,14 @@
 
     <div class="observacoes pb-4">
       <h5 class="title titulo-secao">Observações</h5>
+
+      {% if cronograma.observacoes %}
+        <div class="dados">
+          <span class="pb-3">
+            {{ cronograma.observacoes }}
+          </span>
+        </div>
+      {% endif %}
       <div class="dados">
         <span class="pb-3">
           Os laudos laboratoriais deverão ser disponibilizados ao núcleo de qualidade da DILOG, atendendo o prazo máximo de até 24hs úteis de antecedência à data de entrega.

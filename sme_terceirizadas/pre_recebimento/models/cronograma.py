@@ -96,6 +96,7 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
     custo_unitario_produto = models.FloatField(
         "Custo Unitário do Produto", blank=True, null=True
     )
+    observacoes = models.TextField("Observações", blank=True)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get("justificativa", "")

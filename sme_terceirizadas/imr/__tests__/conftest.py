@@ -11,6 +11,33 @@ def codae():
 
 
 @pytest.fixture
+def escola():
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade = mommy.make("TipoUnidadeEscolar", iniciais="EMEF")
+    contato = mommy.make("dados_comuns.Contato", nome="FULANO", email="fake@email.com")
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL IPIRANGA",
+        uuid="012f7722-9ab4-4e21-b0f6-85e17b58b0d1",
+    )
+
+    escola = mommy.make(
+        "Escola",
+        lote=lote,
+        nome="EMEF JOAO MENDES",
+        codigo_eol="000546",
+        uuid="a627fc63-16fd-482c-a877-16ebc1a82e57",
+        contato=contato,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade,
+    )
+    return escola
+
+
+@pytest.fixture
 def client_autenticado_vinculo_coordenador_supervisao_nutricao(
     client, django_user_model, codae
 ):

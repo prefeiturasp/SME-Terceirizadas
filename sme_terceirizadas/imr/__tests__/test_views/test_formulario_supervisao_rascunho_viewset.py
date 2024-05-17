@@ -1,9 +1,73 @@
 import pytest
+import json
 from rest_framework import status
-from sme_terceirizadas.imr.models import PerfilDiretorSupervisao
+from sme_terceirizadas.imr.models import PerfilDiretorSupervisao, FormularioOcorrenciasBase
 
 
 pytestmark = pytest.mark.django_db
+
+
+def test_formulario_supervisao(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    escola,
+    tipo_ocorrencia_factory,
+
+):
+    tipo_ocorrencia_1 = tipo_ocorrencia_factory.create()
+    tipo_ocorrencia_2 = tipo_ocorrencia_factory.create()
+
+    payload = {
+        "data": "2024-05-15",
+        "escola": str(escola.uuid),
+        "ocorrencias_nao_se_aplica": [
+            {
+                "tipo_ocorrencia": str(tipo_ocorrencia_1.uuid),
+                "descricao": "Não se aplica"
+            },
+            {
+                "tipo_ocorrencia": str(tipo_ocorrencia_2.uuid),
+                "descricao": "Não se aplica v2"
+            }
+        ]
+    }
+
+    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
+        f"/imr/formulario-supervisao/",
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+    data = response.json()
+
+    instance = FormularioOcorrenciasBase.objects.get(uuid=data["formulario_base"])
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert data["escola"] == str(escola.uuid)
+    assert data["status"] == "EM_PREENCHIMENTO"
+    assert instance.respostas_nao_se_aplica.count() == 2
+
+
+def test_formulario_supervisao_tipo_ocorrencia_nao_existe(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    escola
+):
+    payload = {
+        "data": "2024-05-15",
+        "escola": str(escola.uuid),
+        "ocorrencias_nao_se_aplica": [
+            {
+                "tipo_ocorrencia": "2b7a2217-1743-4bcd-8879-cf8e16e34fa6",
+                "descricao": ""
+            },
+        ]
+    }
+    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
+        f"/imr/formulario-supervisao/",
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'ocorrencias_nao_se_aplica': {'tipo_ocorrencia': ['Objeto com uuid=2b7a2217-1743-4bcd-8879-cf8e16e34fa6 não existe.']}}
 
 
 def test_tipos_ocorrencias(
