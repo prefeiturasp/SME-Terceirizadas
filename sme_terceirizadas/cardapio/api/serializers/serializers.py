@@ -684,6 +684,7 @@ def serialize_relatorio_controle_sobras(row):
     def format_float(value):
         if (value is None):
             return None
+        
         return "{:,.2f}".format(float(value)).replace(",", "X").replace(".", ",").replace("X", ".")
     
 
