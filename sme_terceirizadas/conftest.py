@@ -74,6 +74,14 @@ from .terceirizada.fixtures.factories.terceirizada_factory import (
     EmpresaFactory,
 )
 
+from .escola.fixtures.factories.escola_factory import (
+    EscolaFactory,
+    PeriodoEscolarFactory,
+    LogAlunosMatriculadosPeriodoEscolaFactory,
+    DiretoriaRegionalFactory,
+    TipoUnidadeEscolarFactory
+)
+
 f = Faker(locale="pt-Br")
 
 register(CronogramaFactory)
@@ -115,6 +123,11 @@ register(TipoPerguntaParametrizacaoOcorrenciaFactory)
 register(TipoRespostaModeloFactory)
 register(ParametrizacaoOcorrenciaFactory)
 register(ObrigacaoPenalidadeFactory)
+register(EscolaFactory)
+register(PeriodoEscolarFactory)
+register(LogAlunosMatriculadosPeriodoEscolaFactory)
+register(DiretoriaRegionalFactory)
+register(TipoUnidadeEscolarFactory)
 
 
 @pytest.fixture

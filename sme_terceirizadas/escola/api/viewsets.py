@@ -548,6 +548,37 @@ class LogAlunosMatriculadosPeriodoEscolaViewSet(ModelViewSet):
 
         return queryset
 
+    @action(detail=False, url_path="quantidade-por-data")
+    def quantidade_por_data(self, request):
+        try:
+            data = self.request.query_params.get("data", "")
+            cei_ou_emei = self.request.query_params.get("cei_ou_emei", "N/A")
+            infantil_ou_fundamental = self.request.query_params.get("infantil_ou_fundamental", "N/A")
+            escola_uuid = self.request.query_params.get("escola_uuid", "")
+
+            if not data:
+                raise ValidationError("campo data é obrigatório")
+
+            if not escola_uuid:
+                raise ValidationError("campo escola_uuid é obrigatório")
+
+            today = datetime.date.today()
+            if data == today.strftime("%Y-%m-%d"):
+                data = today - datetime.timedelta(days=1)
+
+            resultado = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+                escola__uuid=escola_uuid,
+                criado_em=data,
+                cei_ou_emei=cei_ou_emei,
+                infantil_ou_fundamental=infantil_ou_fundamental
+            ).aggregate(soma=Sum('quantidade_alunos'))
+
+            soma_quantidade_alunos = resultado['soma'] or 0
+
+            return Response(soma_quantidade_alunos, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"detail": e}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EscolaPeriodoEscolarViewSet(ModelViewSet):
     lookup_field = "uuid"

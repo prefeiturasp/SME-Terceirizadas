@@ -207,6 +207,7 @@ class VinculoAdmin(admin.ModelAdmin):
         "usuario__registro_funcional",
     )
     list_filter = ("content_type", IDFilter, CodigoEOLFilter, NomeUEFilter)
+    raw_id_fields = ('usuario',)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "perfil":
