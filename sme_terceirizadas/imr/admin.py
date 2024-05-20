@@ -153,6 +153,7 @@ class TipoOcorrenciaForm(forms.ModelForm):
 @admin.register(TipoOcorrencia)
 class TipoOcorrenciaAdmin(admin.ModelAdmin):
     list_display = (
+        "posicao",
         "edital",
         "categoria",
         "titulo",

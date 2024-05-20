@@ -185,6 +185,7 @@ class TipoOcorrencia(
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
         unique_together = ("edital", "categoria", "penalidade", "titulo")
+        ordering = ("categoria__posicao", "posicao")
 
     def valida_eh_imr(self, dict_error):
         if self.eh_imr and (not self.pontuacao or not self.tolerancia):
@@ -271,6 +272,11 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
     class Meta:
         verbose_name = "Parametrização de Tipo de Ocorrência"
         verbose_name_plural = "Parametrizações de Tipo de Ocorrência"
+        ordering = (
+            "tipo_ocorrencia__categoria__posicao",
+            "tipo_ocorrencia__posicao",
+            "posicao",
+        )
 
 
 class PeriodoVisita(ModeloBase, Nomeavel):
@@ -420,9 +426,11 @@ class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao):
 
     acompanhou_visita = models.BooleanField("Acompanhou a visita?", default=False)
 
-    maior_frequencia_no_periodo = models.PositiveIntegerField("Maior Nº de Frequentes no Período",
-                                                              null=True,
-                                                              blank=True,)
+    maior_frequencia_no_periodo = models.PositiveIntegerField(
+        "Maior Nº de Frequentes no Período",
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return f"{self.escola.nome} - {self.formulario_base.data}"
