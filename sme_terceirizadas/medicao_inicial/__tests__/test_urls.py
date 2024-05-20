@@ -444,7 +444,7 @@ def test_url_endpoint_relatorio_pdf(
     }
 
 
-def test_url_endpoint_relatorio_unificado_pdf(
+def test_url_endpoint_relatorio_unificado_pdf_sem_mes_referencia(
     client_autenticado_diretoria_regional,
     grupo_escolar,
     escola,
@@ -455,7 +455,7 @@ def test_url_endpoint_relatorio_unificado_pdf(
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"É necessário informar o mês/ano de referência"}
+    assert response.json() == "É necessário informar o mês/ano de referência"
 
 
 def test_url_endpoint_relatorio_unificado_pdf(
@@ -577,7 +577,7 @@ def test_url_endpoint_medicao_dashboard_codae_com_filtros(
     client_autenticado_coordenador_codae, solicitacoes_medicao_inicial_codae
 ):
     response = client_autenticado_coordenador_codae.get(
-        "/medicao-inicial/solicitacao-medicao-inicial/dashboard/?dre=9640fef4-a068-474e-8979-2e1b2654357a",
+        "/medicao-inicial/solicitacao-medicao-inicial/dashboard/?dre=3972e0e9-2d8e-472a-9dfa-30cd219a6d9a",
         content_type="application/json",
     )
     assert len(response.json()["results"]) == 5
@@ -1949,3 +1949,33 @@ def test_url_endpoint_parametrizacao_financeira(
         data=data_update,
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_relatorio_consolidado_xlsx_sem_mes_refencia(
+    client_autenticado_diretoria_regional,
+    grupo_escolar,
+    escola,
+):
+    response = client_autenticado_diretoria_regional.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/relatorio-consolidado/exportar-xlsx/"
+        f"?grupo_escolar={grupo_escolar}&status=MEDICAO_APROVADA_PELA_CODAE&dre={escola.diretoria_regional.uuid}",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == "É necessário informar o mês/ano de referência"
+
+
+def test_url_endpoint_relatorio_consolidado_xlsx_com_filtros(
+    client_autenticado_diretoria_regional,
+    grupo_escolar,
+    escola,
+):
+    response = client_autenticado_diretoria_regional.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/relatorio-consolidado/exportar-xlsx/"
+        f"?mes=05&ano=2023&grupo_escolar={grupo_escolar}&status=MEDICAO_APROVADA_PELA_CODAE&dre={escola.diretoria_regional.uuid}",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "detail": "Solicitação de geração de arquivo recebida com sucesso."
+    }

@@ -207,13 +207,8 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 
 
 @pytest.fixture
-def escola(tipo_unidade_escolar):
+def escola(tipo_unidade_escolar, diretoria_regional):
     terceirizada = mommy.make("Terceirizada")
-    diretoria_regional = mommy.make(
-        "DiretoriaRegional",
-        nome="DIRETORIA REGIONAL IPIRANGA",
-        uuid="9640fef4-a068-474e-8979-2e1b2654357a",
-    )
     lote = mommy.make(
         "Lote",
         nome="1",
@@ -229,6 +224,28 @@ def escola(tipo_unidade_escolar):
         tipo_gestao=tipo_gestao,
         tipo_unidade=tipo_unidade_escolar,
         codigo_eol="123456",
+    )
+
+
+@pytest.fixture
+def escola_emefm(diretoria_regional):
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make(
+        "Lote",
+        nome="1",
+        terceirizada=terceirizada,
+        diretoria_regional=diretoria_regional,
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="EMEFM")
+    return mommy.make(
+        "Escola",
+        nome="EMEFM TESTE",
+        lote=lote,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade_escolar,
+        codigo_eol="457692",
     )
 
 
@@ -2555,7 +2572,7 @@ def diretoria_regional():
         nome="DIRETORIA REGIONAL IPIRANGA",
         uuid="3972e0e9-2d8e-472a-9dfa-30cd219a6d9a",
     )
-    return diretoria_regional.uuid
+    return diretoria_regional
 
 
 @pytest.fixture
