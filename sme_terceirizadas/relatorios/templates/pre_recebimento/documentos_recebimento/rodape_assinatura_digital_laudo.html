@@ -9,7 +9,7 @@
 <body>
   <div style="background: #EEEEEE; position: absolute; bottom: 0; height: 60px; width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center;">
     <img style="width: 40px; height: 35px; padding:0 15px" src="{{ logo_sigpae }}" alt="" />
-    <p style="font-size: 9px">Documento de Recebimento assinado eletronicamente por <strong>{{ usuario.nome|upper }}</strong>, <strong>{{ usuario.cargo|default:" "|upper }}</strong>, RF: {{ usuario.registro_funcional_censurado|default:" "}}, em {{ data_hora|date:"d/m/Y" }}, às {{ data_hora|time:"H:i" }}.</p>
+    <p style="font-size: 9px">Documento de Recebimento analisado eletronicamente por <strong>{{ usuario.nome|upper }}</strong>, <strong>{{ usuario.cargo|default:" "|upper }}</strong>, RF: {{ usuario.registro_funcional_censurado|default:" "}}, em {{ data_hora|date:"d/m/Y" }}, às {{ data_hora|time:"H:i" }}.</p>
   </div>
 </body>
 </html>
