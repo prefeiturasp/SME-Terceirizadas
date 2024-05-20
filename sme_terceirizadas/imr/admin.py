@@ -278,9 +278,8 @@ class TipoFormularioFilter(admin.SimpleListFilter):
             return queryset.filter(formulariosupervisao__isnull=False)
 
 
-class OcorrenciaNaoSeAplicaInline(admin.StackedInline):
+class OcorrenciaNaoSeAplicaInline(admin.TabularInline):
     model = OcorrenciaNaoSeAplica
-    max_num = 1
     extra = 0
 
 
@@ -352,6 +351,36 @@ class NotificacoesAssinadasFormularioBaseInline(admin.TabularInline):
     extra = 0
 
 
+class RespostaUtensilioMesaInline(admin.TabularInline):
+    model = RespostaUtensilioMesa
+    extra = 0
+
+
+class RespostaUtensilioCozinhaInline(admin.TabularInline):
+    model = RespostaUtensilioCozinha
+    extra = 0
+
+
+class RespostaEquipamentoInline(admin.TabularInline):
+    model = RespostaEquipamento
+    extra = 0
+
+
+class RespostaMobiliarioInline(admin.TabularInline):
+    model = RespostaMobiliario
+    extra = 0
+
+
+class RespostaReparoEAdaptacaoInline(admin.TabularInline):
+    model = RespostaReparoEAdaptacao
+    extra = 0
+
+
+class RespostaInsumoInline(admin.TabularInline):
+    model = RespostaInsumo
+    extra = 0
+
+
 @admin.register(FormularioOcorrenciasBase)
 class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
     inlines = [
@@ -366,6 +395,12 @@ class FormularioOcorrenciasBaseAdmin(admin.ModelAdmin):
         RespostaFaixaEtariaInline,
         RespostaTipoAlimentacaoInline,
         RespostaSimNaoNaoSeAplicaInline,
+        RespostaUtensilioMesaInline,
+        RespostaUtensilioCozinhaInline,
+        RespostaEquipamentoInline,
+        RespostaMobiliarioInline,
+        RespostaReparoEAdaptacaoInline,
+        RespostaInsumoInline,
         OcorrenciaNaoSeAplicaInline,
         AnexosFormularioBaseInline,
         NotificacoesAssinadasFormularioBaseInline,
