@@ -144,22 +144,26 @@ class ProcessadorPlanilhaTipoOcorrencia(ProcessadorDePlanilha):
         penalidade = self.get_penalidade(tipo_ocorrencia_schema.penalidade, edital)
         eh_imr = tipo_ocorrencia_schema.eh_imr == "SIM"
         status = tipo_ocorrencia_schema.status == StatusAtivoInativo.ATIVO
+        aceita_multiplas_respostas = (
+            tipo_ocorrencia_schema.aceita_multiplas_respostas == "Sim"
+        )
         tipo_ocorrencia, _ = TipoOcorrencia.objects.update_or_create(
             edital=edital,
             categoria=categoria,
             penalidade=penalidade,
+            titulo=tipo_ocorrencia_schema.titulo,
             defaults={
                 "criado_por": self.usuario,
                 "posicao": tipo_ocorrencia_schema.posicao,
                 "perfis": perfis,
                 "edital": edital,
-                "titulo": tipo_ocorrencia_schema.titulo,
                 "descricao": tipo_ocorrencia_schema.descricao,
                 "eh_imr": eh_imr,
                 "pontuacao": tipo_ocorrencia_schema.pontuacao,
                 "tolerancia": tipo_ocorrencia_schema.tolerancia,
                 "porcentagem_desconto": tipo_ocorrencia_schema.porcentagem_desconto,
                 "status": status,
+                "aceita_multiplas_respostas": aceita_multiplas_respostas,
             },
         )
         return tipo_ocorrencia

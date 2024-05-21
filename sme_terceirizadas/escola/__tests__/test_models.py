@@ -535,8 +535,9 @@ def test_alunos_por_periodo_e_faixa_etaria_objetos_alunos(
     assert len(response) == 1
     assert response["INTEGRAL"] == Counter(
         {
-            f"{str([f for f in faixas_etarias if f.inicio == 12][0].uuid)}": 3,
-            f"{str([f for f in faixas_etarias if f.inicio == 24][0].uuid)}": 1,
+            f"{str([f for f in faixas_etarias if f.inicio == 12][0].uuid)}": 4,
+            f"{str([f for f in faixas_etarias if f.inicio == 24][0].uuid)}": 2,
+            f"{str([f for f in faixas_etarias if f.inicio == 48][0].uuid)}": 2,
         }
     )
 

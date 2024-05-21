@@ -73,6 +73,14 @@ class EditalSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+class ContratoEditalSerializer(serializers.ModelSerializer):
+    edital = serializers.CharField(source="edital.uuid")
+
+    class Meta:
+        model = Contrato
+        fields = ("edital", "encerrado")
+
+
 class ContratoSimplesSerializer(serializers.ModelSerializer):
     edital = EditalSerializer()
     vigencias = VigenciaContratoSimplesSerializer(many=True)

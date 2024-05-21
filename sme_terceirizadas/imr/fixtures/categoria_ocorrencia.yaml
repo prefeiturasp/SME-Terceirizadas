@@ -69,6 +69,7 @@
     nome: QUANTIDADE/QUALIDADE DE UTENSÍLIOS/MOBILIÁRIOS/EQUIPAMENTOS
     posicao: 18
     perfis: ["DIRETOR", "SUPERVISAO"]
+    gera_notificacao: true
 
 - model: imr.CategoriaOcorrencia
   pk: 9
@@ -78,6 +79,7 @@
     nome: MANUTENÇÃO DE EQUIPAMENTOS/REPARO E ADAPTAÇÃO
     posicao: 19
     perfis: ["DIRETOR", "SUPERVISAO"]
+    gera_notificacao: true
 
 - model: imr.CategoriaOcorrencia
   pk: 10
