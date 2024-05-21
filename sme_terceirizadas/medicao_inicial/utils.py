@@ -41,8 +41,8 @@ from sme_terceirizadas.medicao_inicial.models import (
     SolicitacaoMedicaoInicial,
     ValorMedicao,
 )
-from sme_terceirizadas.terceirizada.models import Edital
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
+from sme_terceirizadas.terceirizada.models import Edital
 
 logger = logging.getLogger(__name__)
 
@@ -903,35 +903,30 @@ def popula_campo_aprovadas(
     if campo == "aprovadas":
         try:
             periodo = get_nome_periodo(periodo_corrente)
-
             if "ENTERAL" in categoria_corrente:
-                quantidade = (
-                    logs_dietas.filter(
-                        data__day=dia,
-                        data__month=solicitacao.mes,
-                        data__year=solicitacao.ano,
-                        periodo_escolar__nome=periodo,
-                        classificacao__nome__in=[
-                            "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
-                            "Tipo A ENTERAL",
-                        ],
-                    )
-                    .aggregate(Sum("quantidade"))
-                    .get("quantidade__sum")
-                )
-                valores_dia += [quantidade or "0"]
+                classificacoes_nomes = [
+                    "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
+                    "Tipo A ENTERAL",
+                ]
+            elif "TIPO B" in categoria_corrente:
+                classificacoes_nomes = [
+                    "Tipo B - LANCHE",
+                    "Tipo B - LANCHE e REFEIÇÃO",
+                ]
             else:
-                log_selec = logs_dietas.filter(
+                classificacoes_nomes = ["Tipo A"]
+            quantidade = (
+                logs_dietas.filter(
                     data__day=dia,
                     data__month=solicitacao.mes,
                     data__year=solicitacao.ano,
                     periodo_escolar__nome=periodo,
-                    classificacao__nome=categoria_corrente.split(" - ")[1].title(),
-                ).first()
-                if not log_selec:
-                    valores_dia += ["0"]
-                else:
-                    valores_dia += [log_selec.quantidade]
+                    classificacao__nome__in=classificacoes_nomes,
+                )
+                .aggregate(Sum("quantidade"))
+                .get("quantidade__sum")
+            )
+            valores_dia += [quantidade or "0"]
         except LogQuantidadeDietasAutorizadas.DoesNotExist:
             valores_dia += ["0"]
 
@@ -949,37 +944,26 @@ def popula_campo_aprovadas_cei(
     try:
         periodo = tabela["periodos"][indice_periodo]
         if "TIPO A" in categoria_corrente.upper():
-            quantidade = (
-                logs_dietas.filter(
-                    data__day=dia,
-                    data__month=solicitacao.mes,
-                    data__year=solicitacao.ano,
-                    faixa_etaria=faixa_id,
-                    periodo_escolar__nome=periodo,
-                    classificacao__nome__in=[
-                        "Tipo A",
-                        "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
-                        "Tipo A ENTERAL",
-                    ],
-                )
-                .aggregate(Sum("quantidade"))
-                .get("quantidade__sum")
-            )
-            valores_dia += [quantidade or "0"]
+            nomes_classificacoes = [
+                "Tipo A",
+                "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
+                "Tipo A ENTERAL",
+            ]
         else:
-            log_selec = logs_dietas.filter(
+            nomes_classificacoes = ["Tipo B - LANCHE", "Tipo B - LANCHE e REFEIÇÃO"]
+        quantidade = (
+            logs_dietas.filter(
                 data__day=dia,
                 data__month=solicitacao.mes,
                 data__year=solicitacao.ano,
                 faixa_etaria=faixa_id,
                 periodo_escolar__nome=periodo,
-                classificacao__nome="Tipo B",
-            ).first()
-            if not log_selec:
-                valores_dia += ["0"]
-            else:
-                valores_dia += [log_selec.quantidade]
-
+                classificacao__nome__in=nomes_classificacoes,
+            )
+            .aggregate(Sum("quantidade"))
+            .get("quantidade__sum")
+        )
+        valores_dia += [quantidade or "0"]
     except LogQuantidadeDietasAutorizadasCEI.DoesNotExist:
         valores_dia += ["0"]
 
@@ -3641,9 +3625,9 @@ def gerar_dicionario_e_buscar_valores_medicao(data, medicao):
             valor_medicao.exists()
             and valor_medicao.first().valor != valor_atualizado.get("valor")
         ):
-            dicionario_alteracoes[str(valor_medicao.first().uuid)] = (
-                valor_atualizado.get("valor")
-            )
+            dicionario_alteracoes[
+                str(valor_medicao.first().uuid)
+            ] = valor_atualizado.get("valor")
 
     valores_medicao = ValorMedicao.objects.filter(uuid__in=dicionario_alteracoes.keys())
     return dicionario_alteracoes, valores_medicao
