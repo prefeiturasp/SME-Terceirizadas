@@ -10,10 +10,20 @@ from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
 from .imr.fixtures.factories.imr_base_factory import (
     CategoriaOcorrenciaFactory,
+    EquipamentoFactory,
     FaixaPontuacaoFactory,
+    InsumoFactory,
+    MobiliarioFactory,
+    ObrigacaoPenalidadeFactory,
+    ParametrizacaoOcorrenciaFactory,
+    ReparoEAdaptacaoFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
+    TipoPerguntaParametrizacaoOcorrenciaFactory,
+    TipoRespostaModeloFactory,
+    UtensilioMesaFactory,
+    UtensilioCozinhaFactory,
 )
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -64,6 +74,14 @@ from .terceirizada.fixtures.factories.terceirizada_factory import (
     EmpresaFactory,
 )
 
+from .escola.fixtures.factories.escola_factory import (
+    EscolaFactory,
+    PeriodoEscolarFactory,
+    LogAlunosMatriculadosPeriodoEscolaFactory,
+    DiretoriaRegionalFactory,
+    TipoUnidadeEscolarFactory
+)
+
 f = Faker(locale="pt-Br")
 
 register(CronogramaFactory)
@@ -95,6 +113,21 @@ register(FaixaPontuacaoFactory)
 register(DataDeFabricaoEPrazoFactory)
 register(VeiculoFichaDeRecebimentoFactory)
 register(ArquivoFichaDeRecebimentoFactory)
+register(UtensilioMesaFactory)
+register(UtensilioCozinhaFactory)
+register(EquipamentoFactory)
+register(MobiliarioFactory)
+register(ReparoEAdaptacaoFactory)
+register(InsumoFactory)
+register(TipoPerguntaParametrizacaoOcorrenciaFactory)
+register(TipoRespostaModeloFactory)
+register(ParametrizacaoOcorrenciaFactory)
+register(ObrigacaoPenalidadeFactory)
+register(EscolaFactory)
+register(PeriodoEscolarFactory)
+register(LogAlunosMatriculadosPeriodoEscolaFactory)
+register(DiretoriaRegionalFactory)
+register(TipoUnidadeEscolarFactory)
 
 
 @pytest.fixture

@@ -39,6 +39,13 @@ class Nomeavel(models.Model):
         abstract = True
 
 
+class TemNomeMaior(models.Model):
+    nome = models.CharField("Nome", blank=True, max_length=250)
+
+    class Meta:
+        abstract = True
+
+
 class Motivo(models.Model):
     motivo = models.TextField("Motivo", blank=True)
 
@@ -566,6 +573,13 @@ class TemArquivosDeletaveis(models.Model):
                 os.remove(field.path)
 
         super().delete(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+
+class Grupo(models.Model):
+    grupo = models.PositiveSmallIntegerField("Grupo de respostas", default=1)
 
     class Meta:
         abstract = True

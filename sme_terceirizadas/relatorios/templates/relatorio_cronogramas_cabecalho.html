@@ -1,0 +1,17 @@
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+  <body>
+    <header>
+      <div class="titulo">
+        <img src="{% static 'images/logo-sigpae.png' %}" alt=""/>
+        <span>SIGPAE - Relatório de Cronogramas</span>
+      </div>
+      <div class="subtitulo">
+        {{ subtitulo|safe }}
+      </div>
+    </header>
+  </body>
+</html>

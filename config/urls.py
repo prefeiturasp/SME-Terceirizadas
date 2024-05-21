@@ -17,6 +17,7 @@ from sme_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
 from sme_terceirizadas.dieta_especial.urls import urlpatterns as dieta_especial_urls
 from sme_terceirizadas.eol_servico.urls import urlpatterns as eol_servico_urls
 from sme_terceirizadas.escola.urls import urlpatterns as escola_urls
+from sme_terceirizadas.imr.urls import urlpatterns as imr_urls
 from sme_terceirizadas.inclusao_alimentacao.urls import urlpatterns as inclusao_urls
 from sme_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
 from sme_terceirizadas.lancamento_inicial.urls import (
@@ -77,6 +78,7 @@ urlpatterns += logistica_urls
 urlpatterns += medicao_inicial_urls
 urlpatterns += pre_recebimento_urls
 urlpatterns += recebimento_urls
+urlpatterns += imr_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

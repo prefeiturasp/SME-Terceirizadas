@@ -47,6 +47,16 @@ class CronogramaFilter(filters.FilterSet):
             tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM
         ),
     )
+    empresa = filters.ModelMultipleChoiceFilter(
+        field_name="empresa__uuid",
+        to_field_name="uuid",
+        queryset=Terceirizada.objects.filter(
+            tipo_servico__in=[
+                Terceirizada.FORNECEDOR,
+                Terceirizada.FORNECEDOR_E_DISTRIBUIDOR,
+            ]
+        ),
+    )
 
 
 class SolicitacaoAlteracaoCronogramaFilter(filters.FilterSet):

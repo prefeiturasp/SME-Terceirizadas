@@ -69,6 +69,7 @@ def test_modelo_excel_tipos_ocorrencia(client_admin_django):
         "Tolerância",
         "% de Desconto",
         "Status",
+        "Aceita múltiplas respostas?",
     )
 
     os.remove(temp_file_path)
