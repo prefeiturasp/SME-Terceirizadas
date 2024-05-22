@@ -1259,19 +1259,23 @@ def popula_campo_total_refeicoes_pagamento(
                     valor_numero_de_alunos,
                 )
             else:
-                total_refeicao = (
-                    int(valor_refeicao)
-                    + int(valor_repeticao_refeicao)
-                    + int(valor_segunda_refeicao)
-                    + int(valor_repeticao_segunda_refeicao)
-                )
                 valor_comparativo = (
                     valor_matriculados
                     if int(valor_matriculados) > 0
                     else valor_numero_de_alunos
                 )
+
+                total_refeicao = int(valor_refeicao) + int(valor_repeticao_refeicao)
                 total_refeicao = min(int(total_refeicao), int(valor_comparativo))
-                valores_dia += [total_refeicao]
+
+                total_refeicao_2a_oferta = int(valor_segunda_refeicao) + int(
+                    valor_repeticao_segunda_refeicao
+                )
+                total_refeicao_2a_oferta = min(
+                    int(total_refeicao_2a_oferta), int(valor_comparativo)
+                )
+
+                valores_dia += [total_refeicao + total_refeicao_2a_oferta]
         except Exception:
             valores_dia += ["0"]
 
@@ -1290,19 +1294,23 @@ def get_valor_total_emei_cemei(
     tem_edital_imr = editais.filter(eh_imr=True).exists()
 
     if tem_edital_imr and (solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei):
-        total_refeicao = (
-            int(valor_refeicao)
-            + int(valor_repeticao_refeicao)
-            + int(valor_segunda_refeicao)
-            + int(valor_repeticao_segunda_refeicao)
-        )
         valor_comparativo = (
             valor_matriculados
             if int(valor_matriculados) > 0
             else valor_numero_de_alunos
         )
+
+        total_refeicao = int(valor_refeicao) + int(valor_repeticao_refeicao)
         total_refeicao = min(int(total_refeicao), int(valor_comparativo))
-        valores_dia += [total_refeicao]
+
+        total_refeicao_2a_oferta = int(valor_segunda_refeicao) + int(
+            valor_repeticao_segunda_refeicao
+        )
+        total_refeicao_2a_oferta = min(
+            int(total_refeicao_2a_oferta), int(valor_comparativo)
+        )
+
+        valores_dia += [total_refeicao + total_refeicao_2a_oferta]
     else:
         valores_dia += [int(valor_refeicao) + int(valor_segunda_refeicao)]
     return valores_dia
@@ -1483,19 +1491,23 @@ def popula_campo_total_sobremesas_pagamento(
                     valor_numero_de_alunos,
                 )
             else:
-                total_sobremesa = (
-                    int(valor_sobremesa)
-                    + int(valor_repeticao_sobremesa)
-                    + int(valor_segunda_sobremesa)
-                    + int(valor_repeticao_segunda_sobremesa)
-                )
                 valor_comparativo = (
                     valor_matriculados
                     if valor_matriculados > 0
                     else valor_numero_de_alunos
                 )
+
+                total_sobremesa = int(valor_sobremesa) + int(valor_repeticao_sobremesa)
                 total_sobremesa = min(int(total_sobremesa), int(valor_comparativo))
-                valores_dia += [total_sobremesa]
+
+                total_sobremesa_2a_oferta = int(valor_segunda_sobremesa) + int(
+                    valor_repeticao_segunda_sobremesa
+                )
+                total_sobremesa_2a_oferta = min(
+                    int(total_sobremesa_2a_oferta), int(valor_comparativo)
+                )
+
+                valores_dia += [total_sobremesa + total_sobremesa_2a_oferta]
         except Exception:
             valores_dia += ["0"]
 
