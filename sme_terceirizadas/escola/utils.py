@@ -3,7 +3,8 @@ import re
 from calendar import monthrange
 from datetime import date, datetime, timedelta
 
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value
+from ..escola import models
 from rest_framework.pagination import PageNumberPagination
 
 from sme_terceirizadas.eol_servico.utils import EOLServicoSGP
@@ -635,3 +636,57 @@ def formata_periodos_pdf_controle_frequencia(
             }
         )
     return periodos
+
+
+def ordenar_alunos_matriculados(queryset):
+    ordenacao = Case(
+        When(
+            tipo_turma=models.TipoTurma.REGULAR.name,
+            periodo_escolar__nome="MANHA",
+            then=Value(1),
+        ),
+        When(
+            tipo_turma=models.TipoTurma.REGULAR.name,
+            periodo_escolar__nome="TARDE",
+            then=Value(2),
+        ),
+        When(
+            tipo_turma=models.TipoTurma.REGULAR.name,
+            periodo_escolar__nome="INTEGRAL",
+            then=Value(3),
+        ),
+        When(
+            tipo_turma=models.TipoTurma.REGULAR.name,
+            periodo_escolar__nome="NOITE",
+            then=Value(4),
+        ),
+        When(
+            tipo_turma=models.TipoTurma.PROGRAMAS.name,
+            periodo_escolar__nome="MANHA",
+            then=Value(5),
+        ),
+        When(
+            tipo_turma=models.TipoTurma.PROGRAMAS.name,
+            periodo_escolar__nome="INTERMEDIARIO",
+            then=Value(6),
+        ),
+        When(
+            tipo_turma=models.TipoTurma.PROGRAMAS.name,
+            periodo_escolar__nome="TARDE",
+            then=Value(7),
+        ),
+        When(
+            tipo_turma=models.TipoTurma.PROGRAMAS.name,
+            periodo_escolar__nome="VESPERTINO",
+            then=Value(8),
+        ),
+        When(
+            tipo_turma=models.TipoTurma.PROGRAMAS.name,
+            periodo_escolar__nome="NOITE",
+            then=Value(9),
+        ),
+    )
+    queryset = queryset.annotate(ordering=ordenacao).order_by(
+        "escola__nome", "ordering"
+    )
+    return queryset
