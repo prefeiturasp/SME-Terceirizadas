@@ -32,6 +32,7 @@ from ..relatorios.relatorios import (
     relatorio_solicitacao_medicao_por_escola_emebs,
 )
 from .models import Responsavel, SolicitacaoMedicaoInicial
+from .utils import cria_relatorios_financeiros_por_grupo_unidade_escolar
 
 logger = logging.getLogger(__name__)
 
@@ -306,3 +307,26 @@ def exporta_relatorio_consolidado_xlsx(
         logger.error(f"Erro ao gerar relatório consolidado: {e}")
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+)
+def cria_relatorios_financeiros():
+    logger.info(
+        "x-x-x-x Iniciando criação de Relatórios Financeiros da Medição Inicial x-x-x-x"
+    )
+
+    data_hoje = datetime.date.today()
+    quantidade_meses = 1
+    while quantidade_meses <= 6:
+        data = datetime.date(data_hoje.year, data_hoje.month, 1) + relativedelta(
+            months=-quantidade_meses
+        )
+        cria_relatorios_financeiros_por_grupo_unidade_escolar(data)
+        quantidade_meses += 1
+
+    logger.info(
+        "x-x-x-x Finaliza criação de Relatórios Financeiros da Medição Inicial x-x-x-x"
+    )
