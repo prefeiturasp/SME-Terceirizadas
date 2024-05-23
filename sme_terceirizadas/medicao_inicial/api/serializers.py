@@ -135,6 +135,15 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
         )
 
 
+class SolicitacaoMedicaoInicialLancadaSerializer(serializers.ModelSerializer):
+    escola = serializers.CharField(source="escola.nome")
+    escola_uuid = serializers.CharField(source="escola.uuid")
+
+    class Meta:
+        model = SolicitacaoMedicaoInicial
+        fields = ("uuid", "mes", "ano", "escola", "escola_uuid")
+
+
 class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
     escola = serializers.CharField(source="escola.nome")
     escola_uuid = serializers.CharField(source="escola.uuid")

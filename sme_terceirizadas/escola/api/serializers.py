@@ -290,6 +290,7 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
 
 
 class LoteNomeSerializer(serializers.ModelSerializer):
+    contratos_do_lote = ContratoEditalSerializer(many=True)
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = serializers.CharField()
     terceirizada = TerceirizadaSimplesSerializer()
@@ -302,13 +303,14 @@ class LoteNomeSerializer(serializers.ModelSerializer):
             "tipo_gestao",
             "diretoria_regional",
             "terceirizada",
-        )  # noqa
+            "contratos_do_lote",
+        )
 
 
 class LoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lote
-        fields = ("uuid", "nome")  # noqa
+        fields = ("uuid", "nome")
 
 
 class EscolaNomeCodigoEOLSerializer(serializers.ModelSerializer):
