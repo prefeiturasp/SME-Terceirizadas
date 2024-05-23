@@ -75,10 +75,11 @@ class EditalSerializer(serializers.ModelSerializer):
 
 class ContratoEditalSerializer(serializers.ModelSerializer):
     edital = serializers.CharField(source="edital.uuid")
+    eh_imr = serializers.BooleanField(source="edital.eh_imr")
 
     class Meta:
         model = Contrato
-        fields = ("edital", "encerrado")
+        fields = ("uuid", "edital", "eh_imr", "encerrado")
 
 
 class ContratoSimplesSerializer(serializers.ModelSerializer):
