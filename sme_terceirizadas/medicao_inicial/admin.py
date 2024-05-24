@@ -14,6 +14,7 @@ from .models import (
     ParametrizacaoFinanceiraTabela,
     ParametrizacaoFinanceiraTabelaValor,
     PermissaoLancamentoEspecial,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao,
@@ -187,3 +188,8 @@ class ParametrizacaoFinanceiraTabelaValorAdmin(admin.ModelAdmin):
     )
     search_fields = ("tabela", "tipo_alimentacao__nome", "grupo")
     list_filter = ("tabela", "tipo_alimentacao__nome", "grupo", "faixa_etaria")
+
+
+@admin.register(RelatorioFinanceiro)
+class RelatorioFinanceiroAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "grupo_unidade_escolar")
