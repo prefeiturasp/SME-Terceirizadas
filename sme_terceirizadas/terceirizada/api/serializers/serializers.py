@@ -103,7 +103,11 @@ class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
 class TerceirizadaLookUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terceirizada
-        fields = ("uuid", "razao_social")
+        fields = (
+            "uuid",
+            "nome_fantasia",
+            "razao_social",
+        )
 
 
 class ContratoSerializer(serializers.ModelSerializer):
