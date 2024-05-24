@@ -159,12 +159,15 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=["GET"], url_path="lista-razoes")
-    def lista_razoes(self, request):
-        response = {
-            "results": TerceirizadaLookUpSerializer(self.get_queryset(), many=True).data
-        }
-        return Response(response)
+    @action(detail=False, methods=["GET"], url_path="lista-simples")
+    def lista_simples(self, request):
+        return Response(
+            {
+                "results": TerceirizadaLookUpSerializer(
+                    self.get_queryset(), many=True
+                ).data
+            }
+        )
 
 
 class TerceirizadaSimplesViewSet(viewsets.ModelViewSet):
