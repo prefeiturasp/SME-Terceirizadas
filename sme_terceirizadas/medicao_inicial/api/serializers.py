@@ -15,6 +15,8 @@ from sme_terceirizadas.escola.api.serializers import (
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplissimaSerializer,
     FaixaEtariaSerializer,
+    GrupoUnidadeEscolarSerializer,
+    LoteParaFiltroSerializer,
     PeriodoEscolarSerializer,
     TipoAlimentacaoSerializer,
     TipoUnidadeEscolarSerializer,
@@ -34,6 +36,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     ParametrizacaoFinanceiraTabelaValor,
     PermissaoLancamentoEspecial,
     Responsavel,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao,
@@ -320,4 +323,13 @@ class ParametrizacaoFinanceiraSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParametrizacaoFinanceira
+        exclude = ("id", "criado_em", "alterado_em")
+
+
+class RelatorioFinanceiroSerializer(serializers.ModelSerializer):
+    lote = LoteParaFiltroSerializer()
+    grupo_unidade_escolar = GrupoUnidadeEscolarSerializer()
+
+    class Meta:
+        model = RelatorioFinanceiro
         exclude = ("id", "criado_em", "alterado_em")
