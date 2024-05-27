@@ -267,7 +267,7 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
     )
 
     def __str__(self):
-        return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao}"
+        return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao} - {self.titulo}"
 
     class Meta:
         verbose_name = "Parametrização de Tipo de Ocorrência"
