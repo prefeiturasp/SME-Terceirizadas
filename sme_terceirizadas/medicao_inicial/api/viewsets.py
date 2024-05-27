@@ -57,6 +57,7 @@ from ..models import (
     OcorrenciaMedicaoInicial,
     ParametrizacaoFinanceira,
     PermissaoLancamentoEspecial,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao,
@@ -93,6 +94,7 @@ from .filters import (
     DiaParaCorrecaoFilter,
     EmpenhoFilter,
     ParametrizacaoFinanceiraFilter,
+    RelatorioFinanceiroFilter,
 )
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
@@ -106,7 +108,9 @@ from .serializers import (
     OcorrenciaMedicaoInicialSerializer,
     ParametrizacaoFinanceiraSerializer,
     PermissaoLancamentoEspecialSerializer,
+    RelatorioFinanceiroSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
+    SolicitacaoMedicaoInicialLancadaSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
     ValorMedicaoSerializer,
@@ -1063,7 +1067,7 @@ class SolicitacaoMedicaoInicialViewSet(
             .exclude(status=medicao_em_preenchimento)
         )
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = SolicitacaoMedicaoInicialLancadaSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(
@@ -1848,3 +1852,13 @@ class ParametrizacaoFinanceiraViewSet(ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return ParametrizacaoFinanceiraWriteModelSerializer
         return ParametrizacaoFinanceiraSerializer
+
+
+class RelatorioFinanceiroViewSet(ModelViewSet):
+    lookup_field = "uuid"
+    permission_classes = [UsuarioMedicao]
+    queryset = RelatorioFinanceiro.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = RelatorioFinanceiroFilter
+    pagination_class = CustomPagination
+    serializer_class = RelatorioFinanceiroSerializer

@@ -1,7 +1,14 @@
 from rest_framework import serializers
 
-from sme_terceirizadas.imr.models import (FormularioSupervisao, PeriodoVisita, TipoOcorrencia, CategoriaOcorrencia,
-                                          ParametrizacaoOcorrencia, TipoPerguntaParametrizacaoOcorrencia, TipoPenalidade)
+from sme_terceirizadas.imr.models import (
+    CategoriaOcorrencia,
+    FormularioSupervisao,
+    ParametrizacaoOcorrencia,
+    PeriodoVisita,
+    TipoOcorrencia,
+    TipoPenalidade,
+    TipoPerguntaParametrizacaoOcorrencia,
+)
 
 
 class PeriodoVisitaSerializer(serializers.ModelSerializer):
@@ -19,14 +26,21 @@ class FormularioSupervisaoSerializer(serializers.ModelSerializer):
 class CategoriaOcorrenciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoriaOcorrencia
-        fields = ("uuid", "nome", "posicao", )
+        fields = (
+            "uuid",
+            "nome",
+            "posicao",
+            "gera_notificacao",
+        )
 
 
 class TipoPerguntaParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = TipoPerguntaParametrizacaoOcorrencia
-        fields = ("uuid", "nome", )
+        fields = (
+            "uuid",
+            "nome",
+        )
 
 
 class ParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer):
@@ -34,7 +48,12 @@ class ParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParametrizacaoOcorrencia
-        fields = ("uuid", "posicao", "titulo", "tipo_pergunta", )
+        fields = (
+            "uuid",
+            "posicao",
+            "titulo",
+            "tipo_pergunta",
+        )
 
 
 class TipoPenalidadeSerializer(serializers.ModelSerializer):
@@ -42,7 +61,12 @@ class TipoPenalidadeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoPenalidade
-        fields = ("uuid", "numero_clausula", "descricao", "obrigacoes", )
+        fields = (
+            "uuid",
+            "numero_clausula",
+            "descricao",
+            "obrigacoes",
+        )
 
     def get_obrigacoes(self, obj):
         obrigacoes = obj.obrigacoes.all()
@@ -56,4 +80,12 @@ class TipoOcorrenciaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoOcorrencia
-        fields = ("uuid", "titulo", "descricao", "posicao", "categoria", "parametrizacoes", "penalidade", )
+        fields = (
+            "uuid",
+            "titulo",
+            "descricao",
+            "posicao",
+            "categoria",
+            "parametrizacoes",
+            "penalidade",
+        )
