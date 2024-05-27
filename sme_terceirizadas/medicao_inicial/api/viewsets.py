@@ -57,6 +57,7 @@ from ..models import (
     OcorrenciaMedicaoInicial,
     ParametrizacaoFinanceira,
     PermissaoLancamentoEspecial,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao,
@@ -93,6 +94,7 @@ from .filters import (
     DiaParaCorrecaoFilter,
     EmpenhoFilter,
     ParametrizacaoFinanceiraFilter,
+    RelatorioFinanceiroFilter,
 )
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
@@ -106,6 +108,7 @@ from .serializers import (
     OcorrenciaMedicaoInicialSerializer,
     ParametrizacaoFinanceiraSerializer,
     PermissaoLancamentoEspecialSerializer,
+    RelatorioFinanceiroSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialLancadaSerializer,
     SolicitacaoMedicaoInicialSerializer,
@@ -732,10 +735,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 categoria_medicao__nome__icontains="DIETA"
             ):
                 if valor_medicao.nome_campo not in campos_a_desconsiderar:
-                    total_por_nome_campo[
-                        valor_medicao.nome_campo
-                    ] = total_por_nome_campo.get(valor_medicao.nome_campo, 0) + int(
-                        valor_medicao.valor
+                    total_por_nome_campo[valor_medicao.nome_campo] = (
+                        total_por_nome_campo.get(valor_medicao.nome_campo, 0)
+                        + int(valor_medicao.valor)
                     )
             total_por_nome_campo = tratar_valores(escola, total_por_nome_campo)
             valor_total = get_valor_total(escola, total_por_nome_campo, medicao)
@@ -1850,3 +1852,13 @@ class ParametrizacaoFinanceiraViewSet(ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return ParametrizacaoFinanceiraWriteModelSerializer
         return ParametrizacaoFinanceiraSerializer
+
+
+class RelatorioFinanceiroViewSet(ModelViewSet):
+    lookup_field = "uuid"
+    permission_classes = [UsuarioMedicao]
+    queryset = RelatorioFinanceiro.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = RelatorioFinanceiroFilter
+    pagination_class = CustomPagination
+    serializer_class = RelatorioFinanceiroSerializer
