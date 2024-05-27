@@ -46,3 +46,17 @@ class ParametrizacaoFinanceiraFilter(filters.FilterSet):
     def filtra_tipos_unidades(self, queryset, _, value):
         tipos_unidades_uuids = value.split(",")
         return queryset.filter(tipos_unidades__uuid__in=tipos_unidades_uuids).distinct()
+
+
+class RelatorioFinanceiroFilter(filters.FilterSet):
+    lote = filters.CharFilter(method="filtra_lotes")
+    grupo_unidade_escolar = filters.UUIDFilter(field_name="grupo_unidade_escolar__uuid")
+    mes_ano = filters.CharFilter(method="filtra_mes_ano")
+
+    def filtra_mes_ano(self, queryset, _, value):
+        mes, ano = value.split("_")
+        return queryset.filter(mes=mes, ano=ano)
+
+    def filtra_lotes(self, queryset, _, value):
+        uuids = value.split(",")
+        return queryset.filter(lote__uuid__in=uuids)

@@ -376,24 +376,32 @@ class DocRecebimentoFichaDeRecebimentoSerializer(serializers.ModelSerializer):
     datas_validade = serializers.SerializerMethodField()
 
     def get_datas_fabricacao(self, obj):
-        return ", ".join(
-            [
-                d.strftime("%d/%m/%Y")
-                for d in obj.datas_fabricacao_e_prazos.values_list(
-                    "data_fabricacao", flat=True
-                )
-            ]
-        )
+        try:
+            return ", ".join(
+                [
+                    d.strftime("%d/%m/%Y")
+                    for d in obj.datas_fabricacao_e_prazos.values_list(
+                        "data_fabricacao", flat=True
+                    )
+                ]
+            )
+
+        except AttributeError:
+            return None
 
     def get_datas_validade(self, obj):
-        return ", ".join(
-            [
-                d.strftime("%d/%m/%Y")
-                for d in obj.datas_fabricacao_e_prazos.values_list(
-                    "data_validade", flat=True
-                )
-            ]
-        )
+        try:
+            return ", ".join(
+                [
+                    d.strftime("%d/%m/%Y")
+                    for d in obj.datas_fabricacao_e_prazos.values_list(
+                        "data_validade", flat=True
+                    )
+                ]
+            )
+
+        except AttributeError:
+            return None
 
     class Meta:
         model = DocumentoDeRecebimento

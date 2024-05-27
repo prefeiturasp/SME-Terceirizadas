@@ -243,7 +243,7 @@ class TipoPerguntaParametrizacaoOcorrencia(ModeloBase, Nomeavel):
     )
 
     def get_model_tipo_resposta(self):
-        return apps.get_model("imr", self.tipo_resposta)
+        return apps.get_model("imr", self.tipo_resposta.nome)
 
     def __str__(self):
         return f"{self.nome}"

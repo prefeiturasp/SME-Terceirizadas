@@ -30,7 +30,11 @@ router.register(
     viewsets.ParametrizacaoFinanceiraViewSet,
     basename="parametrizacao-financeira",
 )
-
+router.register(
+    "relatorio-financeiro",
+    viewsets.RelatorioFinanceiroViewSet,
+    basename="relatorio-financeiro",
+)
 
 urlpatterns = [
     path("medicao-inicial/", include(router.urls)),
