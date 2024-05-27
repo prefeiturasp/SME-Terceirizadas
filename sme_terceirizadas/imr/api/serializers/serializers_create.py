@@ -1,17 +1,20 @@
 from rest_framework import serializers
+
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.imr.models import (
+    AnexosFormularioBase,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
-    PeriodoVisita,
-    TipoOcorrencia,
     OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
-    RespostaDatas,
+    PeriodoVisita,
+    RespostaCampoNumerico,
     RespostaCampoTextoLongo,
     RespostaCampoTextoSimples,
-    RespostaCampoNumerico,
-    RespostaSimNao
+    RespostaDatas,
+    RespostaSimNao,
+    TipoOcorrencia,
 )
 
 
@@ -88,6 +91,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
     )
     ocorrencias_nao_se_aplica = serializers.ListField(required=False, allow_null=True)
     ocorrencias = serializers.ListField(required=False, allow_null=True)
+    anexos = serializers.JSONField(required=False, allow_null=True)
 
     def validate(self, attrs):
         data = attrs.get("data", None)
@@ -102,6 +106,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
         data_visita = validated_data.pop("data", None)
         ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
         ocorrencias = validated_data.pop("ocorrencias", [])
+        anexos = validated_data.pop("anexos", None)
 
         form_base = FormularioOcorrenciasBase.objects.create(
             usuario=usuario, data=data_visita
@@ -111,13 +116,15 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
             formulario_base=form_base, **validated_data
         )
 
-        self.create_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, form_base)
+        self._create_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, form_base)
 
-        self.create_ocorrencias(ocorrencias, form_base)
+        self._create_ocorrencias(ocorrencias, form_base)
+
+        self._create_anexos(form_base, anexos)
 
         return form_supervisao
 
-    def create_ocorrencias_nao_se_aplica(self, ocorrencias_data, form_base):
+    def _create_ocorrencias_nao_se_aplica(self, ocorrencias_data, form_base):
         for ocorrencia_data in ocorrencias_data:
             ocorrencia_data["formulario_base"] = str(form_base.uuid)
             serializer = OcorrenciaNaoSeAplicaCreateSerializer(data=ocorrencia_data)
@@ -134,31 +141,47 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
             raise ValueError(f"Nenhum serializer encontrado com o nome '{name}'")
         return serializer_class
 
-    def create_ocorrencias(self, ocorrencias_data, form_base):
+    def _create_ocorrencias(self, ocorrencias_data, form_base):
         for ocorrencia_data in ocorrencias_data:
             ocorrencia_data["formulario_base"] = form_base.pk
             parametrizacao_UUID = ocorrencia_data["parametrizacao"]
 
             try:
-                parametrizacao = ParametrizacaoOcorrencia.objects.get(uuid=parametrizacao_UUID)
+                parametrizacao = ParametrizacaoOcorrencia.objects.get(
+                    uuid=parametrizacao_UUID
+                )
             except ParametrizacaoOcorrencia.DoesNotExist:
-                raise serializers.ValidationError({
-                    "detail": f"ParametrizacaoOcorrencia com o UUID {parametrizacao_UUID} não foi encontrada"
-                })
+                raise serializers.ValidationError(
+                    {
+                        "detail": f"ParametrizacaoOcorrencia com o UUID {parametrizacao_UUID} não foi encontrada"
+                    }
+                )
 
             ocorrencia_data["parametrizacao"] = parametrizacao.pk
 
-            response_model_class_name = parametrizacao.tipo_pergunta.get_model_tipo_resposta().__name__
-            response_serializer = self.get_serializer_class_by_name(f"{response_model_class_name}CreateSerializer")
+            response_model_class_name = (
+                parametrizacao.tipo_pergunta.get_model_tipo_resposta().__name__
+            )
+            response_serializer = self.get_serializer_class_by_name(
+                f"{response_model_class_name}CreateSerializer"
+            )
 
             serializer = response_serializer(data=ocorrencia_data)
             if serializer.is_valid():
                 serializer.save()
             else:
-                raise serializers.ValidationError({
-                    "parametrizacao": parametrizacao.uuid,
-                    "error": serializer.errors
-                })
+                raise serializers.ValidationError(
+                    {"parametrizacao": parametrizacao.uuid, "error": serializer.errors}
+                )
+
+    def _create_anexos(self, form_base, anexos):
+        for anexo in anexos:
+            contentfile = convert_base64_to_contentfile(anexo.get("arquivo"))
+            AnexosFormularioBase.objects.create(
+                formulario_base=form_base,
+                anexo=contentfile,
+                nome=anexo.get("nome"),
+            )
 
     class Meta:
         model = FormularioSupervisao
