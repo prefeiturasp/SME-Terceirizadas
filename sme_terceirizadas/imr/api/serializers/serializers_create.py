@@ -106,7 +106,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
         data_visita = validated_data.pop("data", None)
         ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
         ocorrencias = validated_data.pop("ocorrencias", [])
-        anexos = validated_data.pop("anexos", None)
+        anexos = validated_data.pop("anexos", [])
 
         form_base = FormularioOcorrenciasBase.objects.create(
             usuario=usuario, data=data_visita
