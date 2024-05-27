@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.imr.models import (
     FormularioOcorrenciasBase,
