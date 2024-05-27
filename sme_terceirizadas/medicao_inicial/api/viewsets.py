@@ -94,6 +94,7 @@ from .filters import (
     DiaParaCorrecaoFilter,
     EmpenhoFilter,
     ParametrizacaoFinanceiraFilter,
+    RelatorioFinanceiroFilter,
 )
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
@@ -1857,5 +1858,7 @@ class RelatorioFinanceiroViewSet(ModelViewSet):
     lookup_field = "uuid"
     permission_classes = [UsuarioMedicao]
     queryset = RelatorioFinanceiro.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = RelatorioFinanceiroFilter
     pagination_class = CustomPagination
     serializer_class = RelatorioFinanceiroSerializer
