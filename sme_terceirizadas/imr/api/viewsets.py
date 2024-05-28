@@ -4,7 +4,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
-from sme_terceirizadas.dados_comuns.permissions import UsuarioCODAENutriSupervisao
+from sme_terceirizadas.dados_comuns.permissions import (
+    UsuarioCODAENutriSupervisao,
+    UsuarioEscolaTercTotal,
+)
 from sme_terceirizadas.terceirizada.models import Edital
 
 from ..models import FormularioSupervisao, PeriodoVisita, TipoOcorrencia
@@ -45,7 +48,11 @@ class FormularioSupervisaoRascunhoModelViewSet(
             "retrieve": FormularioSupervisaoSerializer,
         }.get(self.action, FormularioSupervisaoRascunhoCreateSerializer)
 
-    @action(detail=False, url_path="tipos-ocorrencias")
+    @action(
+        detail=False,
+        url_path="tipos-ocorrencias",
+        permission_classes=[UsuarioCODAENutriSupervisao | UsuarioEscolaTercTotal],
+    )
     def tipos_ocorrencias(self, request):
         edital_uuid = request.query_params.get("edital_uuid")
 
