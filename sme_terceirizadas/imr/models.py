@@ -267,7 +267,7 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
     )
 
     def __str__(self):
-        return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao}"
+        return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao} - {self.titulo}"
 
     class Meta:
         verbose_name = "Parametrização de Tipo de Ocorrência"
@@ -315,6 +315,7 @@ class AnexosFormularioBase(ModeloBase):
                     "PDF",
                     "XLS",
                     "XLSX",
+                    "XLSM",
                     "DOC",
                     "DOCX",
                     "PNG",
@@ -325,6 +326,7 @@ class AnexosFormularioBase(ModeloBase):
             validate_file_size_10mb,
         ],
     )
+    nome = models.CharField(max_length=200, null=True, blank=True)
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase, on_delete=models.CASCADE, related_name="anexos"
     )
