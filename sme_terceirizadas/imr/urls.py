@@ -9,6 +9,7 @@ router.register("periodos-de-visita", viewsets.PeriodoVisitaModelViewSet)
 router.register(
     "formulario-supervisao", viewsets.FormularioSupervisaoRascunhoModelViewSet
 )
+router.register("formulario-diretor", viewsets.FormularioDiretorModelViewSet)
 
 
 urlpatterns = [

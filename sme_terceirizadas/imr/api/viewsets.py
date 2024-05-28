@@ -51,7 +51,6 @@ class FormularioSupervisaoRascunhoModelViewSet(
     @action(
         detail=False,
         url_path="tipos-ocorrencias",
-        permission_classes=[UsuarioCODAENutriSupervisao | UsuarioEscolaTercTotal],
     )
     def tipos_ocorrencias(self, request):
         edital_uuid = request.query_params.get("edital_uuid")
@@ -69,6 +68,43 @@ class FormularioSupervisaoRascunhoModelViewSet(
             return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
         queryset = TipoOcorrencia.para_nutrisupervisores.filter(edital=edital)
+
+        serializer = TipoOcorrenciaSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class FormularioDiretorModelViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    lookup_field = "uuid"
+    queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
+    permission_classes = (UsuarioEscolaTercTotal,)
+    serializer_class = FormularioSupervisaoSerializer
+    pagination_class = DefaultPagination
+
+    @action(
+        detail=False,
+        url_path="tipos-ocorrencias",
+    )
+    def tipos_ocorrencias(self, request):
+        edital_uuid = request.query_params.get("edital_uuid")
+
+        try:
+            edital = Edital.objects.get(uuid=edital_uuid)
+        except Edital.DoesNotExist:
+            return Response(
+                {
+                    "detail": "Edital do tipo IMR com o UUID informado não foi encontrado."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except ValidationError as error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = TipoOcorrencia.para_diretores.filter(edital=edital)
 
         serializer = TipoOcorrenciaSerializer(queryset, many=True)
 
