@@ -630,6 +630,7 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
             "vinculo_atual",
             "crn_numero",
             "cargo",
+            "aceitou_termos",
         )
 
 
