@@ -16,7 +16,10 @@ from .serializers.serializers import (
     PeriodoVisitaSerializer,
     TipoOcorrenciaSerializer,
 )
-from .serializers.serializers_create import FormularioSupervisaoRascunhoCreateSerializer
+from .serializers.serializers_create import (
+    FormularioDiretorManyCreateSerializer,
+    FormularioSupervisaoRascunhoCreateSerializer,
+)
 
 
 class PeriodoVisitaModelViewSet(
@@ -84,6 +87,12 @@ class FormularioDiretorModelViewSet(
     permission_classes = (UsuarioEscolaTercTotal,)
     serializer_class = FormularioSupervisaoSerializer
     pagination_class = DefaultPagination
+
+    def get_serializer_class(self):
+        return {
+            "list": FormularioSupervisaoSerializer,
+            "retrieve": FormularioSupervisaoSerializer,
+        }.get(self.action, FormularioDiretorManyCreateSerializer)
 
     @action(
         detail=False,
