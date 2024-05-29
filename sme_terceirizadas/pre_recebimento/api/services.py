@@ -8,6 +8,7 @@ from rest_framework.serializers import ModelSerializer
 from sme_terceirizadas.dados_comuns.constants import (
     ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_EMPRESA,
+    ADMINISTRADOR_GESTAO_PRODUTO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_PRODUTO,
     DILOG_CRONOGRAMA,
@@ -179,6 +180,11 @@ class ServiceDashboardLayoutEmbalagem(BaseServiceDashboard):
             LayoutDeEmbalagemWorkflow.APROVADO,
             LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         ],
+        ADMINISTRADOR_GESTAO_PRODUTO: [
+            LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+            LayoutDeEmbalagemWorkflow.APROVADO,
+            LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+        ],
         ADMINISTRADOR_CODAE_GABINETE: [
             LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
             LayoutDeEmbalagemWorkflow.APROVADO,
@@ -225,6 +231,11 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
 class ServiceDashboardFichaTecnica(BaseServiceDashboard):
     STATUS_POR_PERFIL = {
         COORDENADOR_GESTAO_PRODUTO: [
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            FichaTecnicaDoProdutoWorkflow.APROVADA,
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        ],
+        ADMINISTRADOR_GESTAO_PRODUTO: [
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             FichaTecnicaDoProdutoWorkflow.APROVADA,
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
