@@ -291,6 +291,7 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
         "vinculo_atual",
         "crn_numero",
         "cargo",
+        "aceitou_termos",
     ]
     for key in keys:
         assert key in json.keys()
@@ -355,6 +356,7 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
         },
         "crn_numero": None,
         "cargo": "",
+        "aceitou_termos": False,
     }
     assert json == result
 
