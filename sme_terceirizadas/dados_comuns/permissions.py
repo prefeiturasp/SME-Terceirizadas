@@ -887,6 +887,7 @@ class PermissaoParaDashboardLayoutEmbalagem(BasePermission):
     PERFIS_PERMITIDOS = [
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_QUALIDADE,
+        ADMINISTRADOR_GESTAO_PRODUTO,
         COORDENADOR_GESTAO_PRODUTO,
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_DIRETORIA,
@@ -1224,6 +1225,7 @@ class UsuarioEhFornecedor(BasePermission):
 class PermissaoParaVisualizarLayoutDeEmbalagem(BasePermission):
     PERFIS_PERMITIDOS = [
         DILOG_QUALIDADE,
+        ADMINISTRADOR_GESTAO_PRODUTO,
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
@@ -1287,6 +1289,7 @@ class UsuarioEhDilogQualidade(BasePermission):
 class PermissaoParaDashboardFichaTecnica(BasePermission):
     PERFIS_PERMITIDOS = [
         COORDENADOR_GESTAO_PRODUTO,
+        ADMINISTRADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_DIRETORIA,
@@ -1308,6 +1311,7 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
 
 class PermissaoParaVisualizarFichaTecnica(BasePermission):
     PERFIS_PERMITIDOS = [
+        ADMINISTRADOR_GESTAO_PRODUTO,
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
