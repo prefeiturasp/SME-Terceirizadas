@@ -1121,7 +1121,11 @@ def get_numero_campos(tabela, periodo_corrente, categoria_corrente):
 
     indice_inicial = (
         soma_periodos_anteriores
-        if (indice_categoria and len(tabela["faixas_etarias"]) == 0)
+        if (
+            indice_categoria
+            and "faixas_etarias" in tabela
+            and len(tabela["faixas_etarias"]) == 0
+        )
         else 0
     )
     indice_final = len_categoria_corrente + soma_periodos_anteriores
