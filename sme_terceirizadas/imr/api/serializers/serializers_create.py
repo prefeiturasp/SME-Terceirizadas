@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.imr.models import (
@@ -14,6 +15,7 @@ from sme_terceirizadas.imr.models import (
     RespostaCampoTextoSimples,
     RespostaDatas,
     RespostaSimNao,
+    RespostaTipoAlimentacao,
     TipoOcorrencia,
 )
 
@@ -64,6 +66,19 @@ class RespostaCampoNumericoCreateSerializer(serializers.ModelSerializer):
 class RespostaSimNaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RespostaSimNao
+        exclude = ("id",)
+
+
+class RespostaTipoAlimentacaoCreateSerializer(serializers.ModelSerializer):
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=TipoAlimentacao.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaTipoAlimentacao
         exclude = ("id",)
 
 
