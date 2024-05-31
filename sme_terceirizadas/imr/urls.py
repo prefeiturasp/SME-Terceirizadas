@@ -9,7 +9,12 @@ router.register("periodos-de-visita", viewsets.PeriodoVisitaModelViewSet)
 router.register(
     "formulario-supervisao", viewsets.FormularioSupervisaoRascunhoModelViewSet
 )
-
+router.register("utensilios-cozinha", viewsets.UtensilioCozinhaViewSet)
+router.register("utensilios-mesa", viewsets.UtensilioMesaViewSet)
+router.register("equipamentos", viewsets.EquipamentoViewSet)
+router.register("mobiliarios", viewsets.MobiliarioViewSet)
+router.register("reparos-e-adaptacoes", viewsets.ReparoEAdaptacaoViewSet)
+router.register("insumos", viewsets.InsumoViewSet)
 
 urlpatterns = [
     path("imr/", include(router.urls)),

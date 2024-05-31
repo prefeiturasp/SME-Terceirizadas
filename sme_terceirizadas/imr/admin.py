@@ -249,7 +249,7 @@ class PerfisFilter(admin.SimpleListFilter):
 
 @admin.register(ParametrizacaoOcorrencia)
 class ParametrizacaoAdmin(admin.ModelAdmin):
-    list_display = ("edital", "posicao", "titulo", "tipo_pergunta", "perfis")
+    list_display = ("tipo_ocorrencia", "edital", "posicao", "titulo", "tipo_pergunta", "perfis")
     ordering = ("criado_em",)
     search_fields = ("edital__numero", "titulo")
     search_help_text = "Pesquise por: número do edital, título"
