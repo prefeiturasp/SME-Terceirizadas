@@ -117,6 +117,16 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(usuario)
         return Response(serializer.data)
 
+    @action(detail=True, url_path="aceitar-termos", methods=["patch"])
+    def aceitar_termos(self, request, uuid):
+        usuario = self.get_object()
+        usuario.aceitou_termos = True
+        usuario.save()
+
+        return Response(
+            {"detail": "Termos aceitos com sucesso"}, status=status.HTTP_200_OK
+        )
+
 
 class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     permission_classes = (AllowAny,)

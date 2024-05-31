@@ -291,6 +291,7 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
         "vinculo_atual",
         "crn_numero",
         "cargo",
+        "aceitou_termos",
     ]
     for key in keys:
         assert key in json.keys()
@@ -355,6 +356,7 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
         },
         "crn_numero": None,
         "cargo": "",
+        "aceitou_termos": False,
     }
     assert json == result
 
@@ -660,3 +662,18 @@ def test_get_perfis_vinculados_subordinados(
         "/perfis-vinculados/ADMINISTRADOR_EMPRESA/perfis-subordinados/"
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_aceitar_termos(client_autenticado_codae_dilog, django_user_model):
+    usuario = django_user_model.objects.get(
+        pk=client_autenticado_codae_dilog.session["_auth_user_id"]
+    )
+
+    response = client_autenticado_codae_dilog.patch(
+        f"/usuarios/{usuario.uuid}/aceitar-termos/"
+    )
+
+    usuario.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert usuario.aceitou_termos is True
