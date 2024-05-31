@@ -8,6 +8,12 @@ from sme_terceirizadas.imr.models import (
     TipoOcorrencia,
     TipoPenalidade,
     TipoPerguntaParametrizacaoOcorrencia,
+    UtensilioCozinha,
+    UtensilioMesa,
+    Equipamento,
+    Mobiliario,
+    ReparoEAdaptacao,
+    Insumo
 )
 
 
@@ -89,3 +95,39 @@ class TipoOcorrenciaSerializer(serializers.ModelSerializer):
             "parametrizacoes",
             "penalidade",
         )
+
+
+class UtensilioCozinhaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UtensilioCozinha
+        exclude = ("id",)
+
+
+class UtensilioMesaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UtensilioMesa
+        exclude = ("id",)
+
+
+class EquipamentoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Equipamento
+        exclude = ("id",)
+
+
+class MobiliarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mobiliario
+        exclude = ("id",)
+
+
+class ReparoEAdaptacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReparoEAdaptacao
+        exclude = ("id",)
+
+
+class InsumoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Insumo
+        exclude = ("id",)
