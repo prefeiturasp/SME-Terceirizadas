@@ -1,8 +1,10 @@
 ![coverage](coverage.svg)
+![build](https://img.shields.io/badge/build-passing-green)
+![license](https://img.shields.io/badge/license-GPL-green)
+
 ![python-version](https://img.shields.io/badge/python-3.11-blue)
 ![django-version](https://img.shields.io/badge/django-4.2-blue)
 ![pipenv-version](https://img.shields.io/badge/pipenv-2023.11.15-blue)
-
 
 # Estratégia de Transformação Digital e Governo Aberto na SME
 
