@@ -1,3 +1,6 @@
+import copy
+import datetime
+
 from rest_framework import serializers
 
 from sme_terceirizadas.cardapio.models import TipoAlimentacao
@@ -5,31 +8,33 @@ from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
+    Equipamento,
+    FormularioDiretor,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
+    Insumo,
+    Mobiliario,
     OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
+    ReparoEAdaptacao,
     RespostaCampoNumerico,
     RespostaCampoTextoLongo,
     RespostaCampoTextoSimples,
     RespostaDatas,
-    RespostaSimNao,
-    RespostaTipoAlimentacao,
-    Equipamento,
-    Insumo,
-    Mobiliario,
-    ReparoEAdaptacao,
-    UtensilioCozinha,
-    UtensilioMesa,
     RespostaEquipamento,
     RespostaInsumo,
     RespostaMobiliario,
     RespostaReparoEAdaptacao,
+    RespostaSimNao,
+    RespostaTipoAlimentacao,
     RespostaUtensilioCozinha,
     RespostaUtensilioMesa,
     TipoOcorrencia,
+    UtensilioCozinha,
+    UtensilioMesa,
 )
+from sme_terceirizadas.medicao_inicial.models import SolicitacaoMedicaoInicial
 
 
 class OcorrenciaNaoSeAplicaCreateSerializer(serializers.ModelSerializer):
@@ -199,9 +204,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
     anexos = serializers.JSONField(required=False, allow_null=True)
 
     def validate(self, attrs):
-        data = attrs.get("data", None)
-
-        if not data:
+        if "data" not in attrs:
             raise serializers.ValidationError({"data": ["Este campo é obrigatório!"]})
 
         return attrs
@@ -291,3 +294,120 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormularioSupervisao
         exclude = ("id",)
+
+
+class FormularioDiretorCreateSerializer(serializers.ModelSerializer):
+    data = serializers.DateField(required=True, allow_null=True)
+    solicitacao_medicao_inicial = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=SolicitacaoMedicaoInicial.objects.all(),
+    )
+    formulario_base = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=FormularioOcorrenciasBase.objects.all(),
+    )
+    ocorrencias = serializers.ListField(required=True, allow_null=True)
+
+    def validate(self, attrs):
+        if "data" not in attrs:
+            raise serializers.ValidationError({"data": ["Este campo é obrigatório!"]})
+
+        return attrs
+
+    def create(self, validated_data):
+        usuario = self.context["request"].user
+        solicitacao_medicao_inicial = validated_data.pop("solicitacao_medicao_inicial")
+        ocorrencias = validated_data.pop("ocorrencias", [])
+
+        form_base = FormularioOcorrenciasBase.objects.create(
+            usuario=usuario, data=validated_data.get("data")
+        )
+        form_diretor = FormularioDiretor.objects.create(
+            formulario_base=form_base,
+            solicitacao_medicao_inicial=solicitacao_medicao_inicial,
+        )
+        self._create_ocorrencias(ocorrencias, form_base)
+
+        return form_diretor
+
+    def get_serializer_class_by_name(self, name):
+        serializer_class = globals().get(name)
+        if serializer_class is None:
+            raise ValueError(f"Nenhum serializer encontrado com o nome '{name}'")
+        return serializer_class
+
+    def _create_ocorrencias(self, ocorrencias_data, form_base):
+        for ocorrencia_data in ocorrencias_data:
+            ocorrencia_data_ = copy.deepcopy(ocorrencia_data)
+            ocorrencia_data_["formulario_base"] = form_base.pk
+            parametrizacao_UUID = ocorrencia_data_["parametrizacao"]
+
+            try:
+                parametrizacao = ParametrizacaoOcorrencia.objects.get(
+                    uuid=parametrizacao_UUID
+                )
+            except ParametrizacaoOcorrencia.DoesNotExist:
+                raise serializers.ValidationError(
+                    {
+                        "detail": f"ParametrizacaoOcorrencia com o UUID {parametrizacao_UUID} não foi encontrada"
+                    }
+                )
+
+            ocorrencia_data_["parametrizacao"] = parametrizacao.pk
+
+            response_model_class_name = (
+                parametrizacao.tipo_pergunta.get_model_tipo_resposta().__name__
+            )
+            response_serializer = self.get_serializer_class_by_name(
+                f"{response_model_class_name}CreateSerializer"
+            )
+
+            serializer = response_serializer(data=ocorrencia_data_)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                raise serializers.ValidationError(
+                    {"parametrizacao": parametrizacao.uuid, "error": serializer.errors}
+                )
+
+    class Meta:
+        model = FormularioDiretor
+        exclude = ("id",)
+
+
+class FormularioDiretorManyCreateSerializer(serializers.Serializer):
+    datas = serializers.ListField(required=True, allow_null=True)
+    solicitacao_medicao_inicial = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=SolicitacaoMedicaoInicial.objects.all(),
+    )
+    ocorrencias = serializers.ListField(required=True, allow_null=True)
+
+    def create(self, validated_data):
+        datas = validated_data.pop("datas")
+        solicitacao_medicao_inicial = validated_data["solicitacao_medicao_inicial"]
+        ocorrencias = validated_data["ocorrencias"]
+        ultimo_form_diretor = None
+
+        for data in datas:
+            data_formatada = datetime.datetime.strptime(data, "%d/%m/%Y")
+            validated_data_ = self._formata_dados_formulario(
+                data_formatada, solicitacao_medicao_inicial, ocorrencias
+            )
+            serializer = FormularioDiretorCreateSerializer(context=self.context)
+            ultimo_form_diretor = serializer.create(validated_data_)
+
+        return ultimo_form_diretor
+
+    def _formata_dados_formulario(self, data, solicitacao_medicao_inicial, ocorrencias):
+        return {
+            "data": data,
+            "solicitacao_medicao_inicial": solicitacao_medicao_inicial,
+            "ocorrencias": ocorrencias,
+        }

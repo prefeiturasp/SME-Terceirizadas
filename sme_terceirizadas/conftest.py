@@ -8,11 +8,19 @@ from pytest_factoryboy import register
 
 from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
+from .escola.fixtures.factories.escola_factory import (
+    DiretoriaRegionalFactory,
+    EscolaFactory,
+    LogAlunosMatriculadosPeriodoEscolaFactory,
+    PeriodoEscolarFactory,
+    TipoUnidadeEscolarFactory,
+)
 from .imr.fixtures.factories.imr_base_factory import (
     CategoriaOcorrenciaFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
     InsumoFactory,
+    MedicaoInicialFactory,
     MobiliarioFactory,
     ObrigacaoPenalidadeFactory,
     ParametrizacaoOcorrenciaFactory,
@@ -22,8 +30,8 @@ from .imr.fixtures.factories.imr_base_factory import (
     TipoPenalidadeFactory,
     TipoPerguntaParametrizacaoOcorrenciaFactory,
     TipoRespostaModeloFactory,
-    UtensilioMesaFactory,
     UtensilioCozinhaFactory,
+    UtensilioMesaFactory,
 )
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -74,14 +82,6 @@ from .terceirizada.fixtures.factories.terceirizada_factory import (
     EmpresaFactory,
 )
 
-from .escola.fixtures.factories.escola_factory import (
-    EscolaFactory,
-    PeriodoEscolarFactory,
-    LogAlunosMatriculadosPeriodoEscolaFactory,
-    DiretoriaRegionalFactory,
-    TipoUnidadeEscolarFactory
-)
-
 f = Faker(locale="pt-Br")
 
 register(CronogramaFactory)
@@ -115,6 +115,7 @@ register(VeiculoFichaDeRecebimentoFactory)
 register(ArquivoFichaDeRecebimentoFactory)
 register(UtensilioMesaFactory)
 register(UtensilioCozinhaFactory)
+register(MedicaoInicialFactory)
 register(EquipamentoFactory)
 register(MobiliarioFactory)
 register(ReparoEAdaptacaoFactory)

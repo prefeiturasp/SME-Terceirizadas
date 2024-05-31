@@ -127,6 +127,18 @@ class TipoOcorrenciaParaNutriSupervisor(models.Manager):
         )
 
 
+class TipoOcorrenciaParaDiretor(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                perfis__contains=[PerfilDiretorSupervisao.DIRETOR],
+                categoria__perfis__contains=[PerfilDiretorSupervisao.DIRETOR],
+            )
+        )
+
+
 class TipoOcorrencia(
     ModeloBase, CriadoPor, Posicao, PerfilDiretorSupervisao, StatusAtivoInativo
 ):
@@ -176,6 +188,7 @@ class TipoOcorrencia(
     )
 
     objects = models.Manager()
+    para_diretores = TipoOcorrenciaParaDiretor()
     para_nutrisupervisores = TipoOcorrenciaParaNutriSupervisor()
 
     def __str__(self):
