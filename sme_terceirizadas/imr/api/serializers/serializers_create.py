@@ -391,16 +391,23 @@ class FormularioDiretorManyCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         datas = validated_data.pop("datas")
-        validated_data_ = {}
-        form_diretor = None
+        solicitacao_medicao_inicial = validated_data["solicitacao_medicao_inicial"]
+        ocorrencias = validated_data["ocorrencias"]
+        ultimo_form_diretor = None
 
         for data in datas:
-            validated_data_["data"] = datetime.datetime.strptime(data, "%d/%m/%Y")
-            validated_data_["solicitacao_medicao_inicial"] = validated_data[
-                "solicitacao_medicao_inicial"
-            ]
-            validated_data_["ocorrencias"] = validated_data["ocorrencias"]
-            form_serializer = FormularioDiretorCreateSerializer(context=self.context)
-            form_diretor = form_serializer.create(validated_data_)
+            data_formatada = datetime.datetime.strptime(data, "%d/%m/%Y")
+            validated_data_ = self._formata_dados_formulario(
+                data_formatada, solicitacao_medicao_inicial, ocorrencias
+            )
+            serializer = FormularioDiretorCreateSerializer(context=self.context)
+            ultimo_form_diretor = serializer.create(validated_data_)
 
-        return form_diretor
+        return ultimo_form_diretor
+
+    def _formata_dados_formulario(self, data, solicitacao_medicao_inicial, ocorrencias):
+        return {
+            "data": data,
+            "solicitacao_medicao_inicial": solicitacao_medicao_inicial,
+            "ocorrencias": ocorrencias,
+        }
