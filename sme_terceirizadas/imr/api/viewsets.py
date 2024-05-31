@@ -10,11 +10,27 @@ from sme_terceirizadas.dados_comuns.permissions import (
 )
 from sme_terceirizadas.terceirizada.models import Edital
 
-from ..models import FormularioSupervisao, PeriodoVisita, TipoOcorrencia
+from ..models import (
+    Equipamento,
+    FormularioSupervisao,
+    Insumo,
+    Mobiliario,
+    PeriodoVisita,
+    ReparoEAdaptacao,
+    TipoOcorrencia,
+    UtensilioCozinha,
+    UtensilioMesa,
+)
 from .serializers.serializers import (
+    EquipamentoSerializer,
     FormularioSupervisaoSerializer,
+    InsumoSerializer,
+    MobiliarioSerializer,
     PeriodoVisitaSerializer,
+    ReparoEAdaptacaoSerializer,
     TipoOcorrenciaSerializer,
+    UtensilioCozinhaSerializer,
+    UtensilioMesaSerializer,
 )
 from .serializers.serializers_create import (
     FormularioDiretorManyCreateSerializer,
@@ -118,3 +134,45 @@ class FormularioDiretorModelViewSet(
         serializer = TipoOcorrenciaSerializer(queryset, many=True)
 
         return Response(serializer.data)
+
+
+class UtensilioCozinhaViewSet(viewsets.ModelViewSet):
+    queryset = UtensilioCozinha.objects.all()
+    serializer_class = UtensilioCozinhaSerializer
+    http_method_names = ["get"]
+    lookup_field = "uuid"
+
+
+class UtensilioMesaViewSet(viewsets.ModelViewSet):
+    queryset = UtensilioMesa.objects.all()
+    serializer_class = UtensilioMesaSerializer
+    http_method_names = ["get"]
+    lookup_field = "uuid"
+
+
+class EquipamentoViewSet(viewsets.ModelViewSet):
+    queryset = Equipamento.objects.all()
+    serializer_class = EquipamentoSerializer
+    http_method_names = ["get"]
+    lookup_field = "uuid"
+
+
+class MobiliarioViewSet(viewsets.ModelViewSet):
+    queryset = Mobiliario.objects.all()
+    serializer_class = MobiliarioSerializer
+    http_method_names = ["get"]
+    lookup_field = "uuid"
+
+
+class ReparoEAdaptacaoViewSet(viewsets.ModelViewSet):
+    queryset = ReparoEAdaptacao.objects.all()
+    serializer_class = ReparoEAdaptacaoSerializer
+    http_method_names = ["get"]
+    lookup_field = "uuid"
+
+
+class InsumoViewSet(viewsets.ModelViewSet):
+    queryset = Insumo.objects.all()
+    serializer_class = InsumoSerializer
+    http_method_names = ["get"]
+    lookup_field = "uuid"

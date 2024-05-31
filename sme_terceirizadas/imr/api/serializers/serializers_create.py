@@ -3,22 +3,36 @@ import datetime
 
 from rest_framework import serializers
 
+from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
+    Equipamento,
     FormularioDiretor,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
+    Insumo,
+    Mobiliario,
     OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
+    ReparoEAdaptacao,
     RespostaCampoNumerico,
     RespostaCampoTextoLongo,
     RespostaCampoTextoSimples,
     RespostaDatas,
+    RespostaEquipamento,
+    RespostaInsumo,
+    RespostaMobiliario,
+    RespostaReparoEAdaptacao,
     RespostaSimNao,
+    RespostaTipoAlimentacao,
+    RespostaUtensilioCozinha,
+    RespostaUtensilioMesa,
     TipoOcorrencia,
+    UtensilioCozinha,
+    UtensilioMesa,
 )
 from sme_terceirizadas.medicao_inicial.models import SolicitacaoMedicaoInicial
 
@@ -69,6 +83,97 @@ class RespostaCampoNumericoCreateSerializer(serializers.ModelSerializer):
 class RespostaSimNaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RespostaSimNao
+        exclude = ("id",)
+
+
+class RespostaTipoAlimentacaoCreateSerializer(serializers.ModelSerializer):
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=TipoAlimentacao.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaTipoAlimentacao
+        exclude = ("id",)
+
+
+class RespostaEquipamentoCreateSerializer(serializers.ModelSerializer):
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Equipamento.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaEquipamento
+        exclude = ("id",)
+
+
+class RespostaInsumoCreateSerializer(serializers.ModelSerializer):
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Insumo.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaInsumo
+        exclude = ("id",)
+
+
+class RespostaMobiliarioCreateSerializer(serializers.ModelSerializer):
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Mobiliario.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaMobiliario
+        exclude = ("id",)
+
+
+class RespostaReparoEAdaptacaoCreateSerializer(serializers.ModelSerializer):
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=ReparoEAdaptacao.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaReparoEAdaptacao
+        exclude = ("id",)
+
+
+class RespostaUtensilioCozinhaCreateSerializer(serializers.ModelSerializer):
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=UtensilioCozinha.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaUtensilioCozinha
+        exclude = ("id",)
+
+
+class RespostaUtensilioMesaCreateSerializer(serializers.ModelSerializer):
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=UtensilioMesa.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaUtensilioMesa
         exclude = ("id",)
 
 
