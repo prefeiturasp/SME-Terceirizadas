@@ -1,3 +1,9 @@
+![coverage](coverage.svg)
+![python-version](https://img.shields.io/badge/python-3.11-blue)
+![django-version](https://img.shields.io/badge/django-4.2-blue)
+![pipenv-version](https://img.shields.io/badge/pipenv-2023.11.15-blue)
+
+
 # Estratégia de Transformação Digital e Governo Aberto na SME
 
 Como um governo pode atuar para garantir o bem comum de todos? Na SME, acreditamos que um dos meios para isso seja garantir transparência e prestação de contas e constante relação entre governo e sociedade para o desenvolvimento e implementação de políticas públicas. 
