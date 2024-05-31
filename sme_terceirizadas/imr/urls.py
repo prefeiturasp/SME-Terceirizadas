@@ -9,6 +9,7 @@ router.register("periodos-de-visita", viewsets.PeriodoVisitaModelViewSet)
 router.register(
     "formulario-supervisao", viewsets.FormularioSupervisaoRascunhoModelViewSet
 )
+router.register("formulario-diretor", viewsets.FormularioDiretorModelViewSet)
 router.register("utensilios-cozinha", viewsets.UtensilioCozinhaViewSet)
 router.register("utensilios-mesa", viewsets.UtensilioMesaViewSet)
 router.register("equipamentos", viewsets.EquipamentoViewSet)
