@@ -1862,3 +1862,38 @@ class RelatorioFinanceiroViewSet(ModelViewSet):
     filterset_class = RelatorioFinanceiroFilter
     pagination_class = CustomPagination
     serializer_class = RelatorioFinanceiroSerializer
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="relatorio-consolidado/(?P<uuid_relatorio_financeiro>[^/.]+)",
+        permission_classes=[UsuarioMedicao],
+    )
+    def relatorio_consolidado(self, _, uuid_relatorio_financeiro):
+        try:
+            relatorio_financeiro = RelatorioFinanceiro.objects.get(
+                uuid=uuid_relatorio_financeiro
+            )
+            parametrizacao = ParametrizacaoFinanceira.objects.filter(
+                lote=relatorio_financeiro.lote,
+                tipos_unidades__in=relatorio_financeiro.grupo_unidade_escolar.tipos_unidades.all(),
+            ).first()
+            if not parametrizacao:
+                return Response(
+                    {
+                        "Erro": "Não foi encontrada parametrização financeira para o tipo de unidade e lote do relatório financeiro."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            response = {
+                **ParametrizacaoFinanceiraSerializer(parametrizacao).data,
+                "lote": parametrizacao.lote.uuid,
+                "grupo_unidade_escolar": relatorio_financeiro.grupo_unidade_escolar.uuid,
+                "mes_ano": f"{relatorio_financeiro.mes}_{relatorio_financeiro.ano}",
+            }
+            return Response(
+                data=response,
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"Erro": str(e)}, status=status.HTTP_400_BAD_REQUEST)
