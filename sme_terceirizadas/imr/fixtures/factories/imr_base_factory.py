@@ -2,24 +2,26 @@ from factory import DjangoModelFactory, Sequence, SubFactory
 from factory.fuzzy import FuzzyInteger
 from faker import Faker
 
+from sme_terceirizadas.escola.fixtures.factories.escola_factory import EscolaFactory
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     Equipamento,
     FaixaPontuacaoIMR,
     Insumo,
     Mobiliario,
-    PerfilDiretorSupervisao,
+    ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
+    PerfilDiretorSupervisao,
     ReparoEAdaptacao,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
     TipoPerguntaParametrizacaoOcorrencia,
     TipoRespostaModelo,
-    UtensilioMesa,
     UtensilioCozinha,
-    ObrigacaoPenalidade
+    UtensilioMesa,
 )
+from sme_terceirizadas.medicao_inicial.models import SolicitacaoMedicaoInicial
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EditalFactory,
 )
@@ -72,10 +74,13 @@ class CategoriaOcorrenciaFactory(DjangoModelFactory):
         model = CategoriaOcorrencia
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
-    perfis = Sequence(lambda n: [fake.random_element([
-        PerfilDiretorSupervisao.DIRETOR,
-        PerfilDiretorSupervisao.SUPERVISAO
-    ])])
+    perfis = Sequence(
+        lambda n: [
+            fake.random_element(
+                [PerfilDiretorSupervisao.DIRETOR, PerfilDiretorSupervisao.SUPERVISAO]
+            )
+        ]
+    )
     posicao = FuzzyInteger(1)
 
 
@@ -88,10 +93,13 @@ class TipoOcorrenciaFactory(DjangoModelFactory):
     descricao = Sequence(lambda n: f"descrição - {fake.unique.name()}")
     categoria = SubFactory(CategoriaOcorrenciaFactory)
     penalidade = SubFactory(TipoPenalidadeFactory)
-    perfis = Sequence(lambda n: [fake.random_element([
-        PerfilDiretorSupervisao.DIRETOR,
-        PerfilDiretorSupervisao.SUPERVISAO
-    ])])
+    perfis = Sequence(
+        lambda n: [
+            fake.random_element(
+                [PerfilDiretorSupervisao.DIRETOR, PerfilDiretorSupervisao.SUPERVISAO]
+            )
+        ]
+    )
     posicao = FuzzyInteger(1)
 
 
@@ -114,7 +122,6 @@ class FaixaPontuacaoFactory(DjangoModelFactory):
 
 
 class UtensilioMesaFactory(DjangoModelFactory):
-
     class Meta:
         model = UtensilioMesa
 
@@ -122,7 +129,6 @@ class UtensilioMesaFactory(DjangoModelFactory):
 
 
 class UtensilioCozinhaFactory(DjangoModelFactory):
-
     class Meta:
         model = UtensilioCozinha
 
@@ -130,7 +136,6 @@ class UtensilioCozinhaFactory(DjangoModelFactory):
 
 
 class EquipamentoFactory(DjangoModelFactory):
-
     class Meta:
         model = Equipamento
 
@@ -138,7 +143,6 @@ class EquipamentoFactory(DjangoModelFactory):
 
 
 class MobiliarioFactory(DjangoModelFactory):
-
     class Meta:
         model = Mobiliario
 
@@ -146,7 +150,6 @@ class MobiliarioFactory(DjangoModelFactory):
 
 
 class ReparoEAdaptacaoFactory(DjangoModelFactory):
-
     class Meta:
         model = ReparoEAdaptacao
 
@@ -154,8 +157,14 @@ class ReparoEAdaptacaoFactory(DjangoModelFactory):
 
 
 class InsumoFactory(DjangoModelFactory):
-
     class Meta:
         model = Insumo
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class MedicaoInicialFactory(DjangoModelFactory):
+    escola = SubFactory(EscolaFactory)
+
+    class Meta:
+        model = SolicitacaoMedicaoInicial
