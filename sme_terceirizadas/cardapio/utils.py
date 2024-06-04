@@ -30,8 +30,8 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
         r.quantidade_distribuida_soma,
         r.peso_resto_soma,
         m.num_refeicoes,
-        (r.peso_resto_soma / m.frequencia::numeric) as resto_per_capita,
-        (r.peso_resto_soma / r.quantidade_distribuida_soma) as percent_resto
+        CASE WHEN m.frequencia = 0 THEN 0 ELSE (r.peso_resto_soma / m.frequencia::numeric) END as resto_per_capita,
+        CASE WHEN r.quantidade_distribuida_soma = 0 THEN 0 ELSE (r.peso_resto_soma / r.quantidade_distribuida_soma) END as percent_resto
     from medicao m
     join escola_escola ee on ee.id = m.escola_id
     join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
@@ -88,9 +88,9 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
         coalesce(f.frequencia, 0) as frequencia,
         coalesce(m.total_primeira_oferta, 0) as total_primeira_oferta,
         coalesce(m.total_repeticao, 0) as total_repeticao,
-        coalesce((s.peso_sobra / (s.peso_alimento - s.peso_sobra)), 0) as percentual_sobra,
-        coalesce((s.peso_sobra / f.frequencia), 0) as media_por_aluno,
-        coalesce((s.peso_sobra / m.total_refeicao), 0) as media_por_refeicao
+        CASE WHEN (s.peso_alimento - s.peso_sobra) = 0 THEN 0 ELSE (s.peso_sobra / (s.peso_alimento - s.peso_sobra)) END as percentual_sobra,
+        CASE WHEN f.frequencia = 0 THEN 0 ELSE (s.peso_sobra / f.frequencia) END as media_por_aluno,
+        CASE WHEN m.total_refeicao = 0 THEN 0 ELSE (s.peso_sobra / m.total_refeicao) END as media_por_refeicao
     from medicao m
     join escola_escola ee on ee.id = m.escola_id
     join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
