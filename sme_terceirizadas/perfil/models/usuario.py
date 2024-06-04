@@ -43,6 +43,7 @@ from ...dados_comuns.constants import (
     DINUTRE_DIRETORIA,
     ORGAO_FISCALIZADOR,
     USUARIO_EMPRESA,
+    USUARIO_GTIC_CODAE,
     USUARIO_RELATORIOS,
 )
 from ...dados_comuns.tasks import envia_email_unico_task
@@ -207,6 +208,8 @@ class Usuario(
         "Nutricionista crn", max_length=160, blank=True, null=True
     )  # noqa DJ01
 
+    aceitou_termos = models.BooleanField(default=False)
+
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []  # type: ignore
 
@@ -294,6 +297,8 @@ class Usuario(
                     tipo_usuario = "orgao_fiscalizador"
                 elif self.vinculo_atual.perfil.nome in [USUARIO_RELATORIOS]:
                     tipo_usuario = "usuario_relatorios"
+                elif self.vinculo_atual.perfil.nome in [USUARIO_GTIC_CODAE]:
+                    tipo_usuario = "usuario_gtic"
                 else:
                     tipo_usuario = "dieta_especial"
         return tipo_usuario

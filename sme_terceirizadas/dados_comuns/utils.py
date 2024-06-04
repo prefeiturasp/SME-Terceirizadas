@@ -13,6 +13,7 @@ import environ
 import numpy as np
 from des.models import DynamicEmailConfiguration
 from django.conf import settings
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -674,3 +675,26 @@ def preencher_template_e_notificar(
 
 def eh_fim_de_semana(data: datetime.date):
     return data.weekday() >= 5
+
+
+def custom_titled_filter(title):
+    class Wrapper(admin.FieldListFilter):
+        def __new__(cls, *args, **kwargs):
+            instance = admin.FieldListFilter.create(*args, **kwargs)
+            instance.title = title
+            return instance
+
+    return Wrapper
+
+
+def numero_com_agrupador_de_milhar_e_decimal(value: int | float) -> str:
+    try:
+        return (
+            "{:,.2f}".format(float(value))
+            .replace(",", " ")
+            .replace(".", ",")
+            .replace(" ", ".")
+        )
+
+    except (ValueError, TypeError):
+        return value

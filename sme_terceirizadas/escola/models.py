@@ -50,6 +50,7 @@ from ..dados_comuns.constants import (
 from ..dados_comuns.fluxo_status import (
     FluxoAprovacaoPartindoDaEscola,
     FluxoDietaEspecialPartindoDaEscola,
+    SolicitacaoMedicaoInicialWorkflow,
 )
 from ..dados_comuns.utils import (
     datetime_range,
@@ -462,6 +463,9 @@ class Escola(
     TemVinculos,
     AcessoModuloMedicaoInicial,
 ):
+    acesso_desde = models.DateField(
+        "Acesso módulo medição desde", null=True, blank=True
+    )
     nome = models.CharField("Nome", max_length=160, blank=True)
     codigo_eol = models.CharField(
         "Código EOL", max_length=6, unique=True, validators=[MinLengthValidator(6)]
@@ -533,46 +537,26 @@ class Escola(
     def quantidade_alunos_cei_da_cemei(self):
         if not self.eh_cemei:
             return None
-        return self.aluno_set.filter(
-            Q(serie__icontains="1")
-            | Q(serie__icontains="2")
-            | Q(serie__icontains="3")
-            | Q(serie__icontains="4")
-        ).count()
+        return self.aluno_set.filter(ciclo=Aluno.CICLO_ALUNO_CEI).count()
 
     def quantidade_alunos_cei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
-        return (
-            self.aluno_set.filter(periodo_escolar__nome=periodo)
-            .filter(
-                Q(serie__icontains="1")
-                | Q(serie__icontains="2")
-                | Q(serie__icontains="3")
-                | Q(serie__icontains="4")
-            )
-            .count()
-        )
+        return self.aluno_set.filter(
+            periodo_escolar__nome=periodo, ciclo=Aluno.CICLO_ALUNO_CEI
+        ).count()
 
     def quantidade_alunos_cei_por_periodo_por_faixa(self, periodo, faixa):
         if not self.eh_cemei:
             return None
         data_inicio = datetime.date.today() - relativedelta(months=faixa.inicio)
         data_fim = datetime.date.today() - relativedelta(months=faixa.fim)
-        return (
-            self.aluno_set.filter(
-                periodo_escolar__nome=periodo,
-                data_nascimento__lte=data_inicio,
-                data_nascimento__gte=data_fim,
-            )
-            .filter(
-                Q(serie__icontains="1")
-                | Q(serie__icontains="2")
-                | Q(serie__icontains="3")
-                | Q(serie__icontains="4")
-            )
-            .count()
-        )
+        return self.aluno_set.filter(
+            periodo_escolar__nome=periodo,
+            data_nascimento__lte=data_inicio,
+            data_nascimento__gte=data_fim,
+            ciclo=Aluno.CICLO_ALUNO_CEI,
+        ).count()
 
     def quantidade_alunos_emebs_por_periodo_infantil(self, nome_periodo_escolar):
         if not self.eh_emebs:
@@ -595,27 +579,15 @@ class Escola(
     def quantidade_alunos_emei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
-        return (
-            self.aluno_set.filter(periodo_escolar__nome=periodo)
-            .exclude(
-                Q(serie__icontains="1")
-                | Q(serie__icontains="2")
-                | Q(serie__icontains="3")
-                | Q(serie__icontains="4")
-            )
-            .count()
-        )
+        return self.aluno_set.filter(
+            periodo_escolar__nome=periodo, ciclo=Aluno.CICLO_ALUNO_EMEI
+        ).count()
 
     @property
     def quantidade_alunos_emei_da_cemei(self):
         if not self.eh_cemei:
             return None
-        return self.aluno_set.exclude(
-            Q(serie__icontains="1")
-            | Q(serie__icontains="2")
-            | Q(serie__icontains="3")
-            | Q(serie__icontains="4")
-        ).count()
+        return self.aluno_set.filter(ciclo=Aluno.CICLO_ALUNO_EMEI).count()
 
     @property
     def alunos_por_periodo_escolar(self):
@@ -903,11 +875,8 @@ class Escola(
         data_referencia = self.obter_data_referencia(data_referencia)
         faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
 
-        lista_alunos = Aluno.objects.filter(escola__codigo_eol=self.codigo_eol).filter(
-            Q(serie__icontains="1")
-            | Q(serie__icontains="2")
-            | Q(serie__icontains="3")
-            | Q(serie__icontains="4")
+        lista_alunos = Aluno.objects.filter(
+            escola__codigo_eol=self.codigo_eol, ciclo=Aluno.CICLO_ALUNO_CEI
         )
         seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         resultados = {}
@@ -1488,6 +1457,9 @@ class Responsavel(Nomeavel, TemChaveExterna, CriadoEm):
 class Aluno(TemChaveExterna):
     ETAPA_INFANTIL = 10
 
+    CICLO_ALUNO_CEI = 1
+    CICLO_ALUNO_EMEI = 2
+
     nome = models.CharField("Nome Completo do Aluno", max_length=100)
     codigo_eol = models.CharField(  # noqa DJ01
         "Código EOL",
@@ -2047,6 +2019,30 @@ class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
 
 class GrupoUnidadeEscolar(TemChaveExterna, Nomeavel):
     tipos_unidades = models.ManyToManyField(TipoUnidadeEscolar, blank=True)
+
+    def todas_solicitacoes_medicao_do_grupo_aprovadas_codae(self, data, lote_uuid):
+        from ..medicao_inicial.models import SolicitacaoMedicaoInicial
+
+        escolas = Escola.objects.filter(
+            tipo_unidade__in=self.tipos_unidades.all(),
+            lote__uuid=lote_uuid,
+            acesso_modulo_medicao_inicial=True,
+            acesso_desde__lte=data,
+        )
+        solicitacoes_medicao_inicial = SolicitacaoMedicaoInicial.objects.filter(
+            escola__tipo_unidade__in=self.tipos_unidades.all(),
+            escola__lote__uuid=lote_uuid,
+            escola__acesso_modulo_medicao_inicial=True,
+            escola__acesso_desde__lte=data,
+            mes=f"{data.month:02d}",
+            ano=data.year,
+            status=SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE,
+        )
+        todas_solicitacoes_aprovadas_codae = (
+            solicitacoes_medicao_inicial.exists()
+            and escolas.count() == solicitacoes_medicao_inicial.count()
+        )
+        return todas_solicitacoes_aprovadas_codae, solicitacoes_medicao_inicial
 
     def __str__(self):
         return self.nome

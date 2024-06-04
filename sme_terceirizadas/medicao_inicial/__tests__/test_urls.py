@@ -17,10 +17,26 @@ from sme_terceirizadas.medicao_inicial.models import (
 def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_codae):
     data = {
         "data": "2022-08-08",
-        "tipo_unidades": [
-            "1cc3253b-e297-42b3-8e57-ebfd115a1aba",
-            "40ee89a7-dc70-4abb-ae21-369c67f2b9e3",
-            "ac4858ff-1c11-41f3-b539-7a02696d6d1b",
+        "cadastros_sobremesa_doce": [
+            {
+                "editais": [
+                    "85d4bdf1-79d3-4f93-87d7-9999ae4cd9c2",
+                    "10b56d45-b82d-4cce-9a14-36bbb082ac4d",
+                ],
+                "tipo_unidades": [
+                    "1cc3253b-e297-42b3-8e57-ebfd115a1aba",
+                    "40ee89a7-dc70-4abb-ae21-369c67f2b9e3",
+                ],
+            },
+            {
+                "editais": [
+                    "85d4bdf1-79d3-4f93-87d7-9999ae4cd9c2",
+                    "00f008ea-3410-4547-99e6-4e91e0168af8",
+                ],
+                "tipo_unidades": [
+                    "ac4858ff-1c11-41f3-b539-7a02696d6d1b",
+                ],
+            },
         ],
     }
     response = client_autenticado_coordenador_codae.post(
@@ -29,7 +45,7 @@ def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_co
         data=data,
     )
     assert response.status_code == status.HTTP_201_CREATED
-    assert DiaSobremesaDoce.objects.count() == 3
+    assert DiaSobremesaDoce.objects.count() == 6
 
     response = client_autenticado_coordenador_codae.get(
         "/medicao-inicial/dias-sobremesa-doce/lista-dias/?mes=8&ano=2022"
@@ -44,14 +60,14 @@ def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_co
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 3
+    assert len(response.json()) == 6
     response = client_autenticado_coordenador_codae.get(
         "/medicao-inicial/dias-sobremesa-doce/?mes=9&ano=2022",
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 0
-    data = {"data": "2022-08-08", "tipo_unidades": []}
+    assert len(response.json()) == 0
+    data = {"data": "2022-08-08", "cadastros_sobremesa_doce": []}
     response = client_autenticado_coordenador_codae.post(
         "/medicao-inicial/dias-sobremesa-doce/",
         content_type="application/json",
@@ -428,17 +444,33 @@ def test_url_endpoint_relatorio_pdf(
     }
 
 
-def test_url_endpoint_relatorio_unificado_pdf(
-    client_autenticado_diretoria_regional, grupo_escolar, diretoria_regional
+def test_url_endpoint_relatorio_unificado_pdf_sem_mes_referencia(
+    client_autenticado_diretoria_regional,
+    grupo_escolar,
+    escola,
 ):
     response = client_autenticado_diretoria_regional.get(
         "/medicao-inicial/solicitacao-medicao-inicial/relatorio-unificado/"
-        f"?mes=05&ano=2023&grupo_escolar={grupo_escolar}&status=MEDICAO_APROVADA_PELA_CODAE&dre={diretoria_regional}",
+        f"?grupo_escolar={grupo_escolar}&status=MEDICAO_APROVADA_PELA_CODAE&dre={escola.diretoria_regional.uuid}",
         content_type="application/json",
     )
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == "É necessário informar o mês/ano de referência"
+
+
+def test_url_endpoint_relatorio_unificado_pdf(
+    client_autenticado_diretoria_regional,
+    grupo_escolar,
+    escola,
+):
+    response = client_autenticado_diretoria_regional.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/relatorio-unificado/"
+        f"?mes=05&ano=2023&grupo_escolar={grupo_escolar}&status=MEDICAO_APROVADA_PELA_CODAE&dre={escola.diretoria_regional.uuid}",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        "detail": "Solicitação de geração de arquivo recebida com sucesso."
+        "erro": "Não foram encontradas Medições Iniciais para o grupo e mês de referência selecionados"
     }
 
 
@@ -545,7 +577,7 @@ def test_url_endpoint_medicao_dashboard_codae_com_filtros(
     client_autenticado_coordenador_codae, solicitacoes_medicao_inicial_codae
 ):
     response = client_autenticado_coordenador_codae.get(
-        "/medicao-inicial/solicitacao-medicao-inicial/dashboard/?dre=9640fef4-a068-474e-8979-2e1b2654357a",
+        "/medicao-inicial/solicitacao-medicao-inicial/dashboard/?dre=3972e0e9-2d8e-472a-9dfa-30cd219a6d9a",
         content_type="application/json",
     )
     assert len(response.json()["results"]) == 5
@@ -1716,3 +1748,234 @@ def test_url_endpoint_relatorio_adesao_exportar_pdf_sem_mes_ano(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_endpoint_parametrizacao_financeira(
+    client_autenticado_codae_medicao,
+    edital,
+    escola_ceu_gestao,
+    tipo_unidade_escolar,
+    tipo_unidade_escolar_ceu_emef,
+    tipo_unidade_escolar_emefm,
+    tipo_unidade_escolar_cieja,
+    tipo_unidade_escolar_ceu_gestao,
+    tipo_alimentacao_refeicao,
+    tipo_alimentacao_lanche,
+    tipo_alimentacao_lanche_4h,
+    tipo_alimentacao_sobremesa,
+    tipo_alimentacao_almoco,
+    tipo_alimentacao_lanche_emergencial,
+    parametrizacao_financeira_emef,
+):
+    response = client_autenticado_codae_medicao.get(
+        "/medicao-inicial/parametrizacao-financeira/", content_type="application/json"
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 1
+
+    data_create = {
+        "edital": edital.uuid,
+        "legenda": "Legenda teste",
+        "lote": escola_ceu_gestao.lote.uuid,
+        "tipos_unidades": [
+            tipo_unidade_escolar.uuid,
+            tipo_unidade_escolar_ceu_emef.uuid,
+            tipo_unidade_escolar_emefm.uuid,
+            tipo_unidade_escolar_cieja.uuid,
+            tipo_unidade_escolar_ceu_gestao.uuid,
+        ],
+        "tabelas": [
+            {
+                "nome": "Preço das Alimentações",
+                "valores": [
+                    {
+                        "grupo": "EMEF / CEUEMEF / EMEFM",
+                        "tipo_alimentacao": tipo_alimentacao_refeicao.uuid,
+                        "valor_colunas": {
+                            "valor_unitario": 10,
+                            "valor_unitario_reajuste": 2,
+                        },
+                    },
+                    {
+                        "grupo": "CIEJA / EJA",
+                        "tipo_alimentacao": tipo_alimentacao_refeicao.uuid,
+                        "valor_colunas": {
+                            "valor_unitario": 8,
+                            "valor_unitario_reajuste": 3,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche.uuid,
+                        "valor_colunas": {
+                            "valor_unitario": 5,
+                            "valor_unitario_reajuste": 3,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche_4h.uuid,
+                        "valor_colunas": {
+                            "valor_unitario": 4,
+                            "valor_unitario_reajuste": 2,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_sobremesa.uuid,
+                        "valor_colunas": {
+                            "valor_unitario": 6,
+                            "valor_unitario_reajuste": 4,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_almoco.uuid,
+                        "valor_colunas": {
+                            "valor_unitario": 8,
+                            "valor_unitario_reajuste": 5,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche_emergencial.uuid,
+                        "valor_colunas": {
+                            "valor_unitario": 10,
+                            "valor_unitario_reajuste": 8,
+                        },
+                    },
+                ],
+            },
+            {
+                "nome": "Dietas Tipo A e Tipo A Enteral",
+                "valores": [
+                    {
+                        "grupo": "Dieta Enteral",
+                        "tipo_alimentacao": tipo_alimentacao_refeicao.uuid,
+                        "valor_colunas": {
+                            "percentual_acrescimo": 2,
+                            "valor_unitario": 10,
+                            "valor_unitario_total": 10.2,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche_4h.uuid,
+                        "valor_colunas": {
+                            "percentual_acrescimo": 20,
+                            "valor_unitario": 11,
+                            "valor_unitario_total": 13.2,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche.uuid,
+                        "valor_colunas": {
+                            "percentual_acrescimo": 3,
+                            "valor_unitario": 12,
+                            "valor_unitario_total": 12.36,
+                        },
+                    },
+                ],
+            },
+            {
+                "nome": "Dietas Tipo B",
+                "valores": [
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche_4h.uuid,
+                        "valor_colunas": {
+                            "percentual_acrescimo": 2,
+                            "valor_unitario": 12,
+                            "valor_unitario_total": 12.24,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche.uuid,
+                        "valor_colunas": {
+                            "percentual_acrescimo": 10,
+                            "valor_unitario": 10,
+                            "valor_unitario_total": 11,
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+    response = client_autenticado_codae_medicao.post(
+        "/medicao-inicial/parametrizacao-financeira/",
+        content_type="application/json",
+        data=data_create,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+
+    response = client_autenticado_codae_medicao.get(
+        "/medicao-inicial/parametrizacao-financeira/", content_type="application/json"
+    )
+    assert len(response.data["results"]) == 2
+
+    data_update = {
+        "legenda": "Fonte: Relatório de Medição Inicial do Serviço de Alimentação e Nutrição Escolar realizada pela direção das unidades educacionais.",
+        "tabelas": [
+            {
+                "nome": "Dietas Tipo B",
+                "valores": [
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche_4h.uuid,
+                        "valor_colunas": {
+                            "percentual_acrescimo": 6,
+                            "valor_unitario": 8,
+                            "valor_unitario_total": 8.48,
+                        },
+                    },
+                    {
+                        "grupo": None,
+                        "tipo_alimentacao": tipo_alimentacao_lanche.uuid,
+                        "valor_colunas": {
+                            "percentual_acrescimo": 6,
+                            "valor_unitario": 12,
+                            "valor_unitario_total": 12.72,
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+    response = client_autenticado_codae_medicao.patch(
+        f"/medicao-inicial/parametrizacao-financeira/{parametrizacao_financeira_emef.uuid}/",
+        content_type="application/json",
+        data=data_update,
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_relatorio_consolidado_xlsx_sem_mes_refencia(
+    client_autenticado_diretoria_regional,
+    grupo_escolar,
+    escola,
+):
+    response = client_autenticado_diretoria_regional.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/relatorio-consolidado/exportar-xlsx/"
+        f"?grupo_escolar={grupo_escolar}&status=MEDICAO_APROVADA_PELA_CODAE&dre={escola.diretoria_regional.uuid}",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == "É necessário informar o mês/ano de referência"
+
+
+def test_url_endpoint_relatorio_consolidado_xlsx_com_filtros(
+    client_autenticado_diretoria_regional,
+    grupo_escolar,
+    escola,
+):
+    response = client_autenticado_diretoria_regional.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/relatorio-consolidado/exportar-xlsx/"
+        f"?mes=05&ano=2023&grupo_escolar={grupo_escolar}&status=MEDICAO_APROVADA_PELA_CODAE&dre={escola.diretoria_regional.uuid}",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "detail": "Solicitação de geração de arquivo recebida com sucesso."
+    }

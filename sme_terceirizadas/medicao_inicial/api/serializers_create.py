@@ -97,36 +97,54 @@ class DiaSobremesaDoceCreateSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
-class DiaSobremesaDoceCreateManySerializer(serializers.ModelSerializer):
+class CadastroSobremesaDoceCreateSerializer(serializers.ModelSerializer):
     tipo_unidades = serializers.SlugRelatedField(
         slug_field="uuid",
         queryset=TipoUnidadeEscolar.objects.all(),
-        many=True,
         required=True,
+        many=True,
+    )
+    editais = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Edital.objects.all(),
+        required=True,
+        many=True,
+    )
+
+    class Meta:
+        model = DiaSobremesaDoce
+        fields = ("tipo_unidades", "editais")
+
+
+class DiaSobremesaDoceCreateManySerializer(serializers.ModelSerializer):
+    cadastros_sobremesa_doce = CadastroSobremesaDoceCreateSerializer(
+        many=True, required=True
     )
 
     def create(self, validated_data):
         """Cria ou atualiza dias de sobremesa doce."""
+        DiaSobremesaDoce.objects.filter(data=validated_data["data"]).delete()
         dia_sobremesa_doce = None
-        DiaSobremesaDoce.objects.filter(data=validated_data["data"]).exclude(
-            tipo_unidade__in=validated_data["tipo_unidades"]
-        ).delete()
-        dias_sobremesa_doce = DiaSobremesaDoce.objects.filter(
-            data=validated_data["data"]
-        )
-        for tipo_unidade in validated_data["tipo_unidades"]:
-            if not dias_sobremesa_doce.filter(tipo_unidade=tipo_unidade).exists():
-                dia_sobremesa_doce = DiaSobremesaDoce(
-                    criado_por=self.context["request"].user,
-                    data=validated_data["data"],
-                    tipo_unidade=tipo_unidade,
-                )
-                dia_sobremesa_doce.save()
+        for cadastro in validated_data["cadastros_sobremesa_doce"]:
+            for tipo_unidade in cadastro["tipo_unidades"]:
+                for edital in cadastro["editais"]:
+                    if not DiaSobremesaDoce.objects.filter(
+                        data=validated_data["data"],
+                        tipo_unidade=tipo_unidade,
+                        edital=edital,
+                    ):
+                        dia_sobremesa_doce = DiaSobremesaDoce(
+                            criado_por=self.context["request"].user,
+                            data=validated_data["data"],
+                            tipo_unidade=tipo_unidade,
+                            edital=edital,
+                        )
+                        dia_sobremesa_doce.save()
         return dia_sobremesa_doce
 
     class Meta:
         model = DiaSobremesaDoce
-        fields = ("tipo_unidades", "data", "uuid")
+        fields = ("data", "uuid", "cadastros_sobremesa_doce")
 
 
 class OcorrenciaMedicaoInicialCreateSerializer(serializers.ModelSerializer):
@@ -1088,15 +1106,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 faixa_etaria=valor_medicao.get("faixa_etaria", None),
                 infantil_ou_fundamental=infantil_ou_fundamental,
                 defaults={
-                    "medicao": medicao,
-                    "dia": valor_medicao.get("dia", ""),
-                    "semana": semana,
                     "valor": valor_medicao.get("valor", ""),
-                    "nome_campo": valor_medicao.get("nome_campo", ""),
-                    "categoria_medicao": valor_medicao.get("categoria_medicao", ""),
-                    "tipo_alimentacao": valor_medicao.get("tipo_alimentacao", None),
-                    "faixa_etaria": valor_medicao.get("faixa_etaria", None),
-                    "infantil_ou_fundamental": infantil_ou_fundamental,
                 },
             )
 
@@ -1132,19 +1142,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         faixa_etaria=valor_medicao.get("faixa_etaria", None),
                         infantil_ou_fundamental=infantil_ou_fundamental,
                         defaults={
-                            "medicao": instance,
-                            "dia": valor_medicao.get("dia", ""),
-                            "semana": semana,
                             "valor": valor_medicao.get("valor", ""),
-                            "nome_campo": valor_medicao.get("nome_campo", ""),
-                            "categoria_medicao": valor_medicao.get(
-                                "categoria_medicao", ""
-                            ),
-                            "tipo_alimentacao": valor_medicao.get(
-                                "tipo_alimentacao", None
-                            ),
-                            "faixa_etaria": valor_medicao.get("faixa_etaria", None),
-                            "infantil_ou_fundamental": infantil_ou_fundamental,
                         },
                     )
                 except ValorMedicao.MultipleObjectsReturned:
@@ -1157,7 +1155,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
                         faixa_etaria=valor_medicao.get("faixa_etaria", None),
                         infantil_ou_fundamental=infantil_ou_fundamental,
-                    ).first().delete()
+                    ).delete()
                     ValorMedicao.objects.update_or_create(
                         medicao=instance,
                         dia=valor_medicao.get("dia", ""),
@@ -1168,19 +1166,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         faixa_etaria=valor_medicao.get("faixa_etaria", None),
                         infantil_ou_fundamental=infantil_ou_fundamental,
                         defaults={
-                            "medicao": instance,
-                            "dia": valor_medicao.get("dia", ""),
-                            "semana": semana,
                             "valor": valor_medicao.get("valor", ""),
-                            "nome_campo": valor_medicao.get("nome_campo", ""),
-                            "categoria_medicao": valor_medicao.get(
-                                "categoria_medicao", ""
-                            ),
-                            "tipo_alimentacao": valor_medicao.get(
-                                "tipo_alimentacao", None
-                            ),
-                            "faixa_etaria": valor_medicao.get("faixa_etaria", None),
-                            "infantil_ou_fundamental": infantil_ou_fundamental,
                         },
                     )
         eh_observacao = self.context["request"].data.get(
@@ -1268,12 +1254,21 @@ class ParametrizacaoFinanceiraTabelaValorWriteModelSerializer(
     serializers.ModelSerializer
 ):
     tipo_alimentacao = serializers.SlugRelatedField(
-        slug_field="uuid", queryset=TipoAlimentacao.objects.all()
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=TipoAlimentacao.objects.all(),
+    )
+    faixa_etaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=FaixaEtaria.objects.all(),
     )
 
     class Meta:
         model = ParametrizacaoFinanceiraTabelaValor
-        fields = ["tipo_alimentacao", "grupo", "valor_colunas"]
+        fields = ["faixa_etaria", "tipo_alimentacao", "grupo", "valor_colunas"]
 
     def validate_valor_colunas(self, valor_colunas):
         valores = list(valor_colunas.values())
@@ -1305,7 +1300,8 @@ class ParametrizacaoFinanceiraWriteModelSerializer(serializers.ModelSerializer):
         fields = ["edital", "lote", "tipos_unidades", "legenda", "tabelas"]
 
     def validate(self, attrs):
-        attrs = super().validate(attrs)
+        if self.instance:
+            return attrs
 
         if ParametrizacaoFinanceira.objects.filter(
             edital=attrs["edital"],
@@ -1339,3 +1335,35 @@ class ParametrizacaoFinanceiraWriteModelSerializer(serializers.ModelSerializer):
             )
 
         return parametrizacao_financeira
+
+    def update(self, instance, validated_data):
+        tabelas = validated_data.pop("tabelas")
+
+        instance = super().update(instance, validated_data)
+
+        for tabela in tabelas:
+            valores = tabela.pop("valores")
+
+            _tabela, created = ParametrizacaoFinanceiraTabela.objects.get_or_create(
+                **tabela, parametrizacao_financeira=instance
+            )
+
+            for valor in valores:
+                tipo_alimentacao_id = (
+                    valor.get("tipo_alimentacao").id
+                    if valor.get("tipo_alimentacao")
+                    else None
+                )
+                faixa_etaria_id = (
+                    valor.get("faixa_etaria").id if valor.get("faixa_etaria") else None
+                )
+
+                ParametrizacaoFinanceiraTabelaValor.objects.update_or_create(
+                    tabela=_tabela,
+                    grupo=valor.get("grupo"),
+                    tipo_alimentacao_id=tipo_alimentacao_id,
+                    faixa_etaria_id=faixa_etaria_id,
+                    defaults=valor,
+                )
+
+        return instance

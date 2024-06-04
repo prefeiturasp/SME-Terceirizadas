@@ -9,6 +9,7 @@ from ...paineis_consolidados import models
 from ...perfil.api.serializers import PerfilSimplesSerializer, UsuarioSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import (
+    ContratoEditalSerializer,
     ContratoSimplesSerializer,
     TerceirizadaSimplesSerializer,
 )
@@ -276,7 +277,7 @@ class EscolaEolSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Escola
-        fields = ("codigo_eol", "codigo_eol_escola", "tipo_gestao")
+        fields = ("codigo_eol", "codigo_eol_escola", "tipo_gestao", "uuid")
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
@@ -289,6 +290,7 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
 
 
 class LoteNomeSerializer(serializers.ModelSerializer):
+    contratos_do_lote = ContratoEditalSerializer(many=True)
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = serializers.CharField()
     terceirizada = TerceirizadaSimplesSerializer()
@@ -301,13 +303,14 @@ class LoteNomeSerializer(serializers.ModelSerializer):
             "tipo_gestao",
             "diretoria_regional",
             "terceirizada",
-        )  # noqa
+            "contratos_do_lote",
+        )
 
 
 class LoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lote
-        fields = ("uuid", "nome")  # noqa
+        fields = ("uuid", "nome")
 
 
 class EscolaNomeCodigoEOLSerializer(serializers.ModelSerializer):
@@ -361,16 +364,22 @@ class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
         fields = ("uuid", "nome", "codigo_eol", "quantidade_alunos")
 
 
+class LoteComContratosSerializer(serializers.ModelSerializer):
+    contratos_do_lote = ContratoEditalSerializer(many=True)
+
+    class Meta:
+        model = Lote
+        fields = ("uuid", "nome", "contratos_do_lote")
+
+
 class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
-    lote = serializers.SerializerMethodField()
-    tipo_unidade = serializers.SerializerMethodField()
-
-    def get_lote(self, obj):
-        return obj.lote.uuid if obj.lote else None
-
-    def get_tipo_unidade(self, obj):
-        return obj.tipo_unidade.uuid if obj.tipo_unidade else None
+    lote = serializers.CharField(source="lote.uuid", required=False)
+    lote_obj = LoteComContratosSerializer(source="lote", required=False)
+    tipo_unidade = serializers.CharField(source="tipo_unidade.uuid", required=False)
+    terceirizada = serializers.CharField(
+        source="lote.terceirizada.nome_fantasia", required=False
+    )
 
     class Meta:
         model = Escola
@@ -381,7 +390,9 @@ class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
             "codigo_eol",
             "quantidade_alunos",
             "lote",
+            "lote_obj",
             "tipo_unidade",
+            "terceirizada",
         )
 
 
@@ -619,6 +630,7 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
             "vinculo_atual",
             "crn_numero",
             "cargo",
+            "aceitou_termos",
         )
 
 

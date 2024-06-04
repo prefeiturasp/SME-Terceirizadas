@@ -8,6 +8,7 @@ from rest_framework.serializers import ModelSerializer
 from sme_terceirizadas.dados_comuns.constants import (
     ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_EMPRESA,
+    ADMINISTRADOR_GESTAO_PRODUTO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_PRODUTO,
     DILOG_CRONOGRAMA,
@@ -179,6 +180,11 @@ class ServiceDashboardLayoutEmbalagem(BaseServiceDashboard):
             LayoutDeEmbalagemWorkflow.APROVADO,
             LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         ],
+        ADMINISTRADOR_GESTAO_PRODUTO: [
+            LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+            LayoutDeEmbalagemWorkflow.APROVADO,
+            LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+        ],
         ADMINISTRADOR_CODAE_GABINETE: [
             LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
             LayoutDeEmbalagemWorkflow.APROVADO,
@@ -229,6 +235,11 @@ class ServiceDashboardFichaTecnica(BaseServiceDashboard):
             FichaTecnicaDoProdutoWorkflow.APROVADA,
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
         ],
+        ADMINISTRADOR_GESTAO_PRODUTO: [
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            FichaTecnicaDoProdutoWorkflow.APROVADA,
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             FichaTecnicaDoProdutoWorkflow.APROVADA,
@@ -254,6 +265,9 @@ class ServiceQuerysetAlteracaoCronograma:
         ],
         USUARIO_EMPRESA: [
             CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+        ],
+        COORDENADOR_CODAE_DILOG_LOGISTICA: [
+            CronogramaAlteracaoWorkflow.EM_ANALISE,
         ],
         DILOG_CRONOGRAMA: [
             CronogramaAlteracaoWorkflow.EM_ANALISE,

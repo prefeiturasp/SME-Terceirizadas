@@ -81,7 +81,7 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
         null=True,
         related_name="cronogramas",
     )
-    ficha_tecnica = models.OneToOneField(
+    ficha_tecnica = models.ForeignKey(
         "FichaTecnicaDoProduto",
         on_delete=models.PROTECT,
         blank=True,
@@ -96,6 +96,7 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
     custo_unitario_produto = models.FloatField(
         "Custo Unitário do Produto", blank=True, null=True
     )
+    observacoes = models.TextField("Observações", blank=True)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get("justificativa", "")
@@ -135,11 +136,13 @@ class EtapasDoCronograma(ModeloBase):
     total_embalagens = models.FloatField("Total de Embalagens", blank=True, null=True)
 
     def __str__(self):
-        if self.etapa and self.cronograma:
-            return f"{self.etapa} do cronogrma {self.cronograma.numero}"
+        if self.etapa and self.parte and self.cronograma:
+            return f"{self.etapa} - {self.parte} - Cronograma {self.cronograma.numero}"
+
         if self.cronograma:
-            return f"Etapa do cronogrma {self.cronograma.numero}"
-        return "Etapa sem cronograma"
+            return f"Etapa do Cronograma {self.cronograma.numero}"
+
+        return "Etapa sem Cronograma"
 
     class Meta:
         ordering = ("etapa", "data_programada")
@@ -521,7 +524,9 @@ class DocumentoDeRecebimento(
     ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoDocumentoDeRecebimento
 ):
     cronograma = models.ForeignKey(
-        Cronograma, on_delete=models.PROTECT, related_name="documentos_de_recebimento"
+        Cronograma,
+        on_delete=models.PROTECT,
+        related_name="documentos_de_recebimento",
     )
     numero_laudo = models.CharField("Número do Laudo", blank=True, max_length=50)
     laboratorio = models.ForeignKey(

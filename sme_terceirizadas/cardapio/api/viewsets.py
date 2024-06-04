@@ -1,15 +1,15 @@
 import datetime
 
 from django.core.exceptions import ValidationError
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.pagination import PageNumberPagination
 from xworkflows import InvalidTransitionError
-from django_filters import rest_framework as filters
 
 from ...dados_comuns import constants, services
 from ...dados_comuns.permissions import (
@@ -19,10 +19,9 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     UsuarioTerceirizada,
 )
+from ...escola.api.viewsets import PeriodoEscolarViewSet
 from ...escola.constants import PERIODOS_ESPECIAIS_CEMEI
-from ...escola.models import Escola
-from ..utils import obtem_dados_relatorio_controle_restos, obtem_dados_relatorio_controle_sobras, paginate_list
-from ..tasks import gera_xls_relatorio_controle_restos_async, gera_xls_relatorio_controle_sobras_async
+from ...escola.models import Escola, PeriodoEscolar
 from ...inclusao_alimentacao.api.viewsets import (
     CodaeAutoriza,
     CodaeQuestionaTerceirizadaResponde,
@@ -42,24 +41,39 @@ from ...relatorios.relatorios import (
     relatorio_suspensao_de_alimentacao,
     relatorio_suspensao_de_alimentacao_cei,
 )
+from ..forms import (
+    ControleRestosForm,
+    ControleRestosRelatorioForm,
+    ControleSobrasForm,
+    ControleSobrasRelatorioForm,
+)
 from ..models import (
     AlteracaoCardapio,
     AlteracaoCardapioCEI,
     AlteracaoCardapioCEMEI,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    ControleRestos,
+    ControleSobras,
     GrupoSuspensaoAlimentacao,
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoDRENaoValida,
-    ControleSobras,
-    ControleRestos,
     MotivoSuspensao,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacaoDaCEI,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
+)
+from ..tasks import (
+    gera_xls_relatorio_controle_restos_async,
+    gera_xls_relatorio_controle_sobras_async,
+)
+from ..utils import (
+    obtem_dados_relatorio_controle_restos,
+    obtem_dados_relatorio_controle_sobras,
+    paginate_list,
 )
 from .serializers.serializers import (
     AlteracaoCardapioCEISerializer,
@@ -68,6 +82,10 @@ from .serializers.serializers import (
     AlteracaoCardapioSimplesSerializer,
     CardapioSerializer,
     CombosVinculoTipoAlimentoSimplesSerializer,
+    ControleRestosCreateSerializer,
+    ControleRestosSerializer,
+    ControleSobrasCreateSerializer,
+    ControleSobrasSerializer,
     GrupoSupensaoAlimentacaoListagemSimplesSerializer,
     GrupoSuspensaoAlimentacaoSerializer,
     GrupoSuspensaoAlimentacaoSimplesSerializer,
@@ -75,10 +93,6 @@ from .serializers.serializers import (
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     MotivoDRENaoValidaSerializer,
-    ControleSobrasSerializer,
-    ControleSobrasCreateSerializer,
-    ControleRestosSerializer,
-    ControleRestosCreateSerializer,
     MotivoSuspensaoSerializer,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     SuspensaoAlimentacaoDaCEISerializer,
@@ -100,12 +114,6 @@ from .serializers.serializers_create import (
     SuspensaoAlimentacaodeCEICreateSerializer,
     VinculoTipoAlimentoCreateSerializer,
 )
-from ..forms import (
-    ControleSobrasForm,
-    ControleSobrasRelatorioForm,
-    ControleRestosForm,
-    ControleRestosRelatorioForm
-)
 
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
@@ -114,16 +122,18 @@ DEFAULT_PAGE_SIZE = 10
 class CustomPagination(PageNumberPagination):
     page = DEFAULT_PAGE
     page_size = DEFAULT_PAGE_SIZE
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
 
     def get_paginated_response(self, data):
-        return Response({
-            'previous': self.get_previous_link(),
-            'next': self.get_next_link(),
-            'count': self.page.paginator.count,
-            'page_size': int(self.request.GET.get('page_size', self.page_size)),
-            'results': data
-        })
+        return Response(
+            {
+                "previous": self.get_previous_link(),
+                "next": self.get_next_link(),
+                "count": self.page.paginator.count,
+                "page_size": int(self.request.GET.get("page_size", self.page_size)),
+                "results": data,
+            }
+        )
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -243,13 +253,33 @@ class VinculoTipoAlimentacaoViewSet(
         serializer = self.get_serializer(vinculos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def trata_inclusao_continua_medicao_inicial(self, request, escola, ano):
+        mes = request.query_params.get("mes", None)
+        periodos_escolares_inclusao_continua = None
+        if mes:
+            periodoEscolarViewset = PeriodoEscolarViewSet()
+            response = periodoEscolarViewset.inclusao_continua_por_mes(request)
+            if response.data and response.data.get("periodos", None):
+                periodos_escolares_inclusao_continua = PeriodoEscolar.objects.filter(
+                    uuid__in=list(response.data["periodos"].values())
+                )
+        periodos_para_filtrar = escola.periodos_escolares(ano)
+        if periodos_escolares_inclusao_continua:
+            periodos_para_filtrar = (
+                periodos_para_filtrar | periodos_escolares_inclusao_continua
+            )
+        return periodos_para_filtrar
+
     @action(detail=False, url_path="escola/(?P<escola_uuid>[^/.]+)")
     def filtro_por_escola(self, request, escola_uuid=None):
         escola = Escola.objects.get(uuid=escola_uuid)
         ano = request.query_params.get("ano", datetime.date.today().year)
+        periodos_para_filtrar = self.trata_inclusao_continua_medicao_inicial(
+            request, escola, ano
+        )
         vinculos = (
             VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-                periodo_escolar__in=escola.periodos_escolares(ano), ativo=True
+                periodo_escolar__in=periodos_para_filtrar, ativo=True
             ).order_by("periodo_escolar__posicao")
         )
         if escola.eh_cemei:
@@ -1612,28 +1642,28 @@ class MotivosDRENaoValidaViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ControleSobrasViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = ControleSobras.objects.all()
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return ControleSobrasCreateSerializer
         return ControleSobrasSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        if 'page' in request.query_params:
+        if "page" in request.query_params:
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'results': serializer.data})
+        return Response({"results": serializer.data})
 
     def get_queryset(self):
         form = ControleSobrasForm(self.request.GET)
@@ -1642,52 +1672,58 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
 
         user = self.request.user
 
-        qs = ControleSobras.objects.all().order_by('-criado_em')
+        qs = ControleSobras.objects.all().order_by("-criado_em")
 
-        if user.tipo_usuario == 'escola':
+        if user.tipo_usuario == "escola":
             qs = qs.filter(escola=user.vinculo_atual.instituicao)
 
-        elif form.cleaned_data['escola']:
-            qs = qs.filter(escola=form.cleaned_data['escola'])
+        elif form.cleaned_data["escola"]:
+            qs = qs.filter(escola=form.cleaned_data["escola"])
 
-        elif form.cleaned_data['dre']:
-            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
+        elif form.cleaned_data["dre"]:
+            qs = qs.filter(escola__diretoria_regional=form.cleaned_data["dre"])
 
         return qs.distinct()
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path=f'{constants.RELATORIO}')
+    @action(detail=False, methods=["GET"], url_path=f"{constants.RELATORIO}")
     def relatorio(self, request):
         try:
             form = ControleSobrasRelatorioForm(self.request.GET)
             if not form.is_valid():
                 raise ValidationError(form.errors)
 
-            rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
-            data = paginate_list(request, rows, serializer=serialize_relatorio_controle_sobras)
+            rows = obtem_dados_relatorio_controle_sobras(
+                form.cleaned_data, self.request.user
+            )
+            data = paginate_list(
+                request, rows, serializer=serialize_relatorio_controle_sobras
+            )
             return Response(data)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path=f'{constants.RELATORIO}/exportar-xlsx')
+    @action(
+        detail=False, methods=["GET"], url_path=f"{constants.RELATORIO}/exportar-xlsx"
+    )
     def relatorio_exportar_xlsx(self, request):
         try:
             form = ControleSobrasRelatorioForm(self.request.GET)
             if not form.is_valid():
                 raise ValidationError(form.errors)
 
-            rows = obtem_dados_relatorio_controle_sobras(form.cleaned_data, self.request.user)
+            rows = obtem_dados_relatorio_controle_sobras(
+                form.cleaned_data, self.request.user
+            )
             user = request.user.get_username()
             gera_xls_relatorio_controle_sobras_async.delay(
                 user=user,
-                nome_arquivo='relatorio_controle_sobras.xlsx',
+                nome_arquivo="relatorio_controle_sobras.xlsx",
                 data=rows,
             )
-            return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                            status=status.HTTP_200_OK)
+            return Response(
+                dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+                status=status.HTTP_200_OK,
+            )
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1696,28 +1732,28 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
 
 
 class ControleRestosViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = ControleRestos.objects.all()
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return ControleRestosCreateSerializer
         return ControleRestosSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        if 'page' in request.query_params:
+        if "page" in request.query_params:
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'results': serializer.data})
+        return Response({"results": serializer.data})
 
     def get_queryset(self):
         form = ControleRestosForm(self.request.GET)
@@ -1726,52 +1762,58 @@ class ControleRestosViewSet(viewsets.ModelViewSet):
 
         user = self.request.user
 
-        qs = ControleRestos.objects.all().order_by('-criado_em')
+        qs = ControleRestos.objects.all().order_by("-criado_em")
 
-        if user.tipo_usuario == 'escola':
+        if user.tipo_usuario == "escola":
             qs = qs.filter(escola=user.vinculo_atual.instituicao)
 
-        elif form.cleaned_data['escola']:
-            qs = qs.filter(escola=form.cleaned_data['escola'])
+        elif form.cleaned_data["escola"]:
+            qs = qs.filter(escola=form.cleaned_data["escola"])
 
-        elif form.cleaned_data['dre']:
-            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
+        elif form.cleaned_data["dre"]:
+            qs = qs.filter(escola__diretoria_regional=form.cleaned_data["dre"])
 
         return qs.distinct()
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path=f'{constants.RELATORIO}')
+    @action(detail=False, methods=["GET"], url_path=f"{constants.RELATORIO}")
     def relatorio(self, request):
         try:
             form = ControleRestosRelatorioForm(self.request.GET)
             if not form.is_valid():
                 raise ValidationError(form.errors)
 
-            rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
-            data = paginate_list(request, rows, serializer=serialize_relatorio_controle_restos)
+            rows = obtem_dados_relatorio_controle_restos(
+                form.cleaned_data, self.request.user
+            )
+            data = paginate_list(
+                request, rows, serializer=serialize_relatorio_controle_restos
+            )
             return Response(data)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path=f'{constants.RELATORIO}/exportar-xlsx')
+    @action(
+        detail=False, methods=["GET"], url_path=f"{constants.RELATORIO}/exportar-xlsx"
+    )
     def relatorio_exportar_xlsx(self, request):
         try:
             form = ControleRestosRelatorioForm(self.request.GET)
             if not form.is_valid():
                 raise ValidationError(form.errors)
 
-            rows = obtem_dados_relatorio_controle_restos(form.cleaned_data, self.request.user)
+            rows = obtem_dados_relatorio_controle_restos(
+                form.cleaned_data, self.request.user
+            )
             user = request.user.get_username()
             gera_xls_relatorio_controle_restos_async.delay(
                 user=user,
-                nome_arquivo='relatorio_controle_restos.xlsx',
+                nome_arquivo="relatorio_controle_restos.xlsx",
                 data=rows,
             )
-            return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                            status=status.HTTP_200_OK)
+            return Response(
+                dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+                status=status.HTTP_200_OK,
+            )
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

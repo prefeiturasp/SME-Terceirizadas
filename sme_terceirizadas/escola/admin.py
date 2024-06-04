@@ -9,6 +9,7 @@ from rangefilter.filters import DateRangeFilter
 from .api.viewsets import exportar_planilha_importacao_tipo_gestao_escola
 from .models import (
     Aluno,
+    AlunoPeriodoParcial,
     AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
@@ -73,6 +74,7 @@ class EscolaAdmin(admin.ModelAdmin):
     )
     ordering = ("codigo_eol", "nome")
     actions = ("marcar_para_receber_email", "marcar_para_nao_receber_email")
+    readonly_fields = ("uuid", )
 
     def marcar_para_receber_email(self, request, queryset):
         count = queryset.update(enviar_email_por_produto=True)
@@ -331,6 +333,7 @@ class DiaCalendarioAdmin(admin.ModelAdmin):
 class PeriodoEscolarAdmin(admin.ModelAdmin):
     list_display = ("nome", "posicao")
     search_fields = ("nome",)
+    readonly_fields = ("uuid",)
 
 
 @admin.register(HistoricoMatriculaAluno)
@@ -344,6 +347,11 @@ class HistoricoMatriculaAlunoAdmin(admin.ModelAdmin):
         ("data_fim", DateRangeFilter),
     )
     readonly_fields = ("aluno", "escola")
+
+
+@admin.register(AlunoPeriodoParcial)
+class AlunoPeriodoParcialAdmin(admin.ModelAdmin):
+    list_display = ("aluno", "escola", "solicitacao_medicao_inicial")
 
 
 admin.site.register(Codae)

@@ -9,6 +9,7 @@ from functools import reduce
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import IntegerField, Sum
 from django.db.models.functions import Cast
+from django.db.utils import IntegrityError
 
 from sme_terceirizadas.dados_comuns.constants import (
     MAX_COLUNAS,
@@ -26,9 +27,12 @@ from sme_terceirizadas.dieta_especial.models import (
 )
 from sme_terceirizadas.escola.models import (
     DiaCalendario,
+    Escola,
     FaixaEtaria,
+    GrupoUnidadeEscolar,
     LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
+    Lote,
     PeriodoEscolar,
 )
 from sme_terceirizadas.escola.utils import string_to_faixa
@@ -38,10 +42,12 @@ from sme_terceirizadas.inclusao_alimentacao.models import (
 )
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     ValorMedicao,
 )
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
+from sme_terceirizadas.terceirizada.models import Edital
 
 logger = logging.getLogger(__name__)
 
@@ -855,10 +861,10 @@ def get_nome_periodo(periodo_corrente):
 def popula_campo_matriculados_cei(
     solicitacao, tabela, faixa_id, dia, indice_periodo, categoria_corrente, valores_dia
 ):
+    periodo = tabela["periodos"][indice_periodo]
+    medicoes = solicitacao.medicoes.all()
+    medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
     try:
-        periodo = tabela["periodos"][indice_periodo]
-        medicoes = solicitacao.medicoes.all()
-        medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         valores_dia += [
             medicao.valores_medicao.get(
                 dia=f"{dia:02d}",
@@ -869,6 +875,25 @@ def popula_campo_matriculados_cei(
         ]
     except ValorMedicao.DoesNotExist:
         valores_dia += ["0"]
+    except ValorMedicao.MultipleObjectsReturned:
+        valor_para_nao_excluir = (
+            medicao.valores_medicao.filter(
+                dia=f"{dia:02d}",
+                categoria_medicao__nome=categoria_corrente,
+                faixa_etaria=faixa_id,
+                nome_campo="matriculados",
+            )
+            .order_by("-valor")
+            .first()
+        )
+
+        medicao.valores_medicao.filter(
+            dia=f"{dia:02d}",
+            categoria_medicao__nome=categoria_corrente,
+            faixa_etaria=faixa_id,
+            nome_campo="matriculados",
+        ).exclude(uuid=valor_para_nao_excluir.uuid).delete()
+        valores_dia += [valor_para_nao_excluir.valor]
 
 
 def popula_campo_aprovadas(
@@ -883,35 +908,30 @@ def popula_campo_aprovadas(
     if campo == "aprovadas":
         try:
             periodo = get_nome_periodo(periodo_corrente)
-
             if "ENTERAL" in categoria_corrente:
-                quantidade = (
-                    logs_dietas.filter(
-                        data__day=dia,
-                        data__month=solicitacao.mes,
-                        data__year=solicitacao.ano,
-                        periodo_escolar__nome=periodo,
-                        classificacao__nome__in=[
-                            "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
-                            "Tipo A ENTERAL",
-                        ],
-                    )
-                    .aggregate(Sum("quantidade"))
-                    .get("quantidade__sum")
-                )
-                valores_dia += [quantidade or "0"]
+                classificacoes_nomes = [
+                    "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
+                    "Tipo A ENTERAL",
+                ]
+            elif "TIPO B" in categoria_corrente:
+                classificacoes_nomes = [
+                    "Tipo B - LANCHE",
+                    "Tipo B - LANCHE e REFEIÇÃO",
+                ]
             else:
-                log_selec = logs_dietas.filter(
+                classificacoes_nomes = ["Tipo A"]
+            quantidade = (
+                logs_dietas.filter(
                     data__day=dia,
                     data__month=solicitacao.mes,
                     data__year=solicitacao.ano,
                     periodo_escolar__nome=periodo,
-                    classificacao__nome=categoria_corrente.split(" - ")[1].title(),
-                ).first()
-                if not log_selec:
-                    valores_dia += ["0"]
-                else:
-                    valores_dia += [log_selec.quantidade]
+                    classificacao__nome__in=classificacoes_nomes,
+                )
+                .aggregate(Sum("quantidade"))
+                .get("quantidade__sum")
+            )
+            valores_dia += [quantidade or "0"]
         except LogQuantidadeDietasAutorizadas.DoesNotExist:
             valores_dia += ["0"]
 
@@ -929,37 +949,26 @@ def popula_campo_aprovadas_cei(
     try:
         periodo = tabela["periodos"][indice_periodo]
         if "TIPO A" in categoria_corrente.upper():
-            quantidade = (
-                logs_dietas.filter(
-                    data__day=dia,
-                    data__month=solicitacao.mes,
-                    data__year=solicitacao.ano,
-                    faixa_etaria=faixa_id,
-                    periodo_escolar__nome=periodo,
-                    classificacao__nome__in=[
-                        "Tipo A",
-                        "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
-                        "Tipo A ENTERAL",
-                    ],
-                )
-                .aggregate(Sum("quantidade"))
-                .get("quantidade__sum")
-            )
-            valores_dia += [quantidade or "0"]
+            nomes_classificacoes = [
+                "Tipo A",
+                "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
+                "Tipo A ENTERAL",
+            ]
         else:
-            log_selec = logs_dietas.filter(
+            nomes_classificacoes = ["Tipo B - LANCHE", "Tipo B - LANCHE e REFEIÇÃO"]
+        quantidade = (
+            logs_dietas.filter(
                 data__day=dia,
                 data__month=solicitacao.mes,
                 data__year=solicitacao.ano,
                 faixa_etaria=faixa_id,
                 periodo_escolar__nome=periodo,
-                classificacao__nome="Tipo B",
-            ).first()
-            if not log_selec:
-                valores_dia += ["0"]
-            else:
-                valores_dia += [log_selec.quantidade]
-
+                classificacao__nome__in=nomes_classificacoes,
+            )
+            .aggregate(Sum("quantidade"))
+            .get("quantidade__sum")
+        )
+        valores_dia += [quantidade or "0"]
     except LogQuantidadeDietasAutorizadasCEI.DoesNotExist:
         valores_dia += ["0"]
 
@@ -1115,7 +1124,15 @@ def get_numero_campos(tabela, periodo_corrente, categoria_corrente):
         lambda x, y: x + y, len_categorias[:indice_categoria], 0
     )
 
-    indice_inicial = soma_periodos_anteriores if indice_categoria else 0
+    indice_inicial = (
+        soma_periodos_anteriores
+        if (
+            indice_categoria
+            and "faixas_etarias" in tabela
+            and len(tabela["faixas_etarias"]) == 0
+        )
+        else 0
+    )
     indice_final = len_categoria_corrente + soma_periodos_anteriores
 
     return indice_inicial, indice_final
@@ -1240,23 +1257,72 @@ def popula_campo_total_refeicoes_pagamento(
                 or solicitacao.escola.eh_cemei
                 or eh_emebs_infantil
             ):
-                valores_dia += [int(valor_refeicao) + int(valor_segunda_refeicao)]
-            else:
-                total_refeicao = (
-                    int(valor_refeicao)
-                    + int(valor_repeticao_refeicao)
-                    + int(valor_segunda_refeicao)
-                    + int(valor_repeticao_segunda_refeicao)
+                valores_dia = get_valor_total_emei_cemei(
+                    solicitacao,
+                    valores_dia,
+                    valor_refeicao,
+                    valor_repeticao_refeicao,
+                    valor_segunda_refeicao,
+                    valor_repeticao_segunda_refeicao,
+                    valor_matriculados,
+                    valor_numero_de_alunos,
                 )
+            else:
                 valor_comparativo = (
                     valor_matriculados
                     if int(valor_matriculados) > 0
                     else valor_numero_de_alunos
                 )
+
+                total_refeicao = int(valor_refeicao) + int(valor_repeticao_refeicao)
                 total_refeicao = min(int(total_refeicao), int(valor_comparativo))
-                valores_dia += [total_refeicao]
+
+                total_refeicao_2a_oferta = int(valor_segunda_refeicao) + int(
+                    valor_repeticao_segunda_refeicao
+                )
+                total_refeicao_2a_oferta = min(
+                    int(total_refeicao_2a_oferta), int(valor_comparativo)
+                )
+
+                valores_dia += [total_refeicao + total_refeicao_2a_oferta]
         except Exception:
             valores_dia += ["0"]
+
+
+def get_valor_total_emei_cemei(
+    solicitacao,
+    valores_dia,
+    valor_refeicao,
+    valor_repeticao_refeicao,
+    valor_segunda_refeicao,
+    valor_repeticao_segunda_refeicao,
+    valor_matriculados,
+    valor_numero_de_alunos,
+):
+    editais = Edital.objects.filter(uuid__in=solicitacao.escola.editais)
+    tem_edital_imr = editais.filter(eh_imr=True).exists()
+
+    if tem_edital_imr and (solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei):
+        valor_comparativo = (
+            valor_matriculados
+            if int(valor_matriculados) > 0
+            else valor_numero_de_alunos
+        )
+
+        total_refeicao = int(valor_refeicao) + int(valor_repeticao_refeicao)
+        total_refeicao = min(int(total_refeicao), int(valor_comparativo))
+
+        total_refeicao_2a_oferta = int(valor_segunda_refeicao) + int(
+            valor_repeticao_segunda_refeicao
+        )
+        total_refeicao_2a_oferta = min(
+            int(total_refeicao_2a_oferta), int(valor_comparativo)
+        )
+
+        valores_dia += [total_refeicao + total_refeicao_2a_oferta]
+    else:
+        valores_dia += [int(valor_refeicao) + int(valor_segunda_refeicao)]
+    return valores_dia
 
 
 def get_valor_campo(
@@ -1423,21 +1489,34 @@ def popula_campo_total_sobremesas_pagamento(
                 or solicitacao.escola.eh_cemei
                 or eh_emebs_infantil
             ):
-                valores_dia += [int(valor_sobremesa) + int(valor_segunda_sobremesa)]
-            else:
-                total_sobremesa = (
-                    int(valor_sobremesa)
-                    + int(valor_repeticao_sobremesa)
-                    + int(valor_segunda_sobremesa)
-                    + int(valor_repeticao_segunda_sobremesa)
+                valores_dia = get_valor_total_emei_cemei(
+                    solicitacao,
+                    valores_dia,
+                    valor_sobremesa,
+                    valor_repeticao_sobremesa,
+                    valor_segunda_sobremesa,
+                    valor_repeticao_segunda_sobremesa,
+                    valor_matriculados,
+                    valor_numero_de_alunos,
                 )
+            else:
                 valor_comparativo = (
                     valor_matriculados
                     if valor_matriculados > 0
                     else valor_numero_de_alunos
                 )
+
+                total_sobremesa = int(valor_sobremesa) + int(valor_repeticao_sobremesa)
                 total_sobremesa = min(int(total_sobremesa), int(valor_comparativo))
-                valores_dia += [total_sobremesa]
+
+                total_sobremesa_2a_oferta = int(valor_segunda_sobremesa) + int(
+                    valor_repeticao_segunda_sobremesa
+                )
+                total_sobremesa_2a_oferta = min(
+                    int(total_sobremesa_2a_oferta), int(valor_comparativo)
+                )
+
+                valores_dia += [total_sobremesa + total_sobremesa_2a_oferta]
         except Exception:
             valores_dia += ["0"]
 
@@ -2569,41 +2648,40 @@ def somar_valores_semelhantes(
     dict_total_sobremesas,
     tipo_turma=None,
 ):
-    if not solicitacao.escola.eh_emei:
-        medicao_nome = get_medicao_nome(solicitacao, medicao, tipo_turma)
+    medicao_nome = get_medicao_nome(solicitacao, medicao, tipo_turma)
 
-        if campo == "refeicao":
-            if medicao_nome in dict_total_refeicoes.keys():
-                values = dict_total_refeicoes[medicao_nome]
-            else:
-                values_repeticao_refeicao = medicao.valores_medicao.filter(
-                    categoria_medicao__nome="ALIMENTAÇÃO",
-                    nome_campo__in=[
-                        "repeticao_refeicao",
-                        "2_refeicao_1_oferta",
-                        "repeticao_2_refeicao",
-                    ],
-                    infantil_ou_fundamental=(
-                        tipo_turma if tipo_turma is not None else "N/A"
-                    ),
-                )
-                values = values | values_repeticao_refeicao
-        if campo == "sobremesa":
-            if medicao_nome in dict_total_sobremesas.keys():
-                values = dict_total_sobremesas[medicao_nome]
-            else:
-                values_repeticao_sobremesa = medicao.valores_medicao.filter(
-                    categoria_medicao__nome="ALIMENTAÇÃO",
-                    nome_campo__in=[
-                        "repeticao_sobremesa",
-                        "2_sobremesa_1_oferta",
-                        "repeticao_2_sobremesa",
-                    ],
-                    infantil_ou_fundamental=(
-                        tipo_turma if tipo_turma is not None else "N/A"
-                    ),
-                )
-                values = values | values_repeticao_sobremesa
+    if campo == "refeicao":
+        if medicao_nome in dict_total_refeicoes.keys():
+            values = dict_total_refeicoes[medicao_nome]
+        else:
+            values_repeticao_refeicao = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=[
+                    "repeticao_refeicao",
+                    "2_refeicao_1_oferta",
+                    "repeticao_2_refeicao",
+                ],
+                infantil_ou_fundamental=(
+                    tipo_turma if tipo_turma is not None else "N/A"
+                ),
+            )
+            values = values | values_repeticao_refeicao
+    if campo == "sobremesa":
+        if medicao_nome in dict_total_sobremesas.keys():
+            values = dict_total_sobremesas[medicao_nome]
+        else:
+            values_repeticao_sobremesa = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=[
+                    "repeticao_sobremesa",
+                    "2_sobremesa_1_oferta",
+                    "repeticao_2_sobremesa",
+                ],
+                infantil_ou_fundamental=(
+                    tipo_turma if tipo_turma is not None else "N/A"
+                ),
+            )
+            values = values | values_repeticao_sobremesa
     values = somar_lanches(values, medicao, campo, tipo_turma)
     return values
 
@@ -4415,3 +4493,34 @@ def get_pdf_merge_cabecalho(
         page.mergePage(pdf_cabecalho_relatorio_controle_frequencia.getPage(0))
         pdf_writer.addPage(page)
     return pdf_writer
+
+
+def cria_relatorios_financeiros_por_grupo_unidade_escolar(data):
+    for grupo in GrupoUnidadeEscolar.objects.all():
+        lotes_uuid = list(
+            set(
+                Escola.objects.filter(
+                    tipo_unidade__in=grupo.tipos_unidades.all(),
+                    acesso_modulo_medicao_inicial=True,
+                ).values_list("lote__uuid", flat=True)
+            )
+        )
+        for lote_uuid in lotes_uuid:
+            (
+                todas_solicitacoes_aprovadas_codae,
+                solicitacoes,
+            ) = grupo.todas_solicitacoes_medicao_do_grupo_aprovadas_codae(
+                data, lote_uuid
+            )
+            if todas_solicitacoes_aprovadas_codae:
+                try:
+                    relatorio_financeiro = RelatorioFinanceiro.objects.create(
+                        grupo_unidade_escolar=grupo,
+                        lote=Lote.objects.get(uuid=lote_uuid),
+                        mes=f"{data.month:02d}",
+                        ano=f"{data.year}",
+                    )
+                    solicitacoes.update(relatorio_financeiro=relatorio_financeiro)
+                except IntegrityError as e:
+                    print(e)
+                    continue

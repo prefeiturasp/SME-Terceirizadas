@@ -59,6 +59,8 @@ class VigenciaContratoInline(admin.TabularInline):
 class ContratoModelAdmin(admin.ModelAdmin):
     inlines = [VigenciaContratoInline]
 
+    search_fields = ("edital__numero",)
+
 
 class ContratoInline(admin.TabularInline):
     model = Contrato
@@ -69,6 +71,7 @@ class ContratoInline(admin.TabularInline):
 class EditalModelAdmin(admin.ModelAdmin):
     search_fields = ("numero",)
     inlines = [ContratoInline]
+    readonly_fields = ("uuid",)
 
 
 @admin.register(Modulo)

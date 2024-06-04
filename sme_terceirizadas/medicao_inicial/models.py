@@ -22,23 +22,30 @@ from ..dados_comuns.behaviors import (
     TemSemana,
 )
 from ..dados_comuns.fluxo_status import (
+    FluxoRelatorioFinanceiroMedicaoInicial,
     FluxoSolicitacaoMedicaoInicial,
     LogSolicitacoesUsuario,
 )
 from ..escola.constants import INFANTIL_OU_FUNDAMENTAL
 from ..escola.models import TipoUnidadeEscolar
 from ..perfil.models import Usuario
+from ..terceirizada.models import Edital
 
 
 class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.CASCADE)
+    edital = models.ForeignKey(Edital, on_delete=models.CASCADE, blank=True, null=True)
 
     @property
     def tipo_unidades(self):
         return None
 
+    @property
+    def cadastros_sobremesa_doce(self):
+        return None
+
     def __str__(self):
-        return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'
+        return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais} - Edital {self.edital}'
 
     class Meta:
         verbose_name = "Dia de sobremesa doce"
@@ -46,6 +53,7 @@ class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
         unique_together = (
             "tipo_unidade",
             "data",
+            "edital",
         )
         ordering = ("data",)
 
@@ -83,6 +91,13 @@ class SolicitacaoMedicaoInicial(
         "perfil.Usuario",
         on_delete=models.SET_NULL,
         related_name="solicitacoes_medicao_ciencia_correcao",
+        blank=True,
+        null=True,
+    )
+    relatorio_financeiro = models.ForeignKey(
+        "RelatorioFinanceiro",
+        on_delete=models.SET_NULL,
+        related_name="solicitacoes_medicao_inicial",
         blank=True,
         null=True,
     )
@@ -574,18 +589,66 @@ class ParametrizacaoFinanceiraTabelaValor(TemChaveExterna, CriadoEm, TemAlterado
     tabela = models.ForeignKey(
         ParametrizacaoFinanceiraTabela, on_delete=models.CASCADE, related_name="valores"
     )
+    faixa_etaria = models.ForeignKey(
+        "escola.FaixaEtaria",
+        on_delete=models.PROTECT,
+        related_name="parametrizacoes_valores",
+        null=True,
+        blank=True,
+    )
     tipo_alimentacao = models.ForeignKey(
         "cardapio.TipoAlimentacao",
         on_delete=models.PROTECT,
         related_name="parametrizacoes_valores",
+        null=True,
+        blank=True,
     )
     grupo = models.CharField(null=True, blank=True)
     valor_colunas = models.JSONField()
 
     def __str__(self):
-        return f"Tabela {self.tabela} | {self.tipo_alimentacao} {self.grupo}"
+        descricao = (
+            f"{self.tipo_alimentacao} {self.grupo}"
+            if self.faixa_etaria is None
+            else f"{self.faixa_etaria}"
+        )
+        return f"Tabela {self.tabela} | {descricao}"
 
     class Meta:
         verbose_name = "Parametrização Financeira Tabela Valor"
         verbose_name_plural = "Parametrizações Financeiras Tabelas Valores"
         unique_together = ("tabela", "tipo_alimentacao", "grupo")
+
+
+class RelatorioFinanceiro(
+    TemMes,
+    TemAno,
+    FluxoRelatorioFinanceiroMedicaoInicial,
+    TemChaveExterna,
+    CriadoEm,
+    TemAlteradoEm,
+):
+    grupo_unidade_escolar = models.ForeignKey(
+        "escola.GrupoUnidadeEscolar",
+        on_delete=models.PROTECT,
+        related_name="relatorios_financeiros",
+    )
+    lote = models.ForeignKey(
+        "escola.Lote",
+        related_name="relatorios_financeiros",
+        on_delete=models.PROTECT,
+    )
+
+    def __str__(self):
+        unidades = ", ".join(
+            self.grupo_unidade_escolar.tipos_unidades.all().values_list(
+                "iniciais", flat=True
+            )
+        )
+        return f"{self.mes} / {self.ano} | Unidades {unidades} | Lote {self.lote} | Status {self.status}"
+
+    class Meta:
+        verbose_name = "Relatório Financeiro"
+        verbose_name_plural = "Relatórios Financeiros"
+        ordering = ["-alterado_em"]
+        unique_together = ("grupo_unidade_escolar", "lote", "mes", "ano")

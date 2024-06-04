@@ -31,6 +31,7 @@ from .constants import (
     DIRETOR_UE,
     ORGAO_FISCALIZADOR,
     PARCEIRA,
+    USUARIO_GTIC_CODAE,
     USUARIO_RELATORIOS,
 )
 
@@ -178,6 +179,19 @@ class UsuarioCODAENutriManifestacao(BasePermission):
         )
 
 
+class UsuarioCODAENutriSupervisao(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Nutri Supervisão."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO]
+        )
+
+
 class UsuarioCODAEDietaEspecial(BasePermission):
     """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
 
@@ -215,6 +229,19 @@ class UsuarioCODAEGabinete(BasePermission):
             and usuario.vinculo_atual
             and isinstance(usuario.vinculo_atual.instituicao, Codae)
             and usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_GABINETE]
+        )
+
+
+class UsuarioGticCODAE(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - GTIC."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome in [USUARIO_GTIC_CODAE]
         )
 
 
@@ -487,6 +514,7 @@ class UsuarioPodeAlterarVinculo(BasePermission):
                 COORDENADOR_CODAE_DILOG_LOGISTICA,
                 COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                 ADMINISTRADOR_REPRESENTANTE_CODAE,
+                USUARIO_GTIC_CODAE,
             ]
             or usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]
         )
@@ -509,6 +537,7 @@ class UsuarioPodeFinalizarVinculo(BasePermission):
                 COORDENADOR_DIETA_ESPECIAL,
                 COORDENADOR_GESTAO_PRODUTO,
                 COORDENADOR_SUPERVISAO_NUTRICAO,
+                USUARIO_GTIC_CODAE,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional)
             and usuario.vinculo_atual.perfil.nome in [COGESTOR_DRE]
@@ -549,6 +578,7 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
                 COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                 ADMINISTRADOR_REPRESENTANTE_CODAE,
                 COORDENADOR_SUPERVISAO_NUTRICAO,
+                USUARIO_GTIC_CODAE,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, Escola)
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]
@@ -576,6 +606,7 @@ class PermissaoParaListarVinculosAtivos(BasePermission):
                 COORDENADOR_SUPERVISAO_NUTRICAO,
                 ADMINISTRADOR_CODAE_GABINETE,
                 DILOG_DIRETORIA,
+                USUARIO_GTIC_CODAE,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, Escola)
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]
@@ -687,9 +718,6 @@ class PermissaoParaListarEntregas(BasePermission):
 
 
 class PermissaoParaVisualizarCronograma(BasePermission):
-    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente p/ visualização do cronograma.
-    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
-    #  COORDENADOR_LOGISTICA deste permissionamento.
     def has_permission(self, request, view):
         usuario = request.user
         return (
@@ -706,6 +734,8 @@ class PermissaoParaVisualizarCronograma(BasePermission):
                         DINUTRE_DIRETORIA,
                         COORDENADOR_CODAE_DILOG_LOGISTICA,
                         ADMINISTRADOR_CODAE_GABINETE,
+                        USUARIO_RELATORIOS,
+                        USUARIO_GTIC_CODAE,
                     ]
                 )
                 or usuario.eh_fornecedor
@@ -713,10 +743,7 @@ class PermissaoParaVisualizarCronograma(BasePermission):
         )
 
 
-class PermissaoParaCriarCronograma(BasePermission):
-    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente ao Cadastro de Cronograma.
-    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
-    #  COORDENADOR_LOGISTICA deste permissionamento.
+class PermissaoParaVisualizarRelatorioCronograma(BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
         return (
@@ -725,7 +752,33 @@ class PermissaoParaCriarCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    and usuario.vinculo_atual.perfil.nome
+                    in [
+                        DILOG_CRONOGRAMA,
+                        USUARIO_RELATORIOS,
+                        DILOG_DIRETORIA,
+                        DINUTRE_DIRETORIA,
+                        COORDENADOR_CODAE_DILOG_LOGISTICA,
+                        ADMINISTRADOR_CODAE_GABINETE,
+                        USUARIO_GTIC_CODAE,
+                    ]
+                )
+                or usuario.eh_fornecedor
+            )
+        )
+
+
+class PermissaoParaCriarCronograma(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae)
+                    and usuario.vinculo_atual.perfil.nome
+                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
@@ -834,6 +887,7 @@ class PermissaoParaDashboardLayoutEmbalagem(BasePermission):
     PERFIS_PERMITIDOS = [
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_QUALIDADE,
+        ADMINISTRADOR_GESTAO_PRODUTO,
         COORDENADOR_GESTAO_PRODUTO,
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_DIRETORIA,
@@ -987,7 +1041,8 @@ class PermissaoParaDarCienciaAlteracaoCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    and usuario.vinculo_atual.perfil.nome
+                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
@@ -1002,7 +1057,8 @@ class PermissaoParaCriarSolicitacoesAlteracaoCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    and usuario.vinculo_atual.perfil.nome
+                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
                 or usuario.eh_fornecedor
             )
@@ -1169,6 +1225,7 @@ class UsuarioEhFornecedor(BasePermission):
 class PermissaoParaVisualizarLayoutDeEmbalagem(BasePermission):
     PERFIS_PERMITIDOS = [
         DILOG_QUALIDADE,
+        ADMINISTRADOR_GESTAO_PRODUTO,
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
@@ -1232,6 +1289,7 @@ class UsuarioEhDilogQualidade(BasePermission):
 class PermissaoParaDashboardFichaTecnica(BasePermission):
     PERFIS_PERMITIDOS = [
         COORDENADOR_GESTAO_PRODUTO,
+        ADMINISTRADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_DIRETORIA,
@@ -1253,6 +1311,7 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
 
 class PermissaoParaVisualizarFichaTecnica(BasePermission):
     PERFIS_PERMITIDOS = [
+        ADMINISTRADOR_GESTAO_PRODUTO,
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
@@ -1281,18 +1340,6 @@ class PermissaoParaAnalisarFichaTecnica(BasePermission):
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
     ]
-
-    def has_permission(self, request, view):
-        usuario = request.user
-        return (
-            not usuario.is_anonymous
-            and usuario.vinculo_atual
-            and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
-        )
-
-
-class PermissaoParaVisualizarQuestoesConferencia(BasePermission):
-    PERFIS_PERMITIDOS = [DILOG_QUALIDADE]
 
     def has_permission(self, request, view):
         usuario = request.user

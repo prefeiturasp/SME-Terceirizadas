@@ -17,11 +17,12 @@ from sme_terceirizadas.dados_comuns.fluxo_status import (
     FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
 )
+from sme_terceirizadas.dados_comuns.models import CentralDeDownload
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     FichaTecnicaComAnaliseDetalharSerializer,
     FichaTecnicaDetalharSerializer,
-    NomeEAbreviacaoUnidadeMedidaSerializer,
+    UnidadeMedidaSimplesSerializer,
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
@@ -40,6 +41,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoEmbalagemQld,
     UnidadeMedida,
 )
+from sme_terceirizadas.terceirizada.models import Terceirizada
 
 fake = Faker("pt_BR")
 
@@ -55,6 +57,7 @@ def test_rascunho_cronograma_create_ok(
 ):
     qtd_total_empenho = fake.random_number() / 100
     custo_unitario_produto = fake.random_number() / 100
+    observacoes = "aaaa"
 
     payload = {
         "contrato": str(contrato.uuid),
@@ -82,6 +85,7 @@ def test_rascunho_cronograma_create_ok(
         "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
         "tipo_embalagem_secundaria": str(tipo_emabalagem_qld.uuid),
         "custo_unitario_produto": custo_unitario_produto,
+        "observacoes": observacoes,
     }
 
     response = client_autenticado_dilog_cronograma.post(
@@ -99,6 +103,7 @@ def test_rascunho_cronograma_create_ok(
     assert obj.tipo_embalagem_secundaria == tipo_emabalagem_qld
     assert obj.custo_unitario_produto == custo_unitario_produto
     assert obj.etapas.first().qtd_total_empenho == qtd_total_empenho
+    assert obj.observacoes == observacoes
 
 
 def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):
@@ -124,6 +129,39 @@ def test_url_list_cronogramas_fornecedor(client_autenticado_fornecedor):
     assert "count" in json
     assert "next" in json
     assert "previous" in json
+
+
+def test_url_list_cronogramas_relatorio(
+    client_autenticado_codae_dilog, cronograma_factory
+):
+    cronograma_factory.create_batch(size=11)
+    response = client_autenticado_codae_dilog.get(f"/cronogramas/listagem-relatorio/")
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert "count" in json
+    assert "next" in json
+    assert "previous" in json
+
+
+def test_url_list_cronogramas_relatorio_filtros(
+    client_autenticado_codae_dilog, empresa_factory, cronograma_factory
+):
+    empresa1 = empresa_factory.create(tipo_servico=Terceirizada.FORNECEDOR)
+    empresa2 = empresa_factory.create(tipo_servico=Terceirizada.FORNECEDOR)
+    cronograma_factory.create_batch(size=2, empresa=empresa1)
+    cronograma_factory.create_batch(size=2, empresa=empresa2)
+    response1 = client_autenticado_codae_dilog.get(
+        f"/cronogramas/listagem-relatorio/?empresa={empresa1.uuid}"
+    )
+    response2 = client_autenticado_codae_dilog.get(
+        f"/cronogramas/listagem-relatorio/?empresa={empresa1.uuid}&empresa={empresa2.uuid}"
+    )
+    assert response1.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_200_OK
+    json1 = response1.json()
+    json2 = response2.json()
+    assert json1["count"] == 2
+    assert json2["count"] == 4
 
 
 def test_url_list_solicitacoes_alteracao_cronograma(
@@ -424,16 +462,22 @@ def test_url_analise_dilog_erro_transicao_estado(
 
 
 def test_url_fornecedor_assina_cronograma_authorized(
-    client_autenticado_fornecedor, cronograma_recebido
+    client_autenticado_fornecedor,
+    cronograma_factory,
 ):
+    cronograma = cronograma_factory(
+        status=CronogramaWorkflow.ASSINADO_E_ENVIADO_AO_FORNECEDOR
+    )
+
     data = json.dumps({"password": constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
-        f"/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/",
+        f"/cronogramas/{cronograma.uuid}/fornecedor-assina-cronograma/",
         data,
         content_type="application/json",
     )
+    obj = Cronograma.objects.get(uuid=cronograma.uuid)
+
     assert response.status_code == status.HTTP_200_OK
-    obj = Cronograma.objects.get(uuid=cronograma_recebido.uuid)
     assert obj.status == "ASSINADO_FORNECEDOR"
 
 
@@ -509,6 +553,34 @@ def test_url_endpoint_cronograma_editar(
     obj = Cronograma.objects.last()
     assert cronograma_rascunho.status == "RASCUNHO"
     assert obj.status == "ASSINADO_E_ENVIADO_AO_FORNECEDOR"
+
+
+def test_url_cronograma_gerar_relatorio_xlsx_async(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.get(
+        "/cronogramas/gerar-relatorio-xlsx-async/"
+    )
+
+    obj_central_download = CentralDeDownload.objects.first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert obj_central_download is not None
+    assert obj_central_download.status == CentralDeDownload.STATUS_CONCLUIDO
+    assert obj_central_download.arquivo is not None
+    assert obj_central_download.arquivo.size > 0
+
+
+def test_url_cronograma_gerar_relatorio_pdf_async(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.get(
+        "/cronogramas/gerar-relatorio-pdf-async/"
+    )
+
+    obj_central_download = CentralDeDownload.objects.first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert obj_central_download is not None
+    assert obj_central_download.status == CentralDeDownload.STATUS_CONCLUIDO
+    assert obj_central_download.arquivo is not None
+    assert obj_central_download.arquivo.size > 0
 
 
 def test_url_endpoint_laboratorio(client_autenticado_qualidade):
@@ -689,16 +761,20 @@ def test_url_perfil_cronograma_assina_not_authorized(client_autenticado_dilog):
 
 
 def test_url_dinutre_assina_cronograma_authorized(
-    client_autenticado_dinutre_diretoria, cronograma_assinado_fornecedor
+    client_autenticado_dinutre_diretoria,
+    cronograma_factory,
 ):
+    cronograma = cronograma_factory(status=CronogramaWorkflow.ASSINADO_FORNECEDOR)
+
     data = json.dumps({"password": constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dinutre_diretoria.patch(
-        f"/cronogramas/{cronograma_assinado_fornecedor.uuid}/dinutre-assina/",
+        f"/cronogramas/{cronograma.uuid}/dinutre-assina/",
         data,
         content_type="application/json",
     )
+    obj = Cronograma.objects.get(uuid=cronograma.uuid)
+
     assert response.status_code == status.HTTP_200_OK
-    obj = Cronograma.objects.get(uuid=cronograma_assinado_fornecedor.uuid)
     assert obj.status == "ASSINADO_DINUTRE"
 
 
@@ -1122,7 +1198,7 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(
     assert len(response.data["results"]) == len(unidades_medida_logistica)
     assert (
         response.data["results"]
-        == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
+        == UnidadeMedidaSimplesSerializer(unidades_medida, many=True).data
     )
 
 
@@ -1153,6 +1229,58 @@ def test_url_cronograma_action_listar_para_cadastro(
 
     # Testa se a quantidade de cronogramas do response é diferente da quantidade total de cronogramas
     assert len(response.data["results"]) != len(todos_cronogramas)
+
+
+def test_url_cronograma_lista_cronogramas_ficha_recebimento(
+    client_autenticado_qualidade,
+    cronograma_factory,
+):
+    cronogramas_assinados_codae = cronograma_factory.create_batch(
+        size=5, status=CronogramaWorkflow.ASSINADO_CODAE
+    )
+    cronograma_factory(status=CronogramaWorkflow.ASSINADO_DINUTRE)
+
+    response = client_autenticado_qualidade.get(
+        "/cronogramas/lista-cronogramas-ficha-recebimento/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(cronogramas_assinados_codae)
+
+
+def test_url_cronograma_dados_cronograma_ficha_recebimento(
+    client_autenticado_qualidade,
+    cronograma_factory,
+    etapas_do_cronograma_factory,
+    documento_de_recebimento_factory,
+    data_de_fabricao_e_prazo_factory,
+):
+    cronograma = cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE)
+    etapas = etapas_do_cronograma_factory.create_batch(size=3, cronograma=cronograma)
+    docs_recebimento = documento_de_recebimento_factory.create_batch(
+        size=3, cronograma=cronograma, status=DocumentoDeRecebimentoWorkflow.APROVADO
+    )
+    documento_de_recebimento_factory(
+        cronograma=cronograma,
+        status=DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+    )
+    datas_e_prazos = []
+    for doc_recebimento in docs_recebimento:
+        datas_e_prazos.extend(
+            data_de_fabricao_e_prazo_factory.create_batch(
+                size=3, documento_recebimento=doc_recebimento
+            )
+        )
+
+    response = client_autenticado_qualidade.get(
+        f"/cronogramas/{cronograma.uuid}/dados-cronograma-ficha-recebimento/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]["etapas"]) == len(etapas)
+    assert len(response.json()["results"]["documentos_de_recebimento"]) == len(
+        docs_recebimento
+    )
 
 
 def test_url_layout_de_embalagem_create(

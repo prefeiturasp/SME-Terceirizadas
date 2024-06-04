@@ -76,6 +76,7 @@ from ..utils import (
     ProtocoloPadraoPagination,
     RelatorioPagination,
     filtrar_alunos_com_dietas_nos_status_e_rastro_escola,
+    trata_lotes_dict_duplicados,
 )
 from .filters import (
     AlimentoFilter,
@@ -909,17 +910,22 @@ class SolicitacaoDietaEspecialViewSet(
                 Q(motivo_alteracao_ue__nome__icontains="polo")
                 | Q(motivo_alteracao_ue__nome__icontains="recreio"),
             )
-        return query_set
+        return query_set.order_by("motivo_alteracao_ue__nome")
 
-    def filtrar_queryset_relatorio_dieta_especial(self, request):
+    def filtrar_queryset_relatorio_dieta_especial(self, request, eh_relatorio=False):
         query_set = self.filter_queryset(self.get_queryset())
 
         lotes_filtro = request.query_params.getlist("lotes_selecionados[]", None)
+        instituicao = request.user.vinculo_atual.instituicao
         if not lotes_filtro:
-            instituicao = request.user.vinculo_atual.instituicao
             if isinstance(instituicao, DiretoriaRegional):
                 lotes_list = list(instituicao.lotes.all().values_list("uuid"))
                 lotes_filtro = [str(u[0]) for u in lotes_list]
+        campo_escola_destino = (
+            "escola_destino__uuid__in"
+            if eh_relatorio
+            else "escola_destino__codigo_eol__in"
+        )
         map_filtros = {
             "protocolo_padrao__uuid__in": request.query_params.getlist(
                 "protocolos_padrao_selecionados[]", None
@@ -931,13 +937,15 @@ class SolicitacaoDietaEspecialViewSet(
                 "classificacoes_selecionadas[]", None
             ),
             "escola_destino__lote__uuid__in": lotes_filtro,
-            "escola_destino__codigo_eol__in": request.query_params.getlist(
+            campo_escola_destino: request.query_params.getlist(
                 "unidades_educacionais_selecionadas[]", None
             ),
             "escola_destino__tipo_unidade__uuid__in": request.query_params.getlist(
                 "tipos_unidades_selecionadas[]", None
             ),
         }
+        if isinstance(instituicao, DiretoriaRegional):
+            map_filtros["escola_destino__diretoria_regional__uuid"] = instituicao.uuid
         filtros = {
             key: value for key, value in map_filtros.items() if value not in [None, []]
         }
@@ -1003,6 +1011,7 @@ class SolicitacaoDietaEspecialViewSet(
             ):
                 lotes_dres.append(tuple([f"{s[0]} - {s[2]}", s[1]]))
             lotes_dict = dict(lotes_dres)
+        lotes_dict = trata_lotes_dict_duplicados(lotes_dict)
         lotes = sorted(
             [
                 {"nome": key, "uuid": lotes_dict[key]}
@@ -1095,7 +1104,9 @@ class SolicitacaoDietaEspecialViewSet(
         detail=False, methods=("get",), url_path="relatorio-dieta-especial-terceirizada"
     )
     def relatorio_dieta_especial_terceirizada(self, request):  # noqa C901
-        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(
+            request, True
+        ).distinct()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -1191,7 +1202,7 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=False, methods=["GET"], url_path="exportar-xlsx")
     def exportar_xlsx(self, request):
         """TODO: ver porque nao pode importar o pandas via pytest."""
-        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(request, True)
         data = request.query_params
         user = request.user.get_username()
         ids_dietas = list(query_set.values_list("id", flat=True))
@@ -1290,7 +1301,7 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=False, methods=["GET"], url_path="exportar-pdf")
     def exportar_pdf(self, request):
         user = request.user.get_username()
-        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(request, True)
         ids_dietas = list(query_set.values_list("id", flat=True))
         filtros = self.build_texto(
             request.query_params.getlist("lotes_selecionados[]", None),

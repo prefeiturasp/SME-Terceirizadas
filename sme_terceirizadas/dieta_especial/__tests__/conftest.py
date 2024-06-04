@@ -340,14 +340,15 @@ def escola():
     terceirizada = mommy.make(
         "Terceirizada", uuid="a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52"
     )
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL IPIRANGA"
+    )
     lote = mommy.make(
         "Lote",
         terceirizada=terceirizada,
         nome="LOTE 07",
         uuid="429446c2-5b17-4ada-96ae-cce369dd4ae1",
-    )
-    diretoria_regional = mommy.make(
-        "DiretoriaRegional", nome="DIRETORIA REGIONAL IPIRANGA"
+        diretoria_regional=diretoria_regional,
     )
     tipo_gestao = mommy.make(
         "TipoGestao", nome="TERC TOTAL", uuid="8bd3931b-8636-44ba-9d8e-81b29067eed1"

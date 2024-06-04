@@ -18,7 +18,14 @@ from sme_terceirizadas.dados_comuns import constants
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
-from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
+from .constants import (
+    ADMINISTRADOR_MEDICAO,
+    COGESTOR_DRE,
+    DILOG_CRONOGRAMA,
+    DILOG_DIRETORIA,
+    DINUTRE_DIRETORIA,
+    DIRETOR_UE,
+)
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .services import EmailENotificacaoService, PartesInteressadasService
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
@@ -4350,6 +4357,43 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 usuario=user,
             )
 
+            url_detalhe_cronograma = (
+                f"/pre-recebimento/detalhe-cronograma?uuid={self.uuid}"
+            )
+
+            contexto = {
+                "numero_cronograma": self.numero,
+                "nome_produto": self.ficha_tecnica.produto.nome,
+                "nome_empresa": self.empresa.nome_fantasia,
+                "nome_usuario_empresa": user.nome,
+                "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
+                "data_evento": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
+                "url_detalhe_cronograma": base_url + url_detalhe_cronograma,
+            }
+
+            EmailENotificacaoService.enviar_notificacao(
+                template="pre_recebimento_notificacao_assinatura_fornecedor.html",
+                contexto_template=contexto,
+                titulo_notificacao=f"Cronograma {self.numero} assinado pelo Fornecedor",
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_AVISO,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_CRONOGRAMA,
+                link_acesse_aqui=url_detalhe_cronograma,
+                usuarios=PartesInteressadasService.usuarios_por_perfis(
+                    DINUTRE_DIRETORIA
+                ),
+            )
+
+            EmailENotificacaoService.enviar_email(
+                titulo=f"Assinatura do Cronograma {self.numero}\npelo Fornecedor",
+                assunto=f"[SIGPAE] Assinatura do Cronograma {self.numero} pelo Fornecedor",
+                template="pre_recebimento_email_assinatura_fornecedor.html",
+                contexto_template=contexto,
+                destinatarios=PartesInteressadasService.usuarios_por_perfis(
+                    DINUTRE_DIRETORIA,
+                    somente_email=True,
+                ),
+            )
+
     def _envia_email_solicita_alteracao_para_cronograma(self, user):
         log_transicao = self.log_mais_recente
         uuid_solicitacao_alteracao = self.solicitacoes_de_alteracao.last().uuid
@@ -4413,17 +4457,40 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 usuario=user,
             )
 
-            # Montar Notificação
-            log_transicao = self.log_mais_recente
-            usuarios = PartesInteressadasService.usuarios_por_perfis(
-                ["DILOG_CRONOGRAMA", "DILOG_DIRETORIA"]
+            url_detalhe_cronograma = (
+                f"/pre-recebimento/detalhe-cronograma?uuid={self.uuid}"
             )
-            template_notif = "pre_recebimento_notificacao_assinatura_cronograma.html"
-            tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
-            titulo_notificacao = f"Cronograma { self.numero } assinado pela DINUTRE"
-            link = f"/pre-recebimento/detalhe-cronograma?uuid={self.uuid}"
-            self._cria_notificacao(
-                template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
+
+            contexto = {
+                "numero_cronograma": self.numero,
+                "nome_produto": self.ficha_tecnica.produto.nome,
+                "nome_usuario": user.nome,
+                "registro_funcional": user.registro_funcional,
+                "data_evento": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
+                "url_detalhe_cronograma": base_url + url_detalhe_cronograma,
+            }
+
+            EmailENotificacaoService.enviar_notificacao(
+                template="pre_recebimento_notificacao_assinatura_cronograma.html",
+                contexto_template=contexto,
+                titulo_notificacao=f"Cronograma { self.numero } assinado pela DINUTRE",
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_AVISO,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_CRONOGRAMA,
+                link_acesse_aqui=url_detalhe_cronograma,
+                usuarios=PartesInteressadasService.usuarios_por_perfis(
+                    [DILOG_CRONOGRAMA, DILOG_DIRETORIA]
+                ),
+            )
+
+            EmailENotificacaoService.enviar_email(
+                titulo=f"Assinatura do Cronograma {self.numero}\npela DINUTRE",
+                assunto=f"[SIGPAE] Assinatura do Cronograma {self.numero} pela DINUTRE",
+                template="pre_recebimento_email_assinatura_dinutre.html",
+                contexto_template=contexto,
+                destinatarios=PartesInteressadasService.usuarios_por_perfis(
+                    DILOG_DIRETORIA,
+                    somente_email=True,
+                ),
             )
 
     @xworkflows.after_transition("codae_assina")
@@ -5417,6 +5484,46 @@ class FluxoFichaTecnicaDoProduto(xwf_models.WorkflowEnabled, models.Model):
                 status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE,
                 usuario=user,
             )
+
+    class Meta:
+        abstract = True
+
+
+class FormularioSupervisaoWorkflow(xwf_models.Workflow):
+    log_model = ""  # Disable logging to database
+
+    EM_PREENCHIMENTO = "EM_PREENCHIMENTO"
+
+    states = ((EM_PREENCHIMENTO, "Em Preenchimento"),)
+
+    transitions = ()
+
+    initial_state = EM_PREENCHIMENTO
+
+
+class FluxoFormularioSupervisao(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = FormularioSupervisaoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    class Meta:
+        abstract = True
+
+
+class RelatorioFinanceiroMedicaoInicialWorkflow(xwf_models.Workflow):
+    log_model = ""  # Disable logging to database
+
+    EM_ANALISE = "EM_ANALISE"
+
+    states = ((EM_ANALISE, "Em análise"),)
+
+    transitions = ()
+
+    initial_state = EM_ANALISE
+
+
+class FluxoRelatorioFinanceiroMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = RelatorioFinanceiroMedicaoInicialWorkflow
+    status = xwf_models.StateField(workflow_class)
 
     class Meta:
         abstract = True

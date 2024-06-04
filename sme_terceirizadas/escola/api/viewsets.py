@@ -91,6 +91,7 @@ from ..tasks import (
 from ..utils import (
     EscolaSimplissimaPagination,
     lotes_endpoint_filtrar_relatorio_alunos_matriculados,
+    ordenar_alunos_matriculados,
 )
 from .filters import (
     AlunoFilter,
@@ -548,6 +549,39 @@ class LogAlunosMatriculadosPeriodoEscolaViewSet(ModelViewSet):
 
         return queryset
 
+    @action(detail=False, url_path="quantidade-por-data")
+    def quantidade_por_data(self, request):
+        try:
+            data = self.request.query_params.get("data", "")
+            cei_ou_emei = self.request.query_params.get("cei_ou_emei", "N/A")
+            infantil_ou_fundamental = self.request.query_params.get(
+                "infantil_ou_fundamental", "N/A"
+            )
+            escola_uuid = self.request.query_params.get("escola_uuid", "")
+
+            if not data:
+                raise ValidationError("campo data é obrigatório")
+
+            if not escola_uuid:
+                raise ValidationError("campo escola_uuid é obrigatório")
+
+            today = datetime.date.today()
+            if data == today.strftime("%Y-%m-%d"):
+                data = today - datetime.timedelta(days=1)
+
+            resultado = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+                escola__uuid=escola_uuid,
+                criado_em=data,
+                cei_ou_emei=cei_ou_emei,
+                infantil_ou_fundamental=infantil_ou_fundamental,
+            ).aggregate(soma=Sum("quantidade_alunos"))
+
+            soma_quantidade_alunos = resultado["soma"] or 0
+
+            return Response(soma_quantidade_alunos, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"detail": e}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EscolaPeriodoEscolarViewSet(ModelViewSet):
     lookup_field = "uuid"
@@ -861,9 +895,9 @@ def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    response[
-        "Content-Disposition"
-    ] = "attachment; filename=planilha_importacao_tipo_gestao_escolas.xlsx"
+    response["Content-Disposition"] = (
+        "attachment; filename=planilha_importacao_tipo_gestao_escolas.xlsx"
+    )
     workbook: Workbook = Workbook()
     ws = workbook.active
     ws.title = "UNIDADES COM TIPO DE GESTÃO"
@@ -912,12 +946,13 @@ def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
 class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
     queryset = AlunosMatriculadosPeriodoEscola.objects.all()
 
-    def filtrar_matriculados(self, request, lotes):
-        if request.query_params.getlist("lotes[]"):
-            lotes = lotes.filter(uuid__in=request.query_params.getlist("lotes[]"))
-        if request.query_params.getlist("diretorias_regionais[]"):
+    def obter_alunos_matriculados(self, request, lotes):
+        query_params = request.query_params
+        if query_params.getlist("lotes[]"):
+            lotes = lotes.filter(uuid__in=query_params.getlist("lotes[]"))
+        if query_params.getlist("diretorias_regionais[]"):
             lotes = lotes.filter(
-                diretoria_regional__uuid__in=request.query_params.getlist(
+                diretoria_regional__uuid__in=query_params.getlist(
                     "diretorias_regionais[]"
                 )
             )
@@ -925,26 +960,28 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(
             escola__uuid__in=escolas_uuids, escola__tipo_gestao__nome="TERC TOTAL"
         )
-        if request.query_params.getlist("diretorias_regionais[]"):
-            alunos_matriculados = alunos_matriculados.filter(
-                escola__diretoria_regional__uuid__in=request.query_params.getlist(
+        alunos_matriculados = self.filtra_alunos_matriculados(
+            alunos_matriculados, query_params
+        )
+        return alunos_matriculados
+
+    def filtra_alunos_matriculados(self, queryset, query_params):
+        if query_params.getlist("diretorias_regionais[]"):
+            queryset = queryset.filter(
+                escola__diretoria_regional__uuid__in=query_params.getlist(
                     "diretorias_regionais[]"
                 )
             )
-        if request.query_params.getlist("tipos_unidades[]"):
-            tipos = request.query_params.getlist("tipos_unidades[]")
-            alunos_matriculados = alunos_matriculados.filter(
-                escola__tipo_unidade__uuid__in=tipos
-            )
-        if request.query_params.getlist("unidades_educacionais[]"):
-            unidades_eudacionais = request.query_params.getlist(
-                "unidades_educacionais[]"
-            )
-            alunos_matriculados = alunos_matriculados.filter(
-                escola__uuid__in=unidades_eudacionais
-            )
-        alunos_matriculados = alunos_matriculados.order_by("escola__nome")
-        return alunos_matriculados
+        if query_params.getlist("tipos_unidades[]"):
+            tipos = query_params.getlist("tipos_unidades[]")
+            queryset = queryset.filter(escola__tipo_unidade__uuid__in=tipos)
+        if query_params.getlist("unidades_educacionais[]"):
+            unidades_eudacionais = query_params.getlist("unidades_educacionais[]")
+            queryset = queryset.filter(escola__uuid__in=unidades_eudacionais)
+        if query_params.getlist("tipos_turmas[]"):
+            tipos_turmas = query_params.getlist("tipos_turmas[]")
+            queryset = queryset.filter(tipo_turma__in=tipos_turmas)
+        return queryset
 
     @action(detail=False, methods=["GET"], url_path="filtros")
     def filtros(self, request):
@@ -970,6 +1007,7 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         tipos_unidade_escolar = TipoUnidadeEscolar.objects.filter(
             uuid__in=tipos_unidade_uuids
         )
+        tipos_turmas = [name for name, _ in TipoTurma.choices()]
         filtros = {
             "lotes": LoteParaFiltroSerializer(lotes, many=True).data,
             "diretorias_regionais": DiretoriaRegionalParaFiltroSerializer(
@@ -979,6 +1017,7 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
                 tipos_unidade_escolar, many=True
             ).data,
             "escolas": EscolaParaFiltroSerializer(escolas, many=True).data,
+            "tipos_turmas": tipos_turmas,
         }
         return Response(filtros, status=status.HTTP_200_OK)
 
@@ -988,8 +1027,9 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(
             instituicao, Codae, Lote
         )
-        alunos_matriculados = self.filtrar_matriculados(request, lotes)
-        page = self.paginate_queryset(alunos_matriculados)
+        alunos_matriculados = self.obter_alunos_matriculados(request, lotes)
+        alunos_matriculados_ordenados = ordenar_alunos_matriculados(alunos_matriculados)
+        page = self.paginate_queryset(alunos_matriculados_ordenados)
         serializer = AlunosMatriculadosPeriodoEscolaCompletoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -1000,7 +1040,7 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(
             instituicao, Codae, Lote
         )
-        alunos_matriculados = self.filtrar_matriculados(request, lotes)
+        alunos_matriculados = self.obter_alunos_matriculados(request, lotes)
         uuids = [str(matriculados.uuid) for matriculados in alunos_matriculados]
         gera_pdf_relatorio_alunos_matriculados_async.delay(
             user=user, nome_arquivo="relatorio_alunos_matriculados.pdf", uuids=uuids
@@ -1017,7 +1057,7 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(
             instituicao, Codae, Lote
         )
-        alunos_matriculados = self.filtrar_matriculados(request, lotes)
+        alunos_matriculados = self.obter_alunos_matriculados(request, lotes)
         uuids = [str(matriculados.uuid) for matriculados in alunos_matriculados]
         gera_xlsx_relatorio_alunos_matriculados_async.delay(
             user=user, nome_arquivo="relatorio_alunos_matriculados.xlsx", uuids=uuids

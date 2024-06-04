@@ -1,9 +1,14 @@
 import json
+from datetime import date, timedelta
 
 from faker import Faker
 from rest_framework import status
 
-from sme_terceirizadas.recebimento.models import QuestaoConferencia, QuestoesPorProduto
+from sme_terceirizadas.recebimento.models import (
+    FichaDeRecebimento,
+    QuestaoConferencia,
+    QuestoesPorProduto,
+)
 
 fake = Faker("pt_BR")
 
@@ -133,3 +138,47 @@ def test_url_questoes_por_produto_update(
         len(payload_update_questoes_por_produto["questoes_secundarias"])
         == questoes_por_produto.questoes_secundarias.count()
     )
+
+
+def test_url_ficha_recebimento_rascunho_create_update(
+    client_autenticado_qualidade,
+    payload_ficha_recebimento_rascunho,
+):
+    response_create = client_autenticado_qualidade.post(
+        "/rascunho-ficha-de-recebimento/",
+        content_type="application/json",
+        data=json.dumps(payload_ficha_recebimento_rascunho),
+    )
+
+    ficha = FichaDeRecebimento.objects.last()
+
+    assert response_create.status_code == status.HTTP_201_CREATED
+    assert ficha is not None
+    assert ficha.veiculos.count() == len(payload_ficha_recebimento_rascunho["veiculos"])
+    assert ficha.documentos_recebimento.count() == len(
+        payload_ficha_recebimento_rascunho["documentos_recebimento"]
+    )
+    assert ficha.arquivos.count() == len(payload_ficha_recebimento_rascunho["arquivos"])
+
+    nova_data_entrega = date.today() + timedelta(days=11)
+    payload_ficha_recebimento_rascunho["data_entrega"] = str(nova_data_entrega)
+    payload_ficha_recebimento_rascunho["veiculos"].pop()
+    payload_ficha_recebimento_rascunho["documentos_recebimento"].pop()
+    payload_ficha_recebimento_rascunho["arquivos"].pop()
+
+    response_update = client_autenticado_qualidade.put(
+        f'/rascunho-ficha-de-recebimento/{response_create.json()["uuid"]}/',
+        content_type="application/json",
+        data=json.dumps(payload_ficha_recebimento_rascunho),
+    )
+    ficha.refresh_from_db()
+
+    assert response_update.status_code == status.HTTP_200_OK
+    assert response_update.json()["data_entrega"] == nova_data_entrega.strftime(
+        "%d/%m/%Y"
+    )
+    assert ficha.veiculos.count() == len(payload_ficha_recebimento_rascunho["veiculos"])
+    assert ficha.documentos_recebimento.count() == len(
+        payload_ficha_recebimento_rascunho["documentos_recebimento"]
+    )
+    assert ficha.arquivos.count() == len(payload_ficha_recebimento_rascunho["arquivos"])

@@ -44,6 +44,7 @@ from ...escola.models import (
     FaixaEtaria,
     GrupoUnidadeEscolar,
     LogAlunosMatriculadosPeriodoEscola,
+    Lote,
 )
 from ..models import (
     AlimentacaoLancamentoEspecial,
@@ -56,6 +57,7 @@ from ..models import (
     OcorrenciaMedicaoInicial,
     ParametrizacaoFinanceira,
     PermissaoLancamentoEspecial,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao,
@@ -63,6 +65,7 @@ from ..models import (
 from ..tasks import (
     exporta_relatorio_adesao_para_pdf,
     exporta_relatorio_adesao_para_xlsx,
+    exporta_relatorio_consolidado_xlsx,
     gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
     gera_pdf_relatorio_unificado_async,
 )
@@ -91,6 +94,7 @@ from .filters import (
     DiaParaCorrecaoFilter,
     EmpenhoFilter,
     ParametrizacaoFinanceiraFilter,
+    RelatorioFinanceiroFilter,
 )
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
@@ -104,7 +108,9 @@ from .serializers import (
     OcorrenciaMedicaoInicialSerializer,
     ParametrizacaoFinanceiraSerializer,
     PermissaoLancamentoEspecialSerializer,
+    RelatorioFinanceiroSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
+    SolicitacaoMedicaoInicialLancadaSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
     ValorMedicaoSerializer,
@@ -151,6 +157,7 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
     }
     queryset = DiaSobremesaDoce.objects.all()
     lookup_field = "uuid"
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
@@ -177,6 +184,13 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
         except AssertionError as error:
             if str(error) == "`create()` did not return an object instance.":
                 return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        DiaSobremesaDoce.objects.filter(
+            data=instance.data, tipo_unidade=instance.tipo_unidade
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=["GET"], url_path="lista-dias")
     def lista_dias(self, request):
@@ -497,6 +511,12 @@ class SolicitacaoMedicaoInicialViewSet(
         user = request.user.get_username()
         mes = request.query_params.get("mes")
         ano = request.query_params.get("ano")
+        if not mes and not ano:
+            return Response(
+                data="É necessário informar o mês/ano de referência",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         uuid_grupo_escolar = request.query_params.get("grupo_escolar")
         status_solicitacao = request.query_params.get("status")
         uuid_dre = request.query_params.get("dre")
@@ -524,17 +544,103 @@ class SolicitacaoMedicaoInicialViewSet(
                 ).exists():
                     solicitacoes.append(solicitacao.uuid)
             if solicitacoes:
-                nome_arquivo = f"Relatório Consolidado das Medições Inicias - {diretoria_regional.nome} - {grupo_unidade_escolar.nome} - {mes}/{ano}.pdf"
+                nome_arquivo = f"Relatório Unificado das Medições Inicias - {diretoria_regional.nome} - {grupo_unidade_escolar.nome} - {mes}/{ano}.pdf"
                 gera_pdf_relatorio_unificado_async.delay(
                     user=user,
                     nome_arquivo=nome_arquivo,
                     ids_solicitacoes=solicitacoes,
                     tipos_de_unidade=tipos_de_unidade_do_grupo_str,
                 )
+                return Response(
+                    dict(
+                        detail="Solicitação de geração de arquivo recebida com sucesso."
+                    ),
+                    status=status.HTTP_200_OK,
+                )
         return Response(
-            dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
-            status=status.HTTP_200_OK,
+            data={
+                "erro": "Não foram encontradas Medições Iniciais para o grupo e mês de referência selecionados"
+            },
+            status=status.HTTP_400_BAD_REQUEST,
         )
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_name="relatorio-consolidado_exportar-xlsx",
+        url_path="relatorio-consolidado/exportar-xlsx",
+    )
+    def relatorio_consolidado_exportar_xlsx(self, request: Request):
+        mes = request.query_params.get("mes")
+        ano = request.query_params.get("ano")
+        if not mes and not ano:
+            return Response(
+                data="É necessário informar o mês/ano de referência",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            uuid_grupo_escolar = request.query_params.get("grupo_escolar")
+            status_solicitacao = request.query_params.get("status")
+            uuid_dre = request.query_params.get("dre")
+            uuid_lotes = request.query_params.getlist("lotes[]", None)
+
+            query_params = request.query_params.dict()
+
+            filtros = {
+                "mes": mes,
+                "ano": ano,
+                "status": status_solicitacao,
+            }
+
+            if uuid_lotes:
+                lotes = Lote.objects.filter(uuid__in=uuid_lotes)
+                filtros["escola__lote__in"] = lotes
+                query_params["lotes"] = request.query_params.getlist("lotes[]")
+
+            diretoria_regional = DiretoriaRegional.objects.get(uuid=uuid_dre)
+            filtros["escola__diretoria_regional"] = diretoria_regional
+
+            grupo_unidade_escolar = GrupoUnidadeEscolar.objects.get(
+                uuid=uuid_grupo_escolar
+            )
+            tipos_unidades = grupo_unidade_escolar.tipos_unidades.all()
+            filtros["escola__tipo_unidade__in"] = tipos_unidades
+
+            solicitacoes = list(
+                SolicitacaoMedicaoInicial.objects.filter(**filtros).values_list(
+                    "uuid", flat=True
+                )
+            )
+
+            tipos_de_unidade_do_grupo = list(
+                tipos_unidades.values_list("iniciais", flat=True)
+            )
+
+            nome_arquivo = f"Relatório Consolidado das Medições Inicias - {diretoria_regional.nome} - {grupo_unidade_escolar.nome} - {mes}/{ano}.xlsx"
+
+            exporta_relatorio_consolidado_xlsx.delay(
+                user=request.user.get_username(),
+                nome_arquivo=nome_arquivo,
+                solicitacoes=solicitacoes,
+                tipos_de_unidade=tipos_de_unidade_do_grupo,
+                query_params=query_params,
+            )
+
+            return Response(
+                data={
+                    "detail": "Solicitação de geração de arquivo recebida com sucesso."
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception:
+            return Response(
+                data={
+                    "erro": "Não foram encontradas Medições Iniciais. Verifique os parâmetros e tente novamente"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @action(
         detail=False,
@@ -629,10 +735,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 categoria_medicao__nome__icontains="DIETA"
             ):
                 if valor_medicao.nome_campo not in campos_a_desconsiderar:
-                    total_por_nome_campo[
-                        valor_medicao.nome_campo
-                    ] = total_por_nome_campo.get(valor_medicao.nome_campo, 0) + int(
-                        valor_medicao.valor
+                    total_por_nome_campo[valor_medicao.nome_campo] = (
+                        total_por_nome_campo.get(valor_medicao.nome_campo, 0)
+                        + int(valor_medicao.valor)
                     )
             total_por_nome_campo = tratar_valores(escola, total_por_nome_campo)
             valor_total = get_valor_total(escola, total_por_nome_campo, medicao)
@@ -962,7 +1067,7 @@ class SolicitacaoMedicaoInicialViewSet(
             .exclude(status=medicao_em_preenchimento)
         )
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = SolicitacaoMedicaoInicialLancadaSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(
@@ -1747,3 +1852,48 @@ class ParametrizacaoFinanceiraViewSet(ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return ParametrizacaoFinanceiraWriteModelSerializer
         return ParametrizacaoFinanceiraSerializer
+
+
+class RelatorioFinanceiroViewSet(ModelViewSet):
+    lookup_field = "uuid"
+    permission_classes = [UsuarioMedicao]
+    queryset = RelatorioFinanceiro.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = RelatorioFinanceiroFilter
+    pagination_class = CustomPagination
+    serializer_class = RelatorioFinanceiroSerializer
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="relatorio-consolidado/(?P<uuid_relatorio_financeiro>[^/.]+)",
+        permission_classes=[UsuarioMedicao],
+    )
+    def relatorio_consolidado(self, _, uuid_relatorio_financeiro):
+        try:
+            relatorio_financeiro = RelatorioFinanceiro.objects.get(
+                uuid=uuid_relatorio_financeiro
+            )
+            parametrizacao = ParametrizacaoFinanceira.objects.filter(
+                lote=relatorio_financeiro.lote,
+                tipos_unidades__in=relatorio_financeiro.grupo_unidade_escolar.tipos_unidades.all(),
+            ).first()
+            if not parametrizacao:
+                return Response(
+                    {
+                        "Erro": "Não foi encontrada parametrização financeira para o tipo de unidade e lote do relatório financeiro."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            response = {
+                **ParametrizacaoFinanceiraSerializer(parametrizacao).data,
+                "lote": parametrizacao.lote.uuid,
+                "grupo_unidade_escolar": relatorio_financeiro.grupo_unidade_escolar.uuid,
+                "mes_ano": f"{relatorio_financeiro.mes}_{relatorio_financeiro.ano}",
+            }
+            return Response(
+                data=response,
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"Erro": str(e)}, status=status.HTTP_400_BAD_REQUEST)

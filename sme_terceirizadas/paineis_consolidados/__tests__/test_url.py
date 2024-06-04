@@ -615,7 +615,7 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_rede_municipal_educacao(
 ):
     data = {"status": "AUTORIZADOS"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-cards-totalizadores/",
         content_type="application/json",
         data=data,
     )
@@ -637,7 +637,7 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_tipo_solicitacao(
         "tipos_solicitacao": ["INC_ALIMENTA", "KIT_LANCHE_AVULSA"],
     }
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-cards-totalizadores/",
         content_type="application/json",
         data=data,
     )
@@ -660,7 +660,7 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_tipos_unidade(
 ):
     data = {"status": "AUTORIZADOS", "tipos_unidade": [escola.tipo_unidade.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-cards-totalizadores/",
         content_type="application/json",
         data=data,
     )
@@ -682,7 +682,7 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_lotes(
 ):
     data = {"status": "AUTORIZADOS", "lotes": [escola.lote.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-cards-totalizadores/",
         content_type="application/json",
         data=data,
     )
@@ -704,7 +704,7 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_unidade_educacional(
 ):
     data = {"status": "AUTORIZADOS", "unidades_educacionais": [escola.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-cards-totalizadores/",
         content_type="application/json",
         data=data,
     )
@@ -726,7 +726,7 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_periodo_de(
 ):
     data = {"status": "AUTORIZADOS", "de": "01/01/2020"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-cards-totalizadores/",
         content_type="application/json",
         data=data,
     )
@@ -748,7 +748,7 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_periodo_ate(
 ):
     data = {"status": "AUTORIZADOS", "ate": "01/01/2024"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-cards-totalizadores/",
         content_type="application/json",
         data=data,
     )
@@ -770,7 +770,7 @@ def test_filtrar_solicitacoes_ga_cards_totalizadores_periodo_de_ate(
 ):
     data = {"status": "AUTORIZADOS", "de": "01/01/2017", "ate": "01/01/2024"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-cards-totalizadores/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-cards-totalizadores/",
         content_type="application/json",
         data=data,
     )
@@ -793,7 +793,7 @@ def test_filtrar_solicitacoes_ga_graficos(
 ):
     data = {"status": "AUTORIZADOS"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -802,7 +802,7 @@ def test_filtrar_solicitacoes_ga_graficos(
 
     data = {"status": "AUTORIZADOS", "unidades_educacionais": [escola.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -811,7 +811,7 @@ def test_filtrar_solicitacoes_ga_graficos(
 
     data = {"status": "AUTORIZADOS", "lotes": [escola.lote.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -828,7 +828,7 @@ def test_filtrar_solicitacoes_ga_graficos_tipo_unidade(
 ):
     data = {"status": "AUTORIZADOS"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -846,7 +846,7 @@ def test_filtrar_solicitacoes_ga_graficos_tipo_unidade(
 
     data = {"status": "AUTORIZADOS", "tipos_unidade": [escola.tipo_unidade.uuid]}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )
@@ -863,7 +863,7 @@ def test_filtrar_solicitacoes_ga_graficos_empresa_terceirizada_codae(
 ):
     data = {"status": "AUTORIZADOS"}
     response = client_autenticado_codae_gestao_alimentacao.post(
-        "/solicitacoes-genericas/filtrar-solicitacoes-ga-graficos/",
+        "/solicitacoes-genericas/filtrar-solicitacoes-graficos/",
         content_type="application/json",
         data=data,
     )

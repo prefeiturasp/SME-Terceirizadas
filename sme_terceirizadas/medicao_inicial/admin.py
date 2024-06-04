@@ -14,6 +14,7 @@ from .models import (
     ParametrizacaoFinanceiraTabela,
     ParametrizacaoFinanceiraTabelaValor,
     PermissaoLancamentoEspecial,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao,
@@ -158,9 +159,15 @@ class ClausulaDeDescontoAdmin(admin.ModelAdmin):
 
 @admin.register(ParametrizacaoFinanceira)
 class ParametrizacaoFinanceiraAdmin(admin.ModelAdmin):
-    list_display = ("edital", "lote")
+    list_display = ("edital", "lote", "get_tipos_unidades")
     search_fields = ("edital__numero", "lote__nome", "tipos_unidades__iniciais")
     list_filter = ("edital__numero", "lote__nome", "tipos_unidades__iniciais")
+
+    @admin.display(description="Tipo Unidade")
+    def get_tipos_unidades(self, obj):
+        return ", ".join(
+            [tipo_unidade.iniciais for tipo_unidade in obj.tipos_unidades.all()]
+        )
 
 
 @admin.register(ParametrizacaoFinanceiraTabela)
@@ -172,6 +179,17 @@ class ParametrizacaoFinanceiraTabelaAdmin(admin.ModelAdmin):
 
 @admin.register(ParametrizacaoFinanceiraTabelaValor)
 class ParametrizacaoFinanceiraTabelaValorAdmin(admin.ModelAdmin):
-    list_display = ("tabela", "tipo_alimentacao", "grupo", "valor_colunas")
+    list_display = (
+        "tabela",
+        "tipo_alimentacao",
+        "grupo",
+        "faixa_etaria",
+        "valor_colunas",
+    )
     search_fields = ("tabela", "tipo_alimentacao__nome", "grupo")
-    list_filter = ("tabela", "tipo_alimentacao__nome", "grupo")
+    list_filter = ("tabela", "tipo_alimentacao__nome", "grupo", "faixa_etaria")
+
+
+@admin.register(RelatorioFinanceiro)
+class RelatorioFinanceiroAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "grupo_unidade_escolar")

@@ -12,6 +12,9 @@ from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_excel import (
 from sme_terceirizadas.medicao_inicial.services.relatorio_adesao_pdf import (
     gera_relatorio_adesao_pdf,
 )
+from sme_terceirizadas.medicao_inicial.services.relatorio_consolidado_excel import (
+    gera_relatorio_consolidado_xlsx,
+)
 from sme_terceirizadas.medicao_inicial.services.relatorio_controle_frequencia_pdf import (
     gera_relatorio_controle_frequencia_pdf,
 )
@@ -23,13 +26,13 @@ from ..dados_comuns.utils import (
 )
 from ..escola.models import AlunoPeriodoParcial, Escola
 from ..relatorios.relatorios import (
-    relatorio_consolidado_medicoes_iniciais_emef,
     relatorio_solicitacao_medicao_por_escola,
     relatorio_solicitacao_medicao_por_escola_cei,
     relatorio_solicitacao_medicao_por_escola_cemei,
     relatorio_solicitacao_medicao_por_escola_emebs,
 )
 from .models import Responsavel, SolicitacaoMedicaoInicial
+from .utils import cria_relatorios_financeiros_por_grupo_unidade_escolar
 
 logger = logging.getLogger(__name__)
 
@@ -90,18 +93,15 @@ def criar_nova_solicitacao(solicitacao_anterior, escola, data_hoje):
         "ano": data_hoje.year,
         "mes": f"{data_hoje.month:02d}",
         "criado_por": solicitacao_anterior.criado_por,
+        "ue_possui_alunos_periodo_parcial": solicitacao_anterior.ue_possui_alunos_periodo_parcial,
     }
 
-    if not solicitacao_anterior.escola.eh_cei:
-        attrs[
-            "tipo_contagem_alimentacoes"
-        ] = solicitacao_anterior.tipo_contagem_alimentacoes
-    else:
-        attrs[
-            "ue_possui_alunos_periodo_parcial"
-        ] = solicitacao_anterior.ue_possui_alunos_periodo_parcial
-
-    return SolicitacaoMedicaoInicial.objects.create(**attrs)
+    solicitacao_mes_atual = SolicitacaoMedicaoInicial.objects.create(**attrs)
+    solicitacao_mes_atual.tipos_contagem_alimentacao.set(
+        solicitacao_anterior.tipos_contagem_alimentacao.all()
+    )
+    solicitacao_mes_atual.save()
+    return solicitacao_mes_atual
 
 
 def copiar_responsaveis(solicitacao_origem, solicitacao_destino):
@@ -181,25 +181,9 @@ def gera_pdf_relatorio_unificado_async(
 
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
-        logger.error(f"Erro ao gerar relatório consolidado: {e}")
+        logger.error(f"Erro ao gerar relatório unificado: {e}")
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
-
-
-def processa_relatorio_somatorio(
-    ids_solicitacoes, tipos_de_unidade, merger_somatorio, obj_central_download
-):
-    try:
-        id_solicitacao = ids_solicitacoes[0]
-        solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=id_solicitacao)
-        arquivo_somatorio = relatorio_consolidado_medicoes_iniciais_emef(
-            ids_solicitacoes, solicitacao, tipos_de_unidade
-        )
-        arquivo_somatorio_io = BytesIO(arquivo_somatorio)
-        merger_somatorio.append(arquivo_somatorio_io)
-    except Exception as e:
-        atualiza_central_download_com_erro(obj_central_download, str(e))
-        logger.error(f"Erro ao gerar relatório somatorio: {e}")
 
 
 def processa_relatorio_lançamentos(
@@ -297,3 +281,52 @@ def exporta_relatorio_controle_frequencia_para_pdf(
         atualiza_central_download_com_erro(obj_central_download, str(e))
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def exporta_relatorio_consolidado_xlsx(
+    user, nome_arquivo, solicitacoes, tipos_de_unidade, query_params
+):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        arquivo = gera_relatorio_consolidado_xlsx(
+            solicitacoes, tipos_de_unidade, query_params
+        )
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+        logger.error(f"Erro ao gerar relatório consolidado: {e}")
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+)
+def cria_relatorios_financeiros():
+    logger.info(
+        "x-x-x-x Iniciando criação de Relatórios Financeiros da Medição Inicial x-x-x-x"
+    )
+
+    data_hoje = datetime.date.today()
+    quantidade_meses = 1
+    while quantidade_meses <= 6:
+        data = datetime.date(data_hoje.year, data_hoje.month, 1) + relativedelta(
+            months=-quantidade_meses
+        )
+        cria_relatorios_financeiros_por_grupo_unidade_escolar(data)
+        quantidade_meses += 1
+
+    logger.info(
+        "x-x-x-x Finaliza criação de Relatórios Financeiros da Medição Inicial x-x-x-x"
+    )

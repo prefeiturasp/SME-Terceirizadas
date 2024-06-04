@@ -7,7 +7,7 @@ from django.http import QueryDict
 from django.test import TestCase
 
 from sme_terceirizadas.dados_comuns.models import CentralDeDownload
-from sme_terceirizadas.escola.models import AlunoPeriodoParcial
+from sme_terceirizadas.escola.models import AlunoPeriodoParcial, GrupoUnidadeEscolar
 from sme_terceirizadas.medicao_inicial.models import (
     Responsavel,
     SolicitacaoMedicaoInicial,
@@ -21,6 +21,7 @@ from sme_terceirizadas.medicao_inicial.tasks import (
     criar_nova_solicitacao,
     exporta_relatorio_adesao_para_pdf,
     exporta_relatorio_adesao_para_xlsx,
+    exporta_relatorio_consolidado_xlsx,
     gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
     gera_pdf_relatorio_unificado_async,
     solicitacao_medicao_atual_existe,
@@ -332,6 +333,63 @@ def test_exporta_relatorio_adesao_para_pdf_sem_resultados(usuario):
 
     exporta_relatorio_adesao_para_pdf(
         usuario, nome_arquivo, resultados, {"mes_ano": f"{mes}_{ano}"}
+    )
+
+    assert CentralDeDownload.objects.count() == 1
+    arquivo = CentralDeDownload.objects.first()
+    assert arquivo is not None and arquivo.usuario == usuario
+    assert arquivo is not None and arquivo.identificador == nome_arquivo
+    assert arquivo is not None and arquivo.status == CentralDeDownload.STATUS_CONCLUIDO
+
+
+@pytest.mark.django_db
+def test_exporta_relatorio_consolidado_xlsx(
+    usuario, escola, escola_emefm, grupo_escolar
+):
+    mes = "05"
+    ano = "2023"
+    status = "MEDICAO_APROVADA_PELA_CODAE"
+
+    SolicitacaoMedicaoInicial.objects.create(
+        escola=escola,
+        ano=ano,
+        mes=mes,
+        status=status,
+    )
+
+    SolicitacaoMedicaoInicial.objects.create(
+        escola=escola_emefm,
+        ano=ano,
+        mes=mes,
+        status=status,
+    )
+
+    solicitacoes = list(
+        SolicitacaoMedicaoInicial.objects.filter(
+            mes=mes,
+            ano=ano,
+            escola__tipo_unidade__iniciais__in=["EMEF", "EMEFM"],
+            escola__diretoria_regional=escola.diretoria_regional,
+            status=status,
+        ).values_list("uuid", flat=True)
+    )
+
+    grupo_unidade_escolar = GrupoUnidadeEscolar.objects.get(uuid=grupo_escolar)
+    tipos_unidades = grupo_unidade_escolar.tipos_unidades.all()
+    tipos_de_unidade_do_grupo = list(tipos_unidades.values_list("iniciais", flat=True))
+    nome_arquivo = f"Relatório Consolidado das Medições Inicias - {escola.diretoria_regional.nome} - {grupo_unidade_escolar.nome} - {mes}/{ano}.xlsx"
+
+    exporta_relatorio_consolidado_xlsx(
+        user=usuario,
+        nome_arquivo=nome_arquivo,
+        solicitacoes=solicitacoes,
+        tipos_de_unidade=tipos_de_unidade_do_grupo,
+        query_params={
+            "mes": mes,
+            "ano": ano,
+            "status": status,
+            "dre": escola.diretoria_regional.uuid,
+        },
     )
 
     assert CentralDeDownload.objects.count() == 1

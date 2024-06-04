@@ -4,7 +4,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     FichaTecnicaSimplesSerializer,
 )
 
-from ...models import QuestaoConferencia, QuestoesPorProduto
+from ...models import FichaDeRecebimento, QuestaoConferencia, QuestoesPorProduto
 
 
 class QuestaoConferenciaSerializer(serializers.ModelSerializer):
@@ -89,4 +89,53 @@ class QuestoesPorProdutoSimplesSerializer(serializers.ModelSerializer):
             "ficha_tecnica",
             "questoes_primarias",
             "questoes_secundarias",
+        )
+
+
+class FichaDeRecebimentoSerializer(serializers.ModelSerializer):
+    numero_cronograma = serializers.SerializerMethodField()
+    nome_produto = serializers.SerializerMethodField()
+    fornecedor = serializers.SerializerMethodField()
+    pregao_chamada_publica = serializers.SerializerMethodField()
+    data_recebimento = serializers.SerializerMethodField()
+
+    def get_numero_cronograma(self, obj):
+        try:
+            return obj.etapa.cronograma.numero
+        except AttributeError:
+            None
+
+    def get_nome_produto(self, obj):
+        try:
+            return obj.etapa.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            None
+
+    def get_fornecedor(self, obj):
+        try:
+            return obj.etapa.cronograma.empresa.nome_fantasia
+        except AttributeError:
+            None
+
+    def get_pregao_chamada_publica(self, obj):
+        try:
+            return obj.etapa.cronograma.contrato.pregao_chamada_publica
+        except AttributeError:
+            None
+
+    def get_data_recebimento(self, obj):
+        try:
+            return obj.data_entrega.strftime("%d/%m/%Y")
+        except AttributeError:
+            None
+
+    class Meta:
+        model = FichaDeRecebimento
+        fields = (
+            "uuid",
+            "numero_cronograma",
+            "nome_produto",
+            "fornecedor",
+            "pregao_chamada_publica",
+            "data_recebimento",
         )

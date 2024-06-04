@@ -14,7 +14,11 @@ from sme_terceirizadas.escola.api.serializers import (
     AlunoPeriodoParcialSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplissimaSerializer,
+    FaixaEtariaSerializer,
+    GrupoUnidadeEscolarSerializer,
+    LoteParaFiltroSerializer,
     PeriodoEscolarSerializer,
+    TipoAlimentacaoSerializer,
     TipoUnidadeEscolarSerializer,
     TipoUnidadeEscolarSimplesSerializer,
 )
@@ -28,8 +32,11 @@ from sme_terceirizadas.medicao_inicial.models import (
     Medicao,
     OcorrenciaMedicaoInicial,
     ParametrizacaoFinanceira,
+    ParametrizacaoFinanceiraTabela,
+    ParametrizacaoFinanceiraTabelaValor,
     PermissaoLancamentoEspecial,
     Responsavel,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao,
@@ -39,11 +46,16 @@ from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     EditalSimplesSerializer,
     LoteSimplesSerializer,
 )
+from sme_terceirizadas.terceirizada.models import Edital
 
 
 class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
     tipo_unidade = TipoUnidadeEscolarSerializer()
     criado_por = UsuarioSerializer()
+    edital = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Edital.objects.all()
+    )
+    edital_numero = serializers.CharField(source="edital.numero")
 
     class Meta:
         model = DiaSobremesaDoce
@@ -124,6 +136,15 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
             "id",
             "criado_por",
         )
+
+
+class SolicitacaoMedicaoInicialLancadaSerializer(serializers.ModelSerializer):
+    escola = serializers.CharField(source="escola.nome")
+    escola_uuid = serializers.CharField(source="escola.uuid")
+
+    class Meta:
+        model = SolicitacaoMedicaoInicial
+        fields = ("uuid", "mes", "ano", "escola", "escola_uuid")
 
 
 class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
@@ -276,12 +297,39 @@ class ClausulaDeDescontoSerializer(serializers.ModelSerializer):
         exclude = ("id", "criado_em", "alterado_em")
 
 
+class ParametrizacaoFinanceiraTabelaValorSerializer(serializers.ModelSerializer):
+    faixa_etaria = FaixaEtariaSerializer()
+    tipo_alimentacao = TipoAlimentacaoSerializer()
+
+    class Meta:
+        model = ParametrizacaoFinanceiraTabelaValor
+        fields = ["faixa_etaria", "tipo_alimentacao", "grupo", "valor_colunas"]
+
+
+class ParametrizacaoFinanceiraTabelaSerializer(serializers.ModelSerializer):
+    valores = ParametrizacaoFinanceiraTabelaValorSerializer(many=True)
+
+    class Meta:
+        model = ParametrizacaoFinanceiraTabela
+        fields = ["nome", "valores"]
+
+
 class ParametrizacaoFinanceiraSerializer(serializers.ModelSerializer):
     edital = EditalSimplesSerializer()
     dre = serializers.CharField(source="lote.diretoria_regional.nome")
     lote = LoteSimplesSerializer()
     tipos_unidades = TipoUnidadeEscolarSimplesSerializer(many=True)
+    tabelas = ParametrizacaoFinanceiraTabelaSerializer(many=True)
 
     class Meta:
         model = ParametrizacaoFinanceira
+        exclude = ("id", "criado_em", "alterado_em")
+
+
+class RelatorioFinanceiroSerializer(serializers.ModelSerializer):
+    lote = LoteParaFiltroSerializer()
+    grupo_unidade_escolar = GrupoUnidadeEscolarSerializer()
+
+    class Meta:
+        model = RelatorioFinanceiro
         exclude = ("id", "criado_em", "alterado_em")

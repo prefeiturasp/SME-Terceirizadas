@@ -68,8 +68,6 @@ from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm
 from ..models import (
     AnaliseSensorial,
     EmbalagemProduto,
-    TipoRecipiente,
-    TipoAlimento,
     Fabricante,
     HomologacaoProduto,
     ImagemDoProduto,
@@ -83,6 +81,8 @@ from ..models import (
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
     SolicitacaoCadastroProdutoDieta,
+    TipoAlimento,
+    TipoRecipiente,
     UnidadeMedida,
 )
 from ..tasks import (
@@ -105,14 +105,13 @@ from .filters import (
     CadastroProdutosEditalFilter,
     ItemCadastroFilter,
     ProdutoFilter,
+    TipoAlimentoFilter,
+    TipoRecipienteFilter,
     filtros_produto_reclamacoes,
 )
-from .filters import TipoRecipienteFilter, TipoAlimentoFilter
 from .serializers.serializers import (
     CadastroProdutosEditalSerializer,
     EmbalagemProdutoSerialzer,
-    TipoRecipienteSerializer,
-    TipoAlimentoSerializer,
     FabricanteSerializer,
     FabricanteSimplesSerializer,
     HomologacaoProdutoPainelGerencialSerializer,
@@ -140,6 +139,8 @@ from .serializers.serializers import (
     RelatorioProdutosSuspensosSerializer,
     SolicitacaoCadastroProdutoDietaSerializer,
     SubstitutosSerializer,
+    TipoAlimentoSerializer,
+    TipoRecipienteSerializer,
     UnidadeMedidaSerialzer,
     VinculosProdutosEditalAtivosSerializer,
 )
@@ -1286,7 +1287,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                 homologacao_produto.inicia_fluxo(
                     user=log_anterior_pedido_analise.usuario
                 )
-            elif log_anterior_pedido_analise.status_evento == status["CODAE homologou"]:
+            elif homologacao_produto.esta_homologado:
                 homologacao_produto.codae_homologa(
                     user=log_anterior_pedido_analise.usuario,
                     anexos=log_anterior_pedido_analise.anexos.all(),
@@ -3714,11 +3715,11 @@ class EmbalagemProdutoViewSet(viewsets.ModelViewSet):
                 return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'results': serializer.data})
+        return Response({"results": serializer.data})
 
 
 class TipoRecipienteViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     serializer_class = TipoRecipienteSerializer
     pagination_class = CustomPagination
     queryset = TipoRecipiente.objects.all()
@@ -3729,18 +3730,18 @@ class TipoRecipienteViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        if 'page' in request.query_params:
+        if "page" in request.query_params:
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'results': serializer.data})
+        return Response({"results": serializer.data})
 
-    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    @action(detail=False, methods=["GET"], url_path="lista-nomes")
     def lista_de_nomes(self, _):
-        return Response({'results': [item.nome for item in self.queryset.all()]})
+        return Response({"results": [item.nome for item in self.queryset.all()]})
 
     def destroy(self, request, *args, **kwargs):
         instance: TipoRecipiente = self.get_object()
@@ -3748,15 +3749,15 @@ class TipoRecipienteViewSet(viewsets.ModelViewSet):
         if instance.deleta():
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        msg = 'Não será possível realizar a exclusão. Este item contém relacionamentos com Controle de Sobras.'
-        return Response(data={'detail': msg}, status=status.HTTP_403_FORBIDDEN)
+        msg = "Não será possível realizar a exclusão. Este item contém relacionamentos com Controle de Sobras."
+        return Response(data={"detail": msg}, status=status.HTTP_403_FORBIDDEN)
 
     class Meta:
         model = TipoRecipiente
 
 
 class TipoAlimentoViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     serializer_class = TipoAlimentoSerializer
     pagination_class = CustomPagination
     queryset = TipoAlimento.objects.all()
@@ -3767,18 +3768,18 @@ class TipoAlimentoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        if 'page' in request.query_params:
+        if "page" in request.query_params:
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'results': serializer.data})
+        return Response({"results": serializer.data})
 
-    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    @action(detail=False, methods=["GET"], url_path="lista-nomes")
     def lista_de_nomes(self, _):
-        return Response({'results': [item.nome for item in self.queryset.all()]})
+        return Response({"results": [item.nome for item in self.queryset.all()]})
 
     def destroy(self, request, *args, **kwargs):
         instance: TipoAlimento = self.get_object()
@@ -3786,8 +3787,8 @@ class TipoAlimentoViewSet(viewsets.ModelViewSet):
         if instance.deleta():
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        msg = 'Não será possível realizar a exclusão. Este item contém relacionamentos com Controle de Sobras.'
-        return Response(data={'detail': msg}, status=status.HTTP_403_FORBIDDEN)
+        msg = "Não será possível realizar a exclusão. Este item contém relacionamentos com Controle de Sobras."
+        return Response(data={"detail": msg}, status=status.HTTP_403_FORBIDDEN)
 
     class Meta:
         model = TipoAlimento

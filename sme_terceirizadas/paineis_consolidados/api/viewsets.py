@@ -24,6 +24,7 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
     UsuarioCODAERelatorios,
     UsuarioDiretoriaRegional,
+    UsuarioGticCODAE,
     UsuarioNutricionista,
     UsuarioTerceirizada,
 )
@@ -68,10 +69,14 @@ from ..utils.datasets_graficos_relatorio_ga import (
     get_dataset_grafico_total_tipo_solicitacao,
     get_dataset_grafico_total_tipo_unidade,
 )
-from ..utils.totalizadores_relatorio_ga import (
+from ..utils.totalizadores_relatorio import (
+    totalizador_cei_polo_recreio_ferias,
+    totalizador_classificacao_dieta,
     totalizador_lote,
     totalizador_periodo,
     totalizador_rede_municipal,
+    totalizador_relacao_diagnostico,
+    totalizador_tipo_de_gestao,
     totalizador_tipo_solicitacao,
     totalizador_tipo_unidade,
     totalizador_total,
@@ -241,6 +246,11 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         list_cards_totalizadores = []
 
         status = request.data.get("status", None)
+        eh_relatorio_dietas_autorizadas = request.data.get(
+            "relatorio_dietas_autorizadas", None
+        )
+        if eh_relatorio_dietas_autorizadas:
+            status = "DIETAS_AUTORIZADAS"
         instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
         queryset = model.map_queryset_por_status(
             status, instituicao_uuid=instituicao_uuid
@@ -249,29 +259,111 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         list_cards_totalizadores = totalizador_rede_municipal(
             request, queryset, list_cards_totalizadores
         )
-        list_cards_totalizadores = totalizador_total(
-            request, model, queryset, list_cards_totalizadores
-        )
-        list_cards_totalizadores = totalizador_periodo(
-            request, model, queryset, list_cards_totalizadores
-        )
-        list_cards_totalizadores = totalizador_lote(
-            request, model, queryset, list_cards_totalizadores
-        )
-        list_cards_totalizadores = totalizador_tipo_solicitacao(
-            request, model, queryset, list_cards_totalizadores
-        )
-        list_cards_totalizadores = totalizador_tipo_unidade(
-            request, model, queryset, list_cards_totalizadores
-        )
-        list_cards_totalizadores = totalizador_unidade_educacional(
-            request, model, queryset, list_cards_totalizadores
-        )
+        if eh_relatorio_dietas_autorizadas:
+            cei_polo = request.data.get("cei_polo", False)
+            recreio_nas_ferias = request.data.get("recreio_nas_ferias", False)
+            if cei_polo and recreio_nas_ferias:
+                for string_polo_ou_recreio in ["polo", "recreio"]:
+                    list_cards_totalizadores = totalizador_cei_polo_recreio_ferias(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_lote(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_unidade_educacional(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_tipo_de_gestao(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_tipo_unidade(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_classificacao_dieta(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+                    list_cards_totalizadores = totalizador_relacao_diagnostico(
+                        request,
+                        model,
+                        queryset,
+                        list_cards_totalizadores,
+                        string_polo_ou_recreio,
+                    )
+            else:
+                list_cards_totalizadores = totalizador_cei_polo_recreio_ferias(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_lote(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_unidade_educacional(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_tipo_de_gestao(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_tipo_unidade(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_classificacao_dieta(
+                    request, model, queryset, list_cards_totalizadores
+                )
+                list_cards_totalizadores = totalizador_relacao_diagnostico(
+                    request, model, queryset, list_cards_totalizadores
+                )
+        else:
+            list_cards_totalizadores = totalizador_total(
+                request, model, queryset, list_cards_totalizadores
+            )
+            list_cards_totalizadores = totalizador_periodo(
+                request, model, queryset, list_cards_totalizadores
+            )
+            list_cards_totalizadores = totalizador_lote(
+                request, model, queryset, list_cards_totalizadores
+            )
+            list_cards_totalizadores = totalizador_tipo_solicitacao(
+                request, model, queryset, list_cards_totalizadores
+            )
+            list_cards_totalizadores = totalizador_tipo_unidade(
+                request, model, queryset, list_cards_totalizadores
+            )
+            list_cards_totalizadores = totalizador_unidade_educacional(
+                request, model, queryset, list_cards_totalizadores
+            )
 
         return list_cards_totalizadores
 
     def filtrar_solicitacoes_para_relatorio_graficos(self, request, instituicao, model):
         status = request.data.get("status", None)
+        eh_relatorio_dietas_autorizadas = request.data.get(
+            "relatorio_dietas_autorizadas", None
+        )
+        if eh_relatorio_dietas_autorizadas:
+            status = "DIETAS_AUTORIZADAS"
         instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
         queryset = model.map_queryset_por_status(
             status, instituicao_uuid=instituicao_uuid
@@ -279,21 +371,31 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
         datasets = []
 
-        datasets = get_dataset_grafico_total_dre_lote(
-            datasets, request, model, instituicao, queryset
-        )
-        datasets = get_dataset_grafico_total_tipo_solicitacao(
-            datasets, request, model, queryset
-        )
-        datasets = get_dataset_grafico_total_status(
-            datasets, request, model, instituicao
-        )
-        datasets = get_dataset_grafico_total_tipo_unidade(
-            datasets, request, model, instituicao, queryset
-        )
-        datasets = get_dataset_grafico_total_terceirizadas(
-            datasets, request, model, instituicao, queryset
-        )
+        if eh_relatorio_dietas_autorizadas:
+            datasets = get_dataset_grafico_total_dre_lote(
+                datasets,
+                request,
+                model,
+                instituicao,
+                queryset,
+                eh_relatorio_dietas_autorizadas,
+            )
+        else:
+            datasets = get_dataset_grafico_total_dre_lote(
+                datasets, request, model, instituicao, queryset
+            )
+            datasets = get_dataset_grafico_total_tipo_solicitacao(
+                datasets, request, model, queryset
+            )
+            datasets = get_dataset_grafico_total_status(
+                datasets, request, model, instituicao
+            )
+            datasets = get_dataset_grafico_total_tipo_unidade(
+                datasets, request, model, instituicao, queryset
+            )
+            datasets = get_dataset_grafico_total_terceirizadas(
+                datasets, request, model, instituicao, queryset
+            )
 
         return datasets
 
@@ -357,10 +459,10 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=False,
         methods=["POST"],
-        url_path="filtrar-solicitacoes-ga-cards-totalizadores",
+        url_path="filtrar-solicitacoes-cards-totalizadores",
         permission_classes=(IsAuthenticated,),
     )
-    def filtrar_solicitacoes_ga_cards_totalizadores(self, request):
+    def filtrar_solicitacoes_cards_totalizadores(self, request):
         # queryset por status
         instituicao = request.user.vinculo_atual.instituicao
 
@@ -377,10 +479,10 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=False,
         methods=["POST"],
-        url_path="filtrar-solicitacoes-ga-graficos",
+        url_path="filtrar-solicitacoes-graficos",
         permission_classes=(IsAuthenticated,),
     )
-    def filtrar_solicitacoes_ga_graficos(self, request):
+    def filtrar_solicitacoes_graficos(self, request):
         # queryset por status
         instituicao = request.user.vinculo_atual.instituicao
         dataset = self.filtrar_solicitacoes_para_relatorio_graficos(
@@ -451,7 +553,9 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=[UsuarioCODAEDietaEspecial | UsuarioCODAERelatorios],
+        permission_classes=[
+            UsuarioCODAEDietaEspecial | UsuarioGticCODAE | UsuarioCODAERelatorios
+        ],
         url_name="anos-com-dietas",
         url_path="anos-com-dietas",
     )
@@ -469,7 +573,9 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=[UsuarioCODAEDietaEspecial | UsuarioCODAERelatorios],
+        permission_classes=[
+            UsuarioCODAEDietaEspecial | UsuarioGticCODAE | UsuarioCODAERelatorios
+        ],
         url_name="totais-gerencial-dietas",
         url_path="totais-gerencial-dietas",
     )
