@@ -610,7 +610,8 @@ class ControleRestosCreateSerializer(serializers.Serializer):
     quantidade_distribuida = serializers.CharField(required=True)
     data_hora_medicao = serializers.DateTimeField(required=True)
     imagens = serializers.ListField(
-        child=ImagemControleRestoCreateSerializer(), required=True
+        required=False,
+        child=ImagemControleRestoCreateSerializer()
     )
 
     def create(self, validated_data):
