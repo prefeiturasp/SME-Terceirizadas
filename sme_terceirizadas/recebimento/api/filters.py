@@ -14,3 +14,26 @@ class QuestoesPorProdutoFilter(filters.FilterSet):
             Q(questoes_primarias__questao=value)
             | Q(questoes_secundarias__questao=value)
         ).distinct()
+
+
+class FichaRecebimentoFilter(filters.FilterSet):
+    numero_cronograma = filters.CharFilter(
+        field_name="etapa__cronograma__numero",
+        lookup_expr="icontains",
+    )
+    nome_produto = filters.CharFilter(
+        field_name="etapa__cronograma__ficha_tecnica__produto__nome",
+        lookup_expr="icontains",
+    )
+    nome_empresa = filters.CharFilter(
+        field_name="etapa__cronograma__empresa__nome_fantasia",
+        lookup_expr="icontains",
+    )
+    data_inicial = filters.DateFilter(
+        field_name="data_entrega",
+        lookup_expr="gte",
+    )
+    data_final = filters.DateFilter(
+        field_name="data_entrega",
+        lookup_expr="lte",
+    )

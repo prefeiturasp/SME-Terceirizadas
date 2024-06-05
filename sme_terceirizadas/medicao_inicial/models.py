@@ -22,6 +22,7 @@ from ..dados_comuns.behaviors import (
     TemSemana,
 )
 from ..dados_comuns.fluxo_status import (
+    FluxoRelatorioFinanceiroMedicaoInicial,
     FluxoSolicitacaoMedicaoInicial,
     LogSolicitacoesUsuario,
 )
@@ -90,6 +91,13 @@ class SolicitacaoMedicaoInicial(
         "perfil.Usuario",
         on_delete=models.SET_NULL,
         related_name="solicitacoes_medicao_ciencia_correcao",
+        blank=True,
+        null=True,
+    )
+    relatorio_financeiro = models.ForeignKey(
+        "RelatorioFinanceiro",
+        on_delete=models.SET_NULL,
+        related_name="solicitacoes_medicao_inicial",
         blank=True,
         null=True,
     )
@@ -610,3 +618,37 @@ class ParametrizacaoFinanceiraTabelaValor(TemChaveExterna, CriadoEm, TemAlterado
         verbose_name = "Parametrização Financeira Tabela Valor"
         verbose_name_plural = "Parametrizações Financeiras Tabelas Valores"
         unique_together = ("tabela", "tipo_alimentacao", "grupo")
+
+
+class RelatorioFinanceiro(
+    TemMes,
+    TemAno,
+    FluxoRelatorioFinanceiroMedicaoInicial,
+    TemChaveExterna,
+    CriadoEm,
+    TemAlteradoEm,
+):
+    grupo_unidade_escolar = models.ForeignKey(
+        "escola.GrupoUnidadeEscolar",
+        on_delete=models.PROTECT,
+        related_name="relatorios_financeiros",
+    )
+    lote = models.ForeignKey(
+        "escola.Lote",
+        related_name="relatorios_financeiros",
+        on_delete=models.PROTECT,
+    )
+
+    def __str__(self):
+        unidades = ", ".join(
+            self.grupo_unidade_escolar.tipos_unidades.all().values_list(
+                "iniciais", flat=True
+            )
+        )
+        return f"{self.mes} / {self.ano} | Unidades {unidades} | Lote {self.lote} | Status {self.status}"
+
+    class Meta:
+        verbose_name = "Relatório Financeiro"
+        verbose_name_plural = "Relatórios Financeiros"
+        ordering = ["-alterado_em"]
+        unique_together = ("grupo_unidade_escolar", "lote", "mes", "ano")

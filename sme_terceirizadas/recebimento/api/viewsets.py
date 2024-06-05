@@ -5,12 +5,14 @@ from rest_framework.response import Response
 
 from ...dados_comuns.api.paginations import DefaultPagination
 from ..models import FichaDeRecebimento, QuestaoConferencia, QuestoesPorProduto
-from .filters import QuestoesPorProdutoFilter
+from .filters import FichaRecebimentoFilter, QuestoesPorProdutoFilter
 from .permissions import (
     PermissaoParaCadastrarFichaRecebimento,
+    PermissaoParaVisualizarFichaRecebimento,
     PermissaoParaVisualizarQuestoesConferencia,
 )
 from .serializers.serializers import (
+    FichaDeRecebimentoSerializer,
     QuestaoConferenciaSerializer,
     QuestaoConferenciaSimplesSerializer,
     QuestoesPorProdutoSerializer,
@@ -83,3 +85,13 @@ class FichaDeRecebimentoRascunhoViewSet(
     serializer_class = FichaDeRecebimentoRascunhoSerializer
     queryset = FichaDeRecebimento.objects.all().order_by("-criado_em")
     permission_classes = (PermissaoParaCadastrarFichaRecebimento,)
+
+
+class FichaRecebimentoModelViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    lookup_field = "uuid"
+    serializer_class = FichaDeRecebimentoSerializer
+    queryset = FichaDeRecebimento.objects.all().order_by("-criado_em")
+    permission_classes = (PermissaoParaVisualizarFichaRecebimento,)
+    pagination_class = DefaultPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = FichaRecebimentoFilter

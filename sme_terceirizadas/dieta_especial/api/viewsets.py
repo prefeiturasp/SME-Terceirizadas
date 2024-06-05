@@ -916,8 +916,8 @@ class SolicitacaoDietaEspecialViewSet(
         query_set = self.filter_queryset(self.get_queryset())
 
         lotes_filtro = request.query_params.getlist("lotes_selecionados[]", None)
+        instituicao = request.user.vinculo_atual.instituicao
         if not lotes_filtro:
-            instituicao = request.user.vinculo_atual.instituicao
             if isinstance(instituicao, DiretoriaRegional):
                 lotes_list = list(instituicao.lotes.all().values_list("uuid"))
                 lotes_filtro = [str(u[0]) for u in lotes_list]

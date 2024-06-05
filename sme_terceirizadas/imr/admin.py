@@ -249,12 +249,13 @@ class PerfisFilter(admin.SimpleListFilter):
 
 @admin.register(ParametrizacaoOcorrencia)
 class ParametrizacaoAdmin(admin.ModelAdmin):
-    list_display = ("edital", "titulo", "tipo_pergunta", "perfis")
+    list_display = ("tipo_ocorrencia", "edital", "posicao", "titulo", "tipo_pergunta", "perfis")
     ordering = ("criado_em",)
     search_fields = ("edital__numero", "titulo")
     search_help_text = "Pesquise por: número do edital, título"
-    list_filter = ("tipo_ocorrencia__edital", PerfisFilter)
+    list_filter = ("tipo_ocorrencia", "tipo_ocorrencia__edital", PerfisFilter)
     autocomplete_fields = ("tipo_ocorrencia",)
+    readonly_fields = ("uuid", )
 
     def edital(self, obj):
         return obj.tipo_ocorrencia.edital.numero

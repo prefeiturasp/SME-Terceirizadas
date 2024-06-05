@@ -208,6 +208,8 @@ class Usuario(
         "Nutricionista crn", max_length=160, blank=True, null=True
     )  # noqa DJ01
 
+    aceitou_termos = models.BooleanField(default=False)
+
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []  # type: ignore
 

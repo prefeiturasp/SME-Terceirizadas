@@ -1,6 +1,8 @@
-import pytest
 import datetime
+
+import pytest
 from model_mommy import mommy
+
 from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.imr.models import PerfilDiretorSupervisao
 
@@ -66,30 +68,52 @@ def client_autenticado_vinculo_coordenador_supervisao_nutricao(
 
 
 @pytest.fixture
+def client_autenticado_diretor_escola(client, django_user_model, escola):
+    email = "user@escola.com"
+    password = constants.DJANGO_ADMIN_PASSWORD
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
+    usuario = django_user_model.objects.create_user(
+        username=email,
+        password=password,
+        email=email,
+        registro_funcional="123456",
+    )
+    hoje = datetime.date.today()
+    mommy.make(
+        "Vinculo",
+        usuario=usuario,
+        instituicao=escola,
+        perfil=perfil_diretor,
+        data_inicial=hoje,
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return {"client": client, "user": usuario}
+
+
+@pytest.fixture
 def tipo_ocorrencia_nutrisupervisor_com_parametrizacao(
     edital_factory,
     categoria_ocorrencia_factory,
     tipo_ocorrencia_factory,
     parametrizacao_ocorrencia_factory,
-    obrigacao_penalidade_factory
+    obrigacao_penalidade_factory,
 ):
     edital = edital_factory.create(eh_imr=True)
 
-    categoria = categoria_ocorrencia_factory.create(perfis=[PerfilDiretorSupervisao.SUPERVISAO])
+    categoria = categoria_ocorrencia_factory.create(
+        perfis=[PerfilDiretorSupervisao.SUPERVISAO]
+    )
 
     tipo_ocorrencia = tipo_ocorrencia_factory.create(
         edital=edital,
-        descricao='Ocorrencia 1',
+        descricao="Ocorrencia 1",
         perfis=[PerfilDiretorSupervisao.SUPERVISAO],
-        categoria=categoria
+        categoria=categoria,
     )
 
-    obrigacao_penalidade_factory.create(
-        tipo_penalidade=tipo_ocorrencia.penalidade
-    )
+    obrigacao_penalidade_factory.create(tipo_penalidade=tipo_ocorrencia.penalidade)
 
-    parametrizacao_ocorrencia_factory.create(
-        tipo_ocorrencia=tipo_ocorrencia
-    )
+    parametrizacao_ocorrencia_factory.create(tipo_ocorrencia=tipo_ocorrencia)
 
     return tipo_ocorrencia

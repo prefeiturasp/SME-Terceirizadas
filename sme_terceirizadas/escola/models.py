@@ -50,6 +50,7 @@ from ..dados_comuns.constants import (
 from ..dados_comuns.fluxo_status import (
     FluxoAprovacaoPartindoDaEscola,
     FluxoDietaEspecialPartindoDaEscola,
+    SolicitacaoMedicaoInicialWorkflow,
 )
 from ..dados_comuns.utils import (
     datetime_range,
@@ -462,6 +463,9 @@ class Escola(
     TemVinculos,
     AcessoModuloMedicaoInicial,
 ):
+    acesso_desde = models.DateField(
+        "Acesso módulo medição desde", null=True, blank=True
+    )
     nome = models.CharField("Nome", max_length=160, blank=True)
     codigo_eol = models.CharField(
         "Código EOL", max_length=6, unique=True, validators=[MinLengthValidator(6)]
@@ -2015,6 +2019,30 @@ class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
 
 class GrupoUnidadeEscolar(TemChaveExterna, Nomeavel):
     tipos_unidades = models.ManyToManyField(TipoUnidadeEscolar, blank=True)
+
+    def todas_solicitacoes_medicao_do_grupo_aprovadas_codae(self, data, lote_uuid):
+        from ..medicao_inicial.models import SolicitacaoMedicaoInicial
+
+        escolas = Escola.objects.filter(
+            tipo_unidade__in=self.tipos_unidades.all(),
+            lote__uuid=lote_uuid,
+            acesso_modulo_medicao_inicial=True,
+            acesso_desde__lte=data,
+        )
+        solicitacoes_medicao_inicial = SolicitacaoMedicaoInicial.objects.filter(
+            escola__tipo_unidade__in=self.tipos_unidades.all(),
+            escola__lote__uuid=lote_uuid,
+            escola__acesso_modulo_medicao_inicial=True,
+            escola__acesso_desde__lte=data,
+            mes=f"{data.month:02d}",
+            ano=data.year,
+            status=SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE,
+        )
+        todas_solicitacoes_aprovadas_codae = (
+            solicitacoes_medicao_inicial.exists()
+            and escolas.count() == solicitacoes_medicao_inicial.count()
+        )
+        return todas_solicitacoes_aprovadas_codae, solicitacoes_medicao_inicial
 
     def __str__(self):
         return self.nome

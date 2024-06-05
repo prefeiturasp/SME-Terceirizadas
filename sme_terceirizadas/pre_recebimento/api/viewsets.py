@@ -1134,7 +1134,7 @@ class DocumentoDeRecebimentoModelViewSet(
         detail=True,
         methods=["GET"],
         url_path="download-laudo-assinado",
-        permission_classes=(UsuarioEhFornecedor,),
+        permission_classes=(PermissaoParaVisualizarDocumentosDeRecebimento,),
     )
     def download_laudo_assinado(self, request, uuid):
         doc_recebimento = self.get_object()
