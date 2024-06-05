@@ -1543,11 +1543,68 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             )
         return alt
 
+    def alteracoes_lanche_emergencial(
+        self,
+        eh_lanche_emergencial,
+        alteracao,
+        alteracao_alimentacao,
+        mes,
+        ano,
+        return_dict,
+    ):
+        if eh_lanche_emergencial == "true":
+            for data_evento in alteracao.datas_intervalo.filter(
+                data__month=mes, data__year=ano, cancelado=False
+            ):
+                return_dict.append(
+                    {
+                        "dia": f"{data_evento.data.day:02d}",
+                        "numero_alunos": get_numero_alunos_alteracao_alimentacao(
+                            alteracao
+                        ),
+                        "inclusao_id_externo": alteracao.id_externo,
+                        "motivo": alteracao_alimentacao.motivo,
+                    }
+                )
+        return return_dict
+
+    def alteracoes_RPL_LPR(
+        self,
+        eh_lanche_emergencial,
+        alteracao,
+        alteracao_alimentacao,
+        nome_periodo_escolar,
+        mes,
+        ano,
+        return_dict,
+    ):
+        if eh_lanche_emergencial != "true":
+            alt = self.get_alteracao_obj(alteracao, nome_periodo_escolar)
+            if alt:
+                for data_evento in alteracao.datas_intervalo.filter(
+                    data__month=mes, data__year=ano, cancelado=False
+                ):
+                    return_dict.append(
+                        {
+                            "dia": f"{data_evento.data.day:02d}",
+                            "periodo": nome_periodo_escolar,
+                            "numero_alunos": alt.qtd_alunos,
+                            "inclusao_id_externo": alteracao.id_externo,
+                            "motivo": alteracao_alimentacao.motivo,
+                        }
+                    )
+        return return_dict
+
     @action(
         detail=False, methods=["GET"], url_path=f"{ALTERACOES_ALIMENTACAO_AUTORIZADAS}"
     )
     def alteracoes_alimentacoes_autorizadas(self, request):
         escola_uuid = request.query_params.get("escola_uuid")
+        escola = Escola.objects.get(uuid=escola_uuid)
+
+        if escola.eh_cei:
+            return Response({"results": []}, status=status.HTTP_200_OK)
+
         mes = request.query_params.get("mes")
         ano = request.query_params.get("ano")
         nome_periodo_escolar = request.query_params.get("nome_periodo_escolar")
@@ -1567,35 +1624,24 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             alteracao = alteracao_alimentacao.get_raw_model.objects.get(
                 uuid=alteracao_alimentacao.uuid
             )
-            if eh_lanche_emergencial == "true":
-                for data_evento in alteracao.datas_intervalo.filter(
-                    data__month=mes, data__year=ano, cancelado=False
-                ):
-                    return_dict.append(
-                        {
-                            "dia": f"{data_evento.data.day:02d}",
-                            "numero_alunos": get_numero_alunos_alteracao_alimentacao(
-                                alteracao
-                            ),
-                            "inclusao_id_externo": alteracao.id_externo,
-                            "motivo": alteracao_alimentacao.motivo,
-                        }
-                    )
-            else:
-                alt = self.get_alteracao_obj(alteracao, nome_periodo_escolar)
-                if alt:
-                    for data_evento in alteracao.datas_intervalo.filter(
-                        data__month=mes, data__year=ano, cancelado=False
-                    ):
-                        return_dict.append(
-                            {
-                                "dia": f"{data_evento.data.day:02d}",
-                                "periodo": nome_periodo_escolar,
-                                "numero_alunos": alt.qtd_alunos,
-                                "inclusao_id_externo": alteracao.id_externo,
-                                "motivo": alteracao_alimentacao.motivo,
-                            }
-                        )
+            return_dict = self.alteracoes_lanche_emergencial(
+                eh_lanche_emergencial,
+                alteracao,
+                alteracao_alimentacao,
+                mes,
+                ano,
+                return_dict,
+            )
+            return_dict = self.alteracoes_RPL_LPR(
+                eh_lanche_emergencial,
+                alteracao,
+                alteracao_alimentacao,
+                nome_periodo_escolar,
+                mes,
+                ano,
+                return_dict,
+            )
+
         data = {"results": return_dict}
 
         return Response(data)
