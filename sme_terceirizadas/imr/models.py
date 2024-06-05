@@ -127,6 +127,18 @@ class TipoOcorrenciaParaNutriSupervisor(models.Manager):
         )
 
 
+class TipoOcorrenciaParaDiretor(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                perfis__contains=[PerfilDiretorSupervisao.DIRETOR],
+                categoria__perfis__contains=[PerfilDiretorSupervisao.DIRETOR],
+            )
+        )
+
+
 class TipoOcorrencia(
     ModeloBase, CriadoPor, Posicao, PerfilDiretorSupervisao, StatusAtivoInativo
 ):
@@ -176,6 +188,7 @@ class TipoOcorrencia(
     )
 
     objects = models.Manager()
+    para_diretores = TipoOcorrenciaParaDiretor()
     para_nutrisupervisores = TipoOcorrenciaParaNutriSupervisor()
 
     def __str__(self):
@@ -243,7 +256,7 @@ class TipoPerguntaParametrizacaoOcorrencia(ModeloBase, Nomeavel):
     )
 
     def get_model_tipo_resposta(self):
-        return apps.get_model("imr", self.tipo_resposta)
+        return apps.get_model("imr", self.tipo_resposta.nome)
 
     def __str__(self):
         return f"{self.nome}"
@@ -267,7 +280,7 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
     )
 
     def __str__(self):
-        return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao}"
+        return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao} - {self.titulo}"
 
     class Meta:
         verbose_name = "Parametrização de Tipo de Ocorrência"
@@ -315,6 +328,7 @@ class AnexosFormularioBase(ModeloBase):
                     "PDF",
                     "XLS",
                     "XLSX",
+                    "XLSM",
                     "DOC",
                     "DOCX",
                     "PNG",
@@ -325,6 +339,7 @@ class AnexosFormularioBase(ModeloBase):
             validate_file_size_10mb,
         ],
     )
+    nome = models.CharField(max_length=200, null=True, blank=True)
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase, on_delete=models.CASCADE, related_name="anexos"
     )

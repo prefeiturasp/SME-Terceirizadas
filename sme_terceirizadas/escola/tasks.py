@@ -46,6 +46,7 @@ from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_file
 from .utils import (
     calendario_sgp,
+    ordenar_alunos_matriculados,
     registro_quantidade_alunos_matriculados_por_escola_periodo,
 )
 from .utils_montar_planilha_matriculados import build_xlsx_alunos_matriculados
@@ -296,12 +297,13 @@ def gera_pdf_relatorio_alunos_matriculados_async(user, nome_arquivo, uuids):
         queryset = []
         alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(
             uuid__in=uuids
-        ).order_by("escola__nome")
+        )
+        alunos_matriculados_ordenados = ordenar_alunos_matriculados(alunos_matriculados)
         fxs = [
             {"nome": faixa.__str__(), "uuid": str(faixa.uuid)}
             for faixa in FaixaEtaria.objects.filter(ativo=True)
         ]
-        for matriculados in alunos_matriculados:
+        for matriculados in alunos_matriculados_ordenados:
             queryset.append(matriculados.formata_para_relatorio())
         dados = {
             "faixas_etarias": fxs,
@@ -330,12 +332,13 @@ def gera_xlsx_relatorio_alunos_matriculados_async(user, nome_arquivo, uuids):
         queryset = []
         alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(
             uuid__in=uuids
-        ).order_by("escola__nome")
+        )
+        alunos_matriculados_ordenados = ordenar_alunos_matriculados(alunos_matriculados)
         fxs = [
             {"nome": faixa.__str__(), "uuid": str(faixa.uuid)}
             for faixa in FaixaEtaria.objects.filter(ativo=True)
         ]
-        for matriculados in alunos_matriculados:
+        for matriculados in alunos_matriculados_ordenados:
             queryset.append(matriculados.formata_para_relatorio())
         dados = {
             "faixas_etarias": fxs,

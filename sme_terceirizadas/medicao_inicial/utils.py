@@ -9,6 +9,7 @@ from functools import reduce
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import IntegerField, Sum
 from django.db.models.functions import Cast
+from django.db.utils import IntegrityError
 
 from sme_terceirizadas.dados_comuns.constants import (
     MAX_COLUNAS,
@@ -26,9 +27,12 @@ from sme_terceirizadas.dieta_especial.models import (
 )
 from sme_terceirizadas.escola.models import (
     DiaCalendario,
+    Escola,
     FaixaEtaria,
+    GrupoUnidadeEscolar,
     LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
+    Lote,
     PeriodoEscolar,
 )
 from sme_terceirizadas.escola.utils import string_to_faixa
@@ -38,6 +42,7 @@ from sme_terceirizadas.inclusao_alimentacao.models import (
 )
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
+    RelatorioFinanceiro,
     SolicitacaoMedicaoInicial,
     ValorMedicao,
 )
@@ -4488,3 +4493,34 @@ def get_pdf_merge_cabecalho(
         page.mergePage(pdf_cabecalho_relatorio_controle_frequencia.getPage(0))
         pdf_writer.addPage(page)
     return pdf_writer
+
+
+def cria_relatorios_financeiros_por_grupo_unidade_escolar(data):
+    for grupo in GrupoUnidadeEscolar.objects.all():
+        lotes_uuid = list(
+            set(
+                Escola.objects.filter(
+                    tipo_unidade__in=grupo.tipos_unidades.all(),
+                    acesso_modulo_medicao_inicial=True,
+                ).values_list("lote__uuid", flat=True)
+            )
+        )
+        for lote_uuid in lotes_uuid:
+            (
+                todas_solicitacoes_aprovadas_codae,
+                solicitacoes,
+            ) = grupo.todas_solicitacoes_medicao_do_grupo_aprovadas_codae(
+                data, lote_uuid
+            )
+            if todas_solicitacoes_aprovadas_codae:
+                try:
+                    relatorio_financeiro = RelatorioFinanceiro.objects.create(
+                        grupo_unidade_escolar=grupo,
+                        lote=Lote.objects.get(uuid=lote_uuid),
+                        mes=f"{data.month:02d}",
+                        ano=f"{data.year}",
+                    )
+                    solicitacoes.update(relatorio_financeiro=relatorio_financeiro)
+                except IntegrityError as e:
+                    print(e)
+                    continue

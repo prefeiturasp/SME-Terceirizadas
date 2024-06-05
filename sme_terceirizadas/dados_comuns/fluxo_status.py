@@ -5507,3 +5507,23 @@ class FluxoFormularioSupervisao(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class RelatorioFinanceiroMedicaoInicialWorkflow(xwf_models.Workflow):
+    log_model = ""  # Disable logging to database
+
+    EM_ANALISE = "EM_ANALISE"
+
+    states = ((EM_ANALISE, "Em análise"),)
+
+    transitions = ()
+
+    initial_state = EM_ANALISE
+
+
+class FluxoRelatorioFinanceiroMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = RelatorioFinanceiroMedicaoInicialWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    class Meta:
+        abstract = True

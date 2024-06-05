@@ -75,10 +75,12 @@ class EditalSerializer(serializers.ModelSerializer):
 
 class ContratoEditalSerializer(serializers.ModelSerializer):
     edital = serializers.CharField(source="edital.uuid")
+    edital_numero = serializers.CharField(source="edital.numero")
+    eh_imr = serializers.BooleanField(source="edital.eh_imr")
 
     class Meta:
         model = Contrato
-        fields = ("edital", "encerrado")
+        fields = ("uuid", "edital", "edital_numero", "eh_imr", "encerrado")
 
 
 class ContratoSimplesSerializer(serializers.ModelSerializer):
@@ -103,7 +105,11 @@ class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
 class TerceirizadaLookUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terceirizada
-        fields = ("uuid", "razao_social")
+        fields = (
+            "uuid",
+            "nome_fantasia",
+            "razao_social",
+        )
 
 
 class ContratoSerializer(serializers.ModelSerializer):

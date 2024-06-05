@@ -111,6 +111,7 @@ channels-redis = "==4.0.0"
 daphne = "==4.1.0"
 drf-spectacular = "==0.26.3"
 cerberus = "*"
+coverage-badge = "==1.1.1"
 
 [requires]
 python_version = "3.11.7"
