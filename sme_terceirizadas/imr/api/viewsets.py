@@ -35,6 +35,7 @@ from .serializers.serializers import (
 from .serializers.serializers_create import (
     FormularioDiretorManyCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
+    FormularioSupervisaoCreateSerializer
 )
 
 
@@ -51,6 +52,16 @@ class PeriodoVisitaModelViewSet(
 
 
 class FormularioSupervisaoRascunhoModelViewSet(
+    mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
+    lookup_field = "uuid"
+    queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
+    permission_classes = (UsuarioCODAENutriSupervisao,)
+    serializer_class = FormularioSupervisaoRascunhoCreateSerializer
+    pagination_class = DefaultPagination
+
+
+class FormularioSupervisaoModelViewSet(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
@@ -65,7 +76,7 @@ class FormularioSupervisaoRascunhoModelViewSet(
         return {
             "list": FormularioSupervisaoSerializer,
             "retrieve": FormularioSupervisaoSerializer,
-        }.get(self.action, FormularioSupervisaoRascunhoCreateSerializer)
+        }.get(self.action, FormularioSupervisaoCreateSerializer)
 
     @action(
         detail=False,
