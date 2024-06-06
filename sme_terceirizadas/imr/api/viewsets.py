@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -21,9 +22,11 @@ from ..models import (
     UtensilioCozinha,
     UtensilioMesa,
 )
+from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
     EquipamentoSerializer,
     FormularioSupervisaoSerializer,
+    FormularioSupervisaoSimplesSerializer,
     InsumoSerializer,
     MobiliarioSerializer,
     PeriodoVisitaSerializer,
@@ -34,8 +37,8 @@ from .serializers.serializers import (
 )
 from .serializers.serializers_create import (
     FormularioDiretorManyCreateSerializer,
+    FormularioSupervisaoCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
-    FormularioSupervisaoCreateSerializer
 )
 
 
@@ -62,19 +65,19 @@ class FormularioSupervisaoRascunhoModelViewSet(
 
 
 class FormularioSupervisaoModelViewSet(
-    mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet,
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
 ):
     lookup_field = "uuid"
     queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
     permission_classes = (UsuarioCODAENutriSupervisao,)
     serializer_class = FormularioSupervisaoSerializer
     pagination_class = DefaultPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = FormularioSupervisaoFilter
 
     def get_serializer_class(self):
         return {
-            "list": FormularioSupervisaoSerializer,
+            "list": FormularioSupervisaoSimplesSerializer,
             "retrieve": FormularioSupervisaoSerializer,
         }.get(self.action, FormularioSupervisaoCreateSerializer)
 
