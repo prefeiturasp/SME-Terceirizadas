@@ -2,18 +2,18 @@ from rest_framework import serializers
 
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
+    Equipamento,
     FormularioSupervisao,
+    Insumo,
+    Mobiliario,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
+    ReparoEAdaptacao,
     TipoOcorrencia,
     TipoPenalidade,
     TipoPerguntaParametrizacaoOcorrencia,
     UtensilioCozinha,
     UtensilioMesa,
-    Equipamento,
-    Mobiliario,
-    ReparoEAdaptacao,
-    Insumo
 )
 
 
@@ -94,6 +94,7 @@ class TipoOcorrenciaSerializer(serializers.ModelSerializer):
             "categoria",
             "parametrizacoes",
             "penalidade",
+            "aceita_multiplas_respostas",
         )
 
 
