@@ -36,7 +36,7 @@ def test_formulario_supervisao(
     }
 
     response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
-        f"/imr/formulario-supervisao/",
+        f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -65,7 +65,7 @@ def test_formulario_supervisao_tipo_ocorrencia_nao_existe(
         ],
     }
     response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
-        f"/imr/formulario-supervisao/",
+        f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
