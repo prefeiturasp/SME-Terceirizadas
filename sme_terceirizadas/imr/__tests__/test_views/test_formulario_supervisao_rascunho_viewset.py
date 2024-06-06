@@ -132,3 +132,12 @@ def test_tipos_ocorrencias_edital_UUID_invalido(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     client_autenticado_vinculo_coordenador_supervisao_nutricao.logout()
+
+
+def test_url_lista_formularios_supervisao(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+):
+    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.get(
+        "/imr/formulario-supervisao/"
+    )
+    assert response.status_code == status.HTTP_200_OK
