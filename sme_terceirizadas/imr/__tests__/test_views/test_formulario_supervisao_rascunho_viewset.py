@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import pytest
 from rest_framework import status
@@ -217,3 +218,65 @@ def test_formulario_supervisao_respostas_nao(
     )
     assert instance.respostas_campo_numerico.count() == 1
     assert instance.respostas_campo_numerico.filter(resposta=10).exists() is True
+
+
+def test_formulario_supervisao_erro_parametrizacao_uuid(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    escola,
+    tipo_resposta_modelo_factory,
+    tipo_pergunta_parametrizacao_ocorrencia_factory,
+    tipo_ocorrencia_factory,
+    parametrizacao_ocorrencia_factory,
+):
+    tipo_resposta_campo_simples = tipo_resposta_modelo_factory(
+        nome="RespostaCampoTextoSimples"
+    )
+    tipo_pergunta_parametrizacao_ocorrencia_texto_simples = (
+        tipo_pergunta_parametrizacao_ocorrencia_factory(
+            nome="Campo de Texto Simples", tipo_resposta=tipo_resposta_campo_simples
+        )
+    )
+
+    tipo_ocorrencia_1 = tipo_ocorrencia_factory.create()
+    parametrizacao_ocorrencia_1 = parametrizacao_ocorrencia_factory(
+        tipo_ocorrencia=tipo_ocorrencia_1,
+        tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_texto_simples,
+        titulo="Qual uniforme faltou?",
+    )
+
+    uuid_incorreto = uuid.uuid4()
+
+    payload = {
+        "data": "07/06/2024",
+        "escola": str(escola.uuid),
+        "ocorrencias": [
+            {
+                "grupo": 1,
+                "parametrizacao": str(parametrizacao_ocorrencia_1.uuid),
+                "tipo_ocorrencia": str(tipo_ocorrencia_1.uuid),
+                "resposta": "calça",
+            },
+            {
+                "grupo": 2,
+                "parametrizacao": str(parametrizacao_ocorrencia_1.uuid),
+                "tipo_ocorrencia": str(tipo_ocorrencia_1.uuid),
+                "resposta": "camisa",
+            },
+            {
+                "grupo": 2,
+                "parametrizacao": str(uuid_incorreto),
+                "tipo_ocorrencia": str(tipo_ocorrencia_1.uuid),
+                "resposta": 10,
+            },
+        ],
+    }
+
+    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
+        f"/imr/formulario-supervisao/",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "detail": f"ParametrizacaoOcorrencia com o UUID {str(uuid_incorreto)} não foi encontrada"
+    }

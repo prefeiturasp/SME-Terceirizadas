@@ -1,5 +1,6 @@
 import pytest
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from sme_terceirizadas.imr.api.serializers.serializers_create import (
     FormularioDiretorCreateSerializer,
@@ -81,6 +82,16 @@ def test_serializer_nutri_sem_serializer_class_erro():
         serializer.get_serializer_class_by_name("ModeloNaoExiste")
 
 
+def test_serializer_nutri_validate_erro():
+    with pytest.raises(
+        ValidationError,
+        match="Este campo é obrigatório!",
+    ):
+        data = {}
+        serializer = FormularioSupervisaoRascunhoCreateSerializer()
+        serializer.validate(data)
+
+
 def test_serializer_diretor_sem_serializer_class_erro():
     with pytest.raises(
         ValueError,
@@ -88,3 +99,13 @@ def test_serializer_diretor_sem_serializer_class_erro():
     ):
         serializer = FormularioDiretorCreateSerializer()
         serializer.get_serializer_class_by_name("ModeloNaoExiste")
+
+
+def test_serializer_diretor_validate_erro():
+    with pytest.raises(
+        ValidationError,
+        match="Este campo é obrigatório!",
+    ):
+        data = {}
+        serializer = FormularioDiretorCreateSerializer()
+        serializer.validate(data)
