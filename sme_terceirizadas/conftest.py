@@ -37,6 +37,9 @@ from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
 )
+from .medicao_inicial.fixtures.factories.solicitacao_medicao_inicial_base_factory import (
+    SolicitacaoMedicaoInicialFactory,
+)
 from .pre_recebimento.fixtures.factories.cronograma_factory import (
     CronogramaFactory,
     EtapasDoCronogramaFactory,
@@ -129,6 +132,7 @@ register(PeriodoEscolarFactory)
 register(LogAlunosMatriculadosPeriodoEscolaFactory)
 register(DiretoriaRegionalFactory)
 register(TipoUnidadeEscolarFactory)
+register(SolicitacaoMedicaoInicialFactory)
 
 
 @pytest.fixture
