@@ -4,6 +4,7 @@ from rest_framework import serializers
 from sme_terceirizadas.imr.api.serializers.serializers_create import (
     FormularioDiretorCreateSerializer,
     FormularioDiretorManyCreateSerializer,
+    FormularioSupervisaoRascunhoCreateSerializer,
 )
 
 pytestmark = pytest.mark.django_db
@@ -69,3 +70,21 @@ def test_formulario_diretor_many_create(
     assert serializer.is_valid()
     form_diretor = serializer.save()
     assert form_diretor is not None
+
+
+def test_serializer_nutri_sem_serializer_class_erro():
+    with pytest.raises(
+        ValueError,
+        match="Nenhum serializer encontrado com o nome 'ModeloNaoExiste'",
+    ):
+        serializer = FormularioSupervisaoRascunhoCreateSerializer()
+        serializer.get_serializer_class_by_name("ModeloNaoExiste")
+
+
+def test_serializer_diretor_sem_serializer_class_erro():
+    with pytest.raises(
+        ValueError,
+        match="Nenhum serializer encontrado com o nome 'ModeloNaoExiste'",
+    ):
+        serializer = FormularioDiretorCreateSerializer()
+        serializer.get_serializer_class_by_name("ModeloNaoExiste")
