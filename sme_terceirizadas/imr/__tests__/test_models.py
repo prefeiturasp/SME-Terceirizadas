@@ -5,7 +5,11 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from sme_terceirizadas.imr.admin import FaixaPontuacaoIMRForm, TipoOcorrenciaForm
-from sme_terceirizadas.imr.models import TipoOcorrencia, TipoPenalidade
+from sme_terceirizadas.imr.models import (
+    AnexosFormularioBase,
+    TipoOcorrencia,
+    TipoPenalidade,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -266,3 +270,24 @@ def test_formulario_ocorrencias_base(formulario_ocorrencias_base_factory):
         usuario__nome=nome_usuario, data=data
     )
     assert formulario_ocorrencias_base.__str__() == f"{nome_usuario} - {data}"
+
+
+def test_anexos_formulario_base_instance_model(
+    anexos_formulario_base_factory, formulario_ocorrencias_base_factory
+):
+    nome_usuario = "FULANO DA SILVA"
+    data = "2024-06-10"
+    formulario_ocorrencias_base = formulario_ocorrencias_base_factory.create(
+        usuario__nome=nome_usuario, data=data
+    )
+    anexo = SimpleUploadedFile("anexo.pdf", b"these are the file contents!")
+    anexo_formulario_base = anexos_formulario_base_factory.create(
+        anexo=anexo, formulario_base=formulario_ocorrencias_base
+    )
+    assert (
+        anexo_formulario_base.__str__()
+        == f"{anexo_formulario_base.anexo.name} - {formulario_ocorrencias_base.__str__()}"
+    )
+
+    anexo_formulario_base.delete()
+    assert AnexosFormularioBase.objects.count() == 0

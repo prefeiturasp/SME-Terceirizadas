@@ -16,6 +16,7 @@ from .escola.fixtures.factories.escola_factory import (
     TipoUnidadeEscolarFactory,
 )
 from .imr.fixtures.factories.imr_base_factory import (
+    AnexosFormularioBaseFactory,
     CategoriaOcorrenciaFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
@@ -143,6 +144,7 @@ register(ImportacaoPlanilhaTipoOcorrenciaFactory)
 register(PeriodoVisitaFactory)
 register(UsuarioFactory)
 register(FormularioOcorrenciasBaseFactory)
+register(AnexosFormularioBaseFactory)
 
 
 @pytest.fixture

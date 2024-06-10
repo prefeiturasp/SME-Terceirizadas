@@ -4,6 +4,7 @@ from factory.fuzzy import FuzzyInteger
 from faker import Faker
 
 from sme_terceirizadas.imr.models import (
+    AnexosFormularioBase,
     CategoriaOcorrencia,
     Equipamento,
     FaixaPontuacaoIMR,
@@ -180,3 +181,12 @@ class FormularioOcorrenciasBaseFactory(DjangoModelFactory):
 
     class Meta:
         model = FormularioOcorrenciasBase
+
+
+class AnexosFormularioBaseFactory(DjangoModelFactory):
+    anexo = factory.django.FileField()
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+
+    class Meta:
+        model = AnexosFormularioBase
