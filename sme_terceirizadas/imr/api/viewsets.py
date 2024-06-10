@@ -156,12 +156,34 @@ class UtensilioCozinhaViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
     lookup_field = "uuid"
 
+    def list(self, request, *args, **kwargs):
+        self.queryset = UtensilioCozinha.ativos.all()
+
+        edital_uuid = request.query_params.get("edital_uuid")
+
+        if edital_uuid:
+            self.queryset = self.queryset.filter(editalutensiliocozinha__edital__uuid=edital_uuid).distinct("nome")
+
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response({"results": serializer.data})
+
 
 class UtensilioMesaViewSet(viewsets.ModelViewSet):
     queryset = UtensilioMesa.objects.all()
     serializer_class = UtensilioMesaSerializer
     http_method_names = ["get"]
     lookup_field = "uuid"
+
+    def list(self, request, *args, **kwargs):
+        self.queryset = UtensilioMesa.ativos.all()
+
+        edital_uuid = request.query_params.get("edital_uuid")
+
+        if edital_uuid:
+            self.queryset = self.queryset.filter(editalutensiliomesa__edital__uuid=edital_uuid).distinct("nome")
+
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response({"results": serializer.data})
 
 
 class EquipamentoViewSet(viewsets.ModelViewSet):
@@ -170,12 +192,34 @@ class EquipamentoViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
     lookup_field = "uuid"
 
+    def list(self, request, *args, **kwargs):
+        self.queryset = Equipamento.ativos.all()
+
+        edital_uuid = request.query_params.get("edital_uuid")
+
+        if edital_uuid:
+            self.queryset = self.queryset.filter(editalequipamento__edital__uuid=edital_uuid).distinct("nome")
+
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response({"results": serializer.data})
+
 
 class MobiliarioViewSet(viewsets.ModelViewSet):
     queryset = Mobiliario.objects.all()
     serializer_class = MobiliarioSerializer
     http_method_names = ["get"]
     lookup_field = "uuid"
+
+    def list(self, request, *args, **kwargs):
+        self.queryset = Mobiliario.ativos.all()
+
+        edital_uuid = request.query_params.get("edital_uuid")
+
+        if edital_uuid:
+            self.queryset = self.queryset.filter(editalmobiliario__edital__uuid=edital_uuid).distinct("nome")
+
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response({"results": serializer.data})
 
 
 class ReparoEAdaptacaoViewSet(viewsets.ModelViewSet):
@@ -184,9 +228,31 @@ class ReparoEAdaptacaoViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
     lookup_field = "uuid"
 
+    def list(self, request, *args, **kwargs):
+        self.queryset = ReparoEAdaptacao.ativos.all()
+
+        edital_uuid = request.query_params.get("edital_uuid")
+
+        if edital_uuid:
+            self.queryset = self.queryset.filter(editalreparoeadaptacao__edital__uuid=edital_uuid).distinct("nome")
+
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response({"results": serializer.data})
+
 
 class InsumoViewSet(viewsets.ModelViewSet):
     queryset = Insumo.objects.all()
     serializer_class = InsumoSerializer
     http_method_names = ["get"]
     lookup_field = "uuid"
+
+    def list(self, request, *args, **kwargs):
+        self.queryset = Insumo.ativos.all()
+
+        edital_uuid = request.query_params.get("edital_uuid")
+
+        if edital_uuid:
+            self.queryset = self.queryset.filter(editalinsumo__edital__uuid=edital_uuid).distinct("nome")
+
+        serializer = self.get_serializer(self.queryset, many=True)
+        return Response({"results": serializer.data})
