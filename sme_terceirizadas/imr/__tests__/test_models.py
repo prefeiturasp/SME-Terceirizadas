@@ -1,9 +1,21 @@
+import shutil
+import tempfile
+
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from sme_terceirizadas.imr.admin import FaixaPontuacaoIMRForm, TipoOcorrenciaForm
 from sme_terceirizadas.imr.models import TipoOcorrencia, TipoPenalidade
 
 pytestmark = pytest.mark.django_db
+
+MEDIA_ROOT = tempfile.mkdtemp()
+
+
+def test_tipo_gravidade_instance_model(tipo_gravidade_factory):
+    tipo = "Leve"
+    tipo_gravidade = tipo_gravidade_factory.create(tipo=tipo)
+    assert tipo_gravidade.__str__() == tipo_gravidade.tipo
 
 
 def test_tipo_penalidade_instance_model(tipo_penalidade_factory):
@@ -25,6 +37,34 @@ def test_tipo_penalidade_meta_modelo(tipo_penalidade_factory):
     assert tipo_penalidade._meta.verbose_name_plural == "Tipos de Penalidades"
 
 
+def test_obrigacao_penalidade_instance_model(obrigacao_penalidade_factory):
+    descricao = "Anexo I, itens 5.69"
+    obrigacao_penalidade = obrigacao_penalidade_factory.create(descricao=descricao)
+    assert obrigacao_penalidade.__str__() == obrigacao_penalidade.descricao
+
+
+def test_importacao_planilha_tipo_penalidade_instance_model(
+    importacao_planilha_tipo_penalidade_factory,
+):
+    conteudo = SimpleUploadedFile(
+        "arquivo_para_carga_tipo_penalidade.xlsx", b"these are the file contents!"
+    )
+    importacao_planilha_tipo_penalidade = (
+        importacao_planilha_tipo_penalidade_factory.create(conteudo=conteudo)
+    )
+    assert (
+        importacao_planilha_tipo_penalidade.__str__()
+        == importacao_planilha_tipo_penalidade.conteudo.name
+    )
+    shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
+
+
+def test_categoria_ocorrencia_instance_model(categoria_ocorrencia_factory):
+    nome = "FUNCIONARIOS"
+    categoria_ocorrencia = categoria_ocorrencia_factory.create(nome=nome)
+    assert categoria_ocorrencia.__str__() == nome
+
+
 def test_tipo_ocorrencia_instance_model(tipo_ocorrencia_factory):
     tipo_ocorrencia = tipo_ocorrencia_factory.create()
     assert isinstance(tipo_ocorrencia, TipoOcorrencia)
@@ -40,6 +80,22 @@ def test_tipo_ocorrencia_meta_modelo(tipo_ocorrencia_factory):
     tipo_ocorrencia = tipo_ocorrencia_factory.create()
     assert tipo_ocorrencia._meta.verbose_name == "Tipo de Ocorrência"
     assert tipo_ocorrencia._meta.verbose_name_plural == "Tipos de Ocorrência"
+
+
+def test_importacao_planilha_tipo_ocorrencia_instance_model(
+    importacao_planilha_tipo_ocorrencia_factory,
+):
+    conteudo = SimpleUploadedFile(
+        "arquivo_para_carga_tipo_ocorrencia.xlsx", b"these are the file contents!"
+    )
+    importacao_planilha_tipo_ocorrencia = (
+        importacao_planilha_tipo_ocorrencia_factory.create(conteudo=conteudo)
+    )
+    assert (
+        importacao_planilha_tipo_ocorrencia.__str__()
+        == importacao_planilha_tipo_ocorrencia.conteudo.name
+    )
+    shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
 
 
 def test_validation_error_nao_eh_imr_pontuacao_tolerancia_preenchidos():
@@ -97,3 +153,107 @@ def test_validation_error_faixa_pontuacao_imr_pontuacao_maxima_intervalo_existen
     assert form.errors["pontuacao_minima"] == [
         "Esta pontuação mínima já se encontra dentro de outra faixa."
     ]
+
+
+def test_tipo_ocorrencia_para_diretor_manager(
+    categoria_ocorrencia_factory, tipo_ocorrencia_factory
+):
+    categoria_diretor = categoria_ocorrencia_factory.create(
+        perfis=[TipoOcorrencia.DIRETOR]
+    )
+    categoria_supervisao = categoria_ocorrencia_factory.create(
+        perfis=[TipoOcorrencia.SUPERVISAO]
+    )
+    categoria_ambos = categoria_ocorrencia_factory.create(
+        perfis=[TipoOcorrencia.SUPERVISAO, TipoOcorrencia.DIRETOR]
+    )
+    tipo_ocorrencia_factory.create(
+        categoria=categoria_diretor, perfis=[TipoOcorrencia.DIRETOR]
+    )
+    tipo_ocorrencia_factory.create(
+        categoria=categoria_ambos,
+        perfis=[TipoOcorrencia.SUPERVISAO, TipoOcorrencia.DIRETOR],
+    )
+    tipo_ocorrencia_factory.create(
+        categoria=categoria_supervisao, perfis=[TipoOcorrencia.SUPERVISAO]
+    )
+
+    assert TipoOcorrencia.para_diretores.count() == 2
+
+
+def test_tipo_ocorrencia_para_supervisao_manager(
+    categoria_ocorrencia_factory, tipo_ocorrencia_factory
+):
+    categoria_diretor = categoria_ocorrencia_factory.create(
+        perfis=[TipoOcorrencia.DIRETOR]
+    )
+    categoria_supervisao = categoria_ocorrencia_factory.create(
+        perfis=[TipoOcorrencia.SUPERVISAO]
+    )
+    categoria_ambos = categoria_ocorrencia_factory.create(
+        perfis=[TipoOcorrencia.SUPERVISAO, TipoOcorrencia.DIRETOR]
+    )
+    tipo_ocorrencia_factory.create(
+        categoria=categoria_diretor, perfis=[TipoOcorrencia.DIRETOR]
+    )
+    tipo_ocorrencia_factory.create(
+        categoria=categoria_ambos,
+        perfis=[TipoOcorrencia.SUPERVISAO, TipoOcorrencia.DIRETOR],
+    )
+    tipo_ocorrencia_factory.create(
+        categoria=categoria_supervisao, perfis=[TipoOcorrencia.SUPERVISAO]
+    )
+
+    assert TipoOcorrencia.para_nutrisupervisores.count() == 2
+
+
+def test_tipo_resposta_modelo_instance_model(tipo_resposta_modelo_factory):
+    nome = "RespostaCampoTextoSimples"
+    tipo_resposta_modelo = tipo_resposta_modelo_factory.create(nome=nome)
+    assert tipo_resposta_modelo.__str__() == nome
+
+
+def test_tipo_pergunta_parametrizacao_ocorrencia_instance_model(
+    tipo_pergunta_parametrizacao_ocorrencia_factory,
+):
+    nome = "Campo de Texto Simples"
+    tipo_pergunta_parametrizacao_ocorrencia = (
+        tipo_pergunta_parametrizacao_ocorrencia_factory.create(nome=nome)
+    )
+    assert tipo_pergunta_parametrizacao_ocorrencia.__str__() == nome
+
+
+def test_parametrizacao_ocorrencia_instance_model(
+    edital_factory,
+    tipo_ocorrencia_factory,
+    parametrizacao_ocorrencia_factory,
+    tipo_pergunta_parametrizacao_ocorrencia_factory,
+):
+    titulo_tipo_ocorrencia = "CARDAPIO"
+    edital = edital_factory.create(numero="SME/02/24")
+    tipo_ocorrencia = tipo_ocorrencia_factory.create(
+        titulo=titulo_tipo_ocorrencia, edital=edital
+    )
+
+    nome_tipo_pergunta = "Campo de Texto Simples"
+    tipo_pergunta_parametrizacao_ocorrencia = (
+        tipo_pergunta_parametrizacao_ocorrencia_factory.create(nome=nome_tipo_pergunta)
+    )
+
+    titulo = "Qual item do uniforme faltou?"
+    parametrizacao_ocorrencia = parametrizacao_ocorrencia_factory.create(
+        posicao=1,
+        tipo_ocorrencia=tipo_ocorrencia,
+        tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia,
+        titulo=titulo,
+    )
+    assert (
+        parametrizacao_ocorrencia.__str__()
+        == f"{tipo_ocorrencia.__str__()} {nome_tipo_pergunta} - 1 - {titulo}"
+    )
+
+
+def test_periodo_visita_instance_model(periodo_visita_factory):
+    nome = "Manhã/Tarde"
+    periodo_visita = periodo_visita_factory.create(nome=nome)
+    assert periodo_visita.__str__() == nome

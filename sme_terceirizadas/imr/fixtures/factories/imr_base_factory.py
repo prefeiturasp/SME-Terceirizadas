@@ -12,6 +12,7 @@ from sme_terceirizadas.imr.models import (
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
     PerfilDiretorSupervisao,
+    PeriodoVisita,
     ReparoEAdaptacao,
     TipoGravidade,
     TipoOcorrencia,
@@ -110,6 +111,13 @@ class ParametrizacaoOcorrenciaFactory(DjangoModelFactory):
     titulo = Sequence(lambda n: f"nome - {fake.unique.name()}")
     tipo_ocorrencia = SubFactory(TipoOcorrenciaFactory)
     tipo_pergunta = SubFactory(TipoPerguntaParametrizacaoOcorrenciaFactory)
+
+
+class PeriodoVisitaFactory(DjangoModelFactory):
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+    class Meta:
+        model = PeriodoVisita
 
 
 class FaixaPontuacaoFactory(DjangoModelFactory):

@@ -24,6 +24,7 @@ from .imr.fixtures.factories.imr_base_factory import (
     MobiliarioFactory,
     ObrigacaoPenalidadeFactory,
     ParametrizacaoOcorrenciaFactory,
+    PeriodoVisitaFactory,
     ReparoEAdaptacaoFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
@@ -32,6 +33,10 @@ from .imr.fixtures.factories.imr_base_factory import (
     TipoRespostaModeloFactory,
     UtensilioCozinhaFactory,
     UtensilioMesaFactory,
+)
+from .imr.fixtures.factories.imr_importacao_planilha_base_factory import (
+    ImportacaoPlanilhaTipoOcorrenciaFactory,
+    ImportacaoPlanilhaTipoPenalidadeFactory,
 )
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -133,6 +138,9 @@ register(LogAlunosMatriculadosPeriodoEscolaFactory)
 register(DiretoriaRegionalFactory)
 register(TipoUnidadeEscolarFactory)
 register(SolicitacaoMedicaoInicialFactory)
+register(ImportacaoPlanilhaTipoPenalidadeFactory)
+register(ImportacaoPlanilhaTipoOcorrenciaFactory)
+register(PeriodoVisitaFactory)
 
 
 @pytest.fixture
