@@ -257,3 +257,12 @@ def test_periodo_visita_instance_model(periodo_visita_factory):
     nome = "Manhã/Tarde"
     periodo_visita = periodo_visita_factory.create(nome=nome)
     assert periodo_visita.__str__() == nome
+
+
+def test_formulario_ocorrencias_base(formulario_ocorrencias_base_factory):
+    nome_usuario = "FULANO DA SILVA"
+    data = "2024-06-10"
+    formulario_ocorrencias_base = formulario_ocorrencias_base_factory.create(
+        usuario__nome=nome_usuario, data=data
+    )
+    assert formulario_ocorrencias_base.__str__() == f"{nome_usuario} - {data}"

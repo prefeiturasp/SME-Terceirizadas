@@ -1,12 +1,13 @@
+import factory
 from factory import DjangoModelFactory, Sequence, SubFactory
 from factory.fuzzy import FuzzyInteger
 from faker import Faker
 
-from sme_terceirizadas.escola.fixtures.factories.escola_factory import EscolaFactory
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     Equipamento,
     FaixaPontuacaoIMR,
+    FormularioOcorrenciasBase,
     Insumo,
     Mobiliario,
     ObrigacaoPenalidade,
@@ -22,7 +23,9 @@ from sme_terceirizadas.imr.models import (
     UtensilioCozinha,
     UtensilioMesa,
 )
-from sme_terceirizadas.medicao_inicial.models import SolicitacaoMedicaoInicial
+from sme_terceirizadas.perfil.fixtures.factories.perfil_base_factories import (
+    UsuarioFactory,
+)
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EditalFactory,
 )
@@ -171,8 +174,9 @@ class InsumoFactory(DjangoModelFactory):
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
 
 
-class MedicaoInicialFactory(DjangoModelFactory):
-    escola = SubFactory(EscolaFactory)
+class FormularioOcorrenciasBaseFactory(DjangoModelFactory):
+    usuario = SubFactory(UsuarioFactory)
+    data = factory.faker.Faker("date")
 
     class Meta:
-        model = SolicitacaoMedicaoInicial
+        model = FormularioOcorrenciasBase

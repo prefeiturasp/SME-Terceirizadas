@@ -19,8 +19,8 @@ from .imr.fixtures.factories.imr_base_factory import (
     CategoriaOcorrenciaFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
+    FormularioOcorrenciasBaseFactory,
     InsumoFactory,
-    MedicaoInicialFactory,
     MobiliarioFactory,
     ObrigacaoPenalidadeFactory,
     ParametrizacaoOcorrenciaFactory,
@@ -45,6 +45,7 @@ from .inclusao_alimentacao.models import (
 from .medicao_inicial.fixtures.factories.solicitacao_medicao_inicial_base_factory import (
     SolicitacaoMedicaoInicialFactory,
 )
+from .perfil.fixtures.factories.perfil_base_factories import UsuarioFactory
 from .pre_recebimento.fixtures.factories.cronograma_factory import (
     CronogramaFactory,
     EtapasDoCronogramaFactory,
@@ -123,7 +124,6 @@ register(VeiculoFichaDeRecebimentoFactory)
 register(ArquivoFichaDeRecebimentoFactory)
 register(UtensilioMesaFactory)
 register(UtensilioCozinhaFactory)
-register(MedicaoInicialFactory)
 register(EquipamentoFactory)
 register(MobiliarioFactory)
 register(ReparoEAdaptacaoFactory)
@@ -141,6 +141,8 @@ register(SolicitacaoMedicaoInicialFactory)
 register(ImportacaoPlanilhaTipoPenalidadeFactory)
 register(ImportacaoPlanilhaTipoOcorrenciaFactory)
 register(PeriodoVisitaFactory)
+register(UsuarioFactory)
+register(FormularioOcorrenciasBaseFactory)
 
 
 @pytest.fixture
