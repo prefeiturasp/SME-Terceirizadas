@@ -65,7 +65,8 @@ class FormularioSupervisaoRascunhoModelViewSet(
 
 
 class FormularioSupervisaoModelViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet,
+    mixins.CreateModelMixin
 ):
     lookup_field = "uuid"
     queryset = FormularioSupervisao.objects.all().order_by("-criado_em")

@@ -309,7 +309,7 @@ class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
         required=True,
         queryset=PeriodoVisita.objects.all(),
     )
-    nome_nutricionista_empresa = serializers.CharField(required=True)
+    nome_nutricionista_empresa = serializers.CharField(required=False, allow_blank=True)
     acompanhou_visita = serializers.BooleanField(required=True)
     formulario_base = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -317,13 +317,18 @@ class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
         allow_null=True,
         queryset=FormularioOcorrenciasBase.objects.all(),
     )
-    ocorrencias_nao_se_aplica = serializers.ListField(required=True)
-    ocorrencias = serializers.ListField(required=True)
-    anexos = serializers.JSONField(required=False, allow_null=True)
+    ocorrencias_nao_se_aplica = serializers.ListField(required=False, allow_null=True)
+    ocorrencias = serializers.ListField(required=False, allow_null=True)
+    anexos = serializers.JSONField(required=True, allow_null=True)
 
     def validate(self, attrs):
         if "data" not in attrs:
             raise serializers.ValidationError({"data": ["Este campo é obrigatório!"]})
+        if attrs["acompanhou_visita"] == True and \
+                ("nome_nutricionista_empresa" not in attrs or attrs["nome_nutricionista_empresa"] == ""):
+            raise serializers.ValidationError({"nome_nutricionista_empresa": ["Este campo não pode ficar em branco!"]})
+        if len(attrs["ocorrencias"]) > 0 and len(attrs["anexos"]) == 0:
+            raise serializers.ValidationError({"anexos": ["Este campo não pode ficar vazio!"]})
 
         return attrs
 
@@ -339,7 +344,8 @@ class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
         )
 
         form_supervisao = FormularioSupervisao.objects.create(
-            formulario_base=form_base, **validated_data
+            formulario_base=form_base,
+            **validated_data
         )
 
         self._create_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, form_base)
@@ -347,6 +353,8 @@ class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
         self._create_ocorrencias(ocorrencias, form_base)
 
         self._create_anexos(form_base, anexos)
+
+        form_supervisao.enviar_para_nutrimanifestacao_validar()
 
         return form_supervisao
 
