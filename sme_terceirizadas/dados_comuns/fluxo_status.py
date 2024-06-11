@@ -5493,8 +5493,9 @@ class FormularioSupervisaoWorkflow(xwf_models.Workflow):
     log_model = ""  # Disable logging to database
 
     EM_PREENCHIMENTO = "EM_PREENCHIMENTO"
+    NUTRIMANIFESTACAO_A_VALIDAR = "NUTRIMANIFESTACAO_A_VALIDAR"
 
-    states = ((EM_PREENCHIMENTO, "Em Preenchimento"),)
+    states = ((EM_PREENCHIMENTO, "Em Preenchimento"), (NUTRIMANIFESTACAO_A_VALIDAR, "Nutri Manifestação A Validar"))
 
     transitions = ()
 
@@ -5507,6 +5508,10 @@ class FluxoFormularioSupervisao(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+    def enviar_para_nutrimanifestacao_validar(self):
+        self.status = self.workflow_class.NUTRIMANIFESTACAO_A_VALIDAR
+        self.save()
 
 
 class RelatorioFinanceiroMedicaoInicialWorkflow(xwf_models.Workflow):

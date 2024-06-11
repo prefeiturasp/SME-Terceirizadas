@@ -121,6 +121,7 @@ class TipoOcorrenciaParaNutriSupervisor(models.Manager):
             super()
             .get_queryset()
             .filter(
+                status=True,
                 perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
                 categoria__perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
             )
@@ -133,6 +134,7 @@ class TipoOcorrenciaParaDiretor(models.Manager):
             super()
             .get_queryset()
             .filter(
+                status=True,
                 perfis__contains=[PerfilDiretorSupervisao.DIRETOR],
                 categoria__perfis__contains=[PerfilDiretorSupervisao.DIRETOR],
             )
