@@ -114,6 +114,7 @@ class TipoOcorrenciaSerializer(serializers.ModelSerializer):
             "categoria",
             "parametrizacoes",
             "penalidade",
+            "aceita_multiplas_respostas",
         )
 
 
