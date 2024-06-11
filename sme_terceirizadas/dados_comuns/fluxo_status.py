@@ -5495,7 +5495,7 @@ class FormularioSupervisaoWorkflow(xwf_models.Workflow):
     EM_PREENCHIMENTO = "EM_PREENCHIMENTO"
     NUTRIMANIFESTACAO_A_VALIDAR = "NUTRIMANIFESTACAO_A_VALIDAR"
 
-    states = ((EM_PREENCHIMENTO, "Em Preenchimento"), (NUTRIMANIFESTACAO_A_VALIDAR, "Nutri Manifestação A Validar"))
+    states = ((EM_PREENCHIMENTO, "Em Preenchimento"), (NUTRIMANIFESTACAO_A_VALIDAR, "Enviado para CODAE"))
 
     transitions = ()
 
