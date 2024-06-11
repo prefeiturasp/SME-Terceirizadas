@@ -4,10 +4,7 @@ import uuid
 import pytest
 from rest_framework import status
 
-from sme_terceirizadas.imr.models import (
-    FormularioOcorrenciasBase,
-    PerfilDiretorSupervisao,
-)
+from sme_terceirizadas.imr.models import FormularioOcorrenciasBase
 
 pytestmark = pytest.mark.django_db
 
@@ -37,7 +34,7 @@ def test_formulario_supervisao(
     }
 
     response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
-        f"/imr/formulario-supervisao/",
+        f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -66,7 +63,7 @@ def test_formulario_supervisao_tipo_ocorrencia_nao_existe(
         ],
     }
     response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
-        f"/imr/formulario-supervisao/",
+        f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -79,60 +76,6 @@ def test_formulario_supervisao_tipo_ocorrencia_nao_existe(
             ]
         }
     }
-
-
-def test_tipos_ocorrencias(
-    client_autenticado_vinculo_coordenador_supervisao_nutricao,
-    edital_factory,
-    categoria_ocorrencia_factory,
-    tipo_ocorrencia_factory,
-):
-    edital = edital_factory.create()
-
-    categoria = categoria_ocorrencia_factory.create(
-        perfis=[PerfilDiretorSupervisao.SUPERVISAO]
-    )
-
-    tipo_ocorrencia_factory.create(
-        edital=edital,
-        descricao="Ocorrencia 1",
-        perfis=[PerfilDiretorSupervisao.SUPERVISAO],
-        categoria=categoria,
-        posicao=1,
-    )
-    tipo_ocorrencia_factory.create(
-        edital=edital,
-        descricao="Ocorrencia 2",
-        perfis=[PerfilDiretorSupervisao.SUPERVISAO],
-        categoria=categoria,
-        posicao=2,
-    )
-
-    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.get(
-        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={edital.uuid}"
-    )
-
-    assert response.status_code == status.HTTP_200_OK
-
-    response_data = response.json()
-
-    assert len(response_data) == 2
-    assert response_data[0]["descricao"] == "Ocorrencia 1"
-    assert response_data[1]["descricao"] == "Ocorrencia 2"
-
-    client_autenticado_vinculo_coordenador_supervisao_nutricao.logout()
-
-
-def test_tipos_ocorrencias_edital_UUID_invalido(
-    client_autenticado_vinculo_coordenador_supervisao_nutricao,
-):
-    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.get(
-        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid="
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    client_autenticado_vinculo_coordenador_supervisao_nutricao.logout()
 
 
 def test_formulario_supervisao_respostas_nao(
@@ -199,7 +142,7 @@ def test_formulario_supervisao_respostas_nao(
     }
 
     response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
-        f"/imr/formulario-supervisao/",
+        f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -272,7 +215,7 @@ def test_formulario_supervisao_erro_parametrizacao_uuid(
     }
 
     response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
-        f"/imr/formulario-supervisao/",
+        f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )

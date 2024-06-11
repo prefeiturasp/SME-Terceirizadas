@@ -29,6 +29,26 @@ class FormularioSupervisaoSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+class FormularioSupervisaoSimplesSerializer(serializers.ModelSerializer):
+    diretoria_regional = serializers.CharField(source="escola.diretoria_regional.nome")
+    unidade_educacional = serializers.CharField(source="escola.nome")
+    data = serializers.SerializerMethodField()
+    status = serializers.CharField(source="get_status_display")
+
+    def get_data(self, obj):
+        return obj.formulario_base.data.strftime("%d/%m/%Y")
+
+    class Meta:
+        model = FormularioSupervisao
+        fields = (
+            "uuid",
+            "diretoria_regional",
+            "unidade_educacional",
+            "data",
+            "status",
+        )
+
+
 class CategoriaOcorrenciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoriaOcorrencia
