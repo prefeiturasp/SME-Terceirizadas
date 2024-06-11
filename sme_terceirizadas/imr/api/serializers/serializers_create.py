@@ -324,7 +324,7 @@ class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if "data" not in attrs:
             raise serializers.ValidationError({"data": ["Este campo é obrigatório!"]})
-        if attrs["acompanhou_visita"] == True and \
+        if attrs["acompanhou_visita"] is True and \
                 ("nome_nutricionista_empresa" not in attrs or attrs["nome_nutricionista_empresa"] == ""):
             raise serializers.ValidationError({"nome_nutricionista_empresa": ["Este campo não pode ficar em branco!"]})
         if len(attrs["ocorrencias"]) > 0 and len(attrs["anexos"]) == 0:
