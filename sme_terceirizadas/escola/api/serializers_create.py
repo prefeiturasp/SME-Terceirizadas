@@ -122,7 +122,7 @@ class AlunoPeriodoParcialCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AlunoPeriodoParcial
-        fields = ("aluno",)
+        fields = ("aluno", "data")
 
 
 class DiaSuspensaoAtividadesCreateSerializer(serializers.ModelSerializer):
