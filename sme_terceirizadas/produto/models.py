@@ -283,7 +283,7 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
     ativo = models.BooleanField(default=True)
     suspenso = models.BooleanField("Esta suspenso?", default=False)
     suspenso_justificativa = models.CharField(
-        "Porque foi suspenso individualmente", blank=True, max_length=500
+        "Porque foi suspenso individualmente", blank=True, max_length=1500
     )
     suspenso_em = models.DateTimeField("Suspenso em", null=True, blank=True)
     suspenso_por = models.ForeignKey(
