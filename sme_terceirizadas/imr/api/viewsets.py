@@ -111,44 +111,29 @@ class FormularioSupervisaoModelViewSet(
 
         return Response(serializer.data)
 
-    def formatar_filtros(self, query_params):
-        kwargs = {}
-        if query_params.get("dre"):
-            kwargs["escola__lote__diretoria_regional__uuid"] = query_params.get("dre")
-        if query_params.get("unidade_educacional"):
-            kwargs["escola__tipo_unidade__uuid"] = query_params.get(
-                "unidade_educacional"
-            )
-        if query_params.get("data_inicial"):
-            kwargs["formulario_base__data__gte"] = query_params.get("data_inicial")
-        if query_params.get("data_final"):
-            kwargs["formulario_base__data__lte"] = query_params.get("data_final")
-        return kwargs
-
     def get_lista_status(self) -> list[str]:
         lista_status = [
             state.name for state in list(FormularioSupervisaoWorkflow.states)
         ]
-        lista_status += ["TODOS_OS_LANCAMENTOS"]
+        lista_status += ["TODOS_OS_RELATORIOS"]
         return lista_status
 
     def get_label(self, workflow: str) -> str:
         try:
             return FormularioSupervisaoWorkflow.states[workflow].title
         except KeyError:
-            return "Todos os Lançamentos"
+            return "Todos os Relatórios"
 
-    def dados_dashboard(self, query_set: QuerySet, kwargs: dict) -> list:
+    def dados_dashboard(self, query_set: QuerySet) -> list:
         sumario = []
 
         for workflow in self.get_lista_status():
-            todos_lancamentos = workflow == "TODOS_OS_LANCAMENTOS"
+            todos_lancamentos = workflow == "TODOS_OS_RELATORIOS"
             qs = (
                 query_set.filter(status=workflow)
                 if not todos_lancamentos
                 else query_set
             )
-            qs = qs.filter(**kwargs)
             sumario.append(
                 {
                     "status": workflow,
@@ -165,12 +150,12 @@ class FormularioSupervisaoModelViewSet(
         permission_classes=[UsuarioCODAENutriSupervisao],
     )
     def dashboard(self, request):
-        query_set = self.get_queryset()
-        kwargs = self.formatar_filtros(request.query_params)
+        query_set = self.get_queryset().filter(
+            formulario_base__usuario=self.request.user
+        )
         response = {
             "results": self.dados_dashboard(
                 query_set=query_set,
-                kwargs=kwargs,
             )
         }
         return Response(response)
