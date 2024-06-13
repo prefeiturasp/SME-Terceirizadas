@@ -15,6 +15,7 @@ from ..dados_comuns.behaviors import (
     ArquivoCargaBase,
     CriadoPor,
     Grupo,
+    Logs,
     ModeloBase,
     Nomeavel,
     PerfilDiretorSupervisao,
@@ -23,6 +24,7 @@ from ..dados_comuns.behaviors import (
     TemNomeMaior,
 )
 from ..dados_comuns.fluxo_status import FluxoFormularioSupervisao
+from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dados_comuns.validators import validate_file_size_10mb
 from ..escola.models import Escola, FaixaEtaria, PeriodoEscolar
 from ..medicao_inicial.models import SolicitacaoMedicaoInicial
@@ -419,7 +421,7 @@ class FormularioDiretor(ModeloBase):
         verbose_name_plural = "Formulários do Diretor - Ocorrências"
 
 
-class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao):
+class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao, Logs):
     escola = models.ForeignKey(
         Escola, on_delete=models.PROTECT, related_name="formularios_supervisao"
     )
@@ -448,6 +450,17 @@ class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao):
         null=True,
         blank=True,
     )
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get("justificativa", "")
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.FORMULARIO_SUPERVISAO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+        )
 
     def __str__(self):
         return f"{self.escola.nome} - {self.formulario_base.data}"

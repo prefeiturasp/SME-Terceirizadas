@@ -5513,12 +5513,17 @@ class FluxoFormularioSupervisao(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = FormularioSupervisaoWorkflow
     status = xwf_models.StateField(workflow_class)
 
+    @xworkflows.after_transition("inicia_fluxo")
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        usuario = kwargs["usuario"]
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.RELATORIO_ENVIADO_PARA_CODAE,
+            usuario=usuario,
+            justificativa=kwargs.get("justificativa", ""),
+        )
+
     class Meta:
         abstract = True
-
-    def enviar_para_nutrimanifestacao_validar(self):
-        self.status = self.workflow_class.NUTRIMANIFESTACAO_A_VALIDAR
-        self.save()
 
 
 class RelatorioFinanceiroMedicaoInicialWorkflow(xwf_models.Workflow):

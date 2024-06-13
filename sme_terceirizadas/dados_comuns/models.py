@@ -127,7 +127,8 @@ class LogSolicitacoesUsuario(
         FICHA_TECNICA_ENVIADA_PARA_ANALISE,
         FICHA_TECNICA_APROVADA,
         FICHA_TECNICA_ENVIADA_PARA_CORRECAO,
-    ) = range(100)
+        RELATORIO_ENVIADO_PARA_CODAE,
+    ) = range(101)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, "Solicitação Realizada"),
@@ -278,6 +279,7 @@ class LogSolicitacoesUsuario(
         (FICHA_TECNICA_ENVIADA_PARA_ANALISE, "Ficha Técnica enviada para análise"),
         (FICHA_TECNICA_APROVADA, "Ficha Técnica aprovada"),
         (FICHA_TECNICA_ENVIADA_PARA_CORRECAO, "Ficha Técnica enviada para correção"),
+        (RELATORIO_ENVIADO_PARA_CODAE, "Relatório enviado para CODAE"),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -308,7 +310,8 @@ class LogSolicitacoesUsuario(
         LAYOUT_DE_EMBALAGEM,
         DOCUMENTO_DE_RECEBIMENTO,
         FICHA_TECNICA_DO_PRODUTO,
-    ) = range(24)
+        FORMULARIO_SUPERVISAO,
+    ) = range(25)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, "Solicitação de kit lanche avulsa"),
@@ -335,6 +338,7 @@ class LogSolicitacoesUsuario(
         (LAYOUT_DE_EMBALAGEM, "Layout de embalagem"),
         (DOCUMENTO_DE_RECEBIMENTO, "Documento de recebimento"),
         (FICHA_TECNICA_DO_PRODUTO, "Ficha técnica do produto"),
+        (FORMULARIO_SUPERVISAO, "Formulário Supervisão"),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
