@@ -5494,10 +5494,17 @@ class FormularioSupervisaoWorkflow(xwf_models.Workflow):
 
     EM_PREENCHIMENTO = "EM_PREENCHIMENTO"
     NUTRIMANIFESTACAO_A_VALIDAR = "NUTRIMANIFESTACAO_A_VALIDAR"
+    COM_COMENTARIOS_DE_CODAE = "COM_COMENTARIOS_DE_CODAE"
+    VALIDADO_POR_CODAE = "VALIDADO_POR_CODAE"
 
-    states = ((EM_PREENCHIMENTO, "Em Preenchimento"), (NUTRIMANIFESTACAO_A_VALIDAR, "Enviado para CODAE"))
+    states = (
+        (EM_PREENCHIMENTO, "Em Preenchimento"),
+        (NUTRIMANIFESTACAO_A_VALIDAR, "Enviado para CODAE"),
+        (COM_COMENTARIOS_DE_CODAE, "Com comentários de CODAE"),
+        (VALIDADO_POR_CODAE, "Validado pela CODAE"),
+    )
 
-    transitions = ()
+    transitions = (("inicia_fluxo", EM_PREENCHIMENTO, NUTRIMANIFESTACAO_A_VALIDAR),)
 
     initial_state = EM_PREENCHIMENTO
 
