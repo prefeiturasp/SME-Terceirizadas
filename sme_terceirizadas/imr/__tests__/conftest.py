@@ -64,7 +64,7 @@ def client_autenticado_vinculo_coordenador_supervisao_nutricao(
         ativo=True,
     )
     client.login(username=email, password=password)
-    return client
+    return client, user
 
 
 @pytest.fixture

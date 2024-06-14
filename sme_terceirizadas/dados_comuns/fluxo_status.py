@@ -5494,10 +5494,17 @@ class FormularioSupervisaoWorkflow(xwf_models.Workflow):
 
     EM_PREENCHIMENTO = "EM_PREENCHIMENTO"
     NUTRIMANIFESTACAO_A_VALIDAR = "NUTRIMANIFESTACAO_A_VALIDAR"
+    COM_COMENTARIOS_DE_CODAE = "COM_COMENTARIOS_DE_CODAE"
+    VALIDADO_POR_CODAE = "VALIDADO_POR_CODAE"
 
-    states = ((EM_PREENCHIMENTO, "Em Preenchimento"), (NUTRIMANIFESTACAO_A_VALIDAR, "Enviado para CODAE"))
+    states = (
+        (EM_PREENCHIMENTO, "Em Preenchimento"),
+        (NUTRIMANIFESTACAO_A_VALIDAR, "Enviado para CODAE"),
+        (COM_COMENTARIOS_DE_CODAE, "Com comentários de CODAE"),
+        (VALIDADO_POR_CODAE, "Validado pela CODAE"),
+    )
 
-    transitions = ()
+    transitions = (("inicia_fluxo", EM_PREENCHIMENTO, NUTRIMANIFESTACAO_A_VALIDAR),)
 
     initial_state = EM_PREENCHIMENTO
 
@@ -5506,12 +5513,17 @@ class FluxoFormularioSupervisao(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = FormularioSupervisaoWorkflow
     status = xwf_models.StateField(workflow_class)
 
+    @xworkflows.after_transition("inicia_fluxo")
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        usuario = kwargs["usuario"]
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.RELATORIO_ENVIADO_PARA_CODAE,
+            usuario=usuario,
+            justificativa=kwargs.get("justificativa", ""),
+        )
+
     class Meta:
         abstract = True
-
-    def enviar_para_nutrimanifestacao_validar(self):
-        self.status = self.workflow_class.NUTRIMANIFESTACAO_A_VALIDAR
-        self.save()
 
 
 class RelatorioFinanceiroMedicaoInicialWorkflow(xwf_models.Workflow):

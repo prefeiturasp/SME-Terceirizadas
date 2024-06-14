@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -11,6 +12,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
 )
 from sme_terceirizadas.terceirizada.models import Edital
 
+from ...dados_comuns.fluxo_status import FormularioSupervisaoWorkflow
 from ..models import (
     Equipamento,
     FormularioSupervisao,
@@ -65,8 +67,10 @@ class FormularioSupervisaoRascunhoModelViewSet(
 
 
 class FormularioSupervisaoModelViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet,
-    mixins.CreateModelMixin
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+    mixins.CreateModelMixin,
 ):
     lookup_field = "uuid"
     queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
@@ -106,6 +110,55 @@ class FormularioSupervisaoModelViewSet(
         serializer = TipoOcorrenciaSerializer(queryset, many=True)
 
         return Response(serializer.data)
+
+    def get_lista_status(self) -> list[str]:
+        lista_status = [
+            state.name for state in list(FormularioSupervisaoWorkflow.states)
+        ]
+        lista_status += ["TODOS_OS_RELATORIOS"]
+        return lista_status
+
+    def get_label(self, workflow: str) -> str:
+        try:
+            return FormularioSupervisaoWorkflow.states[workflow].title
+        except KeyError:
+            return "Todos os Relatórios"
+
+    def dados_dashboard(self, query_set: QuerySet) -> list:
+        sumario = []
+
+        for workflow in self.get_lista_status():
+            todos_lancamentos = workflow == "TODOS_OS_RELATORIOS"
+            qs = (
+                query_set.filter(status=workflow)
+                if not todos_lancamentos
+                else query_set
+            )
+            sumario.append(
+                {
+                    "status": workflow,
+                    "label": self.get_label(workflow),
+                    "total": len(qs),
+                }
+            )
+        return sumario
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="dashboard",
+        permission_classes=[UsuarioCODAENutriSupervisao],
+    )
+    def dashboard(self, request):
+        query_set = self.get_queryset().filter(
+            formulario_base__usuario=self.request.user
+        )
+        response = {
+            "results": self.dados_dashboard(
+                query_set=query_set,
+            )
+        }
+        return Response(response)
 
 
 class FormularioDiretorModelViewSet(
@@ -163,7 +216,9 @@ class UtensilioCozinhaViewSet(viewsets.ModelViewSet):
         edital_uuid = request.query_params.get("edital_uuid")
 
         if edital_uuid:
-            self.queryset = self.queryset.filter(editalutensiliocozinha__edital__uuid=edital_uuid).distinct("nome")
+            self.queryset = self.queryset.filter(
+                editalutensiliocozinha__edital__uuid=edital_uuid
+            ).distinct("nome")
 
         serializer = self.get_serializer(self.queryset, many=True)
         return Response({"results": serializer.data})
@@ -181,7 +236,9 @@ class UtensilioMesaViewSet(viewsets.ModelViewSet):
         edital_uuid = request.query_params.get("edital_uuid")
 
         if edital_uuid:
-            self.queryset = self.queryset.filter(editalutensiliomesa__edital__uuid=edital_uuid).distinct("nome")
+            self.queryset = self.queryset.filter(
+                editalutensiliomesa__edital__uuid=edital_uuid
+            ).distinct("nome")
 
         serializer = self.get_serializer(self.queryset, many=True)
         return Response({"results": serializer.data})
@@ -199,7 +256,9 @@ class EquipamentoViewSet(viewsets.ModelViewSet):
         edital_uuid = request.query_params.get("edital_uuid")
 
         if edital_uuid:
-            self.queryset = self.queryset.filter(editalequipamento__edital__uuid=edital_uuid).distinct("nome")
+            self.queryset = self.queryset.filter(
+                editalequipamento__edital__uuid=edital_uuid
+            ).distinct("nome")
 
         serializer = self.get_serializer(self.queryset, many=True)
         return Response({"results": serializer.data})
@@ -217,7 +276,9 @@ class MobiliarioViewSet(viewsets.ModelViewSet):
         edital_uuid = request.query_params.get("edital_uuid")
 
         if edital_uuid:
-            self.queryset = self.queryset.filter(editalmobiliario__edital__uuid=edital_uuid).distinct("nome")
+            self.queryset = self.queryset.filter(
+                editalmobiliario__edital__uuid=edital_uuid
+            ).distinct("nome")
 
         serializer = self.get_serializer(self.queryset, many=True)
         return Response({"results": serializer.data})
@@ -235,7 +296,9 @@ class ReparoEAdaptacaoViewSet(viewsets.ModelViewSet):
         edital_uuid = request.query_params.get("edital_uuid")
 
         if edital_uuid:
-            self.queryset = self.queryset.filter(editalreparoeadaptacao__edital__uuid=edital_uuid).distinct("nome")
+            self.queryset = self.queryset.filter(
+                editalreparoeadaptacao__edital__uuid=edital_uuid
+            ).distinct("nome")
 
         serializer = self.get_serializer(self.queryset, many=True)
         return Response({"results": serializer.data})
@@ -253,7 +316,9 @@ class InsumoViewSet(viewsets.ModelViewSet):
         edital_uuid = request.query_params.get("edital_uuid")
 
         if edital_uuid:
-            self.queryset = self.queryset.filter(editalinsumo__edital__uuid=edital_uuid).distinct("nome")
+            self.queryset = self.queryset.filter(
+                editalinsumo__edital__uuid=edital_uuid
+            ).distinct("nome")
 
         serializer = self.get_serializer(self.queryset, many=True)
         return Response({"results": serializer.data})

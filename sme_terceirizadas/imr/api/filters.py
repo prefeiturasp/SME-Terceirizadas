@@ -1,9 +1,15 @@
 from django_filters import rest_framework as filters
 
+from sme_terceirizadas.dados_comuns.fluxo_status import FormularioSupervisaoWorkflow
+
 
 class FormularioSupervisaoFilter(filters.FilterSet):
     uuid = filters.CharFilter(
         field_name="uuid",
+        lookup_expr="exact",
+    )
+    diretoria_regional = filters.CharFilter(
+        field_name="escola__lote__diretoria_regional__uuid",
         lookup_expr="exact",
     )
     unidade_educacional = filters.CharFilter(
@@ -17,4 +23,7 @@ class FormularioSupervisaoFilter(filters.FilterSet):
     data_final = filters.DateFilter(
         field_name="formulario_base__data",
         lookup_expr="lte",
+    )
+    status = filters.MultipleChoiceFilter(
+        choices=[(str(state), state) for state in FormularioSupervisaoWorkflow.states]
     )

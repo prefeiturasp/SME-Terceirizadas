@@ -14,6 +14,7 @@ def test_formulario_supervisao(
     escola,
     tipo_ocorrencia_factory,
 ):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
     tipo_ocorrencia_1 = tipo_ocorrencia_factory.create()
     tipo_ocorrencia_2 = tipo_ocorrencia_factory.create()
 
@@ -33,7 +34,7 @@ def test_formulario_supervisao(
         ],
     }
 
-    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
+    response = client.post(
         f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
@@ -52,6 +53,7 @@ def test_formulario_supervisao(
 def test_formulario_supervisao_tipo_ocorrencia_nao_existe(
     client_autenticado_vinculo_coordenador_supervisao_nutricao, escola
 ):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
     payload = {
         "data": "2024-05-15",
         "escola": str(escola.uuid),
@@ -62,7 +64,7 @@ def test_formulario_supervisao_tipo_ocorrencia_nao_existe(
             },
         ],
     }
-    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
+    response = client.post(
         f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
@@ -86,6 +88,7 @@ def test_formulario_supervisao_respostas_nao(
     tipo_ocorrencia_factory,
     parametrizacao_ocorrencia_factory,
 ):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
     tipo_resposta_campo_simples = tipo_resposta_modelo_factory(
         nome="RespostaCampoTextoSimples"
     )
@@ -141,7 +144,7 @@ def test_formulario_supervisao_respostas_nao(
         ],
     }
 
-    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
+    response = client.post(
         f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
@@ -171,6 +174,7 @@ def test_formulario_supervisao_erro_parametrizacao_uuid(
     tipo_ocorrencia_factory,
     parametrizacao_ocorrencia_factory,
 ):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
     tipo_resposta_campo_simples = tipo_resposta_modelo_factory(
         nome="RespostaCampoTextoSimples"
     )
@@ -214,7 +218,7 @@ def test_formulario_supervisao_erro_parametrizacao_uuid(
         ],
     }
 
-    response = client_autenticado_vinculo_coordenador_supervisao_nutricao.post(
+    response = client.post(
         f"/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",

@@ -3,12 +3,14 @@ from factory import DjangoModelFactory, Sequence, SubFactory
 from factory.fuzzy import FuzzyInteger
 from faker import Faker
 
+from sme_terceirizadas.escola.fixtures.factories.escola_factory import EscolaFactory
 from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
     Equipamento,
     FaixaPontuacaoIMR,
     FormularioOcorrenciasBase,
+    FormularioSupervisao,
     Insumo,
     Mobiliario,
     ObrigacaoPenalidade,
@@ -190,3 +192,15 @@ class AnexosFormularioBaseFactory(DjangoModelFactory):
 
     class Meta:
         model = AnexosFormularioBase
+
+
+class FormularioSupervisaoFactory(DjangoModelFactory):
+    escola = SubFactory(EscolaFactory)
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    periodo_visita = SubFactory(PeriodoVisitaFactory)
+    nome_nutricionista_empresa = Sequence(lambda n: f"nome - {fake.unique.name()}")
+    maior_frequencia_no_periodo = Sequence(lambda n: fake.random.randint(100, 300))
+    status = FormularioSupervisao.workflow_class.EM_PREENCHIMENTO
+
+    class Meta:
+        model = FormularioSupervisao
