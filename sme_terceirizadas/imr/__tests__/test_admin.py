@@ -2,8 +2,18 @@ from unittest.mock import Mock
 
 from django.contrib.admin.sites import AdminSite
 
-from sme_terceirizadas.imr.admin import TipoOcorrenciaAdmin, TipoPenalidadeAdmin
-from sme_terceirizadas.imr.models import TipoOcorrencia, TipoPenalidade
+from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
+from sme_terceirizadas.imr.admin import (
+    ParametrizacaoOcorrenciaAdmin,
+    PerfisFilter,
+    TipoOcorrenciaAdmin,
+    TipoPenalidadeAdmin,
+)
+from sme_terceirizadas.imr.models import (
+    ParametrizacaoOcorrencia,
+    TipoOcorrencia,
+    TipoPenalidade,
+)
 
 
 def test_tipo_penalidade_admin(
@@ -34,3 +44,46 @@ def test_tipo_ocorrencia_admin(
         obj=tipo_ocorrencia, request=Mock(user=usuario), form=None, change=None
     )
     assert tipo_ocorrencia.criado_por == usuario
+
+
+def test_perfis_filter_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    parametrizacao_ocorrencia_factory,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    parametrizacao_ocorrencia_factory.create(tipo_ocorrencia__perfis=["DIRETOR"])
+    parametrizacao_ocorrencia_factory.create(tipo_ocorrencia__perfis=["SUPERVISAO"])
+
+    perfis_filter = PerfisFilter(
+        Mock(user=usuario),
+        {"perfis": "Diretor"},
+        PerfilDiretorSupervisao,
+        ParametrizacaoOcorrenciaAdmin,
+    )
+    queryset = perfis_filter.queryset(
+        Mock(user=usuario), ParametrizacaoOcorrencia.objects.all()
+    )
+    assert queryset.count() == 1
+
+    perfis_filter = PerfisFilter(
+        Mock(user=usuario),
+        {"perfis": "Supervisao"},
+        PerfilDiretorSupervisao,
+        ParametrizacaoOcorrenciaAdmin,
+    )
+    queryset = perfis_filter.queryset(
+        Mock(user=usuario), ParametrizacaoOcorrencia.objects.all()
+    )
+    assert queryset.count() == 1
+
+    perfis_filter = PerfisFilter(
+        Mock(user=usuario),
+        {"perfis": "Tudo"},
+        PerfilDiretorSupervisao,
+        ParametrizacaoOcorrenciaAdmin,
+    )
+    queryset = perfis_filter.queryset(
+        Mock(user=usuario), ParametrizacaoOcorrencia.objects.all()
+    )
+    assert queryset.count() == 2
