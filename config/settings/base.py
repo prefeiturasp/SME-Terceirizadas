@@ -131,6 +131,7 @@ LOCAL_APPS = [
     "sme_terceirizadas.pre_recebimento.apps.PreRecebimentoConfig",
     "sme_terceirizadas.recebimento.apps.RecebimentoConfig",
     "sme_terceirizadas.imr.apps.ImrConfig",
+    "sme_terceirizadas.desperdicio.apps.DesperdicioConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
