@@ -1,0 +1,1 @@
+CLASSIFICACAO_TIPO = ["CR", "CS", "AR"]

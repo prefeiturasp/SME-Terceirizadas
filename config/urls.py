@@ -34,6 +34,7 @@ from sme_terceirizadas.produto.urls import urlpatterns as produto_urls
 from sme_terceirizadas.recebimento.urls import urlpatterns as recebimento_urls
 from sme_terceirizadas.relatorios.urls import urlpatterns as relatorio_urls
 from sme_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
+from sme_terceirizadas.desperdicio.urls import urlpatterns as desperdicio_urls
 
 env = environ.Env()
 
@@ -79,6 +80,7 @@ urlpatterns += medicao_inicial_urls
 urlpatterns += pre_recebimento_urls
 urlpatterns += recebimento_urls
 urlpatterns += imr_urls
+urlpatterns += desperdicio_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

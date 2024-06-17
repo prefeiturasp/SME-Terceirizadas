@@ -5,7 +5,7 @@ from .api import viewsets
 
 router = routers.DefaultRouter()
 router.register(
-    "classificacao", 
+    "parametros-classificacao", 
     viewsets.ClassificacaoViewSet, 
     "Parâmetros de Classificação"
 )
