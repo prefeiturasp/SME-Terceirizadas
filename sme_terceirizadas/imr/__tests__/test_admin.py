@@ -6,6 +6,7 @@ from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.admin import (
     EquipamentoAdmin,
     FormularioOcorrenciasBaseAdmin,
+    InsumoAdmin,
     MobiliarioAdmin,
     ParametrizacaoOcorrenciaAdmin,
     PerfisFilter,
@@ -19,6 +20,7 @@ from sme_terceirizadas.imr.admin import (
 from sme_terceirizadas.imr.models import (
     Equipamento,
     FormularioOcorrenciasBase,
+    Insumo,
     Mobiliario,
     ParametrizacaoOcorrencia,
     ReparoEAdaptacao,
@@ -219,3 +221,13 @@ def test_reparo_e_adaptacao_admin(
         model=ReparoEAdaptacao, admin_site=AdminSite()
     )
     assert reparo_e_adaptacao_admin.nome_label(reparo_e_adaptacao) == nome
+
+
+def test_insumo_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    insumo_factory,
+):
+    nome = "Dispensador fixo ou móvel para álcool gel"
+    insumo = insumo_factory.create(nome=nome)
+    insumo_admin = InsumoAdmin(model=Insumo, admin_site=AdminSite())
+    assert insumo_admin.nome_label(insumo) == nome
