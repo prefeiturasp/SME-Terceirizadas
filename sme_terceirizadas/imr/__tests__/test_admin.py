@@ -4,12 +4,15 @@ from django.contrib.admin.sites import AdminSite
 
 from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.admin import (
+    FormularioOcorrenciasBaseAdmin,
     ParametrizacaoOcorrenciaAdmin,
     PerfisFilter,
+    TipoFormularioFilter,
     TipoOcorrenciaAdmin,
     TipoPenalidadeAdmin,
 )
 from sme_terceirizadas.imr.models import (
+    FormularioOcorrenciasBase,
     ParametrizacaoOcorrencia,
     TipoOcorrencia,
     TipoPenalidade,
@@ -106,3 +109,47 @@ def test_parametrizacao_ocorrencia_admin(
         == edital_numero
     )
     assert parametrizacao_ocorrencia_admin.perfis(parametrizacao_ocorrencia) == perfis
+
+
+def test_tipo_formulario_filter_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    formulario_supervisao_factory,
+    formulario_diretor_factory,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    formulario_supervisao_factory.create()
+    formulario_diretor_factory.create()
+
+    tipo_formulario_filter = TipoFormularioFilter(
+        Mock(user=usuario),
+        {"tipo_formulario": "Diretor"},
+        FormularioOcorrenciasBase,
+        FormularioOcorrenciasBaseAdmin,
+    )
+    queryset_diretor = tipo_formulario_filter.queryset(
+        Mock(user=usuario), FormularioOcorrenciasBase.objects.all()
+    )
+    assert queryset_diretor.count() == 1
+
+    tipo_formulario_filter = TipoFormularioFilter(
+        Mock(user=usuario),
+        {"tipo_formulario": "Supervisao"},
+        FormularioOcorrenciasBase,
+        FormularioOcorrenciasBaseAdmin,
+    )
+    queryset_supervisao = tipo_formulario_filter.queryset(
+        Mock(user=usuario), FormularioOcorrenciasBase.objects.all()
+    )
+    assert queryset_supervisao.count() == 1
+
+    tipo_formulario_filter = TipoFormularioFilter(
+        Mock(user=usuario),
+        {"tipo_formulario": "Tudo"},
+        FormularioOcorrenciasBase,
+        FormularioOcorrenciasBaseAdmin,
+    )
+    queryset_tudo = tipo_formulario_filter.queryset(
+        Mock(user=usuario), FormularioOcorrenciasBase.objects.all()
+    )
+    assert queryset_tudo.count() == 2
