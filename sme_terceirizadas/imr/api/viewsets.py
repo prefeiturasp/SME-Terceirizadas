@@ -38,7 +38,7 @@ from .serializers.serializers import (
     UtensilioCozinhaSerializer,
     UtensilioMesaSerializer,
     TipoPerguntaParametrizacaoOcorrencia,
-    ParametrizacaoOcorrenciaSerializer
+    OcorrenciaNaoSeAplicaSerializer
 )
 from .serializers.serializers_create import (
     FormularioDiretorManyCreateSerializer,
@@ -170,30 +170,37 @@ class FormularioSupervisaoModelViewSet(
     def respostas(self, request, uuid):
         formulario = self.get_object()
 
-        respostas = {}
+        respostas = []
         tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
 
         tipos_ocorrencia = TipoOcorrencia.para_nutrisupervisores.filter(edital__uuid=formulario.escola.editais[0])
         for _tipo_ocorrencia in tipos_ocorrencia:
-            respostas[f"{_tipo_ocorrencia.uuid}"] = {}
 
             for tipo_pergunta in tipos_perguntas:
                 modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
 
-                _respostas = modelo_reposta.objects.filter(parametrizacao__tipo_ocorrencia=_tipo_ocorrencia)
+                _respostas = modelo_reposta.objects.filter(
+                    formulario_base=formulario.formulario_base,
+                    parametrizacao__tipo_ocorrencia=_tipo_ocorrencia
+                )
 
                 for _resposta in _respostas:
                     resposta_serializer_name = f"{modelo_reposta.__name__}Serializer"
                     get_resposta_serializer = FormularioSupervisaoRetrieveSerializer.get_serializer_class_by_name(resposta_serializer_name)
 
-                    if _resposta.grupo not in respostas[f"{_tipo_ocorrencia.uuid}"]:
-                        respostas[f"{_tipo_ocorrencia.uuid}"][_resposta.grupo] = []
-
-                    respostas[f"{_tipo_ocorrencia.uuid}"][_resposta.grupo].append({
-                        "resposta": get_resposta_serializer(_resposta).data
-                    })
+                    respostas.append(get_resposta_serializer(_resposta).data)
 
         return Response(respostas)
+
+    @action(
+        detail=True,
+        url_path="respostas_nao_se_aplica",
+    )
+    def respostas_nao_se_aplica(self, request, uuid):
+        formulario = self.get_object()
+
+        serializer = OcorrenciaNaoSeAplicaSerializer(formulario.formulario_base.respostas_nao_se_aplica.all(), many=True)
+        return Response(serializer.data)
 
 
 class FormularioDiretorModelViewSet(

@@ -28,7 +28,11 @@ from sme_terceirizadas.imr.models import (
     RespostaTipoAlimentacao,
     RespostaUtensilioCozinha,
     RespostaUtensilioMesa,
+    OcorrenciaNaoSeAplica,
+    FormularioOcorrenciasBase
 )
+
+from sme_terceirizadas.escola.models import Escola
 
 
 class PeriodoVisitaSerializer(serializers.ModelSerializer):
@@ -44,6 +48,26 @@ class FormularioSupervisaoSerializer(serializers.ModelSerializer):
 
 
 class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
+    diretoria_regional = serializers.SerializerMethodField()
+    data = serializers.SerializerMethodField()
+    escola = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=Escola.objects.all(),
+    )
+    periodo_visita = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=PeriodoVisita.objects.all(),
+    )
+    formulario_base = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=FormularioOcorrenciasBase.objects.all(),
+    )
+
     class Meta:
         model = FormularioSupervisao
         exclude = ("id", )
@@ -54,6 +78,12 @@ class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
         if serializer_class is None:
             raise ValueError(f"Nenhum serializer encontrado com o nome '{name}'")
         return serializer_class
+
+    def get_diretoria_regional(self, obj):
+        return obj.escola.diretoria_regional.uuid
+
+    def get_data(self, obj):
+        return obj.formulario_base.data.strftime("%d/%m/%Y")
 
 
 class FormularioSupervisaoSimplesSerializer(serializers.ModelSerializer):
@@ -98,6 +128,12 @@ class TipoPerguntaParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer
 
 class ParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer):
     tipo_pergunta = TipoPerguntaParametrizacaoOcorrenciaSerializer()
+    tipo_ocorrencia = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=TipoOcorrencia.objects.all(),
+    )
 
     class Meta:
         model = ParametrizacaoOcorrencia
@@ -106,6 +142,7 @@ class ParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer):
             "posicao",
             "titulo",
             "tipo_pergunta",
+            "tipo_ocorrencia"
         )
 
 
@@ -316,4 +353,17 @@ class RespostaUtensilioMesaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RespostaUtensilioMesa
+        exclude = ("id",)
+
+
+class OcorrenciaNaoSeAplicaSerializer(serializers.ModelSerializer):
+    tipo_ocorrencia = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=TipoOcorrencia.objects.all(),
+    )
+
+    class Meta:
+        model = OcorrenciaNaoSeAplica
         exclude = ("id",)
