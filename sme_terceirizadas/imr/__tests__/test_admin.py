@@ -87,3 +87,22 @@ def test_perfis_filter_admin(
         Mock(user=usuario), ParametrizacaoOcorrencia.objects.all()
     )
     assert queryset.count() == 2
+
+
+def test_parametrizacao_ocorrencia_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    parametrizacao_ocorrencia_factory,
+):
+    edital_numero = "78/SME/2016"
+    perfis = ["DIRETOR"]
+    parametrizacao_ocorrencia = parametrizacao_ocorrencia_factory.create(
+        tipo_ocorrencia__edital__numero=edital_numero, tipo_ocorrencia__perfis=perfis
+    )
+    parametrizacao_ocorrencia_admin = ParametrizacaoOcorrenciaAdmin(
+        model=ParametrizacaoOcorrencia, admin_site=AdminSite()
+    )
+    assert (
+        parametrizacao_ocorrencia_admin.edital(parametrizacao_ocorrencia)
+        == edital_numero
+    )
+    assert parametrizacao_ocorrencia_admin.perfis(parametrizacao_ocorrencia) == perfis
