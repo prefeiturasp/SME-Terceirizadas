@@ -28,6 +28,7 @@ from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
     EquipamentoSerializer,
     FormularioSupervisaoSerializer,
+    FormularioSupervisaoRetrieveSerializer,
     FormularioSupervisaoSimplesSerializer,
     InsumoSerializer,
     MobiliarioSerializer,
@@ -36,6 +37,8 @@ from .serializers.serializers import (
     TipoOcorrenciaSerializer,
     UtensilioCozinhaSerializer,
     UtensilioMesaSerializer,
+    TipoPerguntaParametrizacaoOcorrencia,
+    ParametrizacaoOcorrenciaSerializer
 )
 from .serializers.serializers_create import (
     FormularioDiretorManyCreateSerializer,
@@ -83,7 +86,7 @@ class FormularioSupervisaoModelViewSet(
     def get_serializer_class(self):
         return {
             "list": FormularioSupervisaoSimplesSerializer,
-            "retrieve": FormularioSupervisaoSerializer,
+            "retrieve": FormularioSupervisaoRetrieveSerializer,
         }.get(self.action, FormularioSupervisaoCreateSerializer)
 
     @action(
@@ -159,6 +162,38 @@ class FormularioSupervisaoModelViewSet(
             )
         }
         return Response(response)
+
+    @action(
+        detail=True,
+        url_path="respostas",
+    )
+    def respostas(self, request, uuid):
+        formulario = self.get_object()
+
+        respostas = {}
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+
+        tipos_ocorrencia = TipoOcorrencia.para_nutrisupervisores.filter(edital__uuid=formulario.escola.editais[0])
+        for _tipo_ocorrencia in tipos_ocorrencia:
+            respostas[f"{_tipo_ocorrencia.uuid}"] = {}
+
+            for tipo_pergunta in tipos_perguntas:
+                modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+
+                _respostas = modelo_reposta.objects.filter(parametrizacao__tipo_ocorrencia=_tipo_ocorrencia)
+
+                for _resposta in _respostas:
+                    resposta_serializer_name = f"{modelo_reposta.__name__}Serializer"
+                    get_resposta_serializer = FormularioSupervisaoRetrieveSerializer.get_serializer_class_by_name(resposta_serializer_name)
+
+                    if _resposta.grupo not in respostas[f"{_tipo_ocorrencia.uuid}"]:
+                        respostas[f"{_tipo_ocorrencia.uuid}"][_resposta.grupo] = []
+
+                    respostas[f"{_tipo_ocorrencia.uuid}"][_resposta.grupo].append({
+                        "resposta": get_resposta_serializer(_resposta).data
+                    })
+
+        return Response(respostas)
 
 
 class FormularioDiretorModelViewSet(

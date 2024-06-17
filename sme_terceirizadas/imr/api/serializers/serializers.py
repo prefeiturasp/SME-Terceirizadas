@@ -14,6 +14,20 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     UtensilioCozinha,
     UtensilioMesa,
+    TipoPerguntaParametrizacaoOcorrencia,
+    TipoAlimentacao,
+    RespostaCampoNumerico,
+    RespostaCampoTextoLongo,
+    RespostaCampoTextoSimples,
+    RespostaDatas,
+    RespostaEquipamento,
+    RespostaInsumo,
+    RespostaMobiliario,
+    RespostaReparoEAdaptacao,
+    RespostaSimNao,
+    RespostaTipoAlimentacao,
+    RespostaUtensilioCozinha,
+    RespostaUtensilioMesa,
 )
 
 
@@ -27,6 +41,19 @@ class FormularioSupervisaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormularioSupervisao
         exclude = ("id",)
+
+
+class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormularioSupervisao
+        exclude = ("id", )
+
+    @staticmethod
+    def get_serializer_class_by_name(name):
+        serializer_class = globals().get(name)
+        if serializer_class is None:
+            raise ValueError(f"Nenhum serializer encontrado com o nome '{name}'")
+        return serializer_class
 
 
 class FormularioSupervisaoSimplesSerializer(serializers.ModelSerializer):
@@ -151,4 +178,142 @@ class ReparoEAdaptacaoSerializer(serializers.ModelSerializer):
 class InsumoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Insumo
+        exclude = ("id",)
+
+
+class RespostaDatasSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaDatas
+        exclude = ("id",)
+
+
+class RespostaCampoTextoLongoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaCampoTextoLongo
+        exclude = ("id",)
+
+
+class RespostaCampoTextoSimplesSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaCampoTextoSimples
+        exclude = ("id",)
+
+
+class RespostaCampoNumericoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaCampoNumerico
+        exclude = ("id",)
+
+
+class RespostaSimNaoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaSimNao
+        exclude = ("id",)
+
+
+class RespostaTipoAlimentacaoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=TipoAlimentacao.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaTipoAlimentacao
+        exclude = ("id",)
+
+
+class RespostaEquipamentoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Equipamento.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaEquipamento
+        exclude = ("id",)
+
+
+class RespostaInsumoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Insumo.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaInsumo
+        exclude = ("id",)
+
+
+class RespostaMobiliarioSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Mobiliario.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaMobiliario
+        exclude = ("id",)
+
+
+class RespostaReparoEAdaptacaoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=ReparoEAdaptacao.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaReparoEAdaptacao
+        exclude = ("id",)
+
+
+class RespostaUtensilioCozinhaSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=UtensilioCozinha.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaUtensilioCozinha
+        exclude = ("id",)
+
+
+class RespostaUtensilioMesaSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=UtensilioMesa.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaUtensilioMesa
         exclude = ("id",)
