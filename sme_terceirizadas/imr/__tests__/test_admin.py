@@ -4,18 +4,28 @@ from django.contrib.admin.sites import AdminSite
 
 from sme_terceirizadas.dados_comuns.behaviors import PerfilDiretorSupervisao
 from sme_terceirizadas.imr.admin import (
+    EquipamentoAdmin,
     FormularioOcorrenciasBaseAdmin,
+    MobiliarioAdmin,
     ParametrizacaoOcorrenciaAdmin,
     PerfisFilter,
+    ReparoEAdaptacaoAdmin,
     TipoFormularioFilter,
     TipoOcorrenciaAdmin,
     TipoPenalidadeAdmin,
+    UtensilioCozinhaAdmin,
+    UtensilioMesaAdmin,
 )
 from sme_terceirizadas.imr.models import (
+    Equipamento,
     FormularioOcorrenciasBase,
+    Mobiliario,
     ParametrizacaoOcorrencia,
+    ReparoEAdaptacao,
     TipoOcorrencia,
     TipoPenalidade,
+    UtensilioCozinha,
+    UtensilioMesa,
 )
 
 
@@ -153,3 +163,59 @@ def test_tipo_formulario_filter_admin(
         Mock(user=usuario), FormularioOcorrenciasBase.objects.all()
     )
     assert queryset_tudo.count() == 2
+
+
+def test_utensilio_mesa_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    utensilio_mesa_factory,
+):
+    nome = "Faca de mesa"
+    utensilio_mesa = utensilio_mesa_factory.create(nome=nome)
+    utensilio_mesa_admin = UtensilioMesaAdmin(
+        model=UtensilioMesa, admin_site=AdminSite()
+    )
+    assert utensilio_mesa_admin.nome_label(utensilio_mesa) == nome
+
+
+def test_utensilio_cozinha_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    utensilio_cozinha_factory,
+):
+    nome = "Balde com tampa (100 litros)"
+    utensilio_cozinha = utensilio_cozinha_factory.create(nome=nome)
+    utensilio_cozinha_admin = UtensilioCozinhaAdmin(
+        model=UtensilioCozinha, admin_site=AdminSite()
+    )
+    assert utensilio_cozinha_admin.nome_label(utensilio_cozinha) == nome
+
+
+def test_equipamento_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    equipamento_factory,
+):
+    nome = "Fogão industrial com 2 queimadores (para lactário)"
+    equipamento = equipamento_factory.create(nome=nome)
+    equipamento_admin = EquipamentoAdmin(model=Equipamento, admin_site=AdminSite())
+    assert equipamento_admin.nome_label(equipamento) == nome
+
+
+def test_mobiliario_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    mobiliario_factory,
+):
+    nome = "Mesa de apoio inox"
+    mobiliario = mobiliario_factory.create(nome=nome)
+    mobiliario_admin = MobiliarioAdmin(model=Mobiliario, admin_site=AdminSite())
+    assert mobiliario_admin.nome_label(mobiliario) == nome
+
+
+def test_reparo_e_adaptacao_admin(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    reparo_e_adaptacao_factory,
+):
+    nome = "Fiação elétrica"
+    reparo_e_adaptacao = reparo_e_adaptacao_factory.create(nome=nome)
+    reparo_e_adaptacao_admin = ReparoEAdaptacaoAdmin(
+        model=ReparoEAdaptacao, admin_site=AdminSite()
+    )
+    assert reparo_e_adaptacao_admin.nome_label(reparo_e_adaptacao) == nome
