@@ -202,7 +202,7 @@ class TipoOcorrencia(
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
         unique_together = ("edital", "categoria", "penalidade", "titulo")
-        ordering = ("categoria__posicao", "posicao")
+        ordering = ("categoria__posicao", "posicao", "titulo")
 
     def valida_eh_imr(self, dict_error):
         if self.eh_imr and (not self.pontuacao or not self.tolerancia):
