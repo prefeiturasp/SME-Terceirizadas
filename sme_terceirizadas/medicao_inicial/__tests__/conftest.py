@@ -487,7 +487,7 @@ def make_solicitacao_medicao_inicial(escola):
 
 
 @pytest.fixture
-def solicitacao_medicao_inicial(escola, categoria_medicao):
+def solicitacao_medicao_inicial(escola, categoria_medicao, aluno):
     tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
     periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
     historico = {
@@ -525,6 +525,12 @@ def solicitacao_medicao_inicial(escola, categoria_medicao):
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_manha,
+    )
+    mommy.make(
+        "AlunoPeriodoParcial",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        aluno=aluno,
+        data=datetime.date(2022, 12, 1),
     )
     mommy.make(
         "ValorMedicao",
@@ -2709,3 +2715,20 @@ def make_valores_medicao():
 @pytest.fixture
 def usuario(django_user_model):
     return mommy.make(django_user_model)
+
+
+@pytest.fixture
+def periodos_integral_parcial_e_logs(escola, faixas_etarias_ativas):
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_parcial = mommy.make("PeriodoEscolar", nome="PARCIAL")
+
+    for periodo in [periodo_integral, periodo_parcial]:
+        for dia in range(1, 5):
+            mommy.make(
+                "LogAlunosMatriculadosFaixaEtariaDia",
+                escola=escola,
+                periodo_escolar=periodo,
+                faixa_etaria=faixas_etarias_ativas[len(faixas_etarias_ativas) - 1],
+                quantidade=2,
+                data=datetime.date(2022, 12, dia),
+            )
