@@ -183,22 +183,17 @@ class FormularioSupervisaoModelViewSet(
         respostas = []
         tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
 
-        tipos_ocorrencia = TipoOcorrencia.para_nutrisupervisores.filter(edital__uuid=formulario.escola.editais[0])
-        for _tipo_ocorrencia in tipos_ocorrencia:
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            _respostas = modelo_reposta.objects.filter(
+                formulario_base=formulario.formulario_base,
+            )
 
-            for tipo_pergunta in tipos_perguntas:
-                modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            for _resposta in _respostas:
+                resposta_serializer_name = f"{modelo_reposta.__name__}Serializer"
+                get_resposta_serializer = FormularioSupervisaoRetrieveSerializer.get_serializer_class_by_name(resposta_serializer_name)
 
-                _respostas = modelo_reposta.objects.filter(
-                    formulario_base=formulario.formulario_base,
-                    parametrizacao__tipo_ocorrencia=_tipo_ocorrencia
-                )
-
-                for _resposta in _respostas:
-                    resposta_serializer_name = f"{modelo_reposta.__name__}Serializer"
-                    get_resposta_serializer = FormularioSupervisaoRetrieveSerializer.get_serializer_class_by_name(resposta_serializer_name)
-
-                    respostas.append(get_resposta_serializer(_resposta).data)
+                respostas.append(get_resposta_serializer(_resposta).data)
 
         return Response(respostas)
 
