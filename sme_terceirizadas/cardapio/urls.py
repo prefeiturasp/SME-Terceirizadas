@@ -71,16 +71,6 @@ router.register(
     viewsets.MotivosDRENaoValidaViewSet,
     "Motivos de não validação da DRE",
 )
-router.register(
-    'controle-sobras',
-    viewsets.ControleSobrasViewSet,
-    'controle-sobras'
-)
-router.register(
-    'controle-restos',
-    viewsets.ControleRestosViewSet,
-    'controle-restos'
-)
 urlpatterns = [
     path("", include(router.urls)),
 ]

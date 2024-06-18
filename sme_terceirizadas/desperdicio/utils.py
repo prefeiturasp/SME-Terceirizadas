@@ -1,6 +1,5 @@
 from django.db import connection
 from django.core.paginator import Paginator, EmptyPage
-from django.urls import reverse
 
 SQL_RELATORIO_CONTROLE_RESTOS = """
     with medicao as (
@@ -18,25 +17,36 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
         select cr.escola_id, cr.data_hora_medicao::date as data_medicao,
             sum(cr.quantidade_distribuida) as quantidade_distribuida_soma,
             sum(cr.peso_resto) as peso_resto_soma
-        from cardapio_controlerestos cr
+        from desperdicio_controlerestos cr
         join escola_escola e on e.id = cr.escola_id
         where cr.data_hora_medicao::date between %s::date and %s::date
         [EXTRA_WHERE_CLAUSES]
         group by 1, 2
-    )
-    select m.data_medicao,
-        dre.nome as dre_nome,
-        ee.nome as escola_nome,
-        r.quantidade_distribuida_soma,
-        r.peso_resto_soma,
-        m.num_refeicoes,
-        CASE WHEN m.frequencia = 0 THEN 0 ELSE (r.peso_resto_soma / m.frequencia::numeric) END as resto_per_capita,
-        CASE WHEN r.quantidade_distribuida_soma = 0 THEN 0 ELSE (r.peso_resto_soma / r.quantidade_distribuida_soma) END as percent_resto
-    from medicao m
-    join escola_escola ee on ee.id = m.escola_id
-    join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
-    join restos r on m.escola_id = r.escola_id and m.data_medicao::date = r.data_medicao::date
-    order by 1, 3
+    ),
+    relatorio as (
+        select m.data_medicao,
+            dre.nome as dre_nome,
+            ee.nome as escola_nome,
+            r.quantidade_distribuida_soma,
+            r.peso_resto_soma,
+            m.num_refeicoes,
+            CASE WHEN m.frequencia = 0 THEN 0 ELSE (r.peso_resto_soma / m.frequencia::numeric) END as resto_per_capita,
+            CASE WHEN r.quantidade_distribuida_soma = 0 THEN 0 ELSE (r.peso_resto_soma / r.quantidade_distribuida_soma) END as percent_resto
+        from medicao m
+        join escola_escola ee on ee.id = m.escola_id
+        join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
+        join restos r on m.escola_id = r.escola_id and m.data_medicao::date = r.data_medicao::date
+        order by 1, 3
+    )	
+    select 
+        r.*,
+        (
+            select dc.descricao from desperdicio_classificacao dc 
+            where r.percent_resto <= dc.valor and dc.tipo = 'CR'
+            order by valor
+            limit 1
+        ) as classificacao
+    from relatorio r
 """
 
 SQL_RELATORIO_CONTROLE_SOBRAS = """
@@ -67,37 +77,49 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
         group by 1, 2
     ),
     sobras as (
-        select cs.escola_id, cs.data_hora_medicao::date as data_medicao,
-            cs.tipo_alimentacao_id, ta.nome as tipo_alimento_nome,
+        select cs.escola_id, cs.data_medicao, cs.tipo_alimentacao_id, 
+            ta.nome as tipo_alimento_nome, cs.periodo,
             sum(cs.peso_alimento) as peso_alimento,
             sum(cs.peso_sobra) as peso_sobra
-        from cardapio_controlesobras cs
+        from desperdicio_controlesobras cs
         join produto_tipoalimento ta on ta.id = cs.tipo_alimento_id
         join escola_escola e on e.id = cs.escola_id
-        where cs.data_hora_medicao::date between %s::date and %s::date
+        where cs.data_medicao between %s::date and %s::date
         [EXTRA_WHERE_CLAUSES]
-        group by 1, 2, 3, 4
-    )
-    select m.data_medicao,
-        dre.nome as dre_nome,
-        ee.nome as escola_nome,
-        ta.nome as tipo_alimentacao_nome,
-        s.tipo_alimento_nome,
-        coalesce((s.peso_alimento - s.peso_sobra), 0) as quantidade_distribuida,
-        coalesce(s.peso_sobra, 0) as peso_sobra,
-        coalesce(f.frequencia, 0) as frequencia,
-        coalesce(m.total_primeira_oferta, 0) as total_primeira_oferta,
-        coalesce(m.total_repeticao, 0) as total_repeticao,
-        CASE WHEN (s.peso_alimento - s.peso_sobra) = 0 THEN 0 ELSE (s.peso_sobra / (s.peso_alimento - s.peso_sobra)) END as percentual_sobra,
-        CASE WHEN f.frequencia = 0 THEN 0 ELSE (s.peso_sobra / f.frequencia) END as media_por_aluno,
-        CASE WHEN m.total_refeicao = 0 THEN 0 ELSE (s.peso_sobra / m.total_refeicao) END as media_por_refeicao
-    from medicao m
-    join escola_escola ee on ee.id = m.escola_id
-    join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
-    join cardapio_tipoalimentacao ta on ta.id = m.tipo_alimentacao_id
-    join sobras s on s.escola_id = m.escola_id and s.data_medicao = m.data_medicao and s.tipo_alimentacao_id = m.tipo_alimentacao_id
-    join frequencia f on f.escola_id = m.escola_id and f.data_medicao = m.data_medicao and f.escola_id = s.escola_id and f.data_medicao = s.data_medicao
-    order by 1, 3, 4
+        group by 1, 2, 3, 4, 5
+    ),
+    relatorio as (
+	    select m.data_medicao,
+	        dre.nome as dre_nome,
+	        ee.nome as escola_nome,
+	        ta.nome as tipo_alimentacao_nome,
+	        s.tipo_alimento_nome,
+	        s.periodo,
+	        coalesce((s.peso_alimento - s.peso_sobra), 0) as quantidade_distribuida,
+	        coalesce(s.peso_sobra, 0) as peso_sobra,
+	        coalesce(f.frequencia, 0) as frequencia,
+	        coalesce(m.total_primeira_oferta, 0) as total_primeira_oferta,
+	        coalesce(m.total_repeticao, 0) as total_repeticao,
+	        CASE WHEN (s.peso_alimento - s.peso_sobra) = 0 THEN 0 ELSE (s.peso_sobra / (s.peso_alimento - s.peso_sobra)) END as percentual_sobra,
+	        CASE WHEN f.frequencia = 0 THEN 0 ELSE (s.peso_sobra / f.frequencia) END as media_por_aluno,
+	        CASE WHEN m.total_refeicao = 0 THEN 0 ELSE (s.peso_sobra / m.total_refeicao) END as media_por_refeicao
+	    from medicao m
+	    join escola_escola ee on ee.id = m.escola_id
+	    join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
+	    join cardapio_tipoalimentacao ta on ta.id = m.tipo_alimentacao_id
+	    join sobras s on s.escola_id = m.escola_id and s.data_medicao = m.data_medicao and s.tipo_alimentacao_id = m.tipo_alimentacao_id
+	    join frequencia f on f.escola_id = m.escola_id and f.data_medicao = m.data_medicao and f.escola_id = s.escola_id and f.data_medicao = s.data_medicao
+	    order by 1, 3, 4, 6	     
+ 	)
+ 	select 
+        r.*,
+        (
+            select dc.descricao from desperdicio_classificacao dc 
+            where r.percentual_sobra <= dc.valor and dc.tipo = 'CS'
+            order by valor
+            limit 1
+        ) as classificacao
+    from relatorio r
 """
 
 
@@ -174,17 +196,9 @@ def paginate_list(request, items_list, serializer, per_page=10):
         paginated_items = []
 
     data = {
-        'previous': None,
-        'next': None,
         'count': paginator.count,
         'page_size': per_page,
         'results': [serializer(item) for item in paginated_items]
     }
-
-    if paginated_items.has_previous():
-        data['previous'] = request.build_absolute_uri(reverse('custom_paginated_list')) + f'?page={paginated_items.previous_page_number()}&per_page={per_page}'
-
-    if paginated_items.has_next():
-        data['next'] = request.build_absolute_uri(reverse('custom_paginated_list')) + f'?page={paginated_items.next_page_number()}&per_page={per_page}'
-
+    
     return data
