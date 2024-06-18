@@ -951,10 +951,18 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 dia = int(dia)
                 mes = int(mes)
                 ano = int(ano)
+                if aluno.get("data_removido", ""):
+                    (dia_, mes_, ano_) = aluno.get("data_removido", "").split("/")
+                    dia_ = int(dia_)
+                    mes_ = int(mes_)
+                    ano_ = int(ano_)
                 AlunoPeriodoParcial.objects.create(
                     solicitacao_medicao_inicial=instance,
                     aluno=Aluno.objects.get(uuid=aluno.get("aluno", "")),
                     data=date(ano, mes, dia),
+                    data_removido=date(ano_, mes_, dia_)
+                    if aluno.get("data_removido", "")
+                    else None,
                     escola=escola_associada,
                 )
 

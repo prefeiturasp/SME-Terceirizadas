@@ -4589,6 +4589,33 @@ def atualiza_logs_adicao(solicitacao, aluno_periodo_parcial, aluno, faixa_etaria
                     subtrai_quantidade_integral(log)
 
 
+def atualiza_logs_remocao(solicitacao, aluno_periodo_parcial, aluno, faixa_etaria):
+    aluno_data_removido = aluno_periodo_parcial.get("data_removido", "")
+    if isinstance(aluno_data_removido, datetime.date):
+        aluno_data_removido = f"{aluno_data_removido.day}/{aluno_data_removido.month}/{aluno_data_removido.year}"
+    (dia, mes, ano) = aluno_data_removido.split("/")
+    dia = int(dia)
+    mes = int(mes)
+    ano = int(ano)
+    for periodo in ["PARCIAL", "INTEGRAL"]:
+        periodo_escolar = PeriodoEscolar.objects.get(nome=periodo)
+        logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
+            escola=solicitacao.escola,
+            periodo_escolar=periodo_escolar,
+            data__year=int(solicitacao.ano),
+            data__month=int(solicitacao.mes),
+            data__day__gte=int(dia),
+            faixa_etaria=faixa_etaria,
+        )
+        for log in logs:
+            if periodo == "PARCIAL":
+                log.quantidade -= 1
+                log.save()
+            else:
+                log.quantidade += 1
+                log.save()
+
+
 def atualiza_alunos_periodo_parcial(solicitacao, alunos_periodo_parcial):
     for aluno_periodo_parcial in alunos_periodo_parcial:
         aluno_uuid = aluno_periodo_parcial.get("aluno")
@@ -4604,6 +4631,10 @@ def atualiza_alunos_periodo_parcial(solicitacao, alunos_periodo_parcial):
                 ativo=True, inicio__lte=meses, fim__gt=meses
             )
         atualiza_logs_adicao(solicitacao, aluno_periodo_parcial, aluno, faixa_etaria)
+        if aluno_periodo_parcial.get("data_removido", ""):
+            atualiza_logs_remocao(
+                solicitacao, aluno_periodo_parcial, aluno, faixa_etaria
+            )
     for medicao in solicitacao.medicoes.all():
         medicao.valores_medicao.filter(
             nome_campo__in=["frequencia", "observacoes"]

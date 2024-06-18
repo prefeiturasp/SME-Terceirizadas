@@ -84,7 +84,7 @@ class AlunoPeriodoParcialSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AlunoPeriodoParcial
-        fields = ("uuid", "nome", "codigo_eol", "escola", "data")
+        fields = ("uuid", "nome", "codigo_eol", "escola", "data", "data_removido")
 
 
 class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):
