@@ -82,12 +82,12 @@ class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
         queryset=FormularioOcorrenciasBase.objects.all(),
     )
 
-    # anexos = serializers.SerializerMethodField()
+    anexos = serializers.SerializerMethodField()
 
-    # def get_anexos(self, obj):
-    #     return AnexosFormularioBaseSerializer(
-    #         obj.formulario_base.anexos.all(), many=True
-    #     ).data
+    def get_anexos(self, obj):
+        return AnexosFormularioBaseSerializer(
+            obj.formulario_base.anexos.all(), many=True
+        ).data
 
     class Meta:
         model = FormularioSupervisao

@@ -249,6 +249,8 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
 
         self._save_ocorrencias(ocorrencias, instance.formulario_base)
 
+        instance.formulario_base.anexos.all().delete()
+
         self._create_anexos(instance.formulario_base, anexos)
 
         return super(FormularioSupervisaoRascunhoCreateSerializer, self).update(instance, validated_data)
