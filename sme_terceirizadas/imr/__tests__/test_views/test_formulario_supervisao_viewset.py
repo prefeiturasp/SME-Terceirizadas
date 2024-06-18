@@ -1,16 +1,32 @@
 import pytest
 from rest_framework import status
 
+from sme_terceirizadas.imr.api.viewsets import FormularioSupervisaoModelViewSet
 from sme_terceirizadas.imr.models import FormularioSupervisao, PerfilDiretorSupervisao
 
 pytestmark = pytest.mark.django_db
 
+
+def test_get_categorias_nao_permitidas():
+    view_instance = FormularioSupervisaoModelViewSet()
+
+    # Teste para CEMEI
+    categorias = view_instance._get_categorias_nao_permitidas("CEMEI")
+    assert "LACTÁRIO" not in categorias
+    assert "RESÍDUO DE ÓLEO UTILIZADO NA FRITURA" not in categorias
+
+    # Teste para outro tipo de escola
+    categorias = view_instance._get_categorias_nao_permitidas("EMEF")
+    assert "LACTÁRIO" in categorias
+    assert "RESÍDUO DE ÓLEO UTILIZADO NA FRITURA" not in categorias
 
 def test_tipos_ocorrencias(
     client_autenticado_vinculo_coordenador_supervisao_nutricao,
     edital_factory,
     categoria_ocorrencia_factory,
     tipo_ocorrencia_factory,
+    escola_factory,
+    tipo_unidade_escolar_factory,
 ):
     client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
     edital = edital_factory.create()
@@ -18,6 +34,14 @@ def test_tipos_ocorrencias(
     categoria = categoria_ocorrencia_factory.create(
         perfis=[PerfilDiretorSupervisao.SUPERVISAO]
     )
+    categoria_lactario = categoria_ocorrencia_factory.create(
+        nome="LACTÁRIO",
+        perfis=[PerfilDiretorSupervisao.SUPERVISAO]
+    )
+    tipo_unidade_emef = tipo_unidade_escolar_factory.create(iniciais="EMEF")
+    escola_emef = escola_factory.create(tipo_unidade=tipo_unidade_emef)
+    tipo_unidade_cemei = tipo_unidade_escolar_factory.create(iniciais="CEMEI")
+    escola_cemei = escola_factory.create(tipo_unidade=tipo_unidade_cemei)
 
     tipo_ocorrencia_factory.create(
         edital=edital,
@@ -33,9 +57,16 @@ def test_tipos_ocorrencias(
         categoria=categoria,
         posicao=2,
     )
+    tipo_ocorrencia_factory.create(
+        edital=edital,
+        descricao="Ocorrencia 3",
+        perfis=[PerfilDiretorSupervisao.SUPERVISAO],
+        categoria=categoria_lactario,
+        posicao=3,
+    )
 
     response = client.get(
-        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={edital.uuid}"
+        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={edital.uuid}&escola_uuid={escola_emef.uuid}"
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -46,15 +77,35 @@ def test_tipos_ocorrencias(
     assert response_data[0]["descricao"] == "Ocorrencia 1"
     assert response_data[1]["descricao"] == "Ocorrencia 2"
 
+    response_cemei = client.get(
+        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={edital.uuid}&escola_uuid={escola_cemei.uuid}"
+    )
+
+    assert response_cemei.status_code == status.HTTP_200_OK
+
+    response_cemei_data = response_cemei.json()
+
+    assert len(response_cemei_data) == 3
+    assert response_cemei_data[0]["descricao"] == "Ocorrencia 1"
+    assert response_cemei_data[1]["descricao"] == "Ocorrencia 2"
+    assert response_cemei_data[2]["descricao"] == "Ocorrencia 3"
+
     client.logout()
 
 
-def test_tipos_ocorrencias_edital_UUID_invalido(
+def test_tipos_ocorrencias_edital_ou_escola_UUID_invalido(
     client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    escola_factory,
+    edital_factory,
 ):
     client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
-    response = client.get(f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid=")
+    edital = edital_factory.create()
+    escola = escola_factory.create()
 
+    response = client.get(f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid=&escola_uuid={escola.uuid}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    response = client.get(f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={edital.uuid}&escola_uuid=")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     client.logout()
