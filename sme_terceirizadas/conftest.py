@@ -20,6 +20,7 @@ from .imr.fixtures.factories.imr_base_factory import (
     CategoriaOcorrenciaFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
+    FormularioDiretorFactory,
     FormularioOcorrenciasBaseFactory,
     FormularioSupervisaoFactory,
     InsumoFactory,
@@ -147,6 +148,7 @@ register(UsuarioFactory)
 register(FormularioOcorrenciasBaseFactory)
 register(AnexosFormularioBaseFactory)
 register(FormularioSupervisaoFactory)
+register(FormularioDiretorFactory)
 
 
 @pytest.fixture
