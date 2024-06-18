@@ -45,6 +45,7 @@ from .serializers.serializers_create import (
     FormularioSupervisaoCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
 )
+from ...escola.models import Escola
 
 
 class PeriodoVisitaModelViewSet(
@@ -99,15 +100,27 @@ class FormularioSupervisaoModelViewSet(
             "retrieve": FormularioSupervisaoRetrieveSerializer,
         }.get(self.action, FormularioSupervisaoCreateSerializer)
 
+    def _get_categorias_nao_permitidas(self, tipo_escola):
+        categorias_excluir = []
+
+        if tipo_escola not in ["CEI", "CEI CEU", "CCI", "CEMEI", "CEU CEMEI"]:
+            categorias_excluir.append("LACTÁRIO")
+        if tipo_escola in ["CEI", "CEI CEU", "CCI"]:
+            categorias_excluir.append("RESÍDUO DE ÓLEO UTILIZADO NA FRITURA")
+
+        return categorias_excluir
+
     @action(
         detail=False,
         url_path="tipos-ocorrencias",
     )
     def tipos_ocorrencias(self, request):
         edital_uuid = request.query_params.get("edital_uuid")
+        escola_uuid = request.query_params.get("escola_uuid")
 
         try:
             edital = Edital.objects.get(uuid=edital_uuid)
+            tipo_unidade = Escola.objects.get(uuid=escola_uuid).tipo_unidade.iniciais
         except Edital.DoesNotExist:
             return Response(
                 {
@@ -115,10 +128,19 @@ class FormularioSupervisaoModelViewSet(
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        except Escola.DoesNotExist:
+            return Response(
+                {
+                    "detail": "Escola com o UUID informado não foi encontrada."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except ValidationError as error:
             return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = TipoOcorrencia.para_nutrisupervisores.filter(edital=edital)
+        queryset = TipoOcorrencia.para_nutrisupervisores.filter(
+            edital=edital).exclude(
+            categoria__nome__in=self._get_categorias_nao_permitidas(tipo_unidade))
 
         serializer = TipoOcorrenciaSerializer(queryset, many=True)
 
