@@ -9,6 +9,7 @@ from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     Equipamento,
     FaixaPontuacaoIMR,
+    FormularioDiretor,
     FormularioOcorrenciasBase,
     FormularioSupervisao,
     Insumo,
@@ -25,6 +26,9 @@ from sme_terceirizadas.imr.models import (
     TipoRespostaModelo,
     UtensilioCozinha,
     UtensilioMesa,
+)
+from sme_terceirizadas.medicao_inicial.fixtures.factories.solicitacao_medicao_inicial_base_factory import (
+    SolicitacaoMedicaoInicialFactory,
 )
 from sme_terceirizadas.perfil.fixtures.factories.perfil_base_factories import (
     UsuarioFactory,
@@ -204,3 +208,11 @@ class FormularioSupervisaoFactory(DjangoModelFactory):
 
     class Meta:
         model = FormularioSupervisao
+
+
+class FormularioDiretorFactory(DjangoModelFactory):
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    solicitacao_medicao_inicial = SubFactory(SolicitacaoMedicaoInicialFactory)
+
+    class Meta:
+        model = FormularioDiretor
