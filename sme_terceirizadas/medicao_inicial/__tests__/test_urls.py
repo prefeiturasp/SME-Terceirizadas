@@ -93,6 +93,9 @@ def test_url_endpoint_solicitacao_medicao_inicial(
     solicitacao_medicao_inicial_sem_arquivo,
     responsavel,
     tipo_contagem_alimentacao,
+    aluno,
+    faixas_etarias_ativas,
+    periodos_integral_parcial_e_logs,
 ):
     assert escola.modulo_gestao == "TERCEIRIZADA"
     response = client_autenticado_da_escola.get(
@@ -107,6 +110,9 @@ def test_url_endpoint_solicitacao_medicao_inicial(
         "escola": escola.uuid,
         "responsaveis": [{"nome": responsavel.nome, "rf": responsavel.rf}],
         "tipo_contagem_alimentacoes": [tipo_contagem_alimentacao.uuid],
+        "alunos_periodo_parcial": [
+            {"aluno": aluno.uuid, "data": "05/12/2022", "data_removido": "10/12/2022"}
+        ],
     }
     response = client_autenticado_da_escola.post(
         "/medicao-inicial/solicitacao-medicao-inicial/",
