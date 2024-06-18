@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+import environ
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     Equipamento,
@@ -14,7 +14,25 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     UtensilioCozinha,
     UtensilioMesa,
+    TipoAlimentacao,
+    RespostaCampoNumerico,
+    RespostaCampoTextoLongo,
+    RespostaCampoTextoSimples,
+    RespostaDatas,
+    RespostaEquipamento,
+    RespostaInsumo,
+    RespostaMobiliario,
+    RespostaReparoEAdaptacao,
+    RespostaSimNao,
+    RespostaTipoAlimentacao,
+    RespostaUtensilioCozinha,
+    RespostaUtensilioMesa,
+    OcorrenciaNaoSeAplica,
+    FormularioOcorrenciasBase,
+    AnexosFormularioBase
 )
+
+from sme_terceirizadas.escola.models import Escola
 
 
 class PeriodoVisitaSerializer(serializers.ModelSerializer):
@@ -27,6 +45,66 @@ class FormularioSupervisaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormularioSupervisao
         exclude = ("id",)
+
+
+class AnexosFormularioBaseSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField()
+    anexo_url = serializers.SerializerMethodField()
+
+    def get_anexo_url(self, instance):
+        env = environ.Env()
+        api_url = env.str("URL_ANEXO", default="http://localhost:8000")
+        return f"{api_url}{instance.anexo.url}"
+
+    class Meta:
+        model = AnexosFormularioBase
+        exclude = ("id", )
+
+
+class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
+    diretoria_regional = serializers.SerializerMethodField()
+    data = serializers.SerializerMethodField()
+    escola = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=Escola.objects.all(),
+    )
+    periodo_visita = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=PeriodoVisita.objects.all(),
+    )
+    formulario_base = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=FormularioOcorrenciasBase.objects.all(),
+    )
+
+    anexos = serializers.SerializerMethodField()
+
+    def get_anexos(self, obj):
+        return AnexosFormularioBaseSerializer(
+            obj.formulario_base.anexos.all(), many=True
+        ).data
+
+    class Meta:
+        model = FormularioSupervisao
+        exclude = ("id", )
+
+    @staticmethod
+    def get_serializer_class_by_name(name):
+        serializer_class = globals().get(name)
+        if serializer_class is None:
+            raise ValueError(f"Nenhum serializer encontrado com o nome '{name}'")
+        return serializer_class
+
+    def get_diretoria_regional(self, obj):
+        return obj.escola.diretoria_regional.uuid
+
+    def get_data(self, obj):
+        return obj.formulario_base.data.strftime("%d/%m/%Y")
 
 
 class FormularioSupervisaoSimplesSerializer(serializers.ModelSerializer):
@@ -71,6 +149,12 @@ class TipoPerguntaParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer
 
 class ParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer):
     tipo_pergunta = TipoPerguntaParametrizacaoOcorrenciaSerializer()
+    tipo_ocorrencia = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=TipoOcorrencia.objects.all(),
+    )
 
     class Meta:
         model = ParametrizacaoOcorrencia
@@ -79,6 +163,7 @@ class ParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer):
             "posicao",
             "titulo",
             "tipo_pergunta",
+            "tipo_ocorrencia"
         )
 
 
@@ -151,4 +236,155 @@ class ReparoEAdaptacaoSerializer(serializers.ModelSerializer):
 class InsumoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Insumo
+        exclude = ("id",)
+
+
+class RespostaDatasSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaDatas
+        exclude = ("id",)
+
+
+class RespostaCampoTextoLongoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaCampoTextoLongo
+        exclude = ("id",)
+
+
+class RespostaCampoTextoSimplesSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaCampoTextoSimples
+        exclude = ("id",)
+
+
+class RespostaCampoNumericoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaCampoNumerico
+        exclude = ("id",)
+
+
+class RespostaSimNaoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+
+    class Meta:
+        model = RespostaSimNao
+        exclude = ("id",)
+
+
+class RespostaTipoAlimentacaoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=TipoAlimentacao.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaTipoAlimentacao
+        exclude = ("id",)
+
+
+class RespostaEquipamentoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Equipamento.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaEquipamento
+        exclude = ("id",)
+
+
+class RespostaInsumoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Insumo.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaInsumo
+        exclude = ("id",)
+
+
+class RespostaMobiliarioSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Mobiliario.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaMobiliario
+        exclude = ("id",)
+
+
+class RespostaReparoEAdaptacaoSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=ReparoEAdaptacao.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaReparoEAdaptacao
+        exclude = ("id",)
+
+
+class RespostaUtensilioCozinhaSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=UtensilioCozinha.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaUtensilioCozinha
+        exclude = ("id",)
+
+
+class RespostaUtensilioMesaSerializer(serializers.ModelSerializer):
+    parametrizacao = ParametrizacaoOcorrenciaSerializer()
+    resposta = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=UtensilioMesa.objects.all(),
+    )
+
+    class Meta:
+        model = RespostaUtensilioMesa
+        exclude = ("id",)
+
+
+class OcorrenciaNaoSeAplicaSerializer(serializers.ModelSerializer):
+    tipo_ocorrencia = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=TipoOcorrencia.objects.all(),
+    )
+
+    class Meta:
+        model = OcorrenciaNaoSeAplica
         exclude = ("id",)

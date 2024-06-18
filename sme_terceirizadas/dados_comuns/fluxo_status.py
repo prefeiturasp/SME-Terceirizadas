@@ -5522,6 +5522,10 @@ class FluxoFormularioSupervisao(xwf_models.WorkflowEnabled, models.Model):
             justificativa=kwargs.get("justificativa", ""),
         )
 
+    @property
+    def em_preenchimento(self):
+        return self.status == FormularioSupervisaoWorkflow.EM_PREENCHIMENTO
+
     class Meta:
         abstract = True
 
