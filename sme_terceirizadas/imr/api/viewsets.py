@@ -68,6 +68,16 @@ class FormularioSupervisaoRascunhoModelViewSet(
     serializer_class = FormularioSupervisaoRascunhoCreateSerializer
     pagination_class = DefaultPagination
 
+    def update(self, request, *args, **kwargs):
+        formulario = self.get_object()
+
+        if formulario.em_preenchimento:
+            return super(FormularioSupervisaoRascunhoModelViewSet, self).update(
+                request, *args, **kwargs
+            )
+        else:
+            return Response({'detail': 'Rascunho não pode mais ser editado.'}, status=status.HTTP_403_FORBIDDEN)
+
 
 class FormularioSupervisaoModelViewSet(
     mixins.ListModelMixin,
