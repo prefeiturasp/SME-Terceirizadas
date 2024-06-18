@@ -201,6 +201,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
     )
     ocorrencias_nao_se_aplica = serializers.ListField(required=False, allow_null=True)
     ocorrencias = serializers.ListField(required=False, allow_null=True)
+    ocorrencias_to_delete = serializers.ListField(required=False, allow_null=True)
     anexos = serializers.JSONField(required=False, allow_null=True)
 
     def validate(self, attrs):
@@ -236,10 +237,13 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
         data_visita = validated_data.pop("data", None)
         ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
         ocorrencias = validated_data.pop("ocorrencias", [])
+        ocorrencias_to_delete = validated_data.pop("ocorrencias_to_delete", [])
         anexos = validated_data.pop("anexos", [])
 
         instance.formulario_base.data = data_visita
         instance.formulario_base.save()
+
+        self._delete_ocorrencias(ocorrencias_to_delete)
 
         self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, instance.formulario_base)
 
@@ -273,6 +277,34 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
                     {"ocorrencias_nao_se_aplica": serializer.errors}
                 )
 
+    def _delete_ocorrencias(self, ocorrencias_data):
+        for ocorrencia_data in ocorrencias_data:
+            parametrizacao_UUID = ocorrencia_data["parametrizacao"]
+            resposta_UUID = ocorrencia_data.get("uuid", None)
+
+            try:
+                parametrizacao = ParametrizacaoOcorrencia.objects.get(
+                    uuid=parametrizacao_UUID
+                )
+            except ParametrizacaoOcorrencia.DoesNotExist:
+                raise serializers.ValidationError(
+                    {
+                        "detail": f"ParametrizacaoOcorrencia com o UUID {parametrizacao_UUID} não foi encontrada"
+                    }
+                )
+
+            response_model = parametrizacao.tipo_pergunta.get_model_tipo_resposta()
+
+            try:
+                resposta = response_model.objects.get(uuid=resposta_UUID)
+                resposta.delete()
+            except response_model.DoesNotExist:
+                raise serializers.ValidationError(
+                    {
+                        "detail": f"{response_model.__name__} com o UUID {resposta_UUID} não foi encontrada"
+                    }
+                )
+
     def _save_ocorrencias(self, ocorrencias_data, form_base):
         for ocorrencia_data in ocorrencias_data:
             ocorrencia_data["formulario_base"] = form_base.pk
@@ -300,6 +332,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
 
             if resposta_UUID:
                 resposta = response_model.objects.get(uuid=resposta_UUID)
+                ocorrencia_data["grupo"] = resposta.grupo
                 serializer = response_serializer(resposta, data=ocorrencia_data)
             else:
                 serializer = response_serializer(data=ocorrencia_data)
