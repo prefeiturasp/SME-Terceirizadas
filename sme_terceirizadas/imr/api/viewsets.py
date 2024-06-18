@@ -28,6 +28,7 @@ from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
     EquipamentoSerializer,
     FormularioSupervisaoSerializer,
+    FormularioSupervisaoRetrieveSerializer,
     FormularioSupervisaoSimplesSerializer,
     InsumoSerializer,
     MobiliarioSerializer,
@@ -36,6 +37,8 @@ from .serializers.serializers import (
     TipoOcorrenciaSerializer,
     UtensilioCozinhaSerializer,
     UtensilioMesaSerializer,
+    TipoPerguntaParametrizacaoOcorrencia,
+    OcorrenciaNaoSeAplicaSerializer
 )
 from .serializers.serializers_create import (
     FormularioDiretorManyCreateSerializer,
@@ -66,6 +69,16 @@ class FormularioSupervisaoRascunhoModelViewSet(
     serializer_class = FormularioSupervisaoRascunhoCreateSerializer
     pagination_class = DefaultPagination
 
+    def update(self, request, *args, **kwargs):
+        formulario = self.get_object()
+
+        if formulario.em_preenchimento:
+            return super(FormularioSupervisaoRascunhoModelViewSet, self).update(
+                request, *args, **kwargs
+            )
+        else:
+            return Response({'detail': 'Rascunho não pode mais ser editado.'}, status=status.HTTP_403_FORBIDDEN)
+
 
 class FormularioSupervisaoModelViewSet(
     mixins.ListModelMixin,
@@ -84,7 +97,7 @@ class FormularioSupervisaoModelViewSet(
     def get_serializer_class(self):
         return {
             "list": FormularioSupervisaoSimplesSerializer,
-            "retrieve": FormularioSupervisaoSerializer,
+            "retrieve": FormularioSupervisaoRetrieveSerializer,
         }.get(self.action, FormularioSupervisaoCreateSerializer)
 
     def _get_categorias_nao_permitidas(self, tipo_escola):
@@ -181,6 +194,40 @@ class FormularioSupervisaoModelViewSet(
             )
         }
         return Response(response)
+
+    @action(
+        detail=True,
+        url_path="respostas",
+    )
+    def respostas(self, request, uuid):
+        formulario = self.get_object()
+
+        respostas = []
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            _respostas = modelo_reposta.objects.filter(
+                formulario_base=formulario.formulario_base,
+            )
+
+            for _resposta in _respostas:
+                resposta_serializer_name = f"{modelo_reposta.__name__}Serializer"
+                get_resposta_serializer = FormularioSupervisaoRetrieveSerializer.get_serializer_class_by_name(resposta_serializer_name)
+
+                respostas.append(get_resposta_serializer(_resposta).data)
+
+        return Response(respostas)
+
+    @action(
+        detail=True,
+        url_path="respostas_nao_se_aplica",
+    )
+    def respostas_nao_se_aplica(self, request, uuid):
+        formulario = self.get_object()
+
+        serializer = OcorrenciaNaoSeAplicaSerializer(formulario.formulario_base.respostas_nao_se_aplica.all(), many=True)
+        return Response(serializer.data)
 
 
 class FormularioDiretorModelViewSet(
