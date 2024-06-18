@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+import environ
 from sme_terceirizadas.imr.models import (
     CategoriaOcorrencia,
     Equipamento,
@@ -14,7 +14,6 @@ from sme_terceirizadas.imr.models import (
     TipoPerguntaParametrizacaoOcorrencia,
     UtensilioCozinha,
     UtensilioMesa,
-    TipoPerguntaParametrizacaoOcorrencia,
     TipoAlimentacao,
     RespostaCampoNumerico,
     RespostaCampoTextoLongo,
@@ -29,7 +28,8 @@ from sme_terceirizadas.imr.models import (
     RespostaUtensilioCozinha,
     RespostaUtensilioMesa,
     OcorrenciaNaoSeAplica,
-    FormularioOcorrenciasBase
+    FormularioOcorrenciasBase,
+    AnexosFormularioBase
 )
 
 from sme_terceirizadas.escola.models import Escola
@@ -45,6 +45,20 @@ class FormularioSupervisaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormularioSupervisao
         exclude = ("id",)
+
+
+class AnexosFormularioBaseSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField()
+    anexo_url = serializers.SerializerMethodField()
+
+    def get_anexo_url(self, instance):
+        env = environ.Env()
+        api_url = env.str("URL_ANEXO", default="http://localhost:8000")
+        return f"{api_url}{instance.anexo.url}"
+
+    class Meta:
+        model = AnexosFormularioBase
+        exclude = ("id", )
 
 
 class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
@@ -67,6 +81,13 @@ class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
         allow_null=True,
         queryset=FormularioOcorrenciasBase.objects.all(),
     )
+
+    # anexos = serializers.SerializerMethodField()
+
+    # def get_anexos(self, obj):
+    #     return AnexosFormularioBaseSerializer(
+    #         obj.formulario_base.anexos.all(), many=True
+    #     ).data
 
     class Meta:
         model = FormularioSupervisao
