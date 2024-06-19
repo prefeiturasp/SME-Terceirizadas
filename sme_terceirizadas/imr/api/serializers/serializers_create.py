@@ -177,89 +177,38 @@ class RespostaUtensilioMesaCreateSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
-class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
-    data = serializers.DateField(required=False, allow_null=True)
-    escola = serializers.SlugRelatedField(
-        slug_field="uuid",
-        required=True,
-        allow_null=True,
-        queryset=Escola.objects.all(),
-    )
-    periodo_visita = serializers.SlugRelatedField(
-        slug_field="uuid",
-        required=False,
-        allow_null=True,
-        queryset=PeriodoVisita.objects.all(),
-    )
-    nome_nutricionista_empresa = serializers.CharField(required=False, allow_null=True)
-    acompanhou_visita = serializers.BooleanField(required=False)
-    formulario_base = serializers.SlugRelatedField(
-        slug_field="uuid",
-        required=False,
-        allow_null=True,
-        queryset=FormularioOcorrenciasBase.objects.all(),
-    )
+class FormularioSupervisaoOcorrenciaUtilSerializer(serializers.ModelSerializer):
     ocorrencias_nao_se_aplica = serializers.ListField(required=False, allow_null=True)
     ocorrencias = serializers.ListField(required=False, allow_null=True)
-    ocorrencias_to_delete = serializers.ListField(required=False, allow_null=True)
-    anexos = serializers.JSONField(required=False, allow_null=True)
+    ocorrencias_sim = serializers.ListField(required=False, allow_null=True)
 
-    def validate(self, attrs):
-        if "data" not in attrs:
-            raise serializers.ValidationError({"data": ["Este campo é obrigatório!"]})
-
-        return attrs
-
-    def create(self, validated_data):
-        usuario = self.context["request"].user
-        data_visita = validated_data.pop("data", None)
-        ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
-        ocorrencias = validated_data.pop("ocorrencias", [])
-        anexos = validated_data.pop("anexos", [])
-
-        form_base = FormularioOcorrenciasBase.objects.create(
-            usuario=usuario, data=data_visita
-        )
-
-        form_supervisao = FormularioSupervisao.objects.create(
-            formulario_base=form_base, **validated_data
-        )
-
-        self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, form_base)
-
-        self._save_ocorrencias(ocorrencias, form_base)
-
-        self._create_anexos(form_base, anexos)
-
-        return form_supervisao
-
-    def update(self, instance, validated_data):
-        data_visita = validated_data.pop("data", None)
-        ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
-        ocorrencias = validated_data.pop("ocorrencias", [])
-        ocorrencias_to_delete = validated_data.pop("ocorrencias_to_delete", [])
-        anexos = validated_data.pop("anexos", [])
-
-        instance.formulario_base.data = data_visita
-        instance.formulario_base.save()
-
-        self._delete_ocorrencias(ocorrencias_to_delete)
-
-        self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, instance.formulario_base)
-
-        self._save_ocorrencias(ocorrencias, instance.formulario_base)
-
-        instance.formulario_base.anexos.all().delete()
-
-        self._create_anexos(instance.formulario_base, anexos)
-
-        return super(FormularioSupervisaoRascunhoCreateSerializer, self).update(instance, validated_data)
+    class Meta:
+        model = FormularioSupervisao
+        exclude = ("id",)
 
     def get_serializer_class_by_name(self, name):
         serializer_class = globals().get(name)
         if serializer_class is None:
             raise ValueError(f"Nenhum serializer encontrado com o nome '{name}'")
         return serializer_class
+
+    def _reset_ocorrencias_sim(self, ocorrencias_data):
+        '''Apaga todas as respostas e ocorrências não se aplica,
+           caso o tipo de ocorrência tenha mudado de NAO => SIM ou  NAO_SE_APLICA => SIM'''
+        for tipo_ocorrencia_UUID in ocorrencias_data:
+            try:
+                tipo_ocorrencia = TipoOcorrencia.objects.get(
+                    uuid=tipo_ocorrencia_UUID
+                )
+            except TipoOcorrencia.DoesNotExist:
+                raise serializers.ValidationError(
+                    {
+                        "detail": f"TipoOcorrencia com o UUID {tipo_ocorrencia_UUID} não foi encontrada"
+                    }
+                )
+
+            tipo_ocorrencia.apagar_respostas()
+            tipo_ocorrencia.apagar_ocorrencias_nao_se_aplica()
 
     def _save_ocorrencias_nao_se_aplica(self, ocorrencias_data, form_base):
         for ocorrencia_data in ocorrencias_data:
@@ -268,6 +217,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
 
             if uuid:
                 instance = OcorrenciaNaoSeAplica.objects.get(uuid=uuid)
+                instance.tipo_ocorrencia.apagar_respostas()
                 serializer = OcorrenciaNaoSeAplicaCreateSerializer(instance, data=ocorrencia_data)
             else:
                 serializer = OcorrenciaNaoSeAplicaCreateSerializer(data=ocorrencia_data)
@@ -307,7 +257,21 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
                     }
                 )
 
+    def _apagar_respostas_nao_enviadas(self, ocorrencias_data, form_base):
+        respostas = form_base.buscar_respostas()
+        respostas_payload_uuid = []
+        for ocorrencia_data in ocorrencias_data:
+            if "uuid" in ocorrencia_data:
+                respostas_payload_uuid.append(ocorrencia_data["uuid"])
+
+        for resposta in respostas:
+            if str(resposta.uuid) not in respostas_payload_uuid:
+                resposta.delete()
+
     def _save_ocorrencias(self, ocorrencias_data, form_base):
+
+        self._apagar_respostas_nao_enviadas(ocorrencias_data, form_base)
+
         for ocorrencia_data in ocorrencias_data:
             ocorrencia_data["formulario_base"] = form_base.pk
             parametrizacao_UUID = ocorrencia_data["parametrizacao"]
@@ -341,8 +305,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
 
             if serializer.is_valid():
                 serializer.save()
-                # caso haja registro de ocorrência não se aplica
-                parametrizacao.tipo_ocorrencia.ocorrencias_nao_se_aplica.all().delete()
+                parametrizacao.tipo_ocorrencia.apagar_ocorrencias_nao_se_aplica()
 
             else:
                 raise serializers.ValidationError(
@@ -358,12 +321,90 @@ class FormularioSupervisaoRascunhoCreateSerializer(serializers.ModelSerializer):
                 nome=anexo.get("nome"),
             )
 
+
+class FormularioSupervisaoRascunhoCreateSerializer(FormularioSupervisaoOcorrenciaUtilSerializer):
+    status = serializers.BooleanField(read_only=True)
+    data = serializers.DateField(required=False, allow_null=True)
+    escola = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        allow_null=True,
+        queryset=Escola.objects.all(),
+    )
+    periodo_visita = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=PeriodoVisita.objects.all(),
+    )
+    nome_nutricionista_empresa = serializers.CharField(required=False, allow_null=True)
+    acompanhou_visita = serializers.BooleanField(required=False)
+    formulario_base = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        allow_null=True,
+        queryset=FormularioOcorrenciasBase.objects.all(),
+    )
+    anexos = serializers.JSONField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        if "data" not in attrs:
+            raise serializers.ValidationError({"data": ["Este campo é obrigatório!"]})
+
+        return attrs
+
+    def create(self, validated_data):
+        usuario = self.context["request"].user
+        data_visita = validated_data.pop("data", None)
+        ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
+        ocorrencias = validated_data.pop("ocorrencias", [])
+        anexos = validated_data.pop("anexos", [])
+
+        form_base = FormularioOcorrenciasBase.objects.create(
+            usuario=usuario, data=data_visita
+        )
+
+        form_supervisao = FormularioSupervisao.objects.create(
+            formulario_base=form_base, **validated_data
+        )
+
+        self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, form_base)
+
+        self._save_ocorrencias(ocorrencias, form_base)
+
+        self._create_anexos(form_base, anexos)
+
+        return form_supervisao
+
+    def update(self, instance, validated_data):
+        data_visita = validated_data.pop("data", None)
+        ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
+        ocorrencias_sim = validated_data.pop("ocorrencias_sim", [])
+        ocorrencias = validated_data.pop("ocorrencias", [])
+        anexos = validated_data.pop("anexos", [])
+
+        instance.formulario_base.data = data_visita
+        instance.formulario_base.save()
+
+        self._reset_ocorrencias_sim(ocorrencias_sim)
+
+        self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, instance.formulario_base)
+
+        self._save_ocorrencias(ocorrencias, instance.formulario_base)
+
+        instance.formulario_base.anexos.all().delete()
+
+        self._create_anexos(instance.formulario_base, anexos)
+
+        return super(FormularioSupervisaoRascunhoCreateSerializer, self).update(instance, validated_data)
+
     class Meta:
         model = FormularioSupervisao
         exclude = ("id",)
 
 
-class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
+class FormularioSupervisaoCreateSerializer(FormularioSupervisaoOcorrenciaUtilSerializer):
+    status = serializers.BooleanField(read_only=True)
     data = serializers.DateField(required=False, allow_null=True)
     escola = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -376,7 +417,7 @@ class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
         required=True,
         queryset=PeriodoVisita.objects.all(),
     )
-    nome_nutricionista_empresa = serializers.CharField(required=False, allow_blank=True)
+    nome_nutricionista_empresa = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     acompanhou_visita = serializers.BooleanField(required=True)
     formulario_base = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -384,8 +425,6 @@ class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
         allow_null=True,
         queryset=FormularioOcorrenciasBase.objects.all(),
     )
-    ocorrencias_nao_se_aplica = serializers.ListField(required=False, allow_null=True)
-    ocorrencias = serializers.ListField(required=False, allow_null=True)
     anexos = serializers.JSONField(required=True, allow_null=True)
 
     def validate(self, attrs):
@@ -416,78 +455,44 @@ class FormularioSupervisaoCreateSerializer(serializers.ModelSerializer):
             usuario=usuario, data=data_visita
         )
 
-        form_supervisao = FormularioSupervisao.objects.create(
+        instance = FormularioSupervisao.objects.create(
             formulario_base=form_base, **validated_data
         )
 
-        self._create_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, form_base)
+        self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, form_base)
 
-        self._create_ocorrencias(ocorrencias, form_base)
+        self._save_ocorrencias(ocorrencias, form_base)
 
         self._create_anexos(form_base, anexos)
 
-        form_supervisao.inicia_fluxo(usuario=usuario)
+        instance.inicia_fluxo(usuario=usuario)
 
-        return form_supervisao
+        return instance
 
-    def _create_ocorrencias_nao_se_aplica(self, ocorrencias_data, form_base):
-        for ocorrencia_data in ocorrencias_data:
-            ocorrencia_data["formulario_base"] = str(form_base.uuid)
-            serializer = OcorrenciaNaoSeAplicaCreateSerializer(data=ocorrencia_data)
-            if serializer.is_valid():
-                serializer.save()
-            else:
-                raise serializers.ValidationError(
-                    {"ocorrencias_nao_se_aplica": serializer.errors}
-                )
+    def update(self, instance, validated_data):
+        usuario = self.context["request"].user
+        data_visita = validated_data.pop("data", None)
+        ocorrencias_sim = validated_data.pop("ocorrencias_sim", [])
+        ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
+        ocorrencias = validated_data.pop("ocorrencias", [])
+        anexos = validated_data.pop("anexos", [])
 
-    def get_serializer_class_by_name(self, name):
-        serializer_class = globals().get(name)
-        if serializer_class is None:
-            raise ValueError(f"Nenhum serializer encontrado com o nome '{name}'")
-        return serializer_class
+        instance.formulario_base.data = data_visita
+        instance.formulario_base.save()
 
-    def _create_ocorrencias(self, ocorrencias_data, form_base):
-        for ocorrencia_data in ocorrencias_data:
-            ocorrencia_data["formulario_base"] = form_base.pk
-            parametrizacao_UUID = ocorrencia_data["parametrizacao"]
+        self._reset_ocorrencias_sim(ocorrencias_sim)
 
-            try:
-                parametrizacao = ParametrizacaoOcorrencia.objects.get(
-                    uuid=parametrizacao_UUID
-                )
-            except ParametrizacaoOcorrencia.DoesNotExist:
-                raise serializers.ValidationError(
-                    {
-                        "detail": f"ParametrizacaoOcorrencia com o UUID {parametrizacao_UUID} não foi encontrada"
-                    }
-                )
+        self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, instance.formulario_base)
 
-            ocorrencia_data["parametrizacao"] = parametrizacao.pk
+        self._save_ocorrencias(ocorrencias, instance.formulario_base)
 
-            response_model_class_name = (
-                parametrizacao.tipo_pergunta.get_model_tipo_resposta().__name__
-            )
-            response_serializer = self.get_serializer_class_by_name(
-                f"{response_model_class_name}CreateSerializer"
-            )
+        instance.formulario_base.anexos.all().delete()
 
-            serializer = response_serializer(data=ocorrencia_data)
-            if serializer.is_valid():
-                serializer.save()
-            else:
-                raise serializers.ValidationError(
-                    {"parametrizacao": parametrizacao.uuid, "error": serializer.errors}
-                )
+        self._create_anexos(instance.formulario_base, anexos)
 
-    def _create_anexos(self, form_base, anexos):
-        for anexo in anexos:
-            contentfile = convert_base64_to_contentfile(anexo.get("arquivo"))
-            AnexosFormularioBase.objects.create(
-                formulario_base=form_base,
-                anexo=contentfile,
-                nome=anexo.get("nome"),
-            )
+        instance.inicia_fluxo(usuario=usuario)
+
+        return super(FormularioSupervisaoCreateSerializer, self).update(instance, validated_data)
 
     class Meta:
         model = FormularioSupervisao
