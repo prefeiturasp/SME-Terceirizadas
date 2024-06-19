@@ -13,6 +13,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
 from sme_terceirizadas.terceirizada.models import Edital
 
 from ...dados_comuns.fluxo_status import FormularioSupervisaoWorkflow
+from ...escola.models import Escola
 from ..models import (
     Equipamento,
     FormularioSupervisao,
@@ -27,25 +28,24 @@ from ..models import (
 from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
     EquipamentoSerializer,
-    FormularioSupervisaoSerializer,
     FormularioSupervisaoRetrieveSerializer,
+    FormularioSupervisaoSerializer,
     FormularioSupervisaoSimplesSerializer,
     InsumoSerializer,
     MobiliarioSerializer,
+    OcorrenciaNaoSeAplicaSerializer,
     PeriodoVisitaSerializer,
     ReparoEAdaptacaoSerializer,
     TipoOcorrenciaSerializer,
+    TipoPerguntaParametrizacaoOcorrencia,
     UtensilioCozinhaSerializer,
     UtensilioMesaSerializer,
-    TipoPerguntaParametrizacaoOcorrencia,
-    OcorrenciaNaoSeAplicaSerializer
 )
 from .serializers.serializers_create import (
     FormularioDiretorManyCreateSerializer,
     FormularioSupervisaoCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
 )
-from ...escola.models import Escola
 
 
 class PeriodoVisitaModelViewSet(
@@ -104,9 +104,18 @@ class FormularioSupervisaoModelViewSet(
     def _get_categorias_nao_permitidas(self, tipo_escola):
         categorias_excluir = []
 
-        if tipo_escola not in ["CEI", "CEI CEU", "CCI", "CEMEI", "CEU CEMEI"]:
+        if tipo_escola not in [
+            "CEI",
+            "CEI DIRET",
+            "CEI CEU",
+            "CEI CEU",
+            "CCI/CIPS",
+            "CCI",
+            "CEMEI",
+            "CEU CEMEI",
+        ]:
             categorias_excluir.append("LACTÁRIO")
-        if tipo_escola in ["CEI", "CEI CEU", "CCI"]:
+        if tipo_escola in ["CEI", "CEI DIRET", "CEI CEU", "CEI CEU", "CCI/CIPS", "CCI"]:
             categorias_excluir.append("RESÍDUO DE ÓLEO UTILIZADO NA FRITURA")
 
         return categorias_excluir
@@ -131,17 +140,15 @@ class FormularioSupervisaoModelViewSet(
             )
         except Escola.DoesNotExist:
             return Response(
-                {
-                    "detail": "Escola com o UUID informado não foi encontrada."
-                },
+                {"detail": "Escola com o UUID informado não foi encontrada."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except ValidationError as error:
             return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = TipoOcorrencia.para_nutrisupervisores.filter(
-            edital=edital).exclude(
-            categoria__nome__in=self._get_categorias_nao_permitidas(tipo_unidade))
+        queryset = TipoOcorrencia.para_nutrisupervisores.filter(edital=edital).exclude(
+            categoria__nome__in=self._get_categorias_nao_permitidas(tipo_unidade)
+        )
 
         serializer = TipoOcorrenciaSerializer(queryset, many=True)
 
@@ -214,7 +221,11 @@ class FormularioSupervisaoModelViewSet(
 
             for _resposta in _respostas:
                 resposta_serializer_name = f"{modelo_reposta.__name__}Serializer"
-                get_resposta_serializer = FormularioSupervisaoRetrieveSerializer.get_serializer_class_by_name(resposta_serializer_name)
+                get_resposta_serializer = (
+                    FormularioSupervisaoRetrieveSerializer.get_serializer_class_by_name(
+                        resposta_serializer_name
+                    )
+                )
 
                 respostas.append(get_resposta_serializer(_resposta).data)
 
@@ -227,7 +238,9 @@ class FormularioSupervisaoModelViewSet(
     def respostas_nao_se_aplica(self, request, uuid):
         formulario = self.get_object()
 
-        serializer = OcorrenciaNaoSeAplicaSerializer(formulario.formulario_base.respostas_nao_se_aplica.all(), many=True)
+        serializer = OcorrenciaNaoSeAplicaSerializer(
+            formulario.formulario_base.respostas_nao_se_aplica.all(), many=True
+        )
         return Response(serializer.data)
 
 
