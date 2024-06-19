@@ -6,6 +6,7 @@ from calendar import monthrange
 from collections import defaultdict
 from functools import reduce
 
+from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import IntegerField, Sum
 from django.db.models.functions import Cast
@@ -26,6 +27,7 @@ from sme_terceirizadas.dieta_especial.models import (
     LogQuantidadeDietasAutorizadasCEI,
 )
 from sme_terceirizadas.escola.models import (
+    Aluno,
     DiaCalendario,
     Escola,
     FaixaEtaria,
@@ -4524,3 +4526,118 @@ def cria_relatorios_financeiros_por_grupo_unidade_escolar(data):
                 except IntegrityError as e:
                     print(e)
                     continue
+
+
+def quantidade_meses(d1, d2):
+    delta = relativedelta(d1, d2)
+    return (delta.years * 12) + delta.months
+
+
+def cria_logs_parcial(logs, periodo, solicitacao, periodo_escolar, dia, faixa_etaria):
+    if not logs and periodo == "PARCIAL":
+        quantidade_dias = monthrange(int(solicitacao.ano), int(solicitacao.mes))[1]
+        ultimo_dia_do_mes = datetime.date(
+            int(solicitacao.ano), int(solicitacao.mes), quantidade_dias
+        )
+        while dia <= ultimo_dia_do_mes.day:
+            data = datetime.date(int(solicitacao.ano), int(solicitacao.mes), int(dia))
+            LogAlunosMatriculadosFaixaEtariaDia.objects.create(
+                escola=solicitacao.escola,
+                periodo_escolar=periodo_escolar,
+                quantidade=1,
+                data=data,
+                faixa_etaria=faixa_etaria,
+            )
+            dia += 1
+
+
+def subtrai_quantidade(log):
+    if log.quantidade > 0:
+        log.quantidade -= 1
+        log.save()
+
+
+def atualiza_logs_adicao(solicitacao, aluno_periodo_parcial, aluno, faixa_etaria):
+    aluno_data = aluno_periodo_parcial.get("data", "")
+    if isinstance(aluno_data, datetime.date):
+        aluno_data = f"{aluno_data.day}/{aluno_data.month}/{aluno_data.year}"
+    (dia, mes, ano) = aluno_data.split("/")
+    dia = int(dia)
+    mes = int(mes)
+    ano = int(ano)
+    if not solicitacao.alunos_periodo_parcial.filter(
+        aluno=aluno, data=datetime.date(ano, mes, dia)
+    ).exists():
+        for periodo in ["PARCIAL", "INTEGRAL"]:
+            periodo_escolar = PeriodoEscolar.objects.get(nome=periodo)
+            logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
+                escola=solicitacao.escola,
+                periodo_escolar=periodo_escolar,
+                data__year=int(solicitacao.ano),
+                data__month=int(solicitacao.mes),
+                data__day__gte=int(dia),
+                faixa_etaria=faixa_etaria,
+            )
+            cria_logs_parcial(
+                logs, periodo, solicitacao, periodo_escolar, int(dia), faixa_etaria
+            )
+            for log in logs:
+                if periodo == "PARCIAL":
+                    log.quantidade += 1
+                    log.save()
+                else:
+                    subtrai_quantidade(log)
+
+
+def atualiza_logs_remocao(solicitacao, aluno_periodo_parcial, aluno, faixa_etaria):
+    aluno_data_removido = aluno_periodo_parcial.get("data_removido", "")
+    if isinstance(aluno_data_removido, datetime.date):
+        aluno_data_removido = f"{aluno_data_removido.day}/{aluno_data_removido.month}/{aluno_data_removido.year}"
+    (dia, mes, ano) = aluno_data_removido.split("/")
+    dia = int(dia)
+    mes = int(mes)
+    ano = int(ano)
+    if not solicitacao.alunos_periodo_parcial.filter(
+        aluno=aluno, data_removido=datetime.date(ano, mes, dia)
+    ).exists():
+        for periodo in ["PARCIAL", "INTEGRAL"]:
+            periodo_escolar = PeriodoEscolar.objects.get(nome=periodo)
+            logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
+                escola=solicitacao.escola,
+                periodo_escolar=periodo_escolar,
+                data__year=int(solicitacao.ano),
+                data__month=int(solicitacao.mes),
+                data__day__gte=int(dia),
+                faixa_etaria=faixa_etaria,
+            )
+            for log in logs:
+                if periodo == "PARCIAL":
+                    subtrai_quantidade(log)
+                else:
+                    log.quantidade += 1
+                    log.save()
+
+
+def atualiza_alunos_periodo_parcial(solicitacao, alunos_periodo_parcial):
+    for aluno_periodo_parcial in alunos_periodo_parcial:
+        aluno_uuid = aluno_periodo_parcial.get("aluno")
+        aluno = Aluno.objects.get(uuid=aluno_uuid)
+        data_nascimento = aluno.data_nascimento
+        data_solicitacao = datetime.date(int(solicitacao.ano), int(solicitacao.mes), 1)
+        meses = quantidade_meses(data_solicitacao, data_nascimento)
+        ultima_faixa = FaixaEtaria.objects.filter(ativo=True).order_by("fim").last()
+        if meses >= ultima_faixa.fim:
+            faixa_etaria = ultima_faixa
+        else:
+            faixa_etaria = FaixaEtaria.objects.get(
+                ativo=True, inicio__lte=meses, fim__gt=meses
+            )
+        atualiza_logs_adicao(solicitacao, aluno_periodo_parcial, aluno, faixa_etaria)
+        if aluno_periodo_parcial.get("data_removido", ""):
+            atualiza_logs_remocao(
+                solicitacao, aluno_periodo_parcial, aluno, faixa_etaria
+            )
+    for medicao in solicitacao.medicoes.all():
+        medicao.valores_medicao.filter(
+            nome_campo__in=["frequencia", "observacoes"]
+        ).delete()

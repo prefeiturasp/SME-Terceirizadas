@@ -9,84 +9,17 @@ from sme_terceirizadas.imr.models import FormularioOcorrenciasBase
 pytestmark = pytest.mark.django_db
 
 
-def test_formulario_supervisao(
-    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+def test_formulario_diretor(
+    client_autenticado_diretor_escola,
     escola,
-    tipo_ocorrencia_factory,
-):
-    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
-    tipo_ocorrencia_1 = tipo_ocorrencia_factory.create()
-    tipo_ocorrencia_2 = tipo_ocorrencia_factory.create()
-
-    payload = {
-        "data": "2024-05-15",
-        "escola": str(escola.uuid),
-        "maior_frequencia_no_periodo": 6,
-        "ocorrencias_nao_se_aplica": [
-            {
-                "tipo_ocorrencia": str(tipo_ocorrencia_1.uuid),
-                "descricao": "Não se aplica",
-            },
-            {
-                "tipo_ocorrencia": str(tipo_ocorrencia_2.uuid),
-                "descricao": "Não se aplica v2",
-            },
-        ],
-    }
-
-    response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
-        data=json.dumps(payload),
-        content_type="application/json",
-    )
-    data = response.json()
-
-    instance = FormularioOcorrenciasBase.objects.get(uuid=data["formulario_base"])
-    assert response.status_code == status.HTTP_201_CREATED
-    assert data["escola"] == str(escola.uuid)
-    assert data["maior_frequencia_no_periodo"] == 6
-    assert instance.respostas_nao_se_aplica.count() == 2
-
-
-def test_formulario_supervisao_tipo_ocorrencia_nao_existe(
-    client_autenticado_vinculo_coordenador_supervisao_nutricao, escola
-):
-    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
-    payload = {
-        "data": "2024-05-15",
-        "escola": str(escola.uuid),
-        "ocorrencias_nao_se_aplica": [
-            {
-                "tipo_ocorrencia": "2b7a2217-1743-4bcd-8879-cf8e16e34fa6",
-                "descricao": "",
-            },
-        ],
-    }
-    response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
-        data=json.dumps(payload),
-        content_type="application/json",
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {
-        "ocorrencias_nao_se_aplica": {
-            "tipo_ocorrencia": [
-                "Objeto com uuid=2b7a2217-1743-4bcd-8879-cf8e16e34fa6 não existe."
-            ]
-        }
-    }
-
-
-def test_formulario_supervisao_respostas_nao(
-    client_autenticado_vinculo_coordenador_supervisao_nutricao,
-    escola,
+    solicitacao_medicao_inicial_factory,
     tipo_resposta_modelo_factory,
     tipo_pergunta_parametrizacao_ocorrencia_factory,
     tipo_ocorrencia_factory,
     parametrizacao_ocorrencia_factory,
 ):
-    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+    solicitacao_medicao_inicial = solicitacao_medicao_inicial_factory(escola=escola)
+
     tipo_resposta_campo_simples = tipo_resposta_modelo_factory(
         nome="RespostaCampoTextoSimples"
     )
@@ -118,8 +51,8 @@ def test_formulario_supervisao_respostas_nao(
     )
 
     payload = {
-        "data": "07/06/2024",
-        "escola": str(escola.uuid),
+        "datas": ["07/06/2024", "08/06/2024"],
+        "solicitacao_medicao_inicial": str(solicitacao_medicao_inicial.uuid),
         "ocorrencias": [
             {
                 "grupo": 1,
@@ -142,12 +75,15 @@ def test_formulario_supervisao_respostas_nao(
         ],
     }
 
-    response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
+    response = client_autenticado_diretor_escola["client"].post(
+        f"/imr/formulario-diretor/",
         data=json.dumps(payload),
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
+
+    data = response.json()
+    assert data["solicitacao_medicao_inicial"] == str(solicitacao_medicao_inicial.uuid)
 
     instance = FormularioOcorrenciasBase.objects.get(data="2024-06-07")
     assert instance.respostas_campo_texto_simples.count() == 2
@@ -163,16 +99,32 @@ def test_formulario_supervisao_respostas_nao(
     assert instance.respostas_campo_numerico.count() == 1
     assert instance.respostas_campo_numerico.filter(resposta=10).exists() is True
 
+    instance = FormularioOcorrenciasBase.objects.get(data="2024-06-08")
+    assert instance.respostas_campo_texto_simples.count() == 2
+    assert (
+        instance.respostas_campo_texto_simples.filter(resposta="calça").exists() is True
+    )
+    assert (
+        instance.respostas_campo_texto_simples.filter(
+            resposta="camisa", grupo=2
+        ).exists()
+        is True
+    )
+    assert instance.respostas_campo_numerico.count() == 1
+    assert instance.respostas_campo_numerico.filter(resposta=10).exists() is True
 
-def test_formulario_supervisao_erro_parametrizacao_uuid(
-    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+
+def test_formulario_diretor_erro_parametrizacao_uuid(
+    client_autenticado_diretor_escola,
     escola,
+    solicitacao_medicao_inicial_factory,
     tipo_resposta_modelo_factory,
     tipo_pergunta_parametrizacao_ocorrencia_factory,
     tipo_ocorrencia_factory,
     parametrizacao_ocorrencia_factory,
 ):
-    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+    solicitacao_medicao_inicial = solicitacao_medicao_inicial_factory(escola=escola)
+
     tipo_resposta_campo_simples = tipo_resposta_modelo_factory(
         nome="RespostaCampoTextoSimples"
     )
@@ -192,8 +144,8 @@ def test_formulario_supervisao_erro_parametrizacao_uuid(
     uuid_incorreto = uuid.uuid4()
 
     payload = {
-        "data": "07/06/2024",
-        "escola": str(escola.uuid),
+        "datas": ["07/06/2024", "08/06/2024"],
+        "solicitacao_medicao_inicial": str(solicitacao_medicao_inicial.uuid),
         "ocorrencias": [
             {
                 "grupo": 1,
@@ -216,8 +168,8 @@ def test_formulario_supervisao_erro_parametrizacao_uuid(
         ],
     }
 
-    response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
+    response = client_autenticado_diretor_escola["client"].post(
+        f"/imr/formulario-diretor/",
         data=json.dumps(payload),
         content_type="application/json",
     )

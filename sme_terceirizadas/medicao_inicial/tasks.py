@@ -114,12 +114,17 @@ def copiar_responsaveis(solicitacao_origem, solicitacao_destino):
 
 
 def copiar_alunos_periodo_parcial(solicitacao_origem, solicitacao_destino):
-    alunos_em_periodo_parcial = solicitacao_origem.alunos_periodo_parcial.all()
+    alunos_em_periodo_parcial = solicitacao_origem.alunos_periodo_parcial.filter(
+        data_removido__isnull=True
+    )
     for aluno in alunos_em_periodo_parcial:
         AlunoPeriodoParcial.objects.create(
             solicitacao_medicao_inicial=solicitacao_destino,
             aluno=aluno.aluno,
             escola=solicitacao_destino.escola,
+            data=datetime.date(
+                int(solicitacao_destino.ano), int(solicitacao_destino.mes), 1
+            ),
         )
 
 

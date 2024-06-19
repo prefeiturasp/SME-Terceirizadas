@@ -53,7 +53,10 @@ from sme_terceirizadas.terceirizada.models import Contrato, Edital
 
 from ...dados_comuns.constants import DIRETOR_UE
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
-from ..utils import log_alteracoes_escola_corrige_periodo
+from ..utils import (
+    atualiza_alunos_periodo_parcial,
+    log_alteracoes_escola_corrige_periodo,
+)
 from ..validators import (
     valida_medicoes_inexistentes_cei,
     valida_medicoes_inexistentes_ceu_gestao,
@@ -201,7 +204,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["criado_por"] = self.context["request"].user
         responsaveis_dict = validated_data.pop("responsaveis", [])
-        alunos_uuids = validated_data.pop("alunos_periodo_parcial", [])
+        alunos_periodo_parcial = validated_data.pop("alunos_periodo_parcial", [])
         tipos_contagem_alimentacao = validated_data.pop(
             "tipos_contagem_alimentacao", []
         )
@@ -213,12 +216,14 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 nome=responsavel.get("nome", ""),
                 rf=responsavel.get("rf", ""),
             )
-        if alunos_uuids:
+        if alunos_periodo_parcial:
             escola_associada = validated_data.get("escola")
-            for aluno in alunos_uuids:
+            atualiza_alunos_periodo_parcial(solicitacao, alunos_periodo_parcial)
+            for aluno in alunos_periodo_parcial:
                 AlunoPeriodoParcial.objects.create(
                     solicitacao_medicao_inicial=solicitacao,
                     aluno=Aluno.objects.get(uuid=aluno.get("aluno", "")),
+                    data=aluno.get("data", ""),
                     escola=escola_associada,
                 )
 
@@ -931,14 +936,33 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 )
 
     def _update_alunos(self, instance, validated_data):
-        alunos_uuids_dict = self.context["request"].data.get("alunos_periodo_parcial")
-        if alunos_uuids_dict:
-            instance.alunos_periodo_parcial.all().delete()
+        alunos_periodo_parcial = self.context["request"].data.get(
+            "alunos_periodo_parcial"
+        )
+        if alunos_periodo_parcial:
             escola_associada = validated_data.get("escola")
-            for aluno_uuid in json.loads(alunos_uuids_dict):
+            if self.context["request"].data.get("alunos_parcial_alterado") == "true":
+                atualiza_alunos_periodo_parcial(
+                    instance, json.loads(alunos_periodo_parcial)
+                )
+            instance.alunos_periodo_parcial.all().delete()
+            for aluno in json.loads(alunos_periodo_parcial):
+                (dia, mes, ano) = aluno.get("data", "").split("/")
+                dia = int(dia)
+                mes = int(mes)
+                ano = int(ano)
+                if aluno.get("data_removido", ""):
+                    (dia_, mes_, ano_) = aluno.get("data_removido", "").split("/")
+                    dia_ = int(dia_)
+                    mes_ = int(mes_)
+                    ano_ = int(ano_)
                 AlunoPeriodoParcial.objects.create(
                     solicitacao_medicao_inicial=instance,
-                    aluno=Aluno.objects.get(uuid=aluno_uuid),
+                    aluno=Aluno.objects.get(uuid=aluno.get("aluno", "")),
+                    data=date(ano, mes, dia),
+                    data_removido=date(ano_, mes_, dia_)
+                    if aluno.get("data_removido", "")
+                    else None,
                     escola=escola_associada,
                 )
 

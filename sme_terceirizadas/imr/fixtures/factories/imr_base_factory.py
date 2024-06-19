@@ -1,17 +1,23 @@
+import factory
 from factory import DjangoModelFactory, Sequence, SubFactory
 from factory.fuzzy import FuzzyInteger
 from faker import Faker
 
 from sme_terceirizadas.escola.fixtures.factories.escola_factory import EscolaFactory
 from sme_terceirizadas.imr.models import (
+    AnexosFormularioBase,
     CategoriaOcorrencia,
     Equipamento,
     FaixaPontuacaoIMR,
+    FormularioDiretor,
+    FormularioOcorrenciasBase,
+    FormularioSupervisao,
     Insumo,
     Mobiliario,
     ObrigacaoPenalidade,
     ParametrizacaoOcorrencia,
     PerfilDiretorSupervisao,
+    PeriodoVisita,
     ReparoEAdaptacao,
     TipoGravidade,
     TipoOcorrencia,
@@ -21,7 +27,12 @@ from sme_terceirizadas.imr.models import (
     UtensilioCozinha,
     UtensilioMesa,
 )
-from sme_terceirizadas.medicao_inicial.models import SolicitacaoMedicaoInicial
+from sme_terceirizadas.medicao_inicial.fixtures.factories.solicitacao_medicao_inicial_base_factory import (
+    SolicitacaoMedicaoInicialFactory,
+)
+from sme_terceirizadas.perfil.fixtures.factories.perfil_base_factories import (
+    UsuarioFactory,
+)
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EditalFactory,
 )
@@ -112,6 +123,13 @@ class ParametrizacaoOcorrenciaFactory(DjangoModelFactory):
     tipo_pergunta = SubFactory(TipoPerguntaParametrizacaoOcorrenciaFactory)
 
 
+class PeriodoVisitaFactory(DjangoModelFactory):
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+    class Meta:
+        model = PeriodoVisita
+
+
 class FaixaPontuacaoFactory(DjangoModelFactory):
     class Meta:
         model = FaixaPontuacaoIMR
@@ -163,8 +181,38 @@ class InsumoFactory(DjangoModelFactory):
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
 
 
-class MedicaoInicialFactory(DjangoModelFactory):
-    escola = SubFactory(EscolaFactory)
+class FormularioOcorrenciasBaseFactory(DjangoModelFactory):
+    usuario = SubFactory(UsuarioFactory)
+    data = factory.faker.Faker("date")
 
     class Meta:
-        model = SolicitacaoMedicaoInicial
+        model = FormularioOcorrenciasBase
+
+
+class AnexosFormularioBaseFactory(DjangoModelFactory):
+    anexo = factory.django.FileField()
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+
+    class Meta:
+        model = AnexosFormularioBase
+
+
+class FormularioSupervisaoFactory(DjangoModelFactory):
+    escola = SubFactory(EscolaFactory)
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    periodo_visita = SubFactory(PeriodoVisitaFactory)
+    nome_nutricionista_empresa = Sequence(lambda n: f"nome - {fake.unique.name()}")
+    maior_frequencia_no_periodo = Sequence(lambda n: fake.random.randint(100, 300))
+    status = FormularioSupervisao.workflow_class.EM_PREENCHIMENTO
+
+    class Meta:
+        model = FormularioSupervisao
+
+
+class FormularioDiretorFactory(DjangoModelFactory):
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    solicitacao_medicao_inicial = SubFactory(SolicitacaoMedicaoInicialFactory)
+
+    class Meta:
+        model = FormularioDiretor

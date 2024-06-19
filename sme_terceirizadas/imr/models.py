@@ -15,6 +15,7 @@ from ..dados_comuns.behaviors import (
     ArquivoCargaBase,
     CriadoPor,
     Grupo,
+    Logs,
     ModeloBase,
     Nomeavel,
     PerfilDiretorSupervisao,
@@ -23,6 +24,7 @@ from ..dados_comuns.behaviors import (
     TemNomeMaior,
 )
 from ..dados_comuns.fluxo_status import FluxoFormularioSupervisao
+from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dados_comuns.validators import validate_file_size_10mb
 from ..escola.models import Escola, FaixaEtaria, PeriodoEscolar
 from ..medicao_inicial.models import SolicitacaoMedicaoInicial
@@ -121,6 +123,7 @@ class TipoOcorrenciaParaNutriSupervisor(models.Manager):
             super()
             .get_queryset()
             .filter(
+                status=True,
                 perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
                 categoria__perfis__contains=[PerfilDiretorSupervisao.SUPERVISAO],
             )
@@ -133,6 +136,7 @@ class TipoOcorrenciaParaDiretor(models.Manager):
             super()
             .get_queryset()
             .filter(
+                status=True,
                 perfis__contains=[PerfilDiretorSupervisao.DIRETOR],
                 categoria__perfis__contains=[PerfilDiretorSupervisao.DIRETOR],
             )
@@ -198,7 +202,7 @@ class TipoOcorrencia(
         verbose_name = "Tipo de Ocorrência"
         verbose_name_plural = "Tipos de Ocorrência"
         unique_together = ("edital", "categoria", "penalidade", "titulo")
-        ordering = ("categoria__posicao", "posicao")
+        ordering = ("categoria__posicao", "posicao", "titulo")
 
     def valida_eh_imr(self, dict_error):
         if self.eh_imr and (not self.pontuacao or not self.tolerancia):
@@ -224,6 +228,15 @@ class TipoOcorrencia(
         dict_error = self.valida_eh_imr(dict_error)
         dict_error = self.valida_nao_eh_imr(dict_error)
         raise ValidationError(dict_error)
+
+    def apagar_respostas(self):
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            modelo_reposta.objects.filter(parametrizacao__tipo_ocorrencia=self).delete()
+
+    def apagar_ocorrencias_nao_se_aplica(self):
+        self.ocorrencias_nao_se_aplica.all().delete()
 
 
 class ImportacaoPlanilhaTipoOcorrencia(ArquivoCargaBase):
@@ -312,6 +325,16 @@ class FormularioOcorrenciasBase(ModeloBase):
 
     def __str__(self):
         return f"{self.usuario.nome} - {self.data}"
+
+    def buscar_respostas(self):
+        respostas_por_formulario = []
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            respostas = modelo_reposta.objects.filter(formulario_base=self)
+            for resposta in respostas:
+                respostas_por_formulario.append(resposta)
+        return respostas_por_formulario
 
     class Meta:
         verbose_name = "Formulário Base - Ocorrências"
@@ -417,7 +440,7 @@ class FormularioDiretor(ModeloBase):
         verbose_name_plural = "Formulários do Diretor - Ocorrências"
 
 
-class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao):
+class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao, Logs):
     escola = models.ForeignKey(
         Escola, on_delete=models.PROTECT, related_name="formularios_supervisao"
     )
@@ -446,6 +469,17 @@ class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao):
         null=True,
         blank=True,
     )
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get("justificativa", "")
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.FORMULARIO_SUPERVISAO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+        )
 
     def __str__(self):
         return f"{self.escola.nome} - {self.formulario_base.data}"

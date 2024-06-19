@@ -16,14 +16,18 @@ from .escola.fixtures.factories.escola_factory import (
     TipoUnidadeEscolarFactory,
 )
 from .imr.fixtures.factories.imr_base_factory import (
+    AnexosFormularioBaseFactory,
     CategoriaOcorrenciaFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
+    FormularioDiretorFactory,
+    FormularioOcorrenciasBaseFactory,
+    FormularioSupervisaoFactory,
     InsumoFactory,
-    MedicaoInicialFactory,
     MobiliarioFactory,
     ObrigacaoPenalidadeFactory,
     ParametrizacaoOcorrenciaFactory,
+    PeriodoVisitaFactory,
     ReparoEAdaptacaoFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
@@ -33,10 +37,18 @@ from .imr.fixtures.factories.imr_base_factory import (
     UtensilioCozinhaFactory,
     UtensilioMesaFactory,
 )
+from .imr.fixtures.factories.imr_importacao_planilha_base_factory import (
+    ImportacaoPlanilhaTipoOcorrenciaFactory,
+    ImportacaoPlanilhaTipoPenalidadeFactory,
+)
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
 )
+from .medicao_inicial.fixtures.factories.solicitacao_medicao_inicial_base_factory import (
+    SolicitacaoMedicaoInicialFactory,
+)
+from .perfil.fixtures.factories.perfil_base_factories import UsuarioFactory
 from .pre_recebimento.fixtures.factories.cronograma_factory import (
     CronogramaFactory,
     EtapasDoCronogramaFactory,
@@ -115,7 +127,6 @@ register(VeiculoFichaDeRecebimentoFactory)
 register(ArquivoFichaDeRecebimentoFactory)
 register(UtensilioMesaFactory)
 register(UtensilioCozinhaFactory)
-register(MedicaoInicialFactory)
 register(EquipamentoFactory)
 register(MobiliarioFactory)
 register(ReparoEAdaptacaoFactory)
@@ -129,6 +140,15 @@ register(PeriodoEscolarFactory)
 register(LogAlunosMatriculadosPeriodoEscolaFactory)
 register(DiretoriaRegionalFactory)
 register(TipoUnidadeEscolarFactory)
+register(SolicitacaoMedicaoInicialFactory)
+register(ImportacaoPlanilhaTipoPenalidadeFactory)
+register(ImportacaoPlanilhaTipoOcorrenciaFactory)
+register(PeriodoVisitaFactory)
+register(UsuarioFactory)
+register(FormularioOcorrenciasBaseFactory)
+register(AnexosFormularioBaseFactory)
+register(FormularioSupervisaoFactory)
+register(FormularioDiretorFactory)
 
 
 @pytest.fixture

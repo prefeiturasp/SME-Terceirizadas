@@ -5493,10 +5493,18 @@ class FormularioSupervisaoWorkflow(xwf_models.Workflow):
     log_model = ""  # Disable logging to database
 
     EM_PREENCHIMENTO = "EM_PREENCHIMENTO"
+    NUTRIMANIFESTACAO_A_VALIDAR = "NUTRIMANIFESTACAO_A_VALIDAR"
+    COM_COMENTARIOS_DE_CODAE = "COM_COMENTARIOS_DE_CODAE"
+    VALIDADO_POR_CODAE = "VALIDADO_POR_CODAE"
 
-    states = ((EM_PREENCHIMENTO, "Em Preenchimento"),)
+    states = (
+        (EM_PREENCHIMENTO, "Em Preenchimento"),
+        (NUTRIMANIFESTACAO_A_VALIDAR, "Enviado para CODAE"),
+        (COM_COMENTARIOS_DE_CODAE, "Com comentários de CODAE"),
+        (VALIDADO_POR_CODAE, "Validado pela CODAE"),
+    )
 
-    transitions = ()
+    transitions = (("inicia_fluxo", EM_PREENCHIMENTO, NUTRIMANIFESTACAO_A_VALIDAR),)
 
     initial_state = EM_PREENCHIMENTO
 
@@ -5504,6 +5512,19 @@ class FormularioSupervisaoWorkflow(xwf_models.Workflow):
 class FluxoFormularioSupervisao(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = FormularioSupervisaoWorkflow
     status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition("inicia_fluxo")
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        usuario = kwargs["usuario"]
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.RELATORIO_ENVIADO_PARA_CODAE,
+            usuario=usuario,
+            justificativa=kwargs.get("justificativa", ""),
+        )
+
+    @property
+    def em_preenchimento(self):
+        return self.status == FormularioSupervisaoWorkflow.EM_PREENCHIMENTO
 
     class Meta:
         abstract = True

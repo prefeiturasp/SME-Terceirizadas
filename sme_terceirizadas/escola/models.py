@@ -1957,12 +1957,15 @@ class AlunoPeriodoParcial(TemChaveExterna, CriadoEm):
         related_name="alunos_periodo_parcial",
         on_delete=models.CASCADE,
     )
+    data = models.DateField("Aluno no período parcial a partir de", null=True)
+    data_removido = models.DateField("Aluno no período parcial a partir de", null=True)
 
     def __str__(self):
-        return (
-            f"{self.aluno.nome} para SMI {self.solicitacao_medicao_inicial.mes}/"
-            f"{self.solicitacao_medicao_inicial.ano} da UE {self.escola.nome}"
-        )
+        retorno = f"{self.aluno.nome} para SMI {self.solicitacao_medicao_inicial.mes}/"
+        retorno += f"{self.solicitacao_medicao_inicial.ano} da UE {self.escola.nome}"
+        retorno += f" a partir de {self.data}" if self.data else ""
+        retorno += f" até {self.data_removido}" if self.data_removido else ""
+        return retorno
 
     class Meta:
         verbose_name = "Aluno no período parcial"

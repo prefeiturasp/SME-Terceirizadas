@@ -67,6 +67,11 @@ class Ativavel(models.Model):
         abstract = True
 
 
+class ApenasAtivosManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status=True)
+
+
 class StatusAtivoInativo(models.Model):
     ATIVO = "Ativo"
     INATIVO = "Inativo"
@@ -76,6 +81,9 @@ class StatusAtivoInativo(models.Model):
         (False, INATIVO),
     )
     status = models.BooleanField("Status", choices=STATUS_CHOICES, default=True)
+
+    objects = models.Manager()
+    ativos = ApenasAtivosManager()
 
     class Meta:
         abstract = True
