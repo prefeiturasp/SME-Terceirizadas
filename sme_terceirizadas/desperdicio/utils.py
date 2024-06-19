@@ -14,17 +14,18 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
         group by 1, 2
     ),
     restos as (
-        select cr.escola_id, cr.data_hora_medicao::date as data_medicao,
+        select cr.escola_id, cr.data_medicao as data_medicao, cr.periodo,
             sum(cr.quantidade_distribuida) as quantidade_distribuida_soma,
             sum(cr.peso_resto) as peso_resto_soma
         from desperdicio_controlerestos cr
         join escola_escola e on e.id = cr.escola_id
-        where cr.data_hora_medicao::date between %s::date and %s::date
+        where cr.data_medicao between %s::date and %s::date
         [EXTRA_WHERE_CLAUSES]
-        group by 1, 2
+        group by 1, 2, 3
     ),
     relatorio as (
         select m.data_medicao,
+            r.periodo,
             dre.nome as dre_nome,
             ee.nome as escola_nome,
             r.quantidade_distribuida_soma,
@@ -90,11 +91,11 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
     ),
     relatorio as (
 	    select m.data_medicao,
+	        s.periodo,
 	        dre.nome as dre_nome,
 	        ee.nome as escola_nome,
 	        ta.nome as tipo_alimentacao_nome,
 	        s.tipo_alimento_nome,
-	        s.periodo,
 	        coalesce((s.peso_alimento - s.peso_sobra), 0) as quantidade_distribuida,
 	        coalesce(s.peso_sobra, 0) as peso_sobra,
 	        coalesce(f.frequencia, 0) as frequencia,

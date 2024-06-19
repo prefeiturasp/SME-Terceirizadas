@@ -17,8 +17,8 @@ from ....produto.models import TipoAlimento, TipoRecipiente
 from ....escola.api.serializers import EscolaSimplesSerializer
 from ....cardapio.models import TipoAlimentacao
 
-from ...constants import CLASSIFICACAO_TIPO, SOBRAS_PERIODO
-from ...constants import SOBRAS_PERIODO
+from ...constants import CLASSIFICACAO_TIPO, DESPERDICIO_PERIODO
+from ...constants import DESPERDICIO_PERIODO
 
 class ControleSobrasSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
@@ -55,7 +55,7 @@ class ControleSobrasCreateSerializer(serializers.Serializer):
     def validate(self, attrs):
         periodo = attrs['periodo']
 
-        if periodo not in SOBRAS_PERIODO:
+        if periodo not in DESPERDICIO_PERIODO:
             raise serializers.ValidationError('Período inválido.')
         
         return attrs
@@ -140,11 +140,20 @@ class ControleRestosCreateSerializer(serializers.Serializer):
     cardapio = serializers.CharField(required=True)
     resto_predominante = serializers.CharField(required=True)
     quantidade_distribuida = serializers.CharField(required=True)
-    data_hora_medicao = serializers.DateTimeField(required=True)
+    data_medicao = serializers.DateField(required=True)
+    periodo = serializers.CharField(required=True)
     imagens = serializers.ListField(
         required=False,
         child=ImagemControleRestoCreateSerializer()
     )
+
+    def validate(self, attrs):
+        periodo = attrs['periodo']
+
+        if periodo not in DESPERDICIO_PERIODO:
+            raise serializers.ValidationError('Período inválido.')
+        
+        return attrs
 
     def create(self, validated_data):
         escola = Escola.objects.get(uuid=validated_data['escola'])
@@ -155,7 +164,8 @@ class ControleRestosCreateSerializer(serializers.Serializer):
         usuario = self.context['request'].user
         imagens = validated_data.pop('imagens', [])
         quantidade_distribuida = validated_data['quantidade_distribuida']
-        data_hora_medicao = validated_data['data_hora_medicao']
+        data_medicao = validated_data['data_medicao']
+        periodo = validated_data['periodo']
 
         try:
             item = ControleRestos.objects.create(
@@ -165,7 +175,8 @@ class ControleRestosCreateSerializer(serializers.Serializer):
                 cardapio=cardapio,
                 resto_predominante=resto_predominante,
                 usuario=usuario,
-                data_hora_medicao=data_hora_medicao,
+                data_medicao=data_medicao,
+                periodo=periodo,
                 quantidade_distribuida=quantidade_distribuida
             )
 
@@ -182,9 +193,21 @@ class ControleRestosCreateSerializer(serializers.Serializer):
             print(e)
             raise serializers.ValidationError('Erro ao criar ControleRestos.')
 
+def format_periodo(value):
+    if (value is None):
+        return None
+    
+    if value == 'M':
+        return 'Manhã'
+    if value == 'T':
+        return 'Tarde'
+    if value == 'I':
+        return 'Integral'
+
+    return value
 
 def serialize_relatorio_controle_restos(row):
-    data_medicao, dre_nome, escola_nome, quantidade_distribuida_soma, peso_resto_soma, num_refeicoes, resto_per_capita, percent_resto, classificacao = row
+    data_medicao, periodo, dre_nome, escola_nome, quantidade_distribuida_soma, peso_resto_soma, num_refeicoes, resto_per_capita, percent_resto, classificacao = row
 
     def format_float(value):
         if (value is None):
@@ -202,6 +225,7 @@ def serialize_relatorio_controle_restos(row):
         'dre_nome': dre_nome,
         'escola_nome': escola_nome,
         'data_medicao': data_medicao.strftime('%d/%m/%Y') if data_medicao else None,
+        'periodo': format_periodo(periodo),
         'quantidade_distribuida_soma': format_float(quantidade_distribuida_soma),
         'peso_resto_soma': format_float(peso_resto_soma),
         'num_refeicoes': format_int(num_refeicoes),
@@ -213,7 +237,7 @@ def serialize_relatorio_controle_restos(row):
 
 def serialize_relatorio_controle_sobras(row):
 
-    data_medicao, dre_nome, escola_nome, tipo_alimentacao_nome, tipo_alimento_nome, periodo, quantidade_distribuida, peso_sobra, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao, classificacao = row
+    data_medicao, periodo, dre_nome, escola_nome, tipo_alimentacao_nome, tipo_alimento_nome, quantidade_distribuida, peso_sobra, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao, classificacao = row
 
     def format_float(value):
         if (value is None):
@@ -226,19 +250,6 @@ def serialize_relatorio_controle_sobras(row):
             return None
 
         return int(value)
-    
-    def format_periodo(value):
-        if (value is None):
-            return None
-        
-        if value == 'M':
-            return 'Manhã'
-        if value == 'T':
-            return 'Tarde'
-        if value == 'I':
-            return 'Integral'
-
-        return value
 
     return {
         'dre_nome': dre_nome,

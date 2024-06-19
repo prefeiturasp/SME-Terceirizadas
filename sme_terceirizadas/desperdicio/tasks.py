@@ -26,9 +26,9 @@ def gera_xls_relatorio_controle_restos_async(user, nome_arquivo, data):
         output = io.BytesIO()
 
         titulos_colunas = [
-            'DRE', 'Unidade Educacional', 'Data da Medição',
+            'DRE', 'Unidade Educacional', 'Data da Medição', 'Período'
             'Quantidade Distribuída', 'Peso do Resto (Kg)', 'Nº Refeições',
-            'Resto per Capita', '% Resto']
+            'Resto per Capita', '% Resto', 'Classificação']
         build_xlsx_generico(
             output,
             queryset_serializada=[serialize_relatorio_controle_restos(item) for item in data],
@@ -58,9 +58,9 @@ def gera_xls_relatorio_controle_sobras_async(user, nome_arquivo, data):
 
         titulos_colunas = [
             'DRE', 'Unidade Educacional', 'Tipo de Alimentação', 'Tipo de Alimento',
-            'Data da Medição', 'Peso da Refeição Distribuída (Kg)', 'Peso da Sobra (Kg)',
+            'Data da Medição', 'Período', 'Peso da Refeição Distribuída (Kg)', 'Peso da Sobra (Kg)',
             'Total de Alunos (frequência)', 'Total Primeira Oferta', 'Total Segunda Oferta (Repetição)',
-            '% Sobra', 'Média por Aluno', 'Média por Refeição']
+            '% Sobra', 'Média por Aluno', 'Média por Refeição', 'Classificação']
         build_xlsx_generico(
             output,
             queryset_serializada=[serialize_relatorio_controle_sobras(item) for item in data],

@@ -2,7 +2,7 @@ M = "Manhã"
 T = "Tarde"
 I = "Integral"
 
-SOBRAS_PERIODO = ["M", "T", "I"]
+DESPERDICIO_PERIODO = ["M", "T", "I"]
 
 CR = "CLASSIFICAÇÃO DE RESTO"
 CS = "CLASSIFICAÇÃO DE SOBRA"
