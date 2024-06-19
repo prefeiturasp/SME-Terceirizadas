@@ -4551,7 +4551,7 @@ def cria_logs_parcial(logs, periodo, solicitacao, periodo_escolar, dia, faixa_et
             dia += 1
 
 
-def subtrai_quantidade_integral(log):
+def subtrai_quantidade(log):
     if log.quantidade > 0:
         log.quantidade -= 1
         log.save()
@@ -4586,7 +4586,7 @@ def atualiza_logs_adicao(solicitacao, aluno_periodo_parcial, aluno, faixa_etaria
                     log.quantidade += 1
                     log.save()
                 else:
-                    subtrai_quantidade_integral(log)
+                    subtrai_quantidade(log)
 
 
 def atualiza_logs_remocao(solicitacao, aluno_periodo_parcial, aluno, faixa_etaria):
@@ -4597,23 +4597,25 @@ def atualiza_logs_remocao(solicitacao, aluno_periodo_parcial, aluno, faixa_etari
     dia = int(dia)
     mes = int(mes)
     ano = int(ano)
-    for periodo in ["PARCIAL", "INTEGRAL"]:
-        periodo_escolar = PeriodoEscolar.objects.get(nome=periodo)
-        logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
-            escola=solicitacao.escola,
-            periodo_escolar=periodo_escolar,
-            data__year=int(solicitacao.ano),
-            data__month=int(solicitacao.mes),
-            data__day__gte=int(dia),
-            faixa_etaria=faixa_etaria,
-        )
-        for log in logs:
-            if periodo == "PARCIAL":
-                log.quantidade -= 1
-                log.save()
-            else:
-                log.quantidade += 1
-                log.save()
+    if not solicitacao.alunos_periodo_parcial.filter(
+        aluno=aluno, data_removido=datetime.date(ano, mes, dia)
+    ).exists():
+        for periodo in ["PARCIAL", "INTEGRAL"]:
+            periodo_escolar = PeriodoEscolar.objects.get(nome=periodo)
+            logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
+                escola=solicitacao.escola,
+                periodo_escolar=periodo_escolar,
+                data__year=int(solicitacao.ano),
+                data__month=int(solicitacao.mes),
+                data__day__gte=int(dia),
+                faixa_etaria=faixa_etaria,
+            )
+            for log in logs:
+                if periodo == "PARCIAL":
+                    subtrai_quantidade(log)
+                else:
+                    log.quantidade += 1
+                    log.save()
 
 
 def atualiza_alunos_periodo_parcial(solicitacao, alunos_periodo_parcial):
