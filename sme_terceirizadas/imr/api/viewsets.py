@@ -108,14 +108,14 @@ class FormularioSupervisaoModelViewSet(
             "CEI",
             "CEI DIRET",
             "CEI CEU",
-            "CEI CEU",
+            "CEU CEI",
             "CCI/CIPS",
             "CCI",
             "CEMEI",
             "CEU CEMEI",
         ]:
             categorias_excluir.append("LACTÁRIO")
-        if tipo_escola in ["CEI", "CEI DIRET", "CEI CEU", "CEI CEU", "CCI/CIPS", "CCI"]:
+        if tipo_escola in ["CEI", "CEI DIRET", "CEI CEU", "CEU CEI", "CCI/CIPS", "CCI"]:
             categorias_excluir.append("RESÍDUO DE ÓLEO UTILIZADO NA FRITURA")
 
         return categorias_excluir
