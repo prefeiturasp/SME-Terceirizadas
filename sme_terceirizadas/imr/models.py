@@ -482,7 +482,7 @@ class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao, Logs):
         )
 
     def __str__(self):
-        return f"{self.escola.nome} - {self.formulario_base.data} - {self.uuid}"
+        return f"{self.escola.nome} - {self.formulario_base.data}"
 
     class Meta:
         verbose_name = "Formulário da Supervisão - Ocorrências"
