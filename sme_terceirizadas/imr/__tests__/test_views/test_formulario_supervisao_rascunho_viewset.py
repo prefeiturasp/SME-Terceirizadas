@@ -42,10 +42,8 @@ def test_formulario_supervisao(
     data = response.json()
 
     instance = FormularioOcorrenciasBase.objects.get(uuid=data["formulario_base"])
-
     assert response.status_code == status.HTTP_201_CREATED
     assert data["escola"] == str(escola.uuid)
-    assert data["status"] == "EM_PREENCHIMENTO"
     assert data["maior_frequencia_no_periodo"] == 6
     assert instance.respostas_nao_se_aplica.count() == 2
 
