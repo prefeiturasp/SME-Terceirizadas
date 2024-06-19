@@ -77,7 +77,7 @@ class FormularioSupervisaoRascunhoModelViewSet(
                 request, *args, **kwargs
             )
         else:
-            return Response({'detail': 'Rascunho não pode mais ser editado.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Rascunho já foi enviado e não pode mais ser alterado.'}, status=status.HTTP_403_FORBIDDEN)
 
 
 class FormularioSupervisaoModelViewSet(
@@ -85,6 +85,7 @@ class FormularioSupervisaoModelViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
     mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
 ):
     lookup_field = "uuid"
     queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
