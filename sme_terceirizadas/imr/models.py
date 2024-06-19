@@ -229,6 +229,15 @@ class TipoOcorrencia(
         dict_error = self.valida_nao_eh_imr(dict_error)
         raise ValidationError(dict_error)
 
+    def apagar_respostas(self):
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            modelo_reposta.objects.filter(parametrizacao__tipo_ocorrencia=self).delete()
+
+    def apagar_ocorrencias_nao_se_aplica(self):
+        self.ocorrencias_nao_se_aplica.all().delete()
+
 
 class ImportacaoPlanilhaTipoOcorrencia(ArquivoCargaBase):
     """Importa dados de planilha de tipos de ocorrência."""
@@ -316,6 +325,16 @@ class FormularioOcorrenciasBase(ModeloBase):
 
     def __str__(self):
         return f"{self.usuario.nome} - {self.data}"
+
+    def buscar_respostas(self):
+        respostas_por_formulario = []
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            respostas = modelo_reposta.objects.filter(formulario_base=self)
+            for resposta in respostas:
+                respostas_por_formulario.append(resposta)
+        return respostas_por_formulario
 
     class Meta:
         verbose_name = "Formulário Base - Ocorrências"
