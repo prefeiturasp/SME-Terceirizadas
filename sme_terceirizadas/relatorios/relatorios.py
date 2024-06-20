@@ -37,6 +37,7 @@ from ..relatorios.utils import (
     html_to_pdf_multiple,
     html_to_pdf_response,
 )
+from ..terceirizada.models import Edital
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
@@ -1695,3 +1696,21 @@ def get_pdf_ficha_tecnica(request, ficha):
         html_string.replace("dt_file", data_arquivo),
         f"ficha_tecnica_{ficha.numero}.pdf",
     )
+
+
+def relatorio_formulario_supervisao(formulario_supervisao):
+    html_string = render_to_string(
+        "imr/relatorio_formulario_supervisao.html",
+        {
+            "formulario_supervisao": formulario_supervisao,
+            "edital": Edital.objects.get(
+                uuid=formulario_supervisao.escola.editais[0]
+            ).numero,
+        },
+    )
+    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    return html_to_pdf_response(
+        html_string.replace("dt_file", data_arquivo),
+        "relatorio_formulario_supervisao.pdf",
+    )
+    # return html_to_pdf_file(html_string, "relatorio_formulario_supervisao.pdf", is_async=True)

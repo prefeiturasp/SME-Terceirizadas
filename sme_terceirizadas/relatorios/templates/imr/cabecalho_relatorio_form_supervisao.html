@@ -1,0 +1,24 @@
+{% include 'relatorio_base.html' %} {% load static %} {% load index %} {% load sass_tags %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+</head>
+<header class="header">
+  <section class="titulo-e-logo">
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1>Secretaria Municipal de Educação - Coordenadoria de Alimentação Escolar</h1>
+  </section>
+  <h2>RELATÓRIO DE FISCALIZAÇÃO DO CONTRATO DE PRESTAÇÃO DE SERVIÇO TERCEIRIZADO DE ALIMENTAÇÃO ESCOLAR</h2>
+  <table class="tabela-cabecalho tabela-arredondada">
+    <tr>
+      <td>Unidade escolar: {{ formulario_supervisao.escola.nome }}</td>
+      <td>DRE: {{ formulario_supervisao.escola.diretoria_regional.nome }}</td>
+    </tr>
+    <tr>
+      <td>Referência: {{ edital }}</td>
+      <td>Lote: {{ formulario_supervisao.escola.lote.nome }}</td>
+    </tr>
+  </table>
+</header>
+</html>

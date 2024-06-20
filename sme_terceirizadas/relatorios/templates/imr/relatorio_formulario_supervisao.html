@@ -1,0 +1,12 @@
+{% include 'relatorio_base.html' %} {% load static %} {% load index %} {% load sass_tags %}
+
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
+</head>
+
+<body>
+   {% include "imr/cabecalho_relatorio_form_supervisao.html" with formulario_supervisao=formulario_supervisao %}
+</body>
+</html>

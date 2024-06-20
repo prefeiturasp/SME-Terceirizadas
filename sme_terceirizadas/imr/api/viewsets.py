@@ -14,6 +14,7 @@ from sme_terceirizadas.terceirizada.models import Edital
 
 from ...dados_comuns.fluxo_status import FormularioSupervisaoWorkflow
 from ...escola.models import Escola
+from ...relatorios.relatorios import relatorio_formulario_supervisao
 from ..models import (
     Equipamento,
     FormularioSupervisao,
@@ -77,7 +78,10 @@ class FormularioSupervisaoRascunhoModelViewSet(
                 request, *args, **kwargs
             )
         else:
-            return Response({'detail': 'Rascunho já foi enviado e não pode mais ser alterado.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Rascunho já foi enviado e não pode mais ser alterado."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
 
 class FormularioSupervisaoModelViewSet(
@@ -242,6 +246,31 @@ class FormularioSupervisaoModelViewSet(
             formulario.formulario_base.respostas_nao_se_aplica.all(), many=True
         )
         return Response(serializer.data)
+
+    @action(detail=True, methods=["GET"], url_path="relatorio-pdf")
+    def relatorio_pdf(self, request, uuid):
+        try:
+            # user = request.user.get_username()
+            formulario_supervisao = FormularioSupervisao.objects.get(uuid=uuid)
+            """
+            gera_pdf_relatorio_formulario_supervisao_async(
+                user=user,
+                nome_arquivo=f"Relatório de Fiscalização - {formulario_supervisao.escola.nome}.pdf",
+                uuid=uuid,
+            )
+            return Response(
+                dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+                status=status.HTTP_200_OK,
+            )
+            """
+            return relatorio_formulario_supervisao(formulario_supervisao)
+        except KeyError:
+            return Response(
+                {"detail": "O parâmetro `uuid` é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FormularioDiretorModelViewSet(
