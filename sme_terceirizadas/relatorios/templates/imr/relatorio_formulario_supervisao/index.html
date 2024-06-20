@@ -17,6 +17,13 @@
               {{ tipo_ocorrencia.categoria.nome }}
             </th>
           </tr>
+          {% if tipo_ocorrencia.categoria.gera_notificacao %}
+            <tr class="frequencia">
+              <th class="pb-3" colSpan={3}>
+                Maior frequência no período: {{ formulario_supervisao.maior_frequencia_no_periodo }}
+              </th>
+            </tr>
+          {% endif %}
         {% endif %}
       {% endwith %}
     {% endfor %}
