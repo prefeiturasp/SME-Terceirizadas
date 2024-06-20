@@ -146,6 +146,11 @@ def concatena_str(query_set):
 
 
 @register.filter
+def concatena_str_por_param(query_set, param):
+    return ", ".join([getattr(p, param) for p in query_set])
+
+
+@register.filter
 def concatena_string(lista):
     return ", ".join([p for p in lista])
 

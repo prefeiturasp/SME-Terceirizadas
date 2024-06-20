@@ -13,7 +13,7 @@
       {% with index_minus_one=forloop.counter0|add:"-1" %}
         {% if forloop.counter0 == 0 or tipos_ocorrencia|get_element_by_index:index_minus_one|get_attribute:"categoria" != tipo_ocorrencia.categoria %}
           <tr class="categoria">
-            <th class="pb-3" colSpan={3}>
+            <th class="pb-3" colspan="3">
               {{ tipo_ocorrencia.categoria.nome }}
             </th>
           </tr>
@@ -25,6 +25,21 @@
             </tr>
           {% endif %}
         {% endif %}
+        <tr class="tipo-ocorrencia">
+          <td>{{ forloop.counter }}</td>
+          <td>
+            <div>
+              <b>{{ tipo_ocorrencia.titulo }}:</b> {{ tipo_ocorrencia.descricao }}
+            </div>
+            <div>
+              <b>
+                Penalidade: {{ tipo_ocorrencia.penalidade.numero_clausula }}<br />
+                Obrigação: {{ tipo_ocorrencia.penalidade.obrigacoes.all|concatena_str_por_param:"descricao" }}
+              </b>
+            </div>
+          </td>
+          <td>Sim</td>
+        </tr>
       {% endwith %}
     {% endfor %}
   </table>
