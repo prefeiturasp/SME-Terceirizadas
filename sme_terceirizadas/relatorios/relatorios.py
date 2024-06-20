@@ -1700,7 +1700,7 @@ def get_pdf_ficha_tecnica(request, ficha):
 
 def relatorio_formulario_supervisao(formulario_supervisao):
     html_string = render_to_string(
-        "imr/relatorio_formulario_supervisao.html",
+        "imr/relatorio_formulario_supervisao/index.html",
         {
             "formulario_supervisao": formulario_supervisao,
             "edital": Edital.objects.get(
