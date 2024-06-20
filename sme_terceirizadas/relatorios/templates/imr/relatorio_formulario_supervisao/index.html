@@ -2,11 +2,24 @@
 
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/relatorio_formulario_supervisao.scss' %}" type="text/css">
   <link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
 </head>
 
 <body>
    {% include "imr/relatorio_formulario_supervisao/cabecalho.html" with formulario_supervisao=formulario_supervisao %}
+  <table class="formulario-supervisao">
+    {% for tipo_ocorrencia in tipos_ocorrencia %}
+      {% with index_minus_one=forloop.counter0|add:"-1" %}
+        {% if forloop.counter0 == 0 or tipos_ocorrencia|get_element_by_index:index_minus_one|get_attribute:"categoria" != tipo_ocorrencia.categoria %}
+          <tr class="categoria">
+            <th class="pb-3" colSpan={3}>
+              {{ tipo_ocorrencia.categoria.nome }}
+            </th>
+          </tr>
+        {% endif %}
+      {% endwith %}
+    {% endfor %}
+  </table>
 </body>
 </html>

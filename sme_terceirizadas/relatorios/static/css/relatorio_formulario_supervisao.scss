@@ -1,0 +1,86 @@
+@import "variaveis";
+
+table.formulario-supervisao {
+  font-size: 14px;
+  width: 100%;
+
+  tr {
+    border: 1px solid $grayIcon;
+
+    &:not(:last-child) {
+      border-bottom: none;
+    }
+
+    &.categoria {
+      background-color: $grayBackgroundTr;
+
+      th {
+        padding: 1em;
+        text-align: center;
+      }
+    }
+
+    &.frequencia {
+      background-color: $grayBackground;
+
+      th {
+        padding: 1em;
+        text-align: center;
+      }
+
+      th .highlight {
+        color: $verde;
+      }
+    }
+
+    &.tipo-ocorrencia {
+      td:not(:last-child) {
+        border-right: 1px solid $grayIcon;
+      }
+
+      td {
+        &:first-child {
+          width: 5%;
+        }
+
+        &:nth-child(2) {
+          width: 85%;
+        }
+        &:last-child {
+          width: 10%;
+        }
+      }
+    }
+
+    &.adicionar {
+      border-top: none;
+    }
+
+    &.tipo-ocorrencia-parametrizacao {
+      .parametrizacao-tipo-radio {
+        label {
+          color: #42474a;
+          margin-left: 0.5em;
+        }
+
+        input[type="radio"] {
+          accent-color: $verde !important;
+        }
+      }
+    }
+
+    &.tipo-ocorrencia-nao-ha-parametrizacao {
+      div {
+        min-height: 200px;
+        p {
+          color: $grayParagraph;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+  .required-asterisk {
+    color: #a50e05;
+    padding-right: 5px;
+  }
+}
