@@ -11,6 +11,7 @@ from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...escola.models import Escola
+from ...imr.models import FormularioOcorrenciasBase, TipoOcorrencia
 from ...inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -783,3 +784,10 @@ def get_nome_categoria(nome):
 @register.filter
 def agrupador_milhar_com_decimal(value: int | float) -> str:
     return numero_com_agrupador_de_milhar_e_decimal(value)
+
+
+@register.filter
+def get_resposta_tipo_ocorrencia(
+    tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
+):
+    return tipo_ocorrencia.get_resposta(formulario_base)

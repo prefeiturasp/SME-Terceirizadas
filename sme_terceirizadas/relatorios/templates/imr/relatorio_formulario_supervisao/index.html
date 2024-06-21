@@ -10,7 +10,7 @@
    {% include "imr/relatorio_formulario_supervisao/cabecalho.html" with formulario_supervisao=formulario_supervisao %}
   <table class="formulario-supervisao">
     {% for tipo_ocorrencia in tipos_ocorrencia %}
-      {% with index_minus_one=forloop.counter0|add:"-1" %}
+      {% with index_minus_one=forloop.counter0|add:"-1" formulario_base=formulario_supervisao|get_attribute:"formulario_base" %}
         {% if forloop.counter0 == 0 or tipos_ocorrencia|get_element_by_index:index_minus_one|get_attribute:"categoria" != tipo_ocorrencia.categoria %}
           <tr class="categoria">
             <th class="pb-3" colspan="3">
@@ -19,7 +19,7 @@
           </tr>
           {% if tipo_ocorrencia.categoria.gera_notificacao %}
             <tr class="frequencia">
-              <th class="pb-3" colSpan={3}>
+              <th class="pb-3" colspan="3">
                 Maior frequência no período: {{ formulario_supervisao.maior_frequencia_no_periodo }}
               </th>
             </tr>
@@ -38,7 +38,7 @@
               </b>
             </div>
           </td>
-          <td>Sim</td>
+          <td>{{ tipo_ocorrencia|get_resposta_tipo_ocorrencia:formulario_base }}</td>
         </tr>
       {% endwith %}
     {% endfor %}

@@ -117,6 +117,33 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
         ordering = ("posicao", "nome")
 
 
+class FormularioOcorrenciasBase(ModeloBase):
+    usuario = models.ForeignKey(
+        Usuario,
+        verbose_name="Usuário",
+        on_delete=models.PROTECT,
+        related_name="formularios_ocorrencias",
+    )
+    data = models.DateField()
+
+    def __str__(self):
+        return f"{self.usuario.nome} - {self.data}"
+
+    def buscar_respostas(self):
+        respostas_por_formulario = []
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            respostas = modelo_reposta.objects.filter(formulario_base=self)
+            for resposta in respostas:
+                respostas_por_formulario.append(resposta)
+        return respostas_por_formulario
+
+    class Meta:
+        verbose_name = "Formulário Base - Ocorrências"
+        verbose_name_plural = "Formulários Base - Ocorrências"
+
+
 class TipoOcorrenciaParaNutriSupervisor(models.Manager):
     def get_queryset(self):
         return (
@@ -195,6 +222,24 @@ class TipoOcorrencia(
     para_diretores = TipoOcorrenciaParaDiretor()
     para_nutrisupervisores = TipoOcorrenciaParaNutriSupervisor()
 
+    def get_resposta(self, formulario_base: FormularioOcorrenciasBase) -> str:
+        if self.ocorrencias_nao_se_aplica.filter(
+            formulario_base=formulario_base
+        ).exists():
+            return "Não se aplica"
+
+        respostas = TipoRespostaModelo.objects.all()
+        if any(
+            resposta
+            for resposta in respostas
+            if resposta.model.objects.filter(
+                formulario_base=formulario_base, parametrizacao__tipo_ocorrencia=self
+            ).exists()
+        ):
+            return "Não"
+
+        return "Sim"
+
     def __str__(self):
         return f"{self.edital.numero} - {self.titulo}"
 
@@ -258,6 +303,10 @@ class TipoRespostaModelo(ModeloBase, Nomeavel):
     def __str__(self):
         return f"{self.nome}"
 
+    @property
+    def model(self):
+        return apps.get_model("imr", self.nome)
+
     class Meta:
         verbose_name = "Tipo de Resposta (Modelo)"
         verbose_name_plural = "Tipos de Resposta (Modelo)"
@@ -312,33 +361,6 @@ class PeriodoVisita(ModeloBase, Nomeavel):
     class Meta:
         verbose_name = "Período de Visita"
         verbose_name_plural = "Períodos de Visita"
-
-
-class FormularioOcorrenciasBase(ModeloBase):
-    usuario = models.ForeignKey(
-        Usuario,
-        verbose_name="Usuário",
-        on_delete=models.PROTECT,
-        related_name="formularios_ocorrencias",
-    )
-    data = models.DateField()
-
-    def __str__(self):
-        return f"{self.usuario.nome} - {self.data}"
-
-    def buscar_respostas(self):
-        respostas_por_formulario = []
-        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
-        for tipo_pergunta in tipos_perguntas:
-            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
-            respostas = modelo_reposta.objects.filter(formulario_base=self)
-            for resposta in respostas:
-                respostas_por_formulario.append(resposta)
-        return respostas_por_formulario
-
-    class Meta:
-        verbose_name = "Formulário Base - Ocorrências"
-        verbose_name_plural = "Formulários Base - Ocorrências"
 
 
 class AnexosFormularioBase(ModeloBase):
