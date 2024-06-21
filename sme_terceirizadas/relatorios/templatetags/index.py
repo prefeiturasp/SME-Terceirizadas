@@ -2,6 +2,7 @@ import math
 import re
 
 from django import template
+from django.template import base as template_base
 
 from sme_terceirizadas.dados_comuns.utils import (
     numero_com_agrupador_de_milhar_e_decimal,
@@ -21,6 +22,9 @@ from ...inclusao_alimentacao.models import (
 from ...kit_lanche.models import EscolaQuantidade
 
 register = template.Library()
+
+# Add support for multi-line template tags
+template_base.tag_re = re.compile(template_base.tag_re.pattern, re.DOTALL)
 
 
 @register.filter
