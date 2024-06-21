@@ -12,7 +12,11 @@ from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...escola.models import Escola
-from ...imr.models import FormularioOcorrenciasBase, TipoOcorrencia
+from ...imr.models import (
+    FormularioOcorrenciasBase,
+    ParametrizacaoOcorrencia,
+    TipoOcorrencia,
+)
 from ...inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -798,6 +802,13 @@ def get_resposta_tipo_ocorrencia(
 
 
 @register.filter
+def get_quantidade_grupos_tipo_ocorrencia(
+    tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
+):
+    return tipo_ocorrencia.quantidade_grupos(formulario_base)
+
+
+@register.filter
 def get_descricao_ocorrencia_nao_se_aplica(
     tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
 ):
@@ -814,3 +825,12 @@ def get_rowspan(
     if "Não" in tipo_ocorrencia.get_resposta(formulario_base):
         return 2
     return 1
+
+
+@register.simple_tag
+def get_resposta_str(
+    parametrizacao: ParametrizacaoOcorrencia,
+    formulario_base: FormularioOcorrenciasBase,
+    grupo: int,
+) -> str:
+    return parametrizacao.get_resposta_str(formulario_base, grupo)

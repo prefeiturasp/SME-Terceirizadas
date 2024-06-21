@@ -14,7 +14,10 @@
         index_minus_one=forloop.counter0|add:"-1"
         formulario_base=formulario_supervisao|get_attribute:"formulario_base"
       %}
-        {% with resposta=tipo_ocorrencia|get_resposta_tipo_ocorrencia:formulario_base %}
+        {% with
+          resposta=tipo_ocorrencia|get_resposta_tipo_ocorrencia:formulario_base
+          quantidade_grupos=tipo_ocorrencia|get_quantidade_grupos_tipo_ocorrencia:formulario_base
+        %}
           {% if
             forloop.counter0 == 0 or
             tipos_ocorrencia|get_element_by_index:index_minus_one|get_attribute:"categoria" != tipo_ocorrencia.categoria
@@ -50,11 +53,23 @@
           {% if resposta == "Não" %}
             <tr>
               <td colspan="2">
-                {% for parametrizacao in tipo_ocorrencia.parametrizacoes.all %}
-                  <div>
-                    {{ parametrizacao.titulo }}
-                  </div>
-                {% endfor %}
+                {% with ''|center:quantidade_grupos as range %}
+                  {% for _ in range %}
+                    {% for parametrizacao in tipo_ocorrencia.parametrizacoes.all %}
+                      <div>
+                        <div>
+                          <b>
+                            {{ parametrizacao.titulo }}
+                          </b>
+                        </div>
+                        <div>
+                          {% get_resposta_str parametrizacao formulario_base forloop.parentloop.counter %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                    <hr/>
+                  {% endfor %}
+                {% endwith %}
               </td>
             </tr>
           {% endif %}

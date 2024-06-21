@@ -240,6 +240,17 @@ class TipoOcorrencia(
 
         return "Sim"
 
+    def quantidade_grupos(self, formulario_base: FormularioOcorrenciasBase) -> int:
+        quantidade_grupos = 1
+        respostas = TipoRespostaModelo.objects.all()
+        for resposta in respostas:
+            grupos = resposta.model.objects.filter(
+                formulario_base=formulario_base
+            ).values_list("grupo", flat=True)
+            if grupos:
+                return max(grupos)
+        return quantidade_grupos
+
     def __str__(self):
         return f"{self.edital.numero} - {self.titulo}"
 
@@ -340,6 +351,14 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
         on_delete=models.PROTECT,
         related_name="parametrizacoes",
     )
+
+    def get_resposta_str(
+        self, formulario_base: FormularioOcorrenciasBase, grupo: int
+    ) -> str:
+        resposta_obj = self.tipo_pergunta.tipo_resposta.model.objects.get(
+            parametrizacao=self, formulario_base=formulario_base, grupo=grupo
+        )
+        return resposta_obj.resposta_str
 
     def __str__(self):
         return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao} - {self.titulo}"
@@ -530,6 +549,10 @@ class RespostaSimNao(ModeloBase, Grupo):
         related_name="respostas_sim_nao",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta
+
     def __str__(self):
         return self.resposta
 
@@ -553,6 +576,10 @@ class RespostaCampoNumerico(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_campo_numerico",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return str(self.resposta)
 
     def __str__(self):
         return str(self.resposta)
@@ -578,6 +605,10 @@ class RespostaCampoTextoSimples(ModeloBase, Grupo):
         related_name="respostas_campo_texto_simples",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta
+
     def __str__(self):
         return self.resposta
 
@@ -601,6 +632,10 @@ class RespostaCampoTextoLongo(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_campo_texto_longo",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta
 
     def __str__(self):
         return self.resposta
@@ -626,8 +661,12 @@ class RespostaDatas(ModeloBase, Grupo):
         related_name="respostas_datas",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.__str__()
+
     def __str__(self):
-        return str(self.resposta)
+        return ", ".join([data.strftime("%d/%m/%Y") for data in self.resposta])
 
     class Meta:
         verbose_name = "Resposta Datas"
@@ -653,6 +692,10 @@ class RespostaPeriodo(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_periodo",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
@@ -682,8 +725,12 @@ class RespostaFaixaEtaria(ModeloBase, Grupo):
         related_name="respostas_faixa_etaria",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.__str__()
+
     def __str__(self):
-        return self.resposta.nome
+        return self.resposta.__str__()
 
     class Meta:
         verbose_name = "Resposta Faixa Etária"
@@ -709,6 +756,10 @@ class RespostaTipoAlimentacao(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_tipos_alimentacao",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
@@ -738,6 +789,10 @@ class RespostaSimNaoNaoSeAplica(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_sim_nao_nao_se_aplica",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta
 
     def __str__(self):
         return self.resposta
@@ -1022,6 +1077,10 @@ class RespostaUtensilioMesa(ModeloBase, Grupo):
         related_name="respostas_utensilios_mesa",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
+
     def __str__(self):
         return self.resposta.nome
 
@@ -1049,6 +1108,10 @@ class RespostaUtensilioCozinha(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_utensilios_cozinha",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
@@ -1078,6 +1141,10 @@ class RespostaEquipamento(ModeloBase, Grupo):
         related_name="respostas_equipamentos",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
+
     def __str__(self):
         return self.resposta.nome
 
@@ -1105,6 +1172,10 @@ class RespostaMobiliario(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_mobiliarios",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
@@ -1134,6 +1205,10 @@ class RespostaReparoEAdaptacao(ModeloBase, Grupo):
         related_name="respostas_reparos_e_adaptacoes",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
+
     def __str__(self):
         return self.resposta.nome
 
@@ -1161,6 +1236,10 @@ class RespostaInsumo(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_insumos",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
