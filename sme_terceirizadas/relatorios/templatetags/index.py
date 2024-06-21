@@ -791,3 +791,22 @@ def get_resposta_tipo_ocorrencia(
     tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
 ):
     return tipo_ocorrencia.get_resposta(formulario_base)
+
+
+@register.filter
+def get_descricao_ocorrencia_nao_se_aplica(
+    tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
+):
+    descricao = tipo_ocorrencia.ocorrencias_nao_se_aplica.get(
+        formulario_base=formulario_base
+    ).descricao
+    return descricao
+
+
+@register.filter
+def get_rowspan(
+    tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
+):
+    if "Não" in tipo_ocorrencia.get_resposta(formulario_base):
+        return 2
+    return 1

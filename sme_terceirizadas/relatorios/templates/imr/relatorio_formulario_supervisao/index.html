@@ -26,7 +26,7 @@
           {% endif %}
         {% endif %}
         <tr class="tipo-ocorrencia">
-          <td>{{ forloop.counter }}</td>
+          <td rowspan="{{ tipo_ocorrencia|get_rowspan:formulario_base }}">{{ forloop.counter }}</td>
           <td>
             <div>
               <b>{{ tipo_ocorrencia.titulo }}:</b> {{ tipo_ocorrencia.descricao }}
@@ -40,6 +40,28 @@
           </td>
           <td>{{ tipo_ocorrencia|get_resposta_tipo_ocorrencia:formulario_base }}</td>
         </tr>
+        {% if tipo_ocorrencia|get_resposta_tipo_ocorrencia:formulario_base == "Não" %}
+          <tr>
+            <td colspan="2">
+              {% for parametrizacao in tipo_ocorrencia.parametrizacoes.all %}
+                <div>
+                  {{ parametrizacao.titulo }}
+                </div>
+              {% endfor %}
+            </td>
+          </tr>
+        {% endif %}
+        {% if tipo_ocorrencia|get_resposta_tipo_ocorrencia:formulario_base == "Não se aplica" %}
+          <tr>
+            <td colspan="2">
+              {% if tipo_ocorrencia|get_descricao_ocorrencia_nao_se_aplica:formulario_base %}
+                Descrição: {{ tipo_ocorrencia|get_descricao_ocorrencia_nao_se_aplica:formulario_base }}
+              {% else %}
+                Sem descrição
+              {% endif %}
+            </td>
+          </tr>
+        {% endif %}
       {% endwith %}
     {% endfor %}
   </table>
