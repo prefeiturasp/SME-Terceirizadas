@@ -1,9 +1,6 @@
 {% include 'relatorio_base.html' %} {% load static %} {% load index %} {% load sass_tags %}
 
 <html>
-<head>
-  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
-</head>
 <header class="header">
   <section class="titulo-e-logo">
     <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
@@ -12,9 +9,16 @@
       <br/>Coordenadoria de Alimentação Escolar
     </h1>
   </section>
-  <h2 class="subtitulo">
-    RELATÓRIO DE FISCALIZAÇÃO DO CONTRATO DE PRESTAÇÃO DE SERVIÇO TERCEIRIZADO DE ALIMENTAÇÃO ESCOLAR
-  </h2>
+  <div class="row">
+    <div class="col-11">
+      <h2 class="subtitulo">
+        RELATÓRIO DE FISCALIZAÇÃO DO CONTRATO DE PRESTAÇÃO DE SERVIÇO TERCEIRIZADO DE ALIMENTAÇÃO ESCOLAR
+      </h2>
+    </div>
+    <div class="col-1">
+      <span class="span-pagina">Página </span><span class="page-number"></span>
+    </div>
+  </div>
   <table class="tabela-cabecalho tabela-arredondada">
     <tr>
       <td>{{ formulario_supervisao.escola.nome }}</td>

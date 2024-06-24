@@ -1,4 +1,44 @@
-@import "variaveis";
+@import "../../variaveis";
+
+@page {
+  @top-center {
+    content: element(cabecalho);
+    width: 100%;
+  }
+}
+
+@page :nth(n+2) {
+  margin-top: 8.4cm;
+  padding-top: 0;
+}
+
+@page :nth(1) {
+  padding-top: 8.4cm;
+  margin-top: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+header {
+ position: running(cabecalho);
+ margin-top: 8cm;
+}
+
+span.span-pagina {
+  font-size: 10px;
+}
+
+.page-number:before {
+  width: 100%;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  color: $branco;
+  margin-right: 5px;
+  content: counter(page) " / " counter(pages);
+}
 
 table.formulario-supervisao {
   font-size: 14px;
