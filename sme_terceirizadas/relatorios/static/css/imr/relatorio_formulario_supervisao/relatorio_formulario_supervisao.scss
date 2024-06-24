@@ -75,10 +75,14 @@ table.formulario-supervisao {
 
     &.tipo-ocorrencia {
       td:not(:last-child) {
-        border-right: 1px solid $grayIcon;
+
       }
 
       td {
+        padding: 1em;
+        border-right: 1px solid $grayIcon;
+        border-bottom: 1px solid $grayIcon;
+
         &:first-child {
           width: 5%;
         }
@@ -88,6 +92,13 @@ table.formulario-supervisao {
         }
         &:last-child {
           width: 10%;
+        }
+
+        div.bloco-grupo {
+          &:not(:last-child) {
+            padding-bottom: 1em;
+            border-bottom: 1px solid $grayIcon;
+          }
         }
       }
     }

@@ -51,30 +51,31 @@
               <td class="text-center">{{ resposta }}</td>
             </tr>
             {% if resposta == "Não" %}
-              <tr>
+              <tr class="tipo-ocorrencia">
                 <td colspan="2">
                   {% with ''|center:quantidade_grupos as range %}
                     {% for _ in range %}
-                      {% for parametrizacao in tipo_ocorrencia.parametrizacoes.all %}
-                        <div>
+                      <div class="bloco-grupo mb-3">
+                        {% for parametrizacao in tipo_ocorrencia.parametrizacoes.all %}
                           <div>
-                            <b>
-                              {{ parametrizacao.titulo }}
-                            </b>
+                            <div>
+                              <b>
+                                {{ parametrizacao.titulo }}
+                              </b>
+                            </div>
+                            <div>
+                              {% get_resposta_str parametrizacao formulario_base forloop.parentloop.counter %}
+                            </div>
                           </div>
-                          <div>
-                            {% get_resposta_str parametrizacao formulario_base forloop.parentloop.counter %}
-                          </div>
-                        </div>
-                      {% endfor %}
-                      <hr/>
+                        {% endfor %}
+                      </div>
                     {% endfor %}
                   {% endwith %}
                 </td>
               </tr>
             {% endif %}
             {% if resposta == "Não se aplica" %}
-              <tr>
+              <tr class="tipo-ocorrencia">
                 <td colspan="2">
                   {% if tipo_ocorrencia|get_descricao_ocorrencia_nao_se_aplica:formulario_base %}
                     Descrição: {{ tipo_ocorrencia|get_descricao_ocorrencia_nao_se_aplica:formulario_base }}
