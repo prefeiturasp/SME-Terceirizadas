@@ -35,7 +35,7 @@ span.span-pagina {
   font-style: normal;
   font-weight: 700;
   font-size: 10px;
-  color: $branco;
+  color: $preto;
   margin-right: 5px;
   content: counter(page) " / " counter(pages);
 }

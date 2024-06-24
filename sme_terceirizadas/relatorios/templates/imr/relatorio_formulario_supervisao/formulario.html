@@ -3,8 +3,8 @@
 
 <html>
   <body>
-    <div>
-      ITENS AVALIADOS NA VISITA E DE RESPONSABILIDADE DA EMPRESA PRESTADORA DE SERVIÇO
+    <div class="mt-3 mb-3 text-center">
+      <b>ITENS AVALIADOS NA VISITA E DE RESPONSABILIDADE DA EMPRESA PRESTADORA DE SERVIÇO</b>
     </div>
     <table class="formulario-supervisao">
       {% for tipo_ocorrencia in tipos_ocorrencia %}
@@ -34,7 +34,9 @@
               {% endif %}
             {% endif %}
             <tr class="tipo-ocorrencia">
-              <td rowspan="{{ tipo_ocorrencia|get_rowspan:formulario_base }}">{{ forloop.counter }}</td>
+              <td rowspan="{{ tipo_ocorrencia|get_rowspan:formulario_base }}" class="text-center">
+                {{ forloop.counter }}
+              </td>
               <td>
                 <div>
                   <b>{{ tipo_ocorrencia.titulo }}:</b> {{ tipo_ocorrencia.descricao }}
@@ -46,7 +48,7 @@
                   </b>
                 </div>
               </td>
-              <td>{{ resposta }}</td>
+              <td class="text-center">{{ resposta }}</td>
             </tr>
             {% if resposta == "Não" %}
               <tr>
