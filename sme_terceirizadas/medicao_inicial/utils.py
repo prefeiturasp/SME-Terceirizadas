@@ -576,7 +576,12 @@ def add_periodo_to_table(  # noqa: C901
         table["periodos"].append(nome_periodo)
 
     categoria_obj = next(
-        (item for item in table["categorias"] if item["categoria"] == categoria), None
+        (
+            item
+            for item in table["categorias"]
+            if item["categoria"] == categoria and item["periodo"] == nome_periodo
+        ),
+        None,
     )
 
     if "periodo_values" not in table:
@@ -585,28 +590,49 @@ def add_periodo_to_table(  # noqa: C901
         table["categoria_values"] = defaultdict(int)
 
     if not categoria_obj:
-        table["categorias"].append({"categoria": categoria, "faixas_etarias": [faixa]})
+        table["categorias"].append(
+            {"categoria": categoria, "faixas_etarias": [faixa], "periodo": nome_periodo}
+        )
         table["periodo_values"][nome_periodo] += 2
-        table["categoria_values"][categoria] += 2
+        nome_categoria = categoria
+        if nome_periodo == "PARCIAL":
+            nome_categoria = f"{categoria}__PARCIAL"
+        table["categoria_values"][nome_categoria] += 2
+
+        if len_faixas == len(dict_categorias_campos[categoria]):
+            table["categorias"][-1]["faixas_etarias"].append("total")
+            table["periodo_values"][nome_periodo] += 1
+            table["categoria_values"][nome_categoria] += 1
     else:
         if faixa not in categoria_obj["faixas_etarias"]:
             categoria_obj["faixas_etarias"].append(faixa)
 
             table["periodo_values"][nome_periodo] += 2
-            table["categoria_values"][categoria] += 2
+            nome_categoria = categoria
+            if nome_periodo == "PARCIAL":
+                nome_categoria = f"{categoria}__PARCIAL"
+            table["categoria_values"][nome_categoria] += 2
 
             if len_faixas == len(dict_categorias_campos[categoria]):
                 categoria_obj["faixas_etarias"].append("total")
                 table["periodo_values"][nome_periodo] += 1
-                table["categoria_values"][categoria] += 1
+                table["categoria_values"][nome_categoria] += 1
 
     table["len_periodos"] = [
         table["periodo_values"][periodo] for periodo in table["periodos"]
     ]
-    table["len_categorias"] = [
-        table["categoria_values"][cat_obj["categoria"]]
-        for cat_obj in table["categorias"]
-    ]
+    if nome_periodo == "PARCIAL":
+        table["len_categorias"] = [
+            table["categoria_values"][f'{cat_obj["categoria"]}__PARCIAL']
+            if cat_obj["periodo"] == "PARCIAL"
+            else table["categoria_values"][cat_obj["categoria"]]
+            for cat_obj in table["categorias"]
+        ]
+    else:
+        table["len_categorias"] = [
+            table["categoria_values"][cat_obj["categoria"]]
+            for cat_obj in table["categorias"]
+        ]
 
 
 def build_headers_tabelas_cei(solicitacao):
@@ -1695,7 +1721,7 @@ def popula_campos_cei(  # noqa C901
     faixas_etarias = tabela["categorias"][indice_categoria]["faixas_etarias"]
     len_faixas = len([item for item in faixas_etarias if "total" not in item])
 
-    for faixa in todas_faixas:
+    for index, faixa in enumerate(todas_faixas):
         if faixa == "total":
             indice_campo += 1
             if dia != "Total":
@@ -1705,7 +1731,19 @@ def popula_campos_cei(  # noqa C901
                 total_mensal_categoria = total_mensal_categoria + total
                 valores_dia += [str(total if total else 0)]
             else:
-                valores_dia += [str(total_mensal_categoria)]
+                indice_inicial = 0
+                indice_final = 0
+                for i, faixa in enumerate(todas_faixas[:index]):
+                    if faixa != "total":
+                        indice_final += 2
+                    else:
+                        indice_final += 1
+                        indice_inicial = indice_final
+                valores_dia_ = [valor for valor in valores_dia if valor != "Total"]
+                valores_para_soma = valores_dia_[indice_inicial:indice_final]
+                valores_dia += [
+                    str(sum([int(v) for v in valores_para_soma if v.isdigit()]))
+                ]
                 total_mensal_categoria = 0
 
         else:
