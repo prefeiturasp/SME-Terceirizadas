@@ -1727,8 +1727,8 @@ def relatorio_formulario_supervisao(formulario_supervisao):
         },
     )
     data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
-    return html_to_pdf_response(
+    return html_to_pdf_file(
         html_string.replace("dt_file", data_arquivo),
         "relatorio_formulario_supervisao.pdf",
+        is_async=True,
     )
-    # return html_to_pdf_file(html_string, "relatorio_formulario_supervisao.pdf", is_async=True)

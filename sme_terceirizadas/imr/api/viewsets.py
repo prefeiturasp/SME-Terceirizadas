@@ -14,7 +14,6 @@ from sme_terceirizadas.terceirizada.models import Edital
 
 from ...dados_comuns.fluxo_status import FormularioSupervisaoWorkflow
 from ...escola.models import Escola
-from ...relatorios.relatorios import relatorio_formulario_supervisao
 from ..models import (
     Equipamento,
     FormularioSupervisao,
@@ -26,6 +25,7 @@ from ..models import (
     UtensilioCozinha,
     UtensilioMesa,
 )
+from ..tasks import gera_pdf_relatorio_formulario_supervisao_async
 from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
     EquipamentoSerializer,
@@ -250,10 +250,9 @@ class FormularioSupervisaoModelViewSet(
     @action(detail=True, methods=["GET"], url_path="relatorio-pdf")
     def relatorio_pdf(self, request, uuid):
         try:
-            # user = request.user.get_username()
+            user = request.user.get_username()
             formulario_supervisao = FormularioSupervisao.objects.get(uuid=uuid)
-            """
-            gera_pdf_relatorio_formulario_supervisao_async(
+            gera_pdf_relatorio_formulario_supervisao_async.delay(
                 user=user,
                 nome_arquivo=f"Relatório de Fiscalização - {formulario_supervisao.escola.nome}.pdf",
                 uuid=uuid,
@@ -262,8 +261,6 @@ class FormularioSupervisaoModelViewSet(
                 dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
                 status=status.HTTP_200_OK,
             )
-            """
-            return relatorio_formulario_supervisao(formulario_supervisao)
         except KeyError:
             return Response(
                 {"detail": "O parâmetro `uuid` é obrigatório."},
