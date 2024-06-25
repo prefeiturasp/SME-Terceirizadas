@@ -1721,6 +1721,9 @@ def relatorio_formulario_supervisao(formulario_supervisao):
             "formulario_supervisao": formulario_supervisao,
             "edital": edital.numero,
             "tipos_ocorrencia": tipos_ocorrencia,
+            "log_envio_formulario": formulario_supervisao.logs.get(
+                status_evento=LogSolicitacoesUsuario.RELATORIO_ENVIADO_PARA_CODAE
+            ),
         },
     )
     data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")

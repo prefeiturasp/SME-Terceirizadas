@@ -2,6 +2,11 @@
 {% load index static sass_tags %}
 
 <html>
+  <style>
+    table.formulario-supervisao tr td, table.formulario-supervisao tr th {
+        page-break-inside: avoid;
+    }
+  </style>
   <body>
     <div class="mt-3 mb-3 text-center">
       <b>ITENS AVALIADOS NA VISITA E DE RESPONSABILIDADE DA EMPRESA PRESTADORA DE SERVIÇO</b>
@@ -15,10 +20,11 @@
           {% with
             resposta=tipo_ocorrencia|get_resposta_tipo_ocorrencia:formulario_base
             quantidade_grupos=tipo_ocorrencia|get_quantidade_grupos_tipo_ocorrencia:formulario_base
+            tipo_ocorrencia_anterior=tipos_ocorrencia|get_element_by_index:index_minus_one
           %}
             {% if
               forloop.counter0 == 0 or
-              tipos_ocorrencia|get_element_by_index:index_minus_one|get_attribute:"categoria" != tipo_ocorrencia.categoria
+              tipo_ocorrencia_anterior|get_attribute:"categoria" != tipo_ocorrencia.categoria
             %}
               <tr class="categoria">
                 <th class="pb-3" colspan="3">
@@ -35,7 +41,7 @@
             {% endif %}
             <tr class="tipo-ocorrencia">
               <td rowspan="{{ tipo_ocorrencia|get_rowspan:formulario_base }}" class="text-center border-top">
-                {{ forloop.counter }}
+                {% calcular_index forloop.counter tipos_ocorrencia %}
               </td>
               <td class="border-top">
                 <div>

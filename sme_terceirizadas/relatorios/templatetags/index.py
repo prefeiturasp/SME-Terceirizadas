@@ -38,6 +38,8 @@ def get_attribute(elemento, atributo):
 
 @register.filter
 def get_element_by_index(indexable, i):
+    if i < 0:
+        return None
     return indexable[i]
 
 
@@ -834,3 +836,18 @@ def get_resposta_str(
     grupo: int,
 ) -> str:
     return parametrizacao.get_resposta_str(formulario_base, grupo)
+
+
+@register.simple_tag
+def calcular_index(index_loop: int, tipos_ocorrencia: list[TipoOcorrencia]) -> int:
+    if index_loop == 0:
+        return 1
+
+    indice = 1
+    for index, tipo_ocorrencia in enumerate(tipos_ocorrencia[:index_loop]):
+        if index > 0 and (
+            tipo_ocorrencia.categoria != tipos_ocorrencia[index - 1].categoria
+            or tipo_ocorrencia.posicao != tipos_ocorrencia[index - 1].posicao
+        ):
+            indice += 1
+    return indice
