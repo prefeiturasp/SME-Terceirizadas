@@ -2,6 +2,7 @@ import math
 import re
 
 from django import template
+from django.db.models import QuerySet
 from django.template import base as template_base
 
 from sme_terceirizadas.dados_comuns.utils import (
@@ -820,13 +821,25 @@ def get_descricao_ocorrencia_nao_se_aplica(
     return descricao
 
 
-@register.filter
+@register.simple_tag
 def get_rowspan(
-    tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
+    tipo_ocorrencia: TipoOcorrencia,
+    formulario_base: FormularioOcorrenciasBase,
+    tipos_ocorrencia: QuerySet[TipoOcorrencia],
 ):
-    if "Não" in tipo_ocorrencia.get_resposta(formulario_base):
-        return 2
-    return 1
+    tipos_ocorrencia_mesma_posicao = tipos_ocorrencia.filter(
+        categoria=tipo_ocorrencia.categoria, posicao=tipo_ocorrencia.posicao
+    )
+    if tipos_ocorrencia_mesma_posicao.count() > 1:
+        rowspan = tipos_ocorrencia_mesma_posicao.count()
+        for tipo_ocorrencia_ in tipos_ocorrencia_mesma_posicao:
+            if "Não" in tipo_ocorrencia_.get_resposta(formulario_base):
+                rowspan += 1
+        return rowspan
+    else:
+        if "Não" in tipo_ocorrencia.get_resposta(formulario_base):
+            return 2
+        return 1
 
 
 @register.simple_tag
@@ -839,7 +852,7 @@ def get_resposta_str(
 
 
 @register.simple_tag
-def calcular_index(index_loop: int, tipos_ocorrencia: list[TipoOcorrencia]) -> int:
+def calcular_index(index_loop: int, tipos_ocorrencia: QuerySet[TipoOcorrencia]) -> int:
     if index_loop == 0:
         return 1
 

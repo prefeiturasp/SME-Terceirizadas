@@ -40,9 +40,18 @@
               {% endif %}
             {% endif %}
             <tr class="tipo-ocorrencia">
-              <td rowspan="{{ tipo_ocorrencia|get_rowspan:formulario_base }}" class="text-center border-top">
-                {% calcular_index forloop.counter tipos_ocorrencia %}
-              </td>
+              {% if
+                forloop.counter0 == 0 or
+                tipo_ocorrencia_anterior|get_attribute:"categoria" != tipo_ocorrencia.categoria or
+                tipo_ocorrencia_anterior|get_attribute:"posicao" != tipo_ocorrencia.posicao
+              %}
+                <td
+                  rowspan="{% get_rowspan tipo_ocorrencia formulario_base tipos_ocorrencia %}"
+                  class="text-center border-top"
+                >
+                  {% calcular_index forloop.counter tipos_ocorrencia %}
+                </td>
+              {% endif %}
               <td class="border-top">
                 <div>
                   <b>{{ tipo_ocorrencia.titulo }}:</b> {{ tipo_ocorrencia.descricao }}
