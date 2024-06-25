@@ -115,10 +115,15 @@ class DiretoriaRegional(
             str(uuid_)
             for uuid_ in set(
                 list(
-                    self.escolas.filter(
-                        lote__isnull=False,
-                        lote__contratos_do_lote__edital__isnull=False,
-                    ).values_list("lote__contratos_do_lote__edital__uuid", flat=True)
+                    set(
+                        self.escolas.filter(
+                            lote__isnull=False,
+                            lote__contratos_do_lote__edital__isnull=False,
+                            lote__contratos_do_lote__encerrado=False,
+                        ).values_list(
+                            "lote__contratos_do_lote__edital__uuid", flat=True
+                        )
+                    )
                 )
             )
         ]
@@ -596,12 +601,16 @@ class Escola(
     @property
     def editais(self):
         if self.lote:
-            return [
-                str(edital)
-                for edital in self.lote.contratos_do_lote.filter(
-                    edital__isnull=False
-                ).values_list("edital__uuid", flat=True)
-            ]
+            return list(
+                set(
+                    [
+                        str(edital)
+                        for edital in self.lote.contratos_do_lote.filter(
+                            edital__isnull=False, encerrado=False
+                        ).values_list("edital__uuid", flat=True)
+                    ]
+                )
+            )
         return []
 
     def periodos_escolares(self, ano=datetime.date.today().year):
