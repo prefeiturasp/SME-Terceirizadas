@@ -81,7 +81,10 @@ table.formulario-supervisao {
       td {
         padding: 1em;
         border-right: 1px solid $grayIcon;
-        border-bottom: 1px solid $grayIcon;
+
+        &.border-top {
+          border-top: 1px solid $grayIcon;
+        }
 
         &:first-child {
           width: 5%;

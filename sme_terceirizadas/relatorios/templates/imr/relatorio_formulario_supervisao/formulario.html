@@ -34,10 +34,10 @@
               {% endif %}
             {% endif %}
             <tr class="tipo-ocorrencia">
-              <td rowspan="{{ tipo_ocorrencia|get_rowspan:formulario_base }}" class="text-center">
+              <td rowspan="{{ tipo_ocorrencia|get_rowspan:formulario_base }}" class="text-center border-top">
                 {{ forloop.counter }}
               </td>
-              <td>
+              <td class="border-top">
                 <div>
                   <b>{{ tipo_ocorrencia.titulo }}:</b> {{ tipo_ocorrencia.descricao }}
                 </div>
@@ -48,7 +48,7 @@
                   </b>
                 </div>
               </td>
-              <td class="text-center">{{ resposta }}</td>
+              <td class="text-center border-top">{{ resposta }}</td>
             </tr>
             {% if resposta == "Não" %}
               <tr class="tipo-ocorrencia">
