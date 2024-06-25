@@ -1705,17 +1705,50 @@ def popula_campos(
     tabela["dias_letivos"] += [eh_dia_letivo if not dia == "Total" else False]
 
 
+def avalia_soma_total_com_dados_tabela_anterior(
+    valores_para_soma,
+    todas_faixas_anterior,
+    index,
+    index_primeira_coluna_total,
+    tabela_anterior,
+):
+    if (
+        todas_faixas_anterior
+        and todas_faixas_anterior[-1] != "total"
+        and index == index_primeira_coluna_total
+    ):
+        valores_campos_linha_total_tabela_anterior = tabela_anterior["valores_campos"][
+            -1
+        ]
+        qtd_items_antes_total = todas_faixas_anterior[::-1].index("total")
+        valores_tabela_anterior_para_somar = valores_campos_linha_total_tabela_anterior[
+            -(qtd_items_antes_total):
+        ]
+        valores_para_soma += valores_tabela_anterior_para_somar
+    return valores_para_soma
+
+
 def popula_campos_cei(  # noqa C901
-    solicitacao, tabela, dia, indice_periodo, logs_dietas, total_mensal_categoria
+    solicitacao,
+    tabela,
+    dia,
+    indice_periodo,
+    logs_dietas,
+    total_mensal_categoria,
+    tabela_anterior,
 ):
     valores_dia = [dia]
     indice_campo = 0
     indice_categoria = 0
     indice_faixa = 0
     todas_faixas = []
+    todas_faixas_anterior = []
 
     for categoria in tabela["categorias"]:
         todas_faixas += categoria["faixas_etarias"]
+    if tabela_anterior:
+        for categoria in tabela_anterior["categorias"]:
+            todas_faixas_anterior += categoria["faixas_etarias"]
 
     categoria_corrente = tabela["categorias"][indice_categoria]["categoria"]
     faixas_etarias = tabela["categorias"][indice_categoria]["faixas_etarias"]
@@ -1741,6 +1774,14 @@ def popula_campos_cei(  # noqa C901
                         indice_inicial = indice_final
                 valores_dia_ = [valor for valor in valores_dia if valor != "Total"]
                 valores_para_soma = valores_dia_[indice_inicial:indice_final]
+                index_primeira_coluna_total = todas_faixas.index("total")
+                valores_para_soma = avalia_soma_total_com_dados_tabela_anterior(
+                    valores_para_soma,
+                    todas_faixas_anterior,
+                    index,
+                    index_primeira_coluna_total,
+                    tabela_anterior,
+                )
                 valores_dia += [
                     str(sum([int(v) for v in valores_para_soma if v.isdigit()]))
                 ]
@@ -2079,6 +2120,7 @@ def popula_tabelas_cei(solicitacao, tabelas):
 
     for indice_tabela in quantidade_tabelas:
         tabela = tabelas[indice_tabela]
+        tabela_anterior = tabelas[indice_tabela - 1] if indice_tabela > 0 else None
         for dia in list(dias_no_mes) + ["Total"]:
             total_mensal_categoria = popula_campos_cei(
                 solicitacao,
@@ -2087,6 +2129,7 @@ def popula_tabelas_cei(solicitacao, tabelas):
                 indice_periodo,
                 logs_dietas,
                 total_mensal_categoria,
+                tabela_anterior,
             )
 
     dias_letivos = get_lista_dias_letivos(solicitacao)
