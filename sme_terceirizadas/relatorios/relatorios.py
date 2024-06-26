@@ -15,6 +15,7 @@ from ..escola.constants import (
     PERIODOS_ESPECIAIS_CEMEI,
 )
 from ..escola.models import Codae, DiretoriaRegional, Escola
+from ..imr.models import TipoOcorrencia
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..medicao_inicial.models import ValorMedicao
@@ -37,6 +38,7 @@ from ..relatorios.utils import (
     html_to_pdf_multiple,
     html_to_pdf_response,
 )
+from ..terceirizada.models import Edital
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
@@ -1700,4 +1702,39 @@ def get_pdf_ficha_tecnica(request, ficha):
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"ficha_tecnica_{ficha.numero}.pdf",
+    )
+
+
+def relatorio_formulario_supervisao(formulario_supervisao):
+    from ..imr.api.viewsets import FormularioSupervisaoModelViewSet
+
+    edital = Edital.objects.get(uuid=formulario_supervisao.escola.editais[0])
+
+    formulario_modelviewset = FormularioSupervisaoModelViewSet()
+    tipo_unidade = formulario_supervisao.escola.tipo_unidade.iniciais
+
+    tipos_ocorrencia = TipoOcorrencia.para_nutrisupervisores.filter(
+        edital=edital
+    ).exclude(
+        categoria__nome__in=formulario_modelviewset._get_categorias_nao_permitidas(
+            tipo_unidade
+        )
+    )
+
+    html_string = render_to_string(
+        "imr/relatorio_formulario_supervisao/index.html",
+        {
+            "formulario_supervisao": formulario_supervisao,
+            "edital": edital.numero,
+            "tipos_ocorrencia": tipos_ocorrencia,
+            "log_envio_formulario": formulario_supervisao.logs.get(
+                status_evento=LogSolicitacoesUsuario.RELATORIO_ENVIADO_PARA_CODAE
+            ),
+        },
+    )
+    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    return html_to_pdf_file(
+        html_string.replace("dt_file", data_arquivo),
+        "relatorio_formulario_supervisao.pdf",
+        is_async=True,
     )
