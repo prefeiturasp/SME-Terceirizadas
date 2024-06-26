@@ -7,11 +7,15 @@ from model_mommy import mommy
 from pytest_factoryboy import register
 
 from .dados_comuns import constants
+from .dados_comuns.fixtures.factories.dados_comuns_factories import (
+    LogSolicitacoesUsuarioFactory,
+)
 from .dados_comuns.models import TemplateMensagem
 from .escola.fixtures.factories.escola_factory import (
     DiretoriaRegionalFactory,
     EscolaFactory,
     LogAlunosMatriculadosPeriodoEscolaFactory,
+    LoteFactory,
     PeriodoEscolarFactory,
     TipoUnidadeEscolarFactory,
 )
@@ -149,6 +153,8 @@ register(FormularioOcorrenciasBaseFactory)
 register(AnexosFormularioBaseFactory)
 register(FormularioSupervisaoFactory)
 register(FormularioDiretorFactory)
+register(LoteFactory)
+register(LogSolicitacoesUsuarioFactory)
 
 
 @pytest.fixture
