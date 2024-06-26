@@ -37,7 +37,6 @@ black = "==23.11.0"
 isort = "==5.12.0"
 flake8 = "==6.1.0"
 pip-audit = "==2.6.1"
-pypdf = "==4.2.0"
 
 [packages]
 # The psycopg2-binary package is meant for beginners to start playing with
