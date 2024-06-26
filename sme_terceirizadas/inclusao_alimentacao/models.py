@@ -1179,6 +1179,7 @@ class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI(
     periodo_escolar = models.ForeignKey(
         "escola.PeriodoEscolar", on_delete=models.DO_NOTHING
     )
+    tipos_alimentacao = models.ManyToManyField("cardapio.TipoAlimentacao")
 
     def __str__(self):
         return f"{self.periodo_escolar.nome} - {self.quantidade_alunos} alunos"
