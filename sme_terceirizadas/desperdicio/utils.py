@@ -108,10 +108,9 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
 	    join escola_escola ee on ee.id = m.escola_id
 	    join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
 	    join cardapio_tipoalimentacao ta on ta.id = m.tipo_alimentacao_id
-	    join sobras s on TRUE -- s.escola_id = m.escola_id and s.data_medicao = m.data_medicao and s.tipo_alimentacao_id = m.tipo_alimentacao_id
-	    join frequencia f on TRUE -- f.escola_id = m.escola_id and f.data_medicao = m.data_medicao and f.escola_id = s.escola_id and f.data_medicao = s.data_medicao
-	    order by 1, 3, 4, 6	     
-        limit 8
+	    join sobras s on s.escola_id = m.escola_id and s.data_medicao = m.data_medicao and s.tipo_alimentacao_id = m.tipo_alimentacao_id
+	    join frequencia f on f.escola_id = m.escola_id and f.data_medicao = m.data_medicao and f.escola_id = s.escola_id and f.data_medicao = s.data_medicao
+	    order by 1, 3, 4, 6	
  	)
  	select 
         r.*,
