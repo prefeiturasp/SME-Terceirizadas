@@ -1,0 +1,42 @@
+{% include 'relatorio_base.html' %} {% load static %} {% load index %} {% load sass_tags %}
+
+<html>
+<header class="header">
+  <section class="titulo-e-logo">
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1>
+      Secretaria Municipal de Educação
+      <br/>Coordenadoria de Alimentação Escolar
+    </h1>
+  </section>
+  <div class="row">
+    <div class="col-11">
+      <h2 class="subtitulo">
+        RELATÓRIO DE FISCALIZAÇÃO DO CONTRATO DE </br>
+        PRESTAÇÃO DE SERVIÇO TERCEIRIZADO DE ALIMENTAÇÃO ESCOLAR
+      </h2>
+    </div>
+    <div class="col-1 text-center">
+      <span class="span-pagina">Página </span><span class="page-number"></span>
+    </div>
+  </div>
+  <table class="tabela-cabecalho tabela-arredondada">
+    <tr>
+      <td>{{ formulario_supervisao.escola.nome }}</td>
+      <td>DRE {{ formulario_supervisao.escola.diretoria_regional.nome }}</td>
+    </tr>
+    <tr>
+      <td>Referência: {{ edital }}</td>
+      <td>Lote: {{ formulario_supervisao.escola.lote.nome }}</td>
+    </tr>
+    <tr>
+      <td>Contratada: {{ formulario_supervisao.escola.lote.terceirizada.razao_social }}</td>
+      <td>Data da visita: {{ formulario_supervisao.formulario_base.data|date:'d/m/Y' }}</td>
+    </tr>
+    <tr>
+      <td>Nutricionista Responsável: {{  formulario_supervisao.formulario_base.usuario.nome }}</td>
+      <td>Nutricionista RT da Contratada: {% firstof formulario_supervisao.nome_nutricionista_empresa "-" %}</td>
+    </tr>
+  </table>
+</header>
+</html>
