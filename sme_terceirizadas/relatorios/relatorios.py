@@ -875,12 +875,18 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao):  # noqa C901
                         nome__icontains="Lanche Emergencial"
                     ).values_list("nome", flat=True)
                 )
-            periodo["tipos_alimentacao"] = tipos_alimentacao
             qtd_solicitacao = (
                 solicitacao.quantidade_alunos_emei_da_inclusao_cemei.filter(
                     periodo_escolar__nome=vinculo.periodo_escolar.nome
                 )
             )
+            if qtd_solicitacao and qtd_solicitacao[0].tipos_alimentacao.all():
+                tipos_alimentacao = ", ".join(
+                    qtd_solicitacao[0]
+                    .tipos_alimentacao.all()
+                    .values_list("nome", flat=True)
+                )
+            periodo["tipos_alimentacao"] = tipos_alimentacao
             periodo["total_solicitacao"] = sum(
                 qtd_solicitacao.values_list("quantidade_alunos", flat=True)
             )
