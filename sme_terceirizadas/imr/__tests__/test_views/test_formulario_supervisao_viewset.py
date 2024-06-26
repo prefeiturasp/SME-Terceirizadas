@@ -20,6 +20,7 @@ def test_get_categorias_nao_permitidas():
     assert "LACTÁRIO" in categorias
     assert "RESÍDUO DE ÓLEO UTILIZADO NA FRITURA" not in categorias
 
+
 def test_tipos_ocorrencias(
     client_autenticado_vinculo_coordenador_supervisao_nutricao,
     edital_factory,
@@ -32,11 +33,10 @@ def test_tipos_ocorrencias(
     edital = edital_factory.create()
 
     categoria = categoria_ocorrencia_factory.create(
-        perfis=[PerfilDiretorSupervisao.SUPERVISAO]
+        perfis=[PerfilDiretorSupervisao.SUPERVISAO], posicao=1
     )
     categoria_lactario = categoria_ocorrencia_factory.create(
-        nome="LACTÁRIO",
-        perfis=[PerfilDiretorSupervisao.SUPERVISAO]
+        nome="LACTÁRIO", perfis=[PerfilDiretorSupervisao.SUPERVISAO], posicao=2
     )
     tipo_unidade_emef = tipo_unidade_escolar_factory.create(iniciais="EMEF")
     escola_emef = escola_factory.create(tipo_unidade=tipo_unidade_emef)
@@ -102,10 +102,14 @@ def test_tipos_ocorrencias_edital_ou_escola_UUID_invalido(
     edital = edital_factory.create()
     escola = escola_factory.create()
 
-    response = client.get(f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid=&escola_uuid={escola.uuid}")
+    response = client.get(
+        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid=&escola_uuid={escola.uuid}"
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    response = client.get(f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={edital.uuid}&escola_uuid=")
+    response = client.get(
+        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={edital.uuid}&escola_uuid="
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     client.logout()

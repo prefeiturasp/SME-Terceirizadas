@@ -411,6 +411,22 @@ class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEICreateSerializer(
     periodo_escolar = serializers.SlugRelatedField(
         slug_field="uuid", required=True, queryset=PeriodoEscolar.objects.all()
     )
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field="uuid",
+        many=True,
+        required=True,
+        queryset=TipoAlimentacao.objects.all(),
+    )
+
+    def create(self, validated_data):
+        tipos_alimentacao = validated_data.pop("tipos_alimentacao", [])
+        quantidade_periodo = (
+            QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI.objects.create(
+                **validated_data
+            )
+        )
+        quantidade_periodo.tipos_alimentacao.set(tipos_alimentacao)
+        return quantidade_periodo
 
     class Meta:
         model = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI
@@ -487,8 +503,8 @@ class InclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
             for item in quantidade_alunos_emei_da_inclusao_cemei
         ]
         for quantidade_alunos_emei in quantidade_alunos_emei_da_inclusao_cemei:
-            QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI.objects.create(
-                **quantidade_alunos_emei
+            QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEICreateSerializer().create(
+                validated_data=quantidade_alunos_emei
             )
 
     def create(self, validated_data):
