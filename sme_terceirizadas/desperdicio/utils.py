@@ -80,8 +80,8 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
     sobras as (
         select cs.escola_id, cs.data_medicao, cs.tipo_alimentacao_id, 
             ta.nome as tipo_alimento_nome, cs.periodo,
-            sum(cs.peso_alimento) as peso_alimento,
-            sum(cs.peso_sobra) as peso_sobra
+            sum(cs.peso_alimento - cs.peso_recipiente) as peso_alimento,
+            sum(cs.peso_sobra - cs.peso_recipiente) as peso_sobra
         from desperdicio_controlesobras cs
         join produto_tipoalimento ta on ta.id = cs.tipo_alimento_id
         join escola_escola e on e.id = cs.escola_id
@@ -108,9 +108,10 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
 	    join escola_escola ee on ee.id = m.escola_id
 	    join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
 	    join cardapio_tipoalimentacao ta on ta.id = m.tipo_alimentacao_id
-	    join sobras s on s.escola_id = m.escola_id and s.data_medicao = m.data_medicao and s.tipo_alimentacao_id = m.tipo_alimentacao_id
-	    join frequencia f on f.escola_id = m.escola_id and f.data_medicao = m.data_medicao and f.escola_id = s.escola_id and f.data_medicao = s.data_medicao
+	    join sobras s on TRUE -- s.escola_id = m.escola_id and s.data_medicao = m.data_medicao and s.tipo_alimentacao_id = m.tipo_alimentacao_id
+	    join frequencia f on TRUE -- f.escola_id = m.escola_id and f.data_medicao = m.data_medicao and f.escola_id = s.escola_id and f.data_medicao = s.data_medicao
 	    order by 1, 3, 4, 6	     
+        limit 8
  	)
  	select 
         r.*,
