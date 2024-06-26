@@ -237,7 +237,7 @@ def serialize_relatorio_controle_restos(row):
 
 def serialize_relatorio_controle_sobras(row):
 
-    data_medicao, periodo, dre_nome, escola_nome, tipo_alimentacao_nome, tipo_alimento_nome, quantidade_distribuida, peso_sobra, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao, classificacao = row
+    data_medicao, periodo, dre_nome, escola_nome, tipo_alimentacao_nome, tipo_alimento_nome, peso_alimento, peso_sobra, quantidade_distribuida, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao, classificacao = row
 
     def format_float(value):
         if (value is None):
@@ -258,8 +258,9 @@ def serialize_relatorio_controle_sobras(row):
         'tipo_alimento_nome': tipo_alimento_nome,
         'data_medicao': data_medicao.strftime('%d/%m/%Y') if data_medicao else None,
         'periodo': format_periodo(periodo),
-        'quantidade_distribuida': format_float(quantidade_distribuida),
+        'peso_alimento': format_float(peso_alimento),
         'peso_sobra': format_float(peso_sobra),
+        'quantidade_distribuida': format_float(quantidade_distribuida),
         'frequencia': format_int(frequencia),
         'total_primeira_oferta': format_int(total_primeira_oferta),
         'total_repeticao': format_int(total_repeticao),
