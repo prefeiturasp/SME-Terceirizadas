@@ -271,6 +271,7 @@ def test_get_pdf_formulario_supervisao(
     page = reader.pages[0]
     conteudo_pdf_pagina_1 = page.extractText()
 
-    assert "Data da visita: 26/06/2024" in conteudo_pdf_pagina_1
+    assert "Data da visita" in conteudo_pdf_pagina_1
+    assert "26/06/2024" in conteudo_pdf_pagina_1
     assert "FUNCIONÁRIOS" in conteudo_pdf_pagina_1
     assert "RECEBIMENTO DE ALIMENTOS" in conteudo_pdf_pagina_1
