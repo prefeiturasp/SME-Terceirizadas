@@ -1,9 +1,56 @@
 @import "../../variaveis";
 
-@media print {
-  page {
-    font-family: "Roboto";
-    margin: 5cm;
+.titulo-e-logo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  img {
+    height: 48px;
+    width: 137px;
+  }
+
+  h1 {
+    font-style: normal;
+    font-weight: bold;
+    font-size: 13px;
+    line-height: 21px;
+    text-transform: uppercase;
+    color: $preto;
+  }
+
+  .titulo-branco{
+    color: #FFFFFF;
+  }
+}
+
+.header {
+  padding: 1em 2em 1em 2em;
+  background: $cinza-claro;
+}
+
+
+h2.subtitulo {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 21px;
+  text-transform: uppercase;
+  color: $preto;
+}
+
+.tabela-cabecalho {
+  background: $branco;
+  border: 1px solid #A4A4A4;
+  border-radius: 5px;
+  font-size: 12px;
+  width: 100%;
+
+  table, th, td {
+  }
+
+  .title-cabecalho {
+    padding: 5px;
   }
 }
 
@@ -15,12 +62,12 @@
 }
 
 @page :nth(n+2) {
-  margin-top: 8.4cm;
+  margin-top: 5cm;
   padding-top: 0;
 }
 
 @page :nth(1) {
-  padding-top: 8.4cm;
+  padding-top: 5cm;
   margin-top: 0;
 }
 
@@ -30,7 +77,7 @@ html {
 
 header {
  position: running(cabecalho);
- margin-top: 8cm;
+ margin-top: 5cm;
 }
 
 span.span-pagina {
@@ -100,6 +147,7 @@ table.formulario-supervisao {
         &:nth-child(2) {
           width: 85%;
         }
+
         &:last-child {
           width: 10%;
         }
@@ -150,9 +198,6 @@ table.formulario-supervisao {
   margin-top: auto;
 
   .assinaturas {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
     padding-top: 8px;
 
     .logo-sigpae {
