@@ -524,6 +524,13 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
 
         return attrs
 
+    def datas_nos_meses_de_ferias(self, datas_intervalo):
+        MESES_DE_FERIAS = [1, 7, 12]
+        return (
+            datas_intervalo[0]["data"].month in MESES_DE_FERIAS
+            or datas_intervalo[-1]["data"].month in MESES_DE_FERIAS
+        )
+
     def criar_datas_intervalo(self, datas_intervalo, instance):
         datas_intervalo = [
             dict(item, **{"alteracao_cardapio": instance}) for item in datas_intervalo
@@ -536,14 +543,14 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
                 instance.escola,
                 [data_intervalo["data"] for data_intervalo in datas_intervalo],
                 instance,
-            ):
+            ) and not self.datas_nos_meses_de_ferias(datas_intervalo):
                 raise ValidationError(
                     "Não é possível solicitar Lanche Emergencial para dia(s) não letivo(s)"
                 )
             for data_intervalo in datas_intervalo:
                 if eh_dia_sem_atividade_escolar(
                     instance.escola, data_intervalo["data"], instance
-                ):
+                ) and not self.datas_nos_meses_de_ferias(datas_intervalo):
                     continue
                 DataIntervaloAlteracaoCardapio.objects.create(**data_intervalo)
 
