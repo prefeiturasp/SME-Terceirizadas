@@ -9,6 +9,7 @@ import environ
 import xworkflows
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django_xworkflows import models as xwf_models
 from rest_framework.exceptions import PermissionDenied
@@ -1515,7 +1516,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     )
 
     def _salva_rastro_solicitacao(self):
-        self.rastro_terceirizada = self.criado_por.vinculo_atual.instituicao
+        self.rastro_terceirizada = (
+            self.criado_por.vinculos.filter(data_inicial__lte=self.criado_em)
+            .filter(Q(data_final=None) | Q(data_final__gte=self.criado_em))
+            .first()
+            .instituicao
+        )
         self.save()
 
     @property
@@ -3010,7 +3016,12 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     )
 
     def _salva_rastro_solicitacao(self):
-        escola = self.criado_por.vinculo_atual.instituicao
+        escola = (
+            self.criado_por.vinculos.filter(data_inicial__lte=self.criado_em)
+            .filter(Q(data_final=None) | Q(data_final__gte=self.criado_em))
+            .first()
+            .instituicao
+        )
         self.rastro_escola = escola
         self.rastro_dre = escola.diretoria_regional
         if escola.tipo_gestao and escola.tipo_gestao.nome == "PARCEIRA":
