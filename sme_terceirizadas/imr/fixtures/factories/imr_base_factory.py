@@ -8,6 +8,7 @@ from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
     EditalInsumo,
+    EditalMobiliario,
     EditalReparoEAdaptacao,
     Equipamento,
     FaixaPontuacaoIMR,
@@ -170,6 +171,22 @@ class MobiliarioFactory(DjangoModelFactory):
         model = Mobiliario
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EditalMobiliarioFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def mobiliarios(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for mobiliario in extracted:
+                self.mobiliarios.add(mobiliario)
+
+    class Meta:
+        model = EditalMobiliario
 
 
 class ReparoEAdaptacaoFactory(DjangoModelFactory):

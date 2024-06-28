@@ -23,6 +23,7 @@ from .imr.fixtures.factories.imr_base_factory import (
     AnexosFormularioBaseFactory,
     CategoriaOcorrenciaFactory,
     EditalInsumoFactory,
+    EditalMobiliarioFactory,
     EditalReparoEAdaptacaoFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
@@ -165,6 +166,7 @@ register(RespostaCampoNumericoFactory)
 register(OcorrenciaNaoSeAplicaFactory)
 register(EditalInsumoFactory)
 register(EditalReparoEAdaptacaoFactory)
+register(EditalMobiliarioFactory)
 
 
 @pytest.fixture

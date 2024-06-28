@@ -4,7 +4,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_get_reparo_e_adaptacao_por_edital(
+def test_get_reparos_e_adaptacoes_por_edital(
     client_autenticado_vinculo_coordenador_supervisao_nutricao,
     edital_factory,
     reparo_e_adaptacao_factory,
@@ -34,14 +34,26 @@ def test_get_reparo_e_adaptacao_por_edital(
     results = response.json()["results"]
     assert len(results) == 3
     assert (
-        any(insumo for insumo in results if insumo["nome"] == reparo_e_adaptacao_1.nome)
+        any(
+            reparo_e_adaptacao
+            for reparo_e_adaptacao in results
+            if reparo_e_adaptacao["nome"] == reparo_e_adaptacao_1.nome
+        )
         is True
     )
     assert (
-        any(insumo for insumo in results if insumo["nome"] == reparo_e_adaptacao_1.nome)
+        any(
+            reparo_e_adaptacao
+            for reparo_e_adaptacao in results
+            if reparo_e_adaptacao["nome"] == reparo_e_adaptacao_1.nome
+        )
         is True
     )
     assert (
-        any(insumo for insumo in results if insumo["nome"] == reparo_e_adaptacao_1.nome)
+        any(
+            reparo_e_adaptacao
+            for reparo_e_adaptacao in results
+            if reparo_e_adaptacao["nome"] == reparo_e_adaptacao_1.nome
+        )
         is True
     )
