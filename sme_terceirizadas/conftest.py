@@ -22,6 +22,12 @@ from .escola.fixtures.factories.escola_factory import (
 from .imr.fixtures.factories.imr_base_factory import (
     AnexosFormularioBaseFactory,
     CategoriaOcorrenciaFactory,
+    EditalEquipamentoFactory,
+    EditalInsumoFactory,
+    EditalMobiliarioFactory,
+    EditalReparoEAdaptacaoFactory,
+    EditalUtensilioCozinhaFactory,
+    EditalUtensilioMesaFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
     FormularioDiretorFactory,
@@ -30,9 +36,12 @@ from .imr.fixtures.factories.imr_base_factory import (
     InsumoFactory,
     MobiliarioFactory,
     ObrigacaoPenalidadeFactory,
+    OcorrenciaNaoSeAplicaFactory,
     ParametrizacaoOcorrenciaFactory,
     PeriodoVisitaFactory,
     ReparoEAdaptacaoFactory,
+    RespostaCampoNumericoFactory,
+    RespostaCampoTextoSimplesFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
@@ -155,6 +164,15 @@ register(FormularioSupervisaoFactory)
 register(FormularioDiretorFactory)
 register(LoteFactory)
 register(LogSolicitacoesUsuarioFactory)
+register(RespostaCampoTextoSimplesFactory)
+register(RespostaCampoNumericoFactory)
+register(OcorrenciaNaoSeAplicaFactory)
+register(EditalInsumoFactory)
+register(EditalReparoEAdaptacaoFactory)
+register(EditalMobiliarioFactory)
+register(EditalEquipamentoFactory)
+register(EditalUtensilioMesaFactory)
+register(EditalUtensilioCozinhaFactory)
 
 
 @pytest.fixture
