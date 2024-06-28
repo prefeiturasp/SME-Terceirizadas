@@ -275,3 +275,86 @@ def test_get_pdf_formulario_supervisao(
     assert "26/06/2024" in conteudo_pdf_pagina_1
     assert "FUNCIONÁRIOS" in conteudo_pdf_pagina_1
     assert "RECEBIMENTO DE ALIMENTOS" in conteudo_pdf_pagina_1
+
+
+def test_get_pdf_formulario_supervisao_exception_error(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    edital_factory,
+    escola_factory,
+    lote_factory,
+    contrato_factory,
+    formulario_supervisao_factory,
+    tipo_resposta_modelo_factory,
+    tipo_pergunta_parametrizacao_ocorrencia_factory,
+    tipo_ocorrencia_factory,
+    parametrizacao_ocorrencia_factory,
+):
+    app.conf.update(CELERY_ALWAYS_EAGER=True)
+
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    edital = edital_factory.create(numero="78/SME/2016")
+    lote = lote_factory.create()
+    escola_ = escola_factory.create(lote=lote)
+    contrato = contrato_factory.create(
+        edital=edital,
+    )
+    contrato.lotes.add(lote)
+    contrato.save()
+
+    formulario_supervisao = formulario_supervisao_factory.create(
+        formulario_base__usuario=usuario,
+        formulario_base__data="2024-06-26",
+        escola=escola_,
+        status=FormularioSupervisao.workflow_class.NUTRIMANIFESTACAO_A_VALIDAR,
+    )
+
+    tipo_resposta_campo_simples = tipo_resposta_modelo_factory(
+        nome="RespostaCampoTextoSimples"
+    )
+    tipo_pergunta_parametrizacao_ocorrencia_texto_simples = (
+        tipo_pergunta_parametrizacao_ocorrencia_factory(
+            nome="Campo de Texto Simples", tipo_resposta=tipo_resposta_campo_simples
+        )
+    )
+
+    tipo_resposta_campo_numerico = tipo_resposta_modelo_factory(
+        nome="RespostaCampoNumerico"
+    )
+    tipo_pergunta_parametrizacao_ocorrencia_campo_numerico = (
+        tipo_pergunta_parametrizacao_ocorrencia_factory(
+            nome="Campo Numérico", tipo_resposta=tipo_resposta_campo_numerico
+        )
+    )
+
+    tipo_ocorrencia_1 = tipo_ocorrencia_factory.create(
+        perfis=[TipoOcorrencia.SUPERVISAO],
+        categoria__perfis=[TipoOcorrencia.SUPERVISAO],
+        categoria__nome="FUNCIONÁRIOS",
+        edital=edital,
+    )
+    tipo_ocorrencia_factory.create(
+        perfis=[TipoOcorrencia.SUPERVISAO],
+        categoria__perfis=[TipoOcorrencia.SUPERVISAO],
+        categoria__nome="RECEBIMENTO DE ALIMENTOS",
+        edital=edital,
+    )
+    parametrizacao_ocorrencia_factory(
+        tipo_ocorrencia=tipo_ocorrencia_1,
+        tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_texto_simples,
+        titulo="Qual uniforme faltou?",
+    )
+    parametrizacao_ocorrencia_factory(
+        tipo_ocorrencia=tipo_ocorrencia_1,
+        tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_campo_numerico,
+        titulo="Quantos uniformes faltaram?",
+    )
+
+    response = client.get(
+        f"/imr/formulario-supervisao/{formulario_supervisao.uuid}/relatorio-pdf/"
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    central_download = CentralDeDownload.objects.get()
+    # Erro porque não há log de envio
+    assert central_download.status == CentralDeDownload.STATUS_ERRO
