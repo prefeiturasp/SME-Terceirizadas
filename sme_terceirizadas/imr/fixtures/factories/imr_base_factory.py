@@ -11,6 +11,7 @@ from sme_terceirizadas.imr.models import (
     EditalInsumo,
     EditalMobiliario,
     EditalReparoEAdaptacao,
+    EditalUtensilioMesa,
     Equipamento,
     FaixaPontuacaoIMR,
     FormularioDiretor,
@@ -151,6 +152,22 @@ class UtensilioMesaFactory(DjangoModelFactory):
         model = UtensilioMesa
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EditalUtensilioMesaFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def utensilios_mesa(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for utensilio_mesa in extracted:
+                self.utensilios_mesa.add(utensilio_mesa)
+
+    class Meta:
+        model = EditalUtensilioMesa
 
 
 class UtensilioCozinhaFactory(DjangoModelFactory):
