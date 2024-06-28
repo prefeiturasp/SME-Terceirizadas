@@ -15,10 +15,13 @@ from sme_terceirizadas.imr.models import (
     Insumo,
     Mobiliario,
     ObrigacaoPenalidade,
+    OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PerfilDiretorSupervisao,
     PeriodoVisita,
     ReparoEAdaptacao,
+    RespostaCampoNumerico,
+    RespostaCampoTextoSimples,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
@@ -216,3 +219,33 @@ class FormularioDiretorFactory(DjangoModelFactory):
 
     class Meta:
         model = FormularioDiretor
+
+
+class RespostaCampoTextoSimplesFactory(DjangoModelFactory):
+    resposta = Sequence(lambda n: f"resposta - {fake.unique.name()}")
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    parametrizacao = SubFactory(ParametrizacaoOcorrenciaFactory)
+    grupo = Sequence(lambda n: fake.random.randint(1, 5))
+
+    class Meta:
+        model = RespostaCampoTextoSimples
+
+
+class RespostaCampoNumericoFactory(DjangoModelFactory):
+    resposta = Sequence(lambda n: fake.random.randint(1, 300))
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    parametrizacao = SubFactory(ParametrizacaoOcorrenciaFactory)
+    grupo = Sequence(lambda n: fake.random.randint(1, 5))
+
+    class Meta:
+        model = RespostaCampoNumerico
+
+
+class OcorrenciaNaoSeAplicaFactory(DjangoModelFactory):
+    grupo = Sequence(lambda n: fake.random.randint(1, 5))
+    descricao = Sequence(lambda n: f"descricao - {fake.unique.name()}")
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    tipo_ocorrencia = SubFactory(TipoOcorrenciaFactory)
+
+    class Meta:
+        model = OcorrenciaNaoSeAplica

@@ -30,9 +30,12 @@ from .imr.fixtures.factories.imr_base_factory import (
     InsumoFactory,
     MobiliarioFactory,
     ObrigacaoPenalidadeFactory,
+    OcorrenciaNaoSeAplicaFactory,
     ParametrizacaoOcorrenciaFactory,
     PeriodoVisitaFactory,
     ReparoEAdaptacaoFactory,
+    RespostaCampoNumericoFactory,
+    RespostaCampoTextoSimplesFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
@@ -155,6 +158,9 @@ register(FormularioSupervisaoFactory)
 register(FormularioDiretorFactory)
 register(LoteFactory)
 register(LogSolicitacoesUsuarioFactory)
+register(RespostaCampoTextoSimplesFactory)
+register(RespostaCampoNumericoFactory)
+register(OcorrenciaNaoSeAplicaFactory)
 
 
 @pytest.fixture

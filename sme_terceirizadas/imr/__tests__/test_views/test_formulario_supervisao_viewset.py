@@ -187,11 +187,15 @@ def test_get_pdf_formulario_supervisao(
     lote_factory,
     contrato_factory,
     log_solicitacoes_usuario_factory,
+    categoria_ocorrencia_factory,
     formulario_supervisao_factory,
     tipo_resposta_modelo_factory,
     tipo_pergunta_parametrizacao_ocorrencia_factory,
     tipo_ocorrencia_factory,
     parametrizacao_ocorrencia_factory,
+    resposta_campo_texto_simples_factory,
+    resposta_campo_numerico_factory,
+    ocorrencia_nao_se_aplica_factory,
 ):
     app.conf.update(CELERY_ALWAYS_EAGER=True)
 
@@ -218,7 +222,7 @@ def test_get_pdf_formulario_supervisao(
         usuario=usuario,
     )
 
-    tipo_resposta_campo_simples = tipo_resposta_modelo_factory(
+    tipo_resposta_campo_simples = tipo_resposta_modelo_factory.create(
         nome="RespostaCampoTextoSimples"
     )
     tipo_pergunta_parametrizacao_ocorrencia_texto_simples = (
@@ -227,36 +231,105 @@ def test_get_pdf_formulario_supervisao(
         )
     )
 
-    tipo_resposta_campo_numerico = tipo_resposta_modelo_factory(
+    tipo_resposta_campo_numerico = tipo_resposta_modelo_factory.create(
         nome="RespostaCampoNumerico"
     )
     tipo_pergunta_parametrizacao_ocorrencia_campo_numerico = (
-        tipo_pergunta_parametrizacao_ocorrencia_factory(
+        tipo_pergunta_parametrizacao_ocorrencia_factory.create(
             nome="Campo Numérico", tipo_resposta=tipo_resposta_campo_numerico
         )
     )
 
-    tipo_ocorrencia_1 = tipo_ocorrencia_factory.create(
+    categoria = categoria_ocorrencia_factory.create(
+        posicao=1,
+        nome="FUNCIONÁRIOS",
         perfis=[TipoOcorrencia.SUPERVISAO],
-        categoria__perfis=[TipoOcorrencia.SUPERVISAO],
-        categoria__nome="FUNCIONÁRIOS",
+    )
+    categoria_2 = categoria_ocorrencia_factory.create(
+        posicao=2,
+        nome="RECEBIMENTO DE ALIMENTOS",
+        perfis=[TipoOcorrencia.SUPERVISAO],
+    )
+
+    tipo_ocorrencia_1 = tipo_ocorrencia_factory.create(
+        posicao=1,
+        titulo="UNIFORME DOS MANIPULADORES",
+        descricao="Funcionários utilizavam uniforme completo? Se NÃO, detalhar qual item do uniforme faltou, o que "
+        "estava utilizando em substituição aos itens previstos e nome completo do(s) funcionário(s).",
+        penalidade__edital=edital,
+        penalidade__numero_clausula="10.42",
+        perfis=[TipoOcorrencia.SUPERVISAO],
+        categoria=categoria,
+        edital=edital,
+    )
+    tipo_ocorrencia_2 = tipo_ocorrencia_factory.create(
+        posicao=1,
+        titulo="CONDIÇÕES DE CONSERVAÇÃO DO UNIFORME E EPI",
+        descricao="Funcionários utilizavam uniforme/EPI em boas condições de conservação "
+        "(não estavam rasgados, furados)? Se NÃO, detalhar inadequação, "
+        "qual item do uniforme/EPI e nome completo do(s) funcionário(s).",
+        penalidade__edital=edital,
+        penalidade__numero_clausula="10.43",
+        perfis=[TipoOcorrencia.SUPERVISAO],
+        categoria=categoria,
         edital=edital,
     )
     tipo_ocorrencia_factory.create(
+        posicao=1,
         perfis=[TipoOcorrencia.SUPERVISAO],
-        categoria__perfis=[TipoOcorrencia.SUPERVISAO],
-        categoria__nome="RECEBIMENTO DE ALIMENTOS",
+        titulo="RECEBIMENTO DE ALIMENTOS",
+        descricao="Realizou o controle quantitativo e qualitativo adequado no recebimento de alimentos "
+        "(inclusive o preenchimento da respectiva planilha), de acordo com o Manual de Boas Práticas "
+        "e a legislação vigente?  Se NÃO, especifique a inadequação",
+        penalidade__edital=edital,
+        penalidade__numero_clausula="10.44",
+        categoria=categoria_2,
         edital=edital,
     )
-    parametrizacao_ocorrencia_factory(
+    parametrizacao_texto_simples = parametrizacao_ocorrencia_factory.create(
         tipo_ocorrencia=tipo_ocorrencia_1,
         tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_texto_simples,
         titulo="Qual uniforme faltou?",
     )
-    parametrizacao_ocorrencia_factory(
+    parametrizacao_campo_numerico = parametrizacao_ocorrencia_factory.create(
         tipo_ocorrencia=tipo_ocorrencia_1,
         tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_campo_numerico,
         titulo="Quantos uniformes faltaram?",
+    )
+    resposta_campo_texto_simples_factory.create(
+        resposta="AVENTAL",
+        grupo=1,
+        parametrizacao=parametrizacao_texto_simples,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+    resposta_campo_texto_simples_factory.create(
+        resposta="TOUCA",
+        grupo=2,
+        parametrizacao=parametrizacao_texto_simples,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+    resposta_campo_numerico_factory.create(
+        resposta=10,
+        grupo=1,
+        parametrizacao=parametrizacao_campo_numerico,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+    resposta_campo_numerico_factory.create(
+        resposta=20,
+        grupo=2,
+        parametrizacao=parametrizacao_campo_numerico,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+
+    parametrizacao_ocorrencia_factory.create(
+        tipo_ocorrencia=tipo_ocorrencia_2,
+        tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_texto_simples,
+        titulo="Qual EPI faltou?",
+    )
+    ocorrencia_nao_se_aplica_factory.create(
+        descricao="Essa ocorrência não se aplica.",
+        tipo_ocorrencia=tipo_ocorrencia_2,
+        formulario_base=formulario_supervisao.formulario_base,
     )
 
     response = client.get(
@@ -274,6 +347,12 @@ def test_get_pdf_formulario_supervisao(
     assert "Data da visita" in conteudo_pdf_pagina_1
     assert "26/06/2024" in conteudo_pdf_pagina_1
     assert "FUNCIONÁRIOS" in conteudo_pdf_pagina_1
+    assert "Qual uniforme faltou?" in conteudo_pdf_pagina_1
+    assert "AVENTAL" in conteudo_pdf_pagina_1
+    assert "Quantos uniformes faltaram?" in conteudo_pdf_pagina_1
+    assert "TOUCA" in conteudo_pdf_pagina_1
+    assert "Qual EPI faltou?" not in conteudo_pdf_pagina_1
+    assert "Essa ocorrência não se aplica." in conteudo_pdf_pagina_1
     assert "RECEBIMENTO DE ALIMENTOS" in conteudo_pdf_pagina_1
 
 
