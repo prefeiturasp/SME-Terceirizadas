@@ -187,11 +187,15 @@ def test_get_pdf_formulario_supervisao(
     lote_factory,
     contrato_factory,
     log_solicitacoes_usuario_factory,
+    categoria_ocorrencia_factory,
     formulario_supervisao_factory,
     tipo_resposta_modelo_factory,
     tipo_pergunta_parametrizacao_ocorrencia_factory,
     tipo_ocorrencia_factory,
     parametrizacao_ocorrencia_factory,
+    resposta_campo_texto_simples_factory,
+    resposta_campo_numerico_factory,
+    ocorrencia_nao_se_aplica_factory,
 ):
     app.conf.update(CELERY_ALWAYS_EAGER=True)
 
@@ -216,6 +220,172 @@ def test_get_pdf_formulario_supervisao(
         uuid_original=formulario_supervisao.uuid,
         status_evento=LogSolicitacoesUsuario.RELATORIO_ENVIADO_PARA_CODAE,
         usuario=usuario,
+    )
+
+    tipo_resposta_campo_simples = tipo_resposta_modelo_factory.create(
+        nome="RespostaCampoTextoSimples"
+    )
+    tipo_pergunta_parametrizacao_ocorrencia_texto_simples = (
+        tipo_pergunta_parametrizacao_ocorrencia_factory(
+            nome="Campo de Texto Simples", tipo_resposta=tipo_resposta_campo_simples
+        )
+    )
+
+    tipo_resposta_campo_numerico = tipo_resposta_modelo_factory.create(
+        nome="RespostaCampoNumerico"
+    )
+    tipo_pergunta_parametrizacao_ocorrencia_campo_numerico = (
+        tipo_pergunta_parametrizacao_ocorrencia_factory.create(
+            nome="Campo Numérico", tipo_resposta=tipo_resposta_campo_numerico
+        )
+    )
+
+    categoria = categoria_ocorrencia_factory.create(
+        posicao=1,
+        nome="FUNCIONÁRIOS",
+        perfis=[TipoOcorrencia.SUPERVISAO],
+    )
+    categoria_2 = categoria_ocorrencia_factory.create(
+        posicao=2,
+        nome="RECEBIMENTO DE ALIMENTOS",
+        perfis=[TipoOcorrencia.SUPERVISAO],
+    )
+
+    tipo_ocorrencia_1 = tipo_ocorrencia_factory.create(
+        posicao=1,
+        titulo="UNIFORME DOS MANIPULADORES",
+        descricao="Funcionários utilizavam uniforme completo? Se NÃO, detalhar qual item do uniforme faltou, o que "
+        "estava utilizando em substituição aos itens previstos e nome completo do(s) funcionário(s).",
+        penalidade__edital=edital,
+        penalidade__numero_clausula="10.42",
+        perfis=[TipoOcorrencia.SUPERVISAO],
+        categoria=categoria,
+        edital=edital,
+    )
+    tipo_ocorrencia_2 = tipo_ocorrencia_factory.create(
+        posicao=1,
+        titulo="CONDIÇÕES DE CONSERVAÇÃO DO UNIFORME E EPI",
+        descricao="Funcionários utilizavam uniforme/EPI em boas condições de conservação "
+        "(não estavam rasgados, furados)? Se NÃO, detalhar inadequação, "
+        "qual item do uniforme/EPI e nome completo do(s) funcionário(s).",
+        penalidade__edital=edital,
+        penalidade__numero_clausula="10.43",
+        perfis=[TipoOcorrencia.SUPERVISAO],
+        categoria=categoria,
+        edital=edital,
+    )
+    tipo_ocorrencia_factory.create(
+        posicao=1,
+        perfis=[TipoOcorrencia.SUPERVISAO],
+        titulo="RECEBIMENTO DE ALIMENTOS",
+        descricao="Realizou o controle quantitativo e qualitativo adequado no recebimento de alimentos "
+        "(inclusive o preenchimento da respectiva planilha), de acordo com o Manual de Boas Práticas "
+        "e a legislação vigente?  Se NÃO, especifique a inadequação",
+        penalidade__edital=edital,
+        penalidade__numero_clausula="10.44",
+        categoria=categoria_2,
+        edital=edital,
+    )
+    parametrizacao_texto_simples = parametrizacao_ocorrencia_factory.create(
+        tipo_ocorrencia=tipo_ocorrencia_1,
+        tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_texto_simples,
+        titulo="Qual uniforme faltou?",
+    )
+    parametrizacao_campo_numerico = parametrizacao_ocorrencia_factory.create(
+        tipo_ocorrencia=tipo_ocorrencia_1,
+        tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_campo_numerico,
+        titulo="Quantos uniformes faltaram?",
+    )
+    resposta_campo_texto_simples_factory.create(
+        resposta="AVENTAL",
+        grupo=1,
+        parametrizacao=parametrizacao_texto_simples,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+    resposta_campo_texto_simples_factory.create(
+        resposta="TOUCA",
+        grupo=2,
+        parametrizacao=parametrizacao_texto_simples,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+    resposta_campo_numerico_factory.create(
+        resposta=10,
+        grupo=1,
+        parametrizacao=parametrizacao_campo_numerico,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+    resposta_campo_numerico_factory.create(
+        resposta=20,
+        grupo=2,
+        parametrizacao=parametrizacao_campo_numerico,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+
+    parametrizacao_ocorrencia_factory.create(
+        tipo_ocorrencia=tipo_ocorrencia_2,
+        tipo_pergunta=tipo_pergunta_parametrizacao_ocorrencia_texto_simples,
+        titulo="Qual EPI faltou?",
+    )
+    ocorrencia_nao_se_aplica_factory.create(
+        descricao="Essa ocorrência não se aplica.",
+        tipo_ocorrencia=tipo_ocorrencia_2,
+        formulario_base=formulario_supervisao.formulario_base,
+    )
+
+    response = client.get(
+        f"/imr/formulario-supervisao/{formulario_supervisao.uuid}/relatorio-pdf/"
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    central_download = CentralDeDownload.objects.get()
+    assert central_download.status == CentralDeDownload.STATUS_CONCLUIDO
+
+    reader = PdfFileReader(central_download.arquivo.path)
+    page = reader.pages[0]
+    conteudo_pdf_pagina_1 = page.extractText()
+
+    assert "Data da visita" in conteudo_pdf_pagina_1
+    assert "26/06/2024" in conteudo_pdf_pagina_1
+    assert "FUNCIONÁRIOS" in conteudo_pdf_pagina_1
+    assert "Qual uniforme faltou?" in conteudo_pdf_pagina_1
+    assert "AVENTAL" in conteudo_pdf_pagina_1
+    assert "Quantos uniformes faltaram?" in conteudo_pdf_pagina_1
+    assert "TOUCA" in conteudo_pdf_pagina_1
+    assert "Qual EPI faltou?" not in conteudo_pdf_pagina_1
+    assert "Essa ocorrência não se aplica." in conteudo_pdf_pagina_1
+    assert "RECEBIMENTO DE ALIMENTOS" in conteudo_pdf_pagina_1
+
+
+def test_get_pdf_formulario_supervisao_exception_error(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    edital_factory,
+    escola_factory,
+    lote_factory,
+    contrato_factory,
+    formulario_supervisao_factory,
+    tipo_resposta_modelo_factory,
+    tipo_pergunta_parametrizacao_ocorrencia_factory,
+    tipo_ocorrencia_factory,
+    parametrizacao_ocorrencia_factory,
+):
+    app.conf.update(CELERY_ALWAYS_EAGER=True)
+
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    edital = edital_factory.create(numero="78/SME/2016")
+    lote = lote_factory.create()
+    escola_ = escola_factory.create(lote=lote)
+    contrato = contrato_factory.create(
+        edital=edital,
+    )
+    contrato.lotes.add(lote)
+    contrato.save()
+
+    formulario_supervisao = formulario_supervisao_factory.create(
+        formulario_base__usuario=usuario,
+        formulario_base__data="2024-06-26",
+        escola=escola_,
+        status=FormularioSupervisao.workflow_class.NUTRIMANIFESTACAO_A_VALIDAR,
     )
 
     tipo_resposta_campo_simples = tipo_resposta_modelo_factory(
@@ -265,13 +435,5 @@ def test_get_pdf_formulario_supervisao(
     assert response.status_code == status.HTTP_200_OK
 
     central_download = CentralDeDownload.objects.get()
-    assert central_download.status == CentralDeDownload.STATUS_CONCLUIDO
-
-    reader = PdfFileReader(central_download.arquivo.path)
-    page = reader.pages[0]
-    conteudo_pdf_pagina_1 = page.extractText()
-
-    assert "Data da visita" in conteudo_pdf_pagina_1
-    assert "26/06/2024" in conteudo_pdf_pagina_1
-    assert "FUNCIONÁRIOS" in conteudo_pdf_pagina_1
-    assert "RECEBIMENTO DE ALIMENTOS" in conteudo_pdf_pagina_1
+    # Erro porque não há log de envio
+    assert central_download.status == CentralDeDownload.STATUS_ERRO

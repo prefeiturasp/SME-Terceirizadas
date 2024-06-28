@@ -853,9 +853,6 @@ def get_resposta_str(
 
 @register.simple_tag
 def calcular_index(index_loop: int, tipos_ocorrencia: QuerySet[TipoOcorrencia]) -> int:
-    if index_loop == 0:
-        return 1
-
     indice = 1
     for index, tipo_ocorrencia in enumerate(tipos_ocorrencia[:index_loop]):
         if index > 0 and (
