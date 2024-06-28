@@ -22,6 +22,7 @@ from .escola.fixtures.factories.escola_factory import (
 from .imr.fixtures.factories.imr_base_factory import (
     AnexosFormularioBaseFactory,
     CategoriaOcorrenciaFactory,
+    EditalInsumoFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
     FormularioDiretorFactory,
@@ -161,6 +162,7 @@ register(LogSolicitacoesUsuarioFactory)
 register(RespostaCampoTextoSimplesFactory)
 register(RespostaCampoNumericoFactory)
 register(OcorrenciaNaoSeAplicaFactory)
+register(EditalInsumoFactory)
 
 
 @pytest.fixture

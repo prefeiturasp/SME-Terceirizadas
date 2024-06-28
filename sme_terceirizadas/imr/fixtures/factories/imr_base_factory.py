@@ -7,6 +7,7 @@ from sme_terceirizadas.escola.fixtures.factories.escola_factory import EscolaFac
 from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
+    EditalInsumo,
     Equipamento,
     FaixaPontuacaoIMR,
     FormularioDiretor,
@@ -182,6 +183,22 @@ class InsumoFactory(DjangoModelFactory):
         model = Insumo
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EditalInsumoFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def insumos(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for insumo in extracted:
+                self.insumos.add(insumo)
+
+    class Meta:
+        model = EditalInsumo
 
 
 class FormularioOcorrenciasBaseFactory(DjangoModelFactory):
