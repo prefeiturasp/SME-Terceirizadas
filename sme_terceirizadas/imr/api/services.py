@@ -1,7 +1,9 @@
 from django.http import HttpResponse
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
-
+from itertools import groupby
+from operator import attrgetter
+from datetime import datetime
 from sme_terceirizadas.dados_comuns.helper_planilha_modelo import (
     cria_validacao_lista_em_sheet_oculto,
 )
@@ -172,3 +174,34 @@ def exportar_planilha_importacao_tipos_ocorrencia(request, **kwargs):
     workbook.save(response)
 
     return response
+
+
+def formatar_dados_exportar_relatorio_notificacoes(formulario_supervisao):
+    respostas = formulario_supervisao.formulario_base.buscar_respostas(categoria="QUANTIDADE/QUALIDADE DE UTENSÍLIOS/MOBILIÁRIOS/EQUIPAMENTOS")
+    respostas.sort(key=attrgetter('parametrizacao.tipo_ocorrencia', 'grupo'))
+    grouped = groupby(respostas, key=attrgetter('parametrizacao.tipo_ocorrencia', 'grupo'))
+    lista_respostas = []
+
+    for _, group in grouped:
+        _respostas = []
+        for resposta in group:
+            _respostas.append(resposta)
+
+        _respostas_sorted = sorted(_respostas, key=lambda x: int(x.parametrizacao.posicao))
+        lista_respostas.append(_respostas_sorted)
+
+    dados = {
+        'diretoria_regional': formulario_supervisao.escola.diretoria_regional.nome,
+        'unidade': formulario_supervisao.escola.nome,
+        'maior_frequencia_no_periodo': formulario_supervisao.maior_frequencia_no_periodo,
+        'total_matriculados_por_data': formulario_supervisao.escola.quantidade_alunos_matriculados_por_data(formulario_supervisao.formulario_base.data),
+        'data_visita': formulario_supervisao.formulario_base.data.strftime("%d/%m/%Y"),
+        'usuario': formulario_supervisao.formulario_base.usuario,
+        'lote': formulario_supervisao.escola.lote.nome,
+        'terceirizada': formulario_supervisao.escola.lote.terceirizada.nome_fantasia,
+        'edital': formulario_supervisao.escola.edital.numero if formulario_supervisao.escola.edital else "-",
+        'respostas': lista_respostas,
+        'data_geracao': datetime.now().strftime("%d/%m/%Y"),
+        'hora_geracao': datetime.now().strftime("%H:%M:%S"),
+    }
+    return dados

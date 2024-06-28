@@ -47,6 +47,10 @@ from .serializers.serializers_create import (
     FormularioSupervisaoRascunhoCreateSerializer,
 )
 
+from sme_terceirizadas.relatorios.relatorios import exportar_relatorio_notificacoes
+
+from .services import formatar_dados_exportar_relatorio_notificacoes
+
 
 class PeriodoVisitaModelViewSet(
     mixins.ListModelMixin,
@@ -242,6 +246,19 @@ class FormularioSupervisaoModelViewSet(
             formulario.formulario_base.respostas_nao_se_aplica.all(), many=True
         )
         return Response(serializer.data)
+
+    @action(
+        detail=True,
+        url_path="gerar-relatorio-notificacoes",
+        permission_classes=(),
+    )
+    def gerar_relatorio_notificacoes(self, request, uuid):
+        instance = self.get_object()
+
+        dados_formatados = formatar_dados_exportar_relatorio_notificacoes(instance)
+        response = exportar_relatorio_notificacoes(dados_formatados)
+
+        return response
 
 
 class FormularioDiretorModelViewSet(

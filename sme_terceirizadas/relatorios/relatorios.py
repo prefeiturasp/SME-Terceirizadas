@@ -1633,7 +1633,7 @@ def get_pdf_guia_distribuidor(data=None, many=False):
             )
         )
         while True:
-            alimentos = todos_alimentos[inicio : inicio + num_alimentos_pagina]
+            alimentos = todos_alimentos[inicio: inicio + num_alimentos_pagina]
             if alimentos:
                 page = guia.as_dict()
                 peso_total_pagina = round(
@@ -1695,3 +1695,9 @@ def get_pdf_ficha_tecnica(request, ficha):
         html_string.replace("dt_file", data_arquivo),
         f"ficha_tecnica_{ficha.numero}.pdf",
     )
+
+
+def exportar_relatorio_notificacoes(data):
+    html_template = get_template('IMR/relatorio_notificacoes/pdf.html')
+    rendered_html = html_template.render({'dados': data})
+    return html_to_pdf_response(rendered_html, "rendered.pdf")
