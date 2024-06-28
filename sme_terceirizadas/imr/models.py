@@ -382,6 +382,40 @@ class PeriodoVisita(ModeloBase, Nomeavel):
         verbose_name_plural = "Períodos de Visita"
 
 
+class FormularioOcorrenciasBase(ModeloBase):
+    usuario = models.ForeignKey(
+        Usuario,
+        verbose_name="Usuário",
+        on_delete=models.PROTECT,
+        related_name="formularios_ocorrencias",
+    )
+    data = models.DateField()
+
+    def __str__(self):
+        return f"{self.usuario.nome} - {self.data}"
+
+    def buscar_respostas(self, categoria=None):
+        respostas_por_formulario = []
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            if categoria:
+                respostas = modelo_reposta.objects.filter(formulario_base=self,
+                                                          parametrizacao__tipo_ocorrencia__categoria__nome=categoria)
+                for resposta in respostas:
+                    respostas_por_formulario.append(resposta)
+            else:
+                respostas = modelo_reposta.objects.filter(formulario_base=self)
+                for resposta in respostas:
+                    respostas_por_formulario.append(resposta)
+
+        return respostas_por_formulario
+
+    class Meta:
+        verbose_name = "Formulário Base - Ocorrências"
+        verbose_name_plural = "Formulários Base - Ocorrências"
+
+
 class AnexosFormularioBase(ModeloBase):
     anexo = models.FileField(
         "Anexo",
