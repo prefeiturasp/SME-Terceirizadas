@@ -8,6 +8,7 @@ from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
     EditalInsumo,
+    EditalReparoEAdaptacao,
     Equipamento,
     FaixaPontuacaoIMR,
     FormularioDiretor,
@@ -176,6 +177,22 @@ class ReparoEAdaptacaoFactory(DjangoModelFactory):
         model = ReparoEAdaptacao
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EditalReparoEAdaptacaoFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def reparos_e_adaptacoes(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for reparo_e_adaptacao in extracted:
+                self.reparos_e_adaptacoes.add(reparo_e_adaptacao)
+
+    class Meta:
+        model = EditalReparoEAdaptacao
 
 
 class InsumoFactory(DjangoModelFactory):
