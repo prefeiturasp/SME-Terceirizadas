@@ -7,6 +7,7 @@ from sme_terceirizadas.escola.fixtures.factories.escola_factory import EscolaFac
 from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
+    EditalEquipamento,
     EditalInsumo,
     EditalMobiliario,
     EditalReparoEAdaptacao,
@@ -164,6 +165,22 @@ class EquipamentoFactory(DjangoModelFactory):
         model = Equipamento
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EditalEquipamentoFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def equipamentos(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for equipamento in extracted:
+                self.equipamentos.add(equipamento)
+
+    class Meta:
+        model = EditalEquipamento
 
 
 class MobiliarioFactory(DjangoModelFactory):
