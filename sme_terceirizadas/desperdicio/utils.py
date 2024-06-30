@@ -102,7 +102,7 @@ SQL_RELATORIO_CONTROLE_SOBRAS = """
 	        coalesce(f.frequencia, 0) as frequencia,
 	        coalesce(m.total_primeira_oferta, 0) as total_primeira_oferta,
 	        coalesce(m.total_repeticao, 0) as total_repeticao,
-	        CASE WHEN (s.peso_alimento - s.peso_sobra) = 0 THEN 0 ELSE (s.peso_sobra / (s.peso_alimento - s.peso_sobra)) END as percentual_sobra,
+	        CASE WHEN (s.peso_alimento - s.peso_sobra) = 0 THEN 0 ELSE (s.peso_sobra / (s.peso_alimento - s.peso_sobra)) * 100 END as percentual_sobra,
 	        CASE WHEN f.frequencia = 0 THEN 0 ELSE (s.peso_sobra / f.frequencia) END as media_por_aluno,
 	        CASE WHEN m.total_refeicao = 0 THEN 0 ELSE (s.peso_sobra / m.total_refeicao) END as media_por_refeicao
 	    from medicao m
