@@ -277,13 +277,11 @@ class FormularioSupervisaoModelViewSet(
                 dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
                 status=status.HTTP_200_OK,
             )
-        except KeyError:
+        except FormularioSupervisao.DoesNotExist:
             return Response(
-                {"detail": "O parâmetro `uuid` é obrigatório."},
+                {"detail": "formulário supervisão não encontrado"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except ValidationError as e:
-            return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         detail=False,

@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from PyPDF4 import PdfFileReader
 from rest_framework import status
@@ -437,6 +439,17 @@ def test_get_pdf_formulario_supervisao_exception_error(
     central_download = CentralDeDownload.objects.get()
     # Erro porque não há log de envio
     assert central_download.status == CentralDeDownload.STATUS_ERRO
+
+
+def test_get_pdf_formulario_supervisao_error_does_not_exist(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    uuid_invalido = uuid.uuid4()
+    response = client.get(f"/imr/formulario-supervisao/{uuid_invalido}/relatorio-pdf/")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "formulário supervisão não encontrado"}
 
 
 def test_get_lista_nomes_nutricionistas(
