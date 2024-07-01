@@ -110,6 +110,44 @@ def test_tipos_ocorrencias(
     client.logout()
 
 
+def test_tipos_ocorrencias_edital_does_not_exist(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    uuid_falso = uuid.uuid4()
+    response = client.get(
+        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={uuid_falso}"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "detail": "Edital do tipo IMR com o UUID informado não foi encontrado."
+    }
+
+    client.logout()
+
+
+def test_tipos_ocorrencias_escola_does_not_exist(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    edital_factory,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    edital = edital_factory.create()
+    uuid_falso = uuid.uuid4()
+    response = client.get(
+        f"/imr/formulario-supervisao/tipos-ocorrencias/?edital_uuid={edital.uuid}&escola_uuid={uuid_falso}"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "detail": "Escola com o UUID informado não foi encontrada."
+    }
+
+    client.logout()
+
+
 def test_tipos_ocorrencias_edital_ou_escola_UUID_invalido(
     client_autenticado_vinculo_coordenador_supervisao_nutricao,
     escola_factory,
