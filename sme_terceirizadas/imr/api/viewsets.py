@@ -267,7 +267,7 @@ class FormularioSupervisaoModelViewSet(
     def relatorio_pdf(self, request, uuid):
         try:
             user = request.user.get_username()
-            formulario_supervisao = FormularioSupervisao.objects.get(uuid=uuid)
+            formulario_supervisao = self.get_object()
             gera_pdf_relatorio_formulario_supervisao_async.delay(
                 user=user,
                 nome_arquivo=f"Relatório de Fiscalização - {formulario_supervisao.escola.nome}.pdf",

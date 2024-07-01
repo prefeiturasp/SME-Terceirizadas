@@ -182,6 +182,36 @@ def test_url_dashboard_supervisao(
     assert total["total"] == 4
 
 
+def test_get_respostas_nao_se_aplica(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    formulario_supervisao_factory,
+    ocorrencia_nao_se_aplica_factory,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    formulario_supervisao = formulario_supervisao_factory.create(
+        formulario_base__usuario=usuario
+    )
+
+    ocorrencia_nao_se_aplica_factory.create(
+        formulario_base=formulario_supervisao.formulario_base
+    )
+    ocorrencia_nao_se_aplica_factory.create(
+        formulario_base=formulario_supervisao.formulario_base
+    )
+    ocorrencia_nao_se_aplica_factory.create(
+        formulario_base=formulario_supervisao.formulario_base
+    )
+
+    response = client.get(
+        f"/imr/formulario-supervisao/{formulario_supervisao.uuid}/respostas_nao_se_aplica/"
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    results = response.json()
+    assert len(results) == 3
+
+
 def test_get_pdf_formulario_supervisao(
     client_autenticado_vinculo_coordenador_supervisao_nutricao,
     edital_factory,
