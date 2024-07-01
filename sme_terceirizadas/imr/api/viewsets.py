@@ -265,23 +265,17 @@ class FormularioSupervisaoModelViewSet(
 
     @action(detail=True, methods=["GET"], url_path="relatorio-pdf")
     def relatorio_pdf(self, request, uuid):
-        try:
-            user = request.user.get_username()
-            formulario_supervisao = self.get_object()
-            gera_pdf_relatorio_formulario_supervisao_async.delay(
-                user=user,
-                nome_arquivo=f"Relatório de Fiscalização - {formulario_supervisao.escola.nome}.pdf",
-                uuid=uuid,
-            )
-            return Response(
-                dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
-                status=status.HTTP_200_OK,
-            )
-        except FormularioSupervisao.DoesNotExist:
-            return Response(
-                {"detail": "formulário supervisão não encontrado"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user = request.user.get_username()
+        formulario_supervisao = self.get_object()
+        gera_pdf_relatorio_formulario_supervisao_async.delay(
+            user=user,
+            nome_arquivo=f"Relatório de Fiscalização - {formulario_supervisao.escola.nome}.pdf",
+            uuid=uuid,
+        )
+        return Response(
+            dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+            status=status.HTTP_200_OK,
+        )
 
     @action(
         detail=False,
