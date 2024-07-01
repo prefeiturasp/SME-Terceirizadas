@@ -19,6 +19,19 @@ from sme_terceirizadas.imr.models import (
 pytestmark = pytest.mark.django_db
 
 
+def test_get_formularios_supervisao_com_nutrimanifestacao(
+    client_autenticado_vinculo_nutrimanifestacao, formulario_supervisao_factory
+):
+    client, usuario = client_autenticado_vinculo_nutrimanifestacao
+
+    formulario_supervisao_factory.create()
+    formulario_supervisao_factory.create(formulario_base__usuario=usuario)
+
+    response = client.get(f"/imr/formulario-supervisao/")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["count"] == 2
+
+
 def test_get_categorias_nao_permitidas():
     view_instance = FormularioSupervisaoModelViewSet()
 
