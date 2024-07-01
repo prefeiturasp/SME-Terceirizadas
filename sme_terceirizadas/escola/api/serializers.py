@@ -888,3 +888,18 @@ class GrupoUnidadeEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoUnidadeEscolar
         exclude = ("id",)
+
+
+class EscolaFormIMRSelializer(serializers.ModelSerializer):
+    lote = serializers.CharField(source="lote.nome", required=False)
+    terceirizada = serializers.CharField(
+        source="lote.terceirizada.nome_fantasia", required=False
+    )
+    edital = serializers.SerializerMethodField()
+
+    def get_edital(self, obj):
+        return obj.editais[-1] if obj.lote else None
+
+    class Meta:
+        model = Escola
+        fields = ("uuid", "nome", "codigo_eol", "lote", "terceirizada", "edital")
