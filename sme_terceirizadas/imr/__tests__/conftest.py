@@ -92,6 +92,32 @@ def client_autenticado_diretor_escola(client, django_user_model, escola):
 
 
 @pytest.fixture
+def client_autenticado_vinculo_nutrimanifestacao(client, django_user_model, codae):
+    email = "test@test.com"
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_nutrimanifestacao = mommy.make(
+        "Perfil",
+        nome=constants.COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+        ativo=True,
+        uuid="106f5a1a-627f-4b69-bf0b-6a44f6fa08bb",
+    )
+
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_nutrimanifestacao,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client, user
+
+
+@pytest.fixture
 def tipo_ocorrencia_nutrisupervisor_com_parametrizacao(
     edital_factory,
     categoria_ocorrencia_factory,
