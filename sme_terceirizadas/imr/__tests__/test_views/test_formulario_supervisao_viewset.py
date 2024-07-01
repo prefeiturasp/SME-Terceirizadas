@@ -32,6 +32,11 @@ def test_get_categorias_nao_permitidas():
     assert "LACTÁRIO" in categorias
     assert "RESÍDUO DE ÓLEO UTILIZADO NA FRITURA" not in categorias
 
+    # Teste para CEI
+    categorias = view_instance._get_categorias_nao_permitidas("CEI DIRET")
+    assert "LACTÁRIO" not in categorias
+    assert "RESÍDUO DE ÓLEO UTILIZADO NA FRITURA" in categorias
+
 
 def test_tipos_ocorrencias(
     client_autenticado_vinculo_coordenador_supervisao_nutricao,
