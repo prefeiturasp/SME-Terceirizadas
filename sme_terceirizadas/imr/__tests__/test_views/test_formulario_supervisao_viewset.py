@@ -437,3 +437,26 @@ def test_get_pdf_formulario_supervisao_exception_error(
     central_download = CentralDeDownload.objects.get()
     # Erro porque não há log de envio
     assert central_download.status == CentralDeDownload.STATUS_ERRO
+
+
+def test_get_lista_nomes_nutricionistas(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    formulario_supervisao_factory,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    formulario_supervisao_factory.create(
+        formulario_base__usuario__nome="FULANA DA SILVA"
+    )
+    formulario_supervisao_factory.create(
+        formulario_base__usuario__nome="CICLANA DA SOUZA"
+    )
+    formulario_supervisao_factory.create(
+        formulario_base__usuario__nome="BELTRANA SANTOS"
+    )
+
+    response = client.get(f"/imr/formulario-supervisao/lista_nomes_nutricionistas/")
+    assert response.status_code == status.HTTP_200_OK
+
+    results = response.json()["results"]
+    assert len(results) == 3
