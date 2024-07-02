@@ -195,9 +195,11 @@ class Terceirizada(
     @property
     def editais(self):
         return list(
-            self.contratos.filter(edital__isnull=False)
-            .values_list("edital__uuid", flat=True)
-            .distinct()
+            set(
+                self.contratos.filter(edital__isnull=False, encerrado=False)
+                .values_list("edital__uuid", flat=True)
+                .distinct()
+            )
         )
 
     @property

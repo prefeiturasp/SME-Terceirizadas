@@ -180,15 +180,24 @@ def test_build_headers_tabelas_cei(
         {
             "periodos": ["INTEGRAL", "MANHA"],
             "categorias": [
-                {"categoria": "ALIMENTAÇÃO", "faixas_etarias": ["01 a 09 meses"]}
+                {
+                    "categoria": "ALIMENTAÇÃO",
+                    "faixas_etarias": ["01 a 09 meses", "total"],
+                    "periodo": "INTEGRAL",
+                },
+                {
+                    "categoria": "ALIMENTAÇÃO",
+                    "faixas_etarias": ["01 a 09 meses", "total"],
+                    "periodo": "MANHA",
+                },
             ],
-            "len_periodos": [2, 0],
-            "len_categorias": [2],
+            "len_periodos": [3, 3],
+            "len_categorias": [6, 6],
             "valores_campos": [],
             "ordem_periodos_grupos": [1, 3],
-            "periodo_values": defaultdict(int, {"INTEGRAL": 2, "MANHA": 0}),
-            "categoria_values": defaultdict(int, {"ALIMENTAÇÃO": 2}),
-        },
+            "periodo_values": defaultdict(int, {"INTEGRAL": 3, "MANHA": 3}),
+            "categoria_values": defaultdict(int, {"ALIMENTAÇÃO": 6}),
+        }
     ]
 
 

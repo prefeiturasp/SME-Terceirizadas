@@ -975,6 +975,15 @@ class InclusaoDeAlimentacaoCEMEI(
             return True
         return False
 
+    def checa_tipos_alimentacao_emei(self, quantidades_emei, tipos_alimentacao_emei):
+        if quantidades_emei and quantidades_emei[0].tipos_alimentacao.all():
+            tipos_alimentacao_emei = ", ".join(
+                quantidades_emei[0]
+                .tipos_alimentacao.all()
+                .values_list("nome", flat=True)
+            )
+        return tipos_alimentacao_emei
+
     @property
     def quantidades_alunos_simples_dict(self):
         dias_motivos_da_inclusao = []
@@ -1042,6 +1051,9 @@ class InclusaoDeAlimentacaoCEMEI(
             )
             quantidades_emei = self.quantidade_alunos_emei_da_inclusao_cemei.filter(
                 periodo_escolar__nome=periodo
+            )
+            tipos_alimentacao_emei = self.checa_tipos_alimentacao_emei(
+                quantidades_emei, tipos_alimentacao_emei
             )
             quantidades_cei_list = []
             quantidades_emei_list = []
@@ -1179,6 +1191,7 @@ class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI(
     periodo_escolar = models.ForeignKey(
         "escola.PeriodoEscolar", on_delete=models.DO_NOTHING
     )
+    tipos_alimentacao = models.ManyToManyField("cardapio.TipoAlimentacao")
 
     def __str__(self):
         return f"{self.periodo_escolar.nome} - {self.quantidade_alunos} alunos"

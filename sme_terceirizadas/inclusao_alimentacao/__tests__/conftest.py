@@ -648,6 +648,11 @@ def faixa_etaria():
 
 
 @pytest.fixture
+def tipo_alimentacao_refeicao():
+    return mommy.make("TipoAlimentacao", nome="Refeição")
+
+
+@pytest.fixture
 def client_autenticado_vinculo_escola_inclusao(
     client,
     django_user_model,

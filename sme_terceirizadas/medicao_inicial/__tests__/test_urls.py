@@ -53,7 +53,7 @@ def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_co
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == ["2022-08-08"]
+    assert response.json() == []
 
     response = client_autenticado_coordenador_codae.get(
         "/medicao-inicial/dias-sobremesa-doce/?mes=8&ano=2022",

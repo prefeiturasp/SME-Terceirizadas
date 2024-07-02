@@ -9,6 +9,7 @@ from sme_terceirizadas.dados_comuns.utils import (
 from sme_terceirizadas.imr.api.services import RelatorioNotificacaoService
 from sme_terceirizadas.imr.models import FormularioSupervisao
 from sme_terceirizadas.relatorios.relatorios import exportar_relatorio_notificacoes
+from sme_terceirizadas.relatorios.relatorios import relatorio_formulario_supervisao
 
 logger = logging.getLogger(__name__)
 
@@ -19,28 +20,26 @@ logger = logging.getLogger(__name__)
     time_limit=3000,
     soft_time_limit=3000,
 )
-def gerar_relatorio_notificacoes_pdf_async(user, formulario_supervisao_uuid):
+def gerar_relatorio_notificacoes_pdf_async(user, formulario_supervisao_uuid, nome_arquivo):
     logger.info(
         "Iniciando gerar_relatorio_notificacoes_pdf_async"
     )
 
     formulario_supervisao = FormularioSupervisao.by_uuid(uuid=formulario_supervisao_uuid)
 
-    TITULO_ARQUIVO = "relatorio_notificacoes.pdf"
-
     central_download = gera_objeto_na_central_download(
         user=user,
-        identificador=TITULO_ARQUIVO,
+        identificador=nome_arquivo,
     )
 
     try:
         service = RelatorioNotificacaoService(formulario_supervisao)
         dados_formatados = service.retornar_dados_formatados()
-        arquivo_relatorio = exportar_relatorio_notificacoes(dados_formatados, TITULO_ARQUIVO)
+        arquivo_relatorio = exportar_relatorio_notificacoes(dados_formatados, nome_arquivo)
 
         atualiza_central_download(
             central_download,
-            TITULO_ARQUIVO,
+            nome_arquivo,
             arquivo_relatorio,
         )
     except Exception as e:
@@ -49,3 +48,19 @@ def gerar_relatorio_notificacoes_pdf_async(user, formulario_supervisao_uuid):
         logger.info(
             "Finaliza gerar_relatorio_notificacoes_pdf_async"
         )
+
+
+def gera_pdf_relatorio_formulario_supervisao_async(user, nome_arquivo, uuid):
+    solicitacao = FormularioSupervisao.objects.get(uuid=uuid)
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        arquivo = relatorio_formulario_supervisao(solicitacao)
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+        logger.error(f"Erro: {e}")
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")

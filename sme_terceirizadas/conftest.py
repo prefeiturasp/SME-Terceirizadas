@@ -7,17 +7,27 @@ from model_mommy import mommy
 from pytest_factoryboy import register
 
 from .dados_comuns import constants
+from .dados_comuns.fixtures.factories.dados_comuns_factories import (
+    LogSolicitacoesUsuarioFactory,
+)
 from .dados_comuns.models import TemplateMensagem
 from .escola.fixtures.factories.escola_factory import (
     DiretoriaRegionalFactory,
     EscolaFactory,
     LogAlunosMatriculadosPeriodoEscolaFactory,
+    LoteFactory,
     PeriodoEscolarFactory,
     TipoUnidadeEscolarFactory,
 )
 from .imr.fixtures.factories.imr_base_factory import (
     AnexosFormularioBaseFactory,
     CategoriaOcorrenciaFactory,
+    EditalEquipamentoFactory,
+    EditalInsumoFactory,
+    EditalMobiliarioFactory,
+    EditalReparoEAdaptacaoFactory,
+    EditalUtensilioCozinhaFactory,
+    EditalUtensilioMesaFactory,
     EquipamentoFactory,
     FaixaPontuacaoFactory,
     FormularioDiretorFactory,
@@ -26,9 +36,12 @@ from .imr.fixtures.factories.imr_base_factory import (
     InsumoFactory,
     MobiliarioFactory,
     ObrigacaoPenalidadeFactory,
+    OcorrenciaNaoSeAplicaFactory,
     ParametrizacaoOcorrenciaFactory,
     PeriodoVisitaFactory,
     ReparoEAdaptacaoFactory,
+    RespostaCampoNumericoFactory,
+    RespostaCampoTextoSimplesFactory,
     TipoGravidadeFactory,
     TipoOcorrenciaFactory,
     TipoPenalidadeFactory,
@@ -149,6 +162,17 @@ register(FormularioOcorrenciasBaseFactory)
 register(AnexosFormularioBaseFactory)
 register(FormularioSupervisaoFactory)
 register(FormularioDiretorFactory)
+register(LoteFactory)
+register(LogSolicitacoesUsuarioFactory)
+register(RespostaCampoTextoSimplesFactory)
+register(RespostaCampoNumericoFactory)
+register(OcorrenciaNaoSeAplicaFactory)
+register(EditalInsumoFactory)
+register(EditalReparoEAdaptacaoFactory)
+register(EditalMobiliarioFactory)
+register(EditalEquipamentoFactory)
+register(EditalUtensilioMesaFactory)
+register(EditalUtensilioCozinhaFactory)
 
 
 @pytest.fixture

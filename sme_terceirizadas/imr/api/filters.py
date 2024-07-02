@@ -27,3 +27,7 @@ class FormularioSupervisaoFilter(filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         choices=[(str(state), state) for state in FormularioSupervisaoWorkflow.states]
     )
+    nome_nutricionista = filters.CharFilter(
+        field_name="formulario_base__usuario__nome",
+        lookup_expr="exact",
+    )

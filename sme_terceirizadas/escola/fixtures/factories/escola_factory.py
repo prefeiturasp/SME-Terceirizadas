@@ -6,9 +6,13 @@ from sme_terceirizadas.escola.models import (
     DiretoriaRegional,
     Escola,
     LogAlunosMatriculadosPeriodoEscola,
+    Lote,
     PeriodoEscolar,
     TipoTurma,
     TipoUnidadeEscolar,
+)
+from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
+    EmpresaFactory,
 )
 
 fake = Faker("pt_BR")
@@ -27,12 +31,22 @@ class DiretoriaRegionalFactory(DjangoModelFactory):
     codigo_eol = Sequence(lambda n: fake.unique.random_int(min=1, max=999999))
 
 
+class LoteFactory(DjangoModelFactory):
+    nome = Sequence(lambda n: f"Lote {n} - {fake.unique.company()}")
+    diretoria_regional = SubFactory(DiretoriaRegionalFactory)
+    terceirizada = SubFactory(EmpresaFactory)
+
+    class Meta:
+        model = Lote
+
+
 class EscolaFactory(DjangoModelFactory):
     class Meta:
         model = Escola
 
     nome = Sequence(lambda n: f"Escola {n} - {fake.unique.company()}")
     codigo_eol = Sequence(lambda n: fake.unique.random_int(min=1, max=999999))
+    lote = SubFactory(LoteFactory)
     diretoria_regional = SubFactory(DiretoriaRegionalFactory)
     tipo_unidade = SubFactory(TipoUnidadeEscolarFactory)
 

@@ -7,11 +7,13 @@ from rest_framework.response import Response
 
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaVisualizarRelatorioFiscalizacaoNutri,
     UsuarioCODAENutriSupervisao,
     UsuarioEscolaTercTotal,
 )
 from sme_terceirizadas.terceirizada.models import Edital
 
+from ...dados_comuns.constants import COORDENADOR_SUPERVISAO_NUTRICAO
 from ...dados_comuns.fluxo_status import FormularioSupervisaoWorkflow
 from ...escola.models import Escola
 from ..models import (
@@ -25,6 +27,7 @@ from ..models import (
     UtensilioCozinha,
     UtensilioMesa,
 )
+from ..tasks import gera_pdf_relatorio_formulario_supervisao_async
 from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
     EquipamentoSerializer,
@@ -79,7 +82,10 @@ class FormularioSupervisaoRascunhoModelViewSet(
                 request, *args, **kwargs
             )
         else:
-            return Response({'detail': 'Rascunho já foi enviado e não pode mais ser alterado.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Rascunho já foi enviado e não pode mais ser alterado."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
 
 class FormularioSupervisaoModelViewSet(
@@ -91,11 +97,24 @@ class FormularioSupervisaoModelViewSet(
 ):
     lookup_field = "uuid"
     queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
-    permission_classes = (UsuarioCODAENutriSupervisao,)
+    permission_classes = (PermissaoParaVisualizarRelatorioFiscalizacaoNutri,)
     serializer_class = FormularioSupervisaoSerializer
     pagination_class = DefaultPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = FormularioSupervisaoFilter
+    permission_action_classes = {
+        "create": [UsuarioCODAENutriSupervisao],
+        "update": [UsuarioCODAENutriSupervisao],
+        "delete": [UsuarioCODAENutriSupervisao],
+    }
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.vinculo_atual.perfil.nome == COORDENADOR_SUPERVISAO_NUTRICAO:
+            return FormularioSupervisao.objects.filter(
+                formulario_base__usuario=user
+            ).order_by("-criado_em")
+        return FormularioSupervisao.objects.all().order_by("-criado_em")
 
     def get_serializer_class(self):
         return {
@@ -165,7 +184,11 @@ class FormularioSupervisaoModelViewSet(
 
     def get_label(self, workflow: str) -> str:
         try:
-            return FormularioSupervisaoWorkflow.states[workflow].title
+            return (
+                "Aprovados"
+                if workflow == FormularioSupervisaoWorkflow.APROVADO
+                else FormularioSupervisaoWorkflow.states[workflow].title
+            )
         except KeyError:
             return "Todos os Relatórios"
 
@@ -192,12 +215,9 @@ class FormularioSupervisaoModelViewSet(
         detail=False,
         methods=["GET"],
         url_path="dashboard",
-        permission_classes=[UsuarioCODAENutriSupervisao],
     )
     def dashboard(self, request):
-        query_set = self.get_queryset().filter(
-            formulario_base__usuario=self.request.user
-        )
+        query_set = self.get_queryset()
         response = {
             "results": self.dados_dashboard(
                 query_set=query_set,
@@ -252,14 +272,44 @@ class FormularioSupervisaoModelViewSet(
     def gerar_relatorio_notificacoes(self, request, uuid):
         user = request.user.get_username()
         instance = self.get_object()
+
         gerar_relatorio_notificacoes_pdf_async.delay(
             user=user,
+            nome_arquivo=f"Relatório de Notificações - {instance.escola.nome}.pdf",
             formulario_supervisao_uuid=instance.uuid
+        )
+
+        return Response(
+            dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["GET"], url_path="relatorio-pdf")
+    def relatorio_pdf(self, request, uuid):
+        user = request.user.get_username()
+        formulario_supervisao = self.get_object()
+        gera_pdf_relatorio_formulario_supervisao_async.delay(
+            user=user,
+            nome_arquivo=f"Relatório de Fiscalização - {formulario_supervisao.escola.nome}.pdf",
+            uuid=uuid,
         )
         return Response(
             dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
             status=status.HTTP_200_OK,
         )
+
+    @action(
+        detail=False,
+        url_path="lista_nomes_nutricionistas",
+    )
+    def lista_nomes_nutricionistas(self, request):
+        queryset = (
+            FormularioSupervisao.objects.all()
+            .values_list("formulario_base__usuario__nome", flat=True)
+            .distinct()
+        )
+        response = {"results": queryset}
+        return Response(response)
 
 
 class FormularioDiretorModelViewSet(

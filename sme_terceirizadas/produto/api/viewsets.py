@@ -1,6 +1,6 @@
 import json
 from collections import Counter
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from itertools import chain
 
 import environ
@@ -415,15 +415,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     def melhora_eficiencia_quando_terc(self, qs, usuario, workflow):
         if usuario == "terceirizada" and workflow in [
             "CODAE_HOMOLOGADO",
-            "CODAE_NAO_HOMOLOGADO",
         ]:
-            tres_meses_atras = date.today() - timedelta(days=90)
-            logs_ultimos_tres_meses = LogSolicitacoesUsuario.objects.filter(
-                criado_em__gt=tres_meses_atras,
+            ultimos_cem_logs = LogSolicitacoesUsuario.objects.filter(
                 solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
-            )
+            )[:100]
             qs = qs.filter(
-                uuid__in=logs_ultimos_tres_meses.values_list("uuid_original", flat=True)
+                uuid__in=ultimos_cem_logs.values_list("uuid_original", flat=True)
             )
         return qs
 

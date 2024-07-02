@@ -50,10 +50,18 @@
     text-transform: uppercase;
     color: $preto;
   }
-
   .titulo-branco{
     color: #FFFFFF;
   }
+}
+
+h2.subtitulo {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 21px;
+  text-transform: uppercase;
+  color: $preto;
 }
 
 .header {

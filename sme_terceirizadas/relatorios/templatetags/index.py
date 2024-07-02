@@ -2,6 +2,8 @@ import math
 import re
 
 from django import template
+from django.db.models import QuerySet
+from django.template import base as template_base
 
 from sme_terceirizadas.dados_comuns.utils import (
     numero_com_agrupador_de_milhar_e_decimal,
@@ -11,6 +13,11 @@ from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...escola.models import Escola
+from ...imr.models import (
+    FormularioOcorrenciasBase,
+    ParametrizacaoOcorrencia,
+    TipoOcorrencia,
+)
 from ...inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -21,6 +28,9 @@ from ...kit_lanche.models import EscolaQuantidade
 
 register = template.Library()
 
+# Add support for multi-line template tags
+template_base.tag_re = re.compile(template_base.tag_re.pattern, re.DOTALL)
+
 
 @register.filter
 def get_attribute(elemento, atributo):
@@ -29,6 +39,8 @@ def get_attribute(elemento, atributo):
 
 @register.filter
 def get_element_by_index(indexable, i):
+    if i < 0:
+        return None
     return indexable[i]
 
 
@@ -143,6 +155,11 @@ def tem_cancelamento_parcial(dias):
 @register.filter
 def concatena_str(query_set):
     return ", ".join([p.nome for p in query_set])
+
+
+@register.filter
+def concatena_str_por_param(query_set, param):
+    return ", ".join([getattr(p, param) for p in query_set])
 
 
 @register.filter
@@ -778,3 +795,69 @@ def get_nome_categoria(nome):
 @register.filter
 def agrupador_milhar_com_decimal(value: int | float) -> str:
     return numero_com_agrupador_de_milhar_e_decimal(value)
+
+
+@register.filter
+def get_resposta_tipo_ocorrencia(
+    tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
+):
+    return tipo_ocorrencia.get_resposta(formulario_base)
+
+
+@register.filter
+def get_quantidade_grupos_tipo_ocorrencia(
+    tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
+):
+    return tipo_ocorrencia.quantidade_grupos(formulario_base)
+
+
+@register.filter
+def get_descricao_ocorrencia_nao_se_aplica(
+    tipo_ocorrencia: TipoOcorrencia, formulario_base: FormularioOcorrenciasBase
+):
+    descricao = tipo_ocorrencia.ocorrencias_nao_se_aplica.get(
+        formulario_base=formulario_base
+    ).descricao
+    return descricao
+
+
+@register.simple_tag
+def get_rowspan(
+    tipo_ocorrencia: TipoOcorrencia,
+    formulario_base: FormularioOcorrenciasBase,
+    tipos_ocorrencia: QuerySet[TipoOcorrencia],
+):
+    tipos_ocorrencia_mesma_posicao = tipos_ocorrencia.filter(
+        categoria=tipo_ocorrencia.categoria, posicao=tipo_ocorrencia.posicao
+    )
+    if tipos_ocorrencia_mesma_posicao.count() > 1:
+        rowspan = tipos_ocorrencia_mesma_posicao.count()
+        for tipo_ocorrencia_ in tipos_ocorrencia_mesma_posicao:
+            if "Não" in tipo_ocorrencia_.get_resposta(formulario_base):
+                rowspan += 1
+        return rowspan
+    else:
+        if "Não" in tipo_ocorrencia.get_resposta(formulario_base):
+            return 2
+        return 1
+
+
+@register.simple_tag
+def get_resposta_str(
+    parametrizacao: ParametrizacaoOcorrencia,
+    formulario_base: FormularioOcorrenciasBase,
+    grupo: int,
+) -> str:
+    return parametrizacao.get_resposta_str(formulario_base, grupo)
+
+
+@register.simple_tag
+def calcular_index(index_loop: int, tipos_ocorrencia: QuerySet[TipoOcorrencia]) -> int:
+    indice = 1
+    for index, tipo_ocorrencia in enumerate(tipos_ocorrencia[:index_loop]):
+        if index > 0 and (
+            tipo_ocorrencia.categoria != tipos_ocorrencia[index - 1].categoria
+            or tipo_ocorrencia.posicao != tipos_ocorrencia[index - 1].posicao
+        ):
+            indice += 1
+    return indice

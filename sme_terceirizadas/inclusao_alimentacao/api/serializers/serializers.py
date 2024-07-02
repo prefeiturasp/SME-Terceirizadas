@@ -213,6 +213,7 @@ class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(
     serializers.ModelSerializer
 ):
     periodo_escolar = PeriodoEscolarSimplesSerializer()
+    tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True, read_only=True)
 
     class Meta:
         model = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI
