@@ -28,7 +28,7 @@ from ..models import (
     UtensilioCozinha,
     UtensilioMesa,
 )
-from ..tasks import gera_pdf_relatorio_formulario_supervisao_async
+from ..tasks import gera_pdf_relatorio_formulario_supervisao_async, gerar_relatorio_notificacoes_pdf_async
 from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
     EquipamentoSerializer,
@@ -307,6 +307,25 @@ class FormularioSupervisaoModelViewSet(
         )
         response = {"results": queryset}
         return Response(response)
+
+    @action(
+        detail=True,
+        url_path="gerar-relatorio-notificacoes",
+    )
+    def gerar_relatorio_notificacoes(self, request, uuid):
+        user = request.user.get_username()
+        instance = self.get_object()
+
+        gerar_relatorio_notificacoes_pdf_async.delay(
+            user=user,
+            nome_arquivo=f"Relatório de Notificações - {instance.escola.nome}.pdf",
+            formulario_supervisao_uuid=instance.uuid
+        )
+
+        return Response(
+            dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+            status=status.HTTP_200_OK,
+        )
 
 
 class FormularioDiretorModelViewSet(

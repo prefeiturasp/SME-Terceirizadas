@@ -129,14 +129,21 @@ class FormularioOcorrenciasBase(ModeloBase):
     def __str__(self):
         return f"{self.usuario.nome} - {self.data}"
 
-    def buscar_respostas(self):
+    def buscar_respostas(self, categoria=None):
         respostas_por_formulario = []
         tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
         for tipo_pergunta in tipos_perguntas:
             modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
-            respostas = modelo_reposta.objects.filter(formulario_base=self)
-            for resposta in respostas:
-                respostas_por_formulario.append(resposta)
+            if categoria:
+                respostas = modelo_reposta.objects.filter(formulario_base=self,
+                                                          parametrizacao__tipo_ocorrencia__categoria__nome=categoria)
+                for resposta in respostas:
+                    respostas_por_formulario.append(resposta)
+            else:
+                respostas = modelo_reposta.objects.filter(formulario_base=self)
+                for resposta in respostas:
+                    respostas_por_formulario.append(resposta)
+
         return respostas_por_formulario
 
     class Meta:

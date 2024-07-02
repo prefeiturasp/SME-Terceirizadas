@@ -1641,7 +1641,7 @@ def get_pdf_guia_distribuidor(data=None, many=False):
             )
         )
         while True:
-            alimentos = todos_alimentos[inicio : inicio + num_alimentos_pagina]
+            alimentos = todos_alimentos[inicio: inicio + num_alimentos_pagina]
             if alimentos:
                 page = guia.as_dict()
                 peso_total_pagina = round(
@@ -1738,3 +1738,10 @@ def relatorio_formulario_supervisao(formulario_supervisao):
         "relatorio_formulario_supervisao.pdf",
         is_async=True,
     )
+
+
+def exportar_relatorio_notificacoes(data, filename):
+    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    html_template = get_template('IMR/relatorio_notificacoes/pdf.html')
+    rendered_html = html_template.render({'dados': data})
+    return html_to_pdf_file(rendered_html.replace("dt_file", data_arquivo), filename, is_async=True)

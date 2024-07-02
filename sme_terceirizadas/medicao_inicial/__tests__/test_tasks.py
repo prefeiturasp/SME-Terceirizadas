@@ -1,4 +1,5 @@
 import datetime
+import json
 from unittest.mock import Mock, patch
 
 import pytest
@@ -22,6 +23,7 @@ from sme_terceirizadas.medicao_inicial.tasks import (
     exporta_relatorio_adesao_para_pdf,
     exporta_relatorio_adesao_para_xlsx,
     exporta_relatorio_consolidado_xlsx,
+    exporta_relatorio_controle_frequencia_para_pdf,
     gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
     gera_pdf_relatorio_unificado_async,
     solicitacao_medicao_atual_existe,
@@ -344,7 +346,16 @@ def test_exporta_relatorio_adesao_para_pdf_sem_resultados(usuario):
 
 @pytest.mark.django_db
 def test_exporta_relatorio_consolidado_xlsx(
-    usuario, escola, escola_emefm, grupo_escolar
+    usuario,
+    escola,
+    escola_emefm,
+    grupo_escolar,
+    categoria_medicao,
+    categoria_medicao_dieta_a,
+    tipo_alimentacao_refeicao,
+    make_medicao,
+    make_valores_medicao,
+    make_periodo_escolar,
 ):
     mes = "05"
     ano = "2023"
@@ -364,15 +375,34 @@ def test_exporta_relatorio_consolidado_xlsx(
         status=status,
     )
 
-    solicitacoes = list(
-        SolicitacaoMedicaoInicial.objects.filter(
-            mes=mes,
-            ano=ano,
-            escola__tipo_unidade__iniciais__in=["EMEF", "EMEFM"],
-            escola__diretoria_regional=escola.diretoria_regional,
-            status=status,
-        ).values_list("uuid", flat=True)
+    solicitacoes = SolicitacaoMedicaoInicial.objects.filter(
+        mes=mes,
+        ano=ano,
+        escola__tipo_unidade__iniciais__in=["EMEF", "EMEFM"],
+        escola__diretoria_regional=escola.diretoria_regional,
+        status=status,
     )
+
+    solicitacoes_uuids = list(solicitacoes.values_list("uuid", flat=True))
+
+    periodo_escolar = make_periodo_escolar("MANHA")
+    medicao = make_medicao(solicitacoes[0], periodo_escolar)
+    valores = range(1, 6)
+    for categoria in [categoria_medicao_dieta_a, categoria_medicao]:
+        for x in valores:
+            make_valores_medicao(
+                medicao=medicao,
+                categoria_medicao=categoria,
+                valor=str(x).rjust(2, "0"),
+                tipo_alimentacao=tipo_alimentacao_refeicao,
+                nome_campo="refeicao",
+            )
+            make_valores_medicao(
+                medicao=medicao,
+                categoria_medicao=categoria,
+                valor=str(x).rjust(2, "0"),
+                nome_campo="frequencia",
+            )
 
     grupo_unidade_escolar = GrupoUnidadeEscolar.objects.get(uuid=grupo_escolar)
     tipos_unidades = grupo_unidade_escolar.tipos_unidades.all()
@@ -382,7 +412,7 @@ def test_exporta_relatorio_consolidado_xlsx(
     exporta_relatorio_consolidado_xlsx(
         user=usuario,
         nome_arquivo=nome_arquivo,
-        solicitacoes=solicitacoes,
+        solicitacoes=solicitacoes_uuids,
         tipos_de_unidade=tipos_de_unidade_do_grupo,
         query_params={
             "mes": mes,
@@ -390,6 +420,36 @@ def test_exporta_relatorio_consolidado_xlsx(
             "status": status,
             "dre": escola.diretoria_regional.uuid,
         },
+    )
+
+    assert CentralDeDownload.objects.count() == 1
+    arquivo = CentralDeDownload.objects.first()
+    assert arquivo is not None and arquivo.usuario == usuario
+    assert arquivo is not None and arquivo.identificador == nome_arquivo
+    assert arquivo is not None and arquivo.status == CentralDeDownload.STATUS_CONCLUIDO
+
+
+@pytest.mark.django_db
+def test_exporta_relatorio_controle_frequencia_para_pdf(
+    usuario,
+    escola_cei,
+    make_periodo_escolar,
+):
+    periodo_escolar = make_periodo_escolar("MANHA")
+    periodo_escolar_integral = make_periodo_escolar("INTEGRAL")
+
+    nome_arquivo = "controle-frequencia.pdf"
+
+    exporta_relatorio_controle_frequencia_para_pdf(
+        user=usuario,
+        nome_arquivo=nome_arquivo,
+        query_params={
+            "periodos": json.dumps([str(periodo_escolar.uuid)]),
+            "mes_ano": "6_2024",
+            "data_inicial": "2024-06-03",
+            "data_final": "2024-06-27",
+        },
+        escola_uuid=escola_cei.uuid,
     )
 
     assert CentralDeDownload.objects.count() == 1
