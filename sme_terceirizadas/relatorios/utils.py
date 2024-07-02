@@ -361,3 +361,19 @@ def deleta_log_temporario_se_necessario(
 
 def todas_escolas_sol_kit_lanche_unificado_cancelado(solicitacao):
     return not solicitacao.escolas_quantidades.filter(cancelado=False).exists()
+
+
+def cria_merge_pdfs(merger_lancamentos, merger_arquivo_final):
+    output_lancamentos = io.BytesIO()
+    merger_lancamentos.write(output_lancamentos)
+    output_lancamentos.seek(0)
+    merger_arquivo_final.append(output_lancamentos)
+
+    output_final = io.BytesIO()
+    merger_arquivo_final.write(output_final)
+    output_final.seek(0)
+
+    merger_lancamentos.close()
+    merger_arquivo_final.close()
+
+    return output_final.getvalue()

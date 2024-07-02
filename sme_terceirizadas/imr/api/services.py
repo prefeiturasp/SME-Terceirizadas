@@ -179,11 +179,10 @@ def exportar_planilha_importacao_tipos_ocorrencia(request, **kwargs):
 class RelatorioNotificacaoService:
 
     def __init__(self, formulario_supervisao):
-        self.categoria = "QUANTIDADE/QUALIDADE DE UTENSÍLIOS/MOBILIÁRIOS/EQUIPAMENTOS"
         self.formulario_supervisao = formulario_supervisao
 
-    def get_lista_respostas(self):
-        respostas = self.formulario_supervisao.formulario_base.buscar_respostas(categoria=self.categoria)
+    def get_lista_respostas(self, categoria):
+        respostas = self.formulario_supervisao.formulario_base.buscar_respostas(categoria=categoria)
         respostas.sort(key=attrgetter('parametrizacao.tipo_ocorrencia', 'grupo'))
         grouped = groupby(respostas, key=attrgetter('parametrizacao.tipo_ocorrencia', 'grupo'))
         lista_respostas = []
@@ -197,7 +196,7 @@ class RelatorioNotificacaoService:
             lista_respostas.append(_respostas_sorted)
         return lista_respostas
 
-    def retornar_dados_formatados(self):
+    def retornar_dados_formatados(self, categoria):
         dados = {
             'diretoria_regional': self.formulario_supervisao.escola.diretoria_regional.nome,
             'unidade': self.formulario_supervisao.escola.nome,
@@ -208,7 +207,7 @@ class RelatorioNotificacaoService:
             'lote': self.formulario_supervisao.escola.lote.nome,
             'terceirizada': self.formulario_supervisao.escola.lote.terceirizada.nome_fantasia,
             'edital': self.formulario_supervisao.escola.edital if self.formulario_supervisao.escola.edital else "-",
-            'respostas': self.get_lista_respostas(),
+            'respostas': self.get_lista_respostas(categoria),
             'data_geracao': datetime.now().strftime("%d/%m/%Y"),
             'hora_geracao': datetime.now().strftime("%H:%M:%S"),
         }
