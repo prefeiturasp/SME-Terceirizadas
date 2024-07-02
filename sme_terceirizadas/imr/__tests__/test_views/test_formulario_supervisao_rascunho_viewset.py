@@ -395,3 +395,60 @@ def test_formulario_supervisao_erro_parametrizacao_uuid(
     assert response.json() == {
         "detail": f"ParametrizacaoOcorrencia com o UUID {str(uuid_incorreto)} não foi encontrada"
     }
+
+
+def test_delete_formulario_supervisao(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    formulario_supervisao_factory,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    formulario_supervisao = formulario_supervisao_factory.create(
+        formulario_base__usuario=usuario
+    )
+
+    response = client.delete(
+        f"/imr/rascunho-formulario-supervisao/{formulario_supervisao.uuid}/",
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert FormularioSupervisao.objects.count() == 0
+
+
+def test_delete_formulario_supervisao_403_status_nutrimanifestacao_a_validar(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    formulario_supervisao_factory,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    formulario_supervisao = formulario_supervisao_factory.create(
+        formulario_base__usuario=usuario,
+        status=FormularioSupervisao.workflow_class.NUTRIMANIFESTACAO_A_VALIDAR,
+    )
+
+    response = client.delete(
+        f"/imr/rascunho-formulario-supervisao/{formulario_supervisao.uuid}/",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {
+        "detail": "Você só pode excluir quando o status for EM PREENCHIMENTO."
+    }
+
+
+def test_delete_formulario_supervisao_403_object_permission(
+    client_autenticado_vinculo_coordenador_supervisao_nutricao,
+    formulario_supervisao_factory,
+):
+    client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
+
+    formulario_supervisao = formulario_supervisao_factory.create()
+
+    response = client.delete(
+        f"/imr/rascunho-formulario-supervisao/{formulario_supervisao.uuid}/",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {
+        "detail": "Você não tem permissão para executar essa ação."
+    }

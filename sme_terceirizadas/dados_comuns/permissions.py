@@ -1370,3 +1370,11 @@ class PermissaoParaAnalisarFichaTecnica(BasePermission):
             and usuario.vinculo_atual
             and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
         )
+
+
+class PermissaoObjetoFormularioSupervisao(BasePermission):
+    """Permite acesso ao objeto se o objeto pertence ao usuário."""
+
+    def has_object_permission(self, request, view, obj):
+        usuario = request.user
+        return obj.formulario_base.usuario == usuario

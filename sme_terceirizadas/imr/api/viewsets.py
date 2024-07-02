@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoObjetoFormularioSupervisao,
     PermissaoParaVisualizarRelatorioFiscalizacaoNutri,
     UsuarioCODAENutriSupervisao,
     UsuarioEscolaTercTotal,
@@ -64,24 +65,41 @@ class PeriodoVisitaModelViewSet(
 
 
 class FormularioSupervisaoRascunhoModelViewSet(
-    mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+    mixins.DestroyModelMixin,
 ):
     lookup_field = "uuid"
     queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
-    permission_classes = (UsuarioCODAENutriSupervisao,)
+    permission_classes = (
+        UsuarioCODAENutriSupervisao,
+        PermissaoObjetoFormularioSupervisao,
+    )
     serializer_class = FormularioSupervisaoRascunhoCreateSerializer
     pagination_class = DefaultPagination
 
     def update(self, request, *args, **kwargs):
-        formulario = self.get_object()
-
-        if formulario.em_preenchimento:
+        formulario_nutrisupervisao = self.get_object()
+        if formulario_nutrisupervisao.em_preenchimento:
             return super(FormularioSupervisaoRascunhoModelViewSet, self).update(
                 request, *args, **kwargs
             )
         else:
             return Response(
                 {"detail": "Rascunho já foi enviado e não pode mais ser alterado."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+    def destroy(self, request, *args, **kwargs):
+        formulario_nutrisupervisao = self.get_object()
+        if formulario_nutrisupervisao.em_preenchimento:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(
+                dict(
+                    detail="Você só pode excluir quando o status for EM PREENCHIMENTO."
+                ),
                 status=status.HTTP_403_FORBIDDEN,
             )
 
