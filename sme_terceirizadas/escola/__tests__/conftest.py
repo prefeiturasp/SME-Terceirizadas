@@ -171,6 +171,11 @@ def periodo_escolar():
 
 
 @pytest.fixture
+def periodo_escolar_parcial():
+    return mommy.make(models.PeriodoEscolar, nome="PARCIAL")
+
+
+@pytest.fixture
 def escola_periodo_escolar(periodo_escolar):
     return mommy.make(models.EscolaPeriodoEscolar, periodo_escolar=periodo_escolar)
 
