@@ -73,9 +73,8 @@ class FormularioSupervisaoRascunhoModelViewSet(
     pagination_class = DefaultPagination
 
     def update(self, request, *args, **kwargs):
-        formulario = self.get_object()
-
-        if formulario.em_preenchimento:
+        formulario_nutrisupervisao = self.get_object()
+        if formulario_nutrisupervisao.em_preenchimento:
             return super(FormularioSupervisaoRascunhoModelViewSet, self).update(
                 request, *args, **kwargs
             )
@@ -92,6 +91,7 @@ class FormularioSupervisaoModelViewSet(
     viewsets.GenericViewSet,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
 ):
     lookup_field = "uuid"
     queryset = FormularioSupervisao.objects.all().order_by("-criado_em")
@@ -119,6 +119,18 @@ class FormularioSupervisaoModelViewSet(
             "list": FormularioSupervisaoSimplesSerializer,
             "retrieve": FormularioSupervisaoRetrieveSerializer,
         }.get(self.action, FormularioSupervisaoCreateSerializer)
+
+    def destroy(self, request, *args, **kwargs):
+        formulario_nutrisupervisao = self.get_object()
+        if formulario_nutrisupervisao.em_preenchimento:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(
+                dict(
+                    detail="Você só pode excluir quando o status for EM PREENCHIMENTO."
+                ),
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
     def _get_categorias_nao_permitidas(self, tipo_escola):
         categorias_excluir = []
