@@ -1,3 +1,4 @@
+from sme_terceirizadas.imr.tasks import gerar_relatorio_notificacoes_pdf_async
 from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 from django_filters import rest_framework as filters
@@ -49,7 +50,10 @@ from .serializers.serializers_create import (
     FormularioSupervisaoCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
 )
-from sme_terceirizadas.imr.tasks import gerar_relatorio_notificacoes_pdf_async
+<< << << < HEAD
+== == == =
+
+>>>>>> > 91a7a94c9(feat(122482): Implementa geração de pdf async e ajustes no layout)
 
 
 class PeriodoVisitaModelViewSet(
