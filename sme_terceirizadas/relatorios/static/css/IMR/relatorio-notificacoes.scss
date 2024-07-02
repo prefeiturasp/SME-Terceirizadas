@@ -34,7 +34,7 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Roboto";
   margin: 0;
   padding: 0;
 }
@@ -47,15 +47,15 @@ header {
   margin-bottom: 1cm;
 
   .title {
-    font-weight: 400;
+    font-weight: 600;
     color: $cinza-meio-escuro;
-    font-size: 14px;
+    font-size: 12px;
   }
   .subtitle {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 10px;
     color: $cinza-meio-escuro;
-    padding-top: 12px;
+    padding-top: 10px;
   }
   .toolbar {
     margin: 0 24px 24px 24px;
@@ -111,13 +111,16 @@ footer {
   position: running(footering);
   width: 215mm;
   font-size: 12px;
-}
-
-.paginacao {
-  text-align: center;
-  background-color: $cinza-claro;
-  padding: 0.1mm 0;
-  .paginador {
-    content: "Página " counter(page) "/" counter(pages);
+  color: $cinza-meio-escuro;
+  .barra-informacoes {
+    text-align: center;
+    background-color: $cinza-claro;
+    padding: 0.1mm 0;
+    .paginador {
+      content: "Página " counter(page) "/" counter(pages);
+    }
+    .gerado-em {
+      font-size: 10px;
+    }
   }
 }
