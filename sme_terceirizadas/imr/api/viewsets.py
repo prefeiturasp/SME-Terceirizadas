@@ -254,6 +254,7 @@ class FormularioSupervisaoModelViewSet(
         instance = self.get_object()
         gerar_relatorio_notificacoes_pdf_async.delay(
             user=user,
+            nome_arquivo=f"Relatório de Notificações - {instance.escola.nome}.pdf",
             formulario_supervisao_uuid=instance.uuid
         )
         return Response(

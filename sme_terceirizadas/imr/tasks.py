@@ -19,28 +19,26 @@ logger = logging.getLogger(__name__)
     time_limit=3000,
     soft_time_limit=3000,
 )
-def gerar_relatorio_notificacoes_pdf_async(user, formulario_supervisao_uuid):
+def gerar_relatorio_notificacoes_pdf_async(user, formulario_supervisao_uuid, nome_arquivo):
     logger.info(
         "Iniciando gerar_relatorio_notificacoes_pdf_async"
     )
 
     formulario_supervisao = FormularioSupervisao.by_uuid(uuid=formulario_supervisao_uuid)
 
-    TITULO_ARQUIVO = "relatorio_notificacoes.pdf"
-
     central_download = gera_objeto_na_central_download(
         user=user,
-        identificador=TITULO_ARQUIVO,
+        identificador=nome_arquivo,
     )
 
     try:
         service = RelatorioNotificacaoService(formulario_supervisao)
         dados_formatados = service.retornar_dados_formatados()
-        arquivo_relatorio = exportar_relatorio_notificacoes(dados_formatados, TITULO_ARQUIVO)
+        arquivo_relatorio = exportar_relatorio_notificacoes(dados_formatados, nome_arquivo)
 
         atualiza_central_download(
             central_download,
-            TITULO_ARQUIVO,
+            nome_arquivo,
             arquivo_relatorio,
         )
     except Exception as e:
