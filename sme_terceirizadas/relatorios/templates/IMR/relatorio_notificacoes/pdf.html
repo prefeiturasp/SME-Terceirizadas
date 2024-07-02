@@ -29,8 +29,7 @@
         </div>
         <div class="col-10 text-center">
           <h4 class="title m-0">
-            Secretaria Municipal de Educação | Coordenadoria de Alimentação
-            Escolar
+            SECRETARIA MUNICIPAL DE EDUCAÇÃO | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR
           </h4>
           <h6 class="subtitle m-0">
             NOTIFICAÇÃO QUANTIDADE/QUALIDADE DE
@@ -89,6 +88,23 @@
       </section>
     </header>
     <footer>
+      <div class="row d-flex justify-content-center mb-3">
+        <div class="col-6">
+        <p class="text-center">Assinatura Nutricionista Supervisora CODAE</p>
+        <div class="border row p-2">
+          <div class="col-2 d-flex align-items-center">
+            <img src="{% static 'images/Logo_SIGPAE_pb.png' %}" alt="logo do sipgpae em preto e branco" />
+          </div>
+          <div class="col-10">
+            <p class="m-0 pl-2">
+              Documento gerado e registrado eletronicamente por {{dados.usuario.nome}},
+              RF: {{dados.usuario.registro_funcional.0}}****{{dados.usuario.registro_funcional.5}}{{dados.usuario.registro_funcional.6}},
+              em {{dados.data_geracao}}, às {{dados.hora_geracao}}.
+            </p>
+          </div>
+        </div>
+        </div>
+      </div>
       <div class="row">
         <div class="col-6">
           <p class="text-center"><strong>Entrega da presente Notificação à Empresa</strong></p>
@@ -111,26 +127,16 @@
           </div>
         </div>
       </div>
-      <div class="row d-flex justify-content-center">
-        <div class="col-6">
-        <p class="text-center">Assinatura Nutricionista Supervisora CODAE</p>
-        <div class="border row p-2">
-          <div class="col-2 d-flex align-items-center">
-            <img src="{% static 'images/Logo_SIGPAE_pb.png' %}" alt="logo do sipgpae em preto e branco" />
-          </div>
-          <div class="col-10">
-            <p class="m-0 pl-2">
-              Documento gerado e registrado eletronicamente por {{dados.usuario.nome}},
-              RF: {{dados.usuario.registro_funcional.0}}****{{dados.usuario.registro_funcional.5}}{{dados.usuario.registro_funcional.6}},
-              em {{dados.data_geracao}}, às {{dados.hora_geracao}}.
-            </p>
-          </div>
-        </div>
-        </div>
-      </div>
       <div class="paginacao">
-        <p class="paginador"></p>
-      </div>
+        <div class="row d-flex align-items-center">
+          <div class="col-4"></div>
+          <div class="col-4">
+            <p class="paginador"></p>
+          </div>
+          <div class="col-4">
+            <div>Documento gerado em dt_file </div>
+          </div>
+        </div>
     </footer>
     <main class="content">
       <section>

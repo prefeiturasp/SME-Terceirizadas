@@ -1697,7 +1697,8 @@ def get_pdf_ficha_tecnica(request, ficha):
     )
 
 
-def exportar_relatorio_notificacoes(data):
+def exportar_relatorio_notificacoes(data, filename):
+    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
     html_template = get_template('IMR/relatorio_notificacoes/pdf.html')
     rendered_html = html_template.render({'dados': data})
-    return html_to_pdf_response(rendered_html, "rendered.pdf")
+    return html_to_pdf_file(rendered_html.replace("dt_file", data_arquivo), filename, is_async=True)

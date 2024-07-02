@@ -3,9 +3,8 @@
 
 @page {
   size: A4;
-  margin: 8cm 0 10cm 0;
+  margin: 7cm 0 8.5cm 0;
   padding: 0;
-
   @top-center {
     content: element(heading);
   }
@@ -14,10 +13,16 @@
   }
 }
 
-.paginacao {
-  text-align: center;
-  .paginador {
-    content: "Página " counter(page) "/" counter(pages);
+@page:first {
+  size: A4;
+  margin: 7cm 0 8.7cm 0;
+  padding: 0;
+
+  @top-center {
+    content: element(heading);
+  }
+  @bottom-center {
+    content: element(footering);
   }
 }
 
@@ -43,46 +48,41 @@ header {
 
   .title {
     font-weight: 400;
-    color: #42474a;
-    font-size: 16px;
+    color: $cinza-meio-escuro;
+    font-size: 14px;
   }
   .subtitle {
-    font-weight: 700;
-    font-size: 12px;
-    color: #42474a;
+    font-weight: 600;
+    font-size: 14px;
+    color: $cinza-meio-escuro;
     padding-top: 12px;
   }
   .toolbar {
-    margin: 24px;
+    margin: 0 24px 24px 24px;
     height: auto;
     display: flex;
     align-items: center;
   }
   .informacoes {
-    background-color: #ffff;
+    background-color: $branco;
     border-radius: 4px;
-    border: 1px solid black;
+    border: 1px solid $preto;
     padding: 10px;
-    margin: 24px;
+    margin: 0 24px;
     p {
       text-transform: uppercase;
       font-size: 12px;
       margin: 5px 0;
-      color: #42474a;
+      color: $cinza-meio-escuro;
     }
   }
 }
 
-footer {
-  position: running(footering);
-  width: 215mm;
-  margin-top: 1cm;
-  font-size: 12px;
-}
-
 .content {
   margin: 0 0.5cm;
+  padding: 0;
   .content-top {
+    padding: 16px 0 0 0;
     p {
       font-size: 14px;
       opacity: 0.8;
@@ -93,16 +93,31 @@ footer {
     width: 100%;
     border-collapse: collapse;
     border: 0px, 0.5px, 0px, 0px;
-    border-color: #999999;
+    border-color: $cinza-meio-claro;
   }
   th,
   td {
-    border: 1px solid #999999;
+    border: 1px solid $cinza-meio-claro;
     padding: 8px;
     text-align: center;
     font-size: 10px;
   }
   th {
-    background-color: #f5f6f8;
+    background-color: $cinza-claro;
+  }
+}
+
+footer {
+  position: running(footering);
+  width: 215mm;
+  font-size: 12px;
+}
+
+.paginacao {
+  text-align: center;
+  background-color: $cinza-claro;
+  padding: 0.1mm 0;
+  .paginador {
+    content: "Página " counter(page) "/" counter(pages);
   }
 }
