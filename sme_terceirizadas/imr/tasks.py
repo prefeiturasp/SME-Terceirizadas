@@ -1,7 +1,6 @@
 import logging
 
 from celery import shared_task
-
 from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download,
     atualiza_central_download_com_erro,
@@ -10,7 +9,8 @@ from sme_terceirizadas.dados_comuns.utils import (
 from sme_terceirizadas.imr.api.services import RelatorioNotificacaoService
 from sme_terceirizadas.imr.models import FormularioSupervisao
 from sme_terceirizadas.relatorios.relatorios import relatorio_formulario_supervisao
-from sme_terceirizadas.relatorios.relatorios import exportar_relatorio_notificacoes
+from sme_terceirizadas.relatorios.relatorios import exportar_relatorio_notificacao
+from sme_terceirizadas.relatorios.utils import PDFMergeService
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +43,8 @@ def gera_pdf_relatorio_formulario_supervisao_async(user, nome_arquivo, uuid):
     time_limit=3000,
     soft_time_limit=3000,
 )
-def gerar_relatorio_notificacoes_pdf_async(user, formulario_supervisao_uuid, nome_arquivo):
-    logger.info(
-        "Iniciando gerar_relatorio_notificacoes_pdf_async"
-    )
+def gerar_relatorio_notificacao_pdf_async(user, formulario_supervisao_uuid, nome_arquivo):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
 
     formulario_supervisao = FormularioSupervisao.by_uuid(uuid=formulario_supervisao_uuid)
 
@@ -56,18 +54,32 @@ def gerar_relatorio_notificacoes_pdf_async(user, formulario_supervisao_uuid, nom
     )
 
     try:
+        merge_service = PDFMergeService()
+
         service = RelatorioNotificacaoService(formulario_supervisao)
-        dados_formatados = service.retornar_dados_formatados()
-        arquivo_relatorio = exportar_relatorio_notificacoes(dados_formatados, nome_arquivo)
+        for categoria, template in service.categoria_template_map.items():
+            dados_formatados = service.retornar_dados_formatados(categoria)
+            if len(dados_formatados["respostas"]) > 0:
+                relatorio = exportar_relatorio_notificacao(
+                    data=dados_formatados,
+                    filename=f"Relatório de Notificação - {categoria} - {formulario_supervisao.escola.nome}.pdf",
+                    template_name=template
+                )
+
+                merge_service.append_pdf(relatorio)
+            else:
+                logger.info(
+                    f"x-x-x-x Não há respostas para a categoria {categoria}. Portanto, o relatório não será gerado. x-x-x-x"
+                )
+
+        relatorio_final = merge_service.merge_pdfs()
 
         atualiza_central_download(
             central_download,
             nome_arquivo,
-            arquivo_relatorio,
+            relatorio_final,
         )
+        logger.info(f"x-x-x-x Finaliza com sucesso a geração do relatório {nome_arquivo} x-x-x-x")
     except Exception as e:
         atualiza_central_download_com_erro(central_download, str(e))
-    finally:
-        logger.info(
-            "Finaliza gerar_relatorio_notificacoes_pdf_async"
-        )
+        logger.info(f"x-x-x-x Exceção ao gerar relatório {nome_arquivo}. Consulte o erro na central de download. x-x-x-x")
