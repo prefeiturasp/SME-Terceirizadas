@@ -12,7 +12,7 @@
     </title>
     <link
       rel="stylesheet"
-      href="{% sass_src 'css/IMR/relatorio-notificacoes.scss' %}"
+      href="{% sass_src 'css/IMR/relatorio_notificacao/reparo_e_adaptacao.scss' %}"
       type="text/css"
     />
     <link
@@ -116,7 +116,7 @@
         </div>
       </div>
       <div>
-      <p class="text-center">Conferência pelo representante da U.E. se as adequações acima foram ou não realizadas:</p>
+        <p class="text-center">Conferência pelo representante da U.E. se as adequações acima foram ou não realizadas:</p>
         <div class="row">
           <div class="col-6">
             <p class="text-center"> <strong>Data da Conferência:</strong> ______/______/______</p>
@@ -126,10 +126,10 @@
             <p class="text-center"><strong>Responsável pela U.E</strong></p>
           </div>
         </div>
-        <div class="row">
+        <p class="text-center"><strong>Observação da Unidade</strong></p>
+        <div class="row observacao-unidade-container">
           <div class="col-12">
-            <p class="text-center"><strong>Observação da Unidade</strong></p>
-            <p class="text-center">________________________________________________________________________________________</p>
+            <div class="observacao"></div>
           </div>
         </div>
       </div>
@@ -143,6 +143,7 @@
             <p class="gerado-em">Documento gerado em dt_file </p>
           </div>
         </div>
+      </div>
     </footer>
     <main class="content">
       <section>
