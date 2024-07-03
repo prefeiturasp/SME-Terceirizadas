@@ -14,6 +14,7 @@ from sme_terceirizadas.imr.models import (
     FormularioSupervisao,
     Insumo,
     Mobiliario,
+    NotificacoesAssinadasFormularioBase,
     OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
@@ -193,13 +194,11 @@ class FormularioSupervisaoOcorrenciaUtilSerializer(serializers.ModelSerializer):
         return serializer_class
 
     def _reset_ocorrencias_sim(self, ocorrencias_data):
-        '''Apaga todas as respostas e ocorrências não se aplica,
-           caso o tipo de ocorrência tenha mudado de NAO => SIM ou  NAO_SE_APLICA => SIM'''
+        """Apaga todas as respostas e ocorrências não se aplica,
+        caso o tipo de ocorrência tenha mudado de NAO => SIM ou  NAO_SE_APLICA => SIM"""
         for tipo_ocorrencia_UUID in ocorrencias_data:
             try:
-                tipo_ocorrencia = TipoOcorrencia.objects.get(
-                    uuid=tipo_ocorrencia_UUID
-                )
+                tipo_ocorrencia = TipoOcorrencia.objects.get(uuid=tipo_ocorrencia_UUID)
             except TipoOcorrencia.DoesNotExist:
                 raise serializers.ValidationError(
                     {
@@ -218,7 +217,9 @@ class FormularioSupervisaoOcorrenciaUtilSerializer(serializers.ModelSerializer):
             if uuid:
                 instance = OcorrenciaNaoSeAplica.objects.get(uuid=uuid)
                 instance.tipo_ocorrencia.apagar_respostas()
-                serializer = OcorrenciaNaoSeAplicaCreateSerializer(instance, data=ocorrencia_data)
+                serializer = OcorrenciaNaoSeAplicaCreateSerializer(
+                    instance, data=ocorrencia_data
+                )
             else:
                 serializer = OcorrenciaNaoSeAplicaCreateSerializer(data=ocorrencia_data)
 
@@ -269,7 +270,6 @@ class FormularioSupervisaoOcorrenciaUtilSerializer(serializers.ModelSerializer):
                 resposta.delete()
 
     def _save_ocorrencias(self, ocorrencias_data, form_base):
-
         self._apagar_respostas_nao_enviadas(ocorrencias_data, form_base)
 
         for ocorrencia_data in ocorrencias_data:
@@ -321,8 +321,19 @@ class FormularioSupervisaoOcorrenciaUtilSerializer(serializers.ModelSerializer):
                 nome=anexo.get("nome"),
             )
 
+    def _create_notificacoes(self, form_base, notificacoes):
+        for notificacao in notificacoes:
+            contentfile = convert_base64_to_contentfile(notificacao.get("arquivo"))
+            NotificacoesAssinadasFormularioBase.objects.create(
+                formulario_base=form_base,
+                notificacao_assinada=contentfile,
+                nome=notificacao.get("nome"),
+            )
 
-class FormularioSupervisaoRascunhoCreateSerializer(FormularioSupervisaoOcorrenciaUtilSerializer):
+
+class FormularioSupervisaoRascunhoCreateSerializer(
+    FormularioSupervisaoOcorrenciaUtilSerializer
+):
     status = serializers.BooleanField(read_only=True)
     data = serializers.DateField(required=False, allow_null=True)
     escola = serializers.SlugRelatedField(
@@ -346,6 +357,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(FormularioSupervisaoOcorrenci
         queryset=FormularioOcorrenciasBase.objects.all(),
     )
     anexos = serializers.JSONField(required=False, allow_null=True)
+    notificacoes_assinadas = serializers.JSONField(required=False, allow_null=True)
 
     def validate(self, attrs):
         if "data" not in attrs:
@@ -359,6 +371,7 @@ class FormularioSupervisaoRascunhoCreateSerializer(FormularioSupervisaoOcorrenci
         ocorrencias_nao_se_aplica = validated_data.pop("ocorrencias_nao_se_aplica", [])
         ocorrencias = validated_data.pop("ocorrencias", [])
         anexos = validated_data.pop("anexos", [])
+        notificacoes_assinadas = validated_data.pop("notificacoes_assinadas", [])
 
         form_base = FormularioOcorrenciasBase.objects.create(
             usuario=usuario, data=data_visita
@@ -374,6 +387,8 @@ class FormularioSupervisaoRascunhoCreateSerializer(FormularioSupervisaoOcorrenci
 
         self._create_anexos(form_base, anexos)
 
+        self._create_notificacoes(form_base, notificacoes_assinadas)
+
         return form_supervisao
 
     def update(self, instance, validated_data):
@@ -382,28 +397,37 @@ class FormularioSupervisaoRascunhoCreateSerializer(FormularioSupervisaoOcorrenci
         ocorrencias_sim = validated_data.pop("ocorrencias_sim", [])
         ocorrencias = validated_data.pop("ocorrencias", [])
         anexos = validated_data.pop("anexos", [])
+        notificacoes_assinadas = validated_data.pop("notificacoes_assinadas", [])
 
         instance.formulario_base.data = data_visita
         instance.formulario_base.save()
 
         self._reset_ocorrencias_sim(ocorrencias_sim)
 
-        self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, instance.formulario_base)
+        self._save_ocorrencias_nao_se_aplica(
+            ocorrencias_nao_se_aplica, instance.formulario_base
+        )
 
         self._save_ocorrencias(ocorrencias, instance.formulario_base)
 
         instance.formulario_base.anexos.all().delete()
-
         self._create_anexos(instance.formulario_base, anexos)
 
-        return super(FormularioSupervisaoRascunhoCreateSerializer, self).update(instance, validated_data)
+        instance.formulario_base.notificacoes_assinadas.all().delete()
+        self._create_notificacoes(instance.formulario_base, notificacoes_assinadas)
+
+        return super(FormularioSupervisaoRascunhoCreateSerializer, self).update(
+            instance, validated_data
+        )
 
     class Meta:
         model = FormularioSupervisao
         exclude = ("id",)
 
 
-class FormularioSupervisaoCreateSerializer(FormularioSupervisaoOcorrenciaUtilSerializer):
+class FormularioSupervisaoCreateSerializer(
+    FormularioSupervisaoOcorrenciaUtilSerializer
+):
     status = serializers.BooleanField(read_only=True)
     data = serializers.DateField(required=False, allow_null=True)
     escola = serializers.SlugRelatedField(
@@ -417,7 +441,9 @@ class FormularioSupervisaoCreateSerializer(FormularioSupervisaoOcorrenciaUtilSer
         required=True,
         queryset=PeriodoVisita.objects.all(),
     )
-    nome_nutricionista_empresa = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    nome_nutricionista_empresa = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
     acompanhou_visita = serializers.BooleanField(required=True)
     formulario_base = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -482,7 +508,9 @@ class FormularioSupervisaoCreateSerializer(FormularioSupervisaoOcorrenciaUtilSer
 
         self._reset_ocorrencias_sim(ocorrencias_sim)
 
-        self._save_ocorrencias_nao_se_aplica(ocorrencias_nao_se_aplica, instance.formulario_base)
+        self._save_ocorrencias_nao_se_aplica(
+            ocorrencias_nao_se_aplica, instance.formulario_base
+        )
 
         self._save_ocorrencias(ocorrencias, instance.formulario_base)
 
@@ -492,7 +520,9 @@ class FormularioSupervisaoCreateSerializer(FormularioSupervisaoOcorrenciaUtilSer
 
         instance.inicia_fluxo(usuario=usuario)
 
-        return super(FormularioSupervisaoCreateSerializer, self).update(instance, validated_data)
+        return super(FormularioSupervisaoCreateSerializer, self).update(
+            instance, validated_data
+        )
 
     class Meta:
         model = FormularioSupervisao
