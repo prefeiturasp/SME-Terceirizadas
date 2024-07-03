@@ -135,8 +135,10 @@ class FormularioOcorrenciasBase(ModeloBase):
         for tipo_pergunta in tipos_perguntas:
             modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
             if categoria:
-                respostas = modelo_reposta.objects.filter(formulario_base=self,
-                                                          parametrizacao__tipo_ocorrencia__categoria__nome=categoria)
+                respostas = modelo_reposta.objects.filter(
+                    formulario_base=self,
+                    parametrizacao__tipo_ocorrencia__categoria__nome=categoria,
+                )
                 for resposta in respostas:
                     respostas_por_formulario.append(resposta)
             else:
@@ -437,18 +439,12 @@ class NotificacoesAssinadasFormularioBase(ModeloBase):
             FileExtensionValidator(
                 allowed_extensions=[
                     "PDF",
-                    "XLS",
-                    "XLSX",
-                    "DOC",
-                    "DOCX",
-                    "PNG",
-                    "JPG",
-                    "JPEG",
                 ]
             ),
             validate_file_size_10mb,
         ],
     )
+    nome = models.CharField(max_length=200, null=True, blank=True)
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
         on_delete=models.CASCADE,
