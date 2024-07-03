@@ -8,11 +8,11 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <title>
-      NOTIFICAÇÃO QUANTIDADE/QUALIDADE DE UTENSÍLIOS/MOBILIÁRIOS/EQUIPAMENTOS
+      NOTIFICAÇÃO MANUTENÇÃO DE EQUIPAMENTOS/REPARO E ADAPTAÇÃO (NMR)
     </title>
     <link
       rel="stylesheet"
-      href="{% sass_src 'css/IMR/relatorio-notificacoes.scss' %}"
+      href="{% sass_src 'css/IMR/relatorio_notificacao/reparo_e_adaptacao.scss' %}"
       type="text/css"
     />
     <link
@@ -33,8 +33,7 @@
             SECRETARIA MUNICIPAL DE EDUCAÇÃO | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR
           </h4>
           <h6 class="subtitle m-0">
-            NOTIFICAÇÃO QUANTIDADE/QUALIDADE DE
-            UTENSÍLIOS/MOBILIÁRIOS/EQUIPAMENTOS
+            NOTIFICAÇÃO MANUTENÇÃO DE EQUIPAMENTOS/REPARO E ADAPTAÇÃO (NMR)
           </h6>
         </div>
       </div>
@@ -117,7 +116,7 @@
         </div>
       </div>
       <div>
-      <p class="text-center">Conferência pelo representante da U.E. se as adequações acima foram ou não realizadas:</p>
+        <p class="text-center">Conferência pelo representante da U.E. se as adequações acima foram ou não realizadas:</p>
         <div class="row">
           <div class="col-6">
             <p class="text-center"> <strong>Data da Conferência:</strong> ______/______/______</p>
@@ -125,6 +124,12 @@
           <div class="col-6">
             <p class="text-center">_______________________________________</p>
             <p class="text-center"><strong>Responsável pela U.E</strong></p>
+          </div>
+        </div>
+        <p class="text-center"><strong>Observação da Unidade</strong></p>
+        <div class="row observacao-unidade-container">
+          <div class="col-12">
+            <div class="observacao"></div>
           </div>
         </div>
       </div>
@@ -138,46 +143,31 @@
             <p class="gerado-em">Documento gerado em dt_file </p>
           </div>
         </div>
+      </div>
     </footer>
     <main class="content">
       <section>
         <div class="content-top">
           <p>
-            Solicitamos que sejam providenciados os utensílios, mobiliários e/ou
-            equipamentos em quantidade abaixo relacionada, de modo a assegurar o
-            adequado atendimento ao número de refeições servidas.
-          </p>
-          <p>
-            <strong
-              >A empresa deve atender a solicitação no prazo de até TRÊS dias
-              úteis a partir da data protocolada.</strong
-            >
-          </p>
-          <p>
-            Solicitamos que, mediante a apresentação do presente documento pela
-            Empresa, o representante da Unidade Educacional, avalie se as
-            adequações descritas foram ou não realizadas, assinalando os campos
-            "sim" ou "não" dos quadros abaixo:
+            Com fundamento nos dispositivos do contrato supracitado e nos termos da legislação aplicável,
+            o nutricionista fiscalizador da CONTRATANTE (PMSP/SME - Coordenadoria de Alimentação Escolar) e o
+            nutricionista responsável técnico da empresa CONTRATADA, acima identificados,
+            firmam a presente NOTIFICAÇÃO DE MANUTENÇÃO E REPARO
           </p>
         </div>
         <table>
           <thead>
             <tr>
-              <th rowspan="2">Tipo</th>
-              <th rowspan="2">Descrição do motivo da solicitação</th>
-              <th rowspan="2">
-                Quantidade em boas condições para uso na unidade
-              </th>
-              <th rowspan="2">Quantidade para reposição</th>
-              <th rowspan="2">Quantidade para retirada</th>
+              <th rowspan="2">Item</th>
+              <th rowspan="2">Descrição da ocorrência</th>
               <th colspan="3">
-                Reposição/Retirada até 3 dias úteis após a notificação
+                Serviço Realizado?
               </th>
             </tr>
             <tr>
               <th>SIM</th>
-              <th>NÃO (fora do prazo)</th>
-              <th>NÃO (qtde inadequada)</th>
+              <th>DATA (em caso de Sim)</th>
+              <th>NÃO</th>
             </tr>
           </thead>
           <tbody>
@@ -185,9 +175,6 @@
             <tr>
               <td>{{resposta.0}}</td>
               <td>{{resposta.1}}</td>
-              <td>{{resposta.2}}</td>
-              <td>{{resposta.3}}</td>
-              <td>{{resposta.4}}</td>
               <td></td>
               <td></td>
               <td></td>

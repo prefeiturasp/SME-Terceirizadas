@@ -1,9 +1,9 @@
 @charset "UTF-8";
-@import "../variaveis";
+@import "../../variaveis";
 
 @page {
   size: A4;
-  margin: 7cm 0 8.5cm 0;
+  margin: 7cm 0 11.5cm 0;
   padding: 0;
   @top-center {
     content: element(heading);
@@ -15,7 +15,7 @@
 
 @page:first {
   size: A4;
-  margin: 7cm 0 8.7cm 0;
+  margin: 7cm 0 12cm 0;
   padding: 0;
 
   @top-center {
@@ -112,10 +112,18 @@ footer {
   width: 215mm;
   font-size: 12px;
   color: $cinza-meio-escuro;
+  padding: 0.1mm 0;
+  .observacao-unidade-container {
+    background-color: blue;
+    background-color: transparent;
+    border: 1px solid $cinza-meio-claro;
+    margin: 12px 24px;
+    height: 1.5cm;
+    border-radius: 4px;
+  }
   .barra-informacoes {
     text-align: center;
     background-color: $cinza-claro;
-    padding: 0.1mm 0;
     .paginador {
       content: "Página " counter(page) "/" counter(pages);
     }
