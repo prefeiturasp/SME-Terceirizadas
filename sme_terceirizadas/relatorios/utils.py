@@ -1,3 +1,4 @@
+from PyPDF4 import PdfFileMerger
 import io
 import math
 from datetime import date
@@ -363,17 +364,25 @@ def todas_escolas_sol_kit_lanche_unificado_cancelado(solicitacao):
     return not solicitacao.escolas_quantidades.filter(cancelado=False).exists()
 
 
-def cria_merge_pdfs(merger_lancamentos, merger_arquivo_final):
-    output_lancamentos = io.BytesIO()
-    merger_lancamentos.write(output_lancamentos)
-    output_lancamentos.seek(0)
-    merger_arquivo_final.append(output_lancamentos)
+class PDFMergeService:
+    def __init__(self):
+        self.merger = PdfFileMerger(strict=False)
+        self.merger_arquivo_final = PdfFileMerger(strict=False)
 
-    output_final = io.BytesIO()
-    merger_arquivo_final.write(output_final)
-    output_final.seek(0)
+    def append_pdf(self, file):
+        self.merger.append(io.BytesIO(file))
 
-    merger_lancamentos.close()
-    merger_arquivo_final.close()
+    def merge_pdfs(self):
+        output_merger = io.BytesIO()
+        self.merger.write(output_merger)
+        output_merger.seek(0)
+        self.merger_arquivo_final.append(output_merger)
 
-    return output_final.getvalue()
+        output_final = io.BytesIO()
+        self.merger_arquivo_final.write(output_final)
+        output_final.seek(0)
+
+        self.merger.close()
+        self.merger_arquivo_final.close()
+
+        return output_final.getvalue()
