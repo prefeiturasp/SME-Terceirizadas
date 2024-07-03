@@ -1083,7 +1083,6 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros, eh_emebs=False):
     escola = solicitacao.escola
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
     list_inclusoes = []
-
     inclusoes_uuids = list(
         set(
             GrupoInclusaoAlimentacaoNormal.objects.filter(
@@ -1098,7 +1097,6 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros, eh_emebs=False):
         data__year=int(solicitacao.ano),
         cancelado=False,
     ).order_by("data")
-
     for inclusao in inclusoes:
         grupo = inclusao.grupo_inclusao
         for periodo in grupo.quantidades_periodo.all():
@@ -1112,8 +1110,10 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros, eh_emebs=False):
                 set(tipos_alimentacao.values_list("nome", flat=True))
             )
             alimentacoes = tipos_alimentacao + alimentacoes_permitidas
-            linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
-
+            eh_numero_alunos = (
+                periodo.periodo_escolar not in escola.periodos_escolares()
+            )
+            linhas_da_tabela = get_linhas_da_tabela(alimentacoes, eh_numero_alunos)
             dia_da_inclusao = str(inclusao.data.day)
             if len(dia_da_inclusao) == 1:
                 dia_da_inclusao = "0" + str(inclusao.data.day)
@@ -1153,7 +1153,10 @@ def validate_lancamento_inclusoes_emei_cemei(
                     set(alimentacoes_vinculadas.values_list("nome", flat=True))
                 )
                 alimentacoes = alimentacoes_vinculadas + alimentacoes_permitidas
-                linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
+                eh_numero_alunos = (
+                    periodo.periodo_escolar not in escola.periodos_escolares()
+                )
+                linhas_da_tabela = get_linhas_da_tabela(alimentacoes, eh_numero_alunos)
 
                 dia_da_inclusao = str(
                     inclusao.dias_motivos_da_inclusao_cemei.first().data.day
