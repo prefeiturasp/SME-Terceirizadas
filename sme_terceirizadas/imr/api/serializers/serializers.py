@@ -10,6 +10,7 @@ from sme_terceirizadas.imr.models import (
     FormularioSupervisao,
     Insumo,
     Mobiliario,
+    NotificacoesAssinadasFormularioBase,
     OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
@@ -61,6 +62,20 @@ class AnexosFormularioBaseSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+class NotificacoesAssinadasFormularioBaseSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField()
+    anexo_url = serializers.SerializerMethodField()
+
+    def get_anexo_url(self, instance):
+        env = environ.Env()
+        api_url = env.str("URL_ANEXO", default="http://localhost:8000")
+        return f"{api_url}{instance.notificacao_assinada.url}"
+
+    class Meta:
+        model = NotificacoesAssinadasFormularioBase
+        exclude = ("id",)
+
+
 class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
     diretoria_regional = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
@@ -79,10 +94,16 @@ class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
     )
 
     anexos = serializers.SerializerMethodField()
+    notificacoes_assinadas = serializers.SerializerMethodField()
 
     def get_anexos(self, obj):
         return AnexosFormularioBaseSerializer(
             obj.formulario_base.anexos.all(), many=True
+        ).data
+
+    def get_notificacoes_assinadas(self, obj):
+        return NotificacoesAssinadasFormularioBaseSerializer(
+            obj.formulario_base.notificacoes_assinadas.all(), many=True
         ).data
 
     class Meta:
