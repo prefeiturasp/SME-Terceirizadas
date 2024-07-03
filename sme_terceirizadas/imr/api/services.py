@@ -189,8 +189,8 @@ class RelatorioNotificacaoService:
 
     def get_lista_respostas(self, categoria):
         respostas = self.formulario_supervisao.formulario_base.buscar_respostas(categoria=categoria)
-        respostas.sort(key=attrgetter('parametrizacao.tipo_ocorrencia', 'grupo'))
-        grouped = groupby(respostas, key=attrgetter('parametrizacao.tipo_ocorrencia', 'grupo'))
+        respostas.sort(key=attrgetter('parametrizacao.tipo_ocorrencia.uuid', 'grupo'))
+        grouped = groupby(respostas, key=attrgetter('parametrizacao.tipo_ocorrencia.uuid', 'grupo'))
         lista_respostas = []
 
         for _, group in grouped:
