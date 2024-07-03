@@ -590,7 +590,7 @@ class Escola(
 
     def quantidade_alunos_matriculados_por_data(self, data, cei_ou_emei="N/A", infantil_ou_fundamental="N/A"):
         today = datetime.date.today()
-        if data == today.strftime("%Y-%m-%d"):
+        if data.strftime("%Y-%m-%d") == today.strftime("%Y-%m-%d"):
             data = today - datetime.timedelta(days=1)
 
         logs = self.logs_alunos_matriculados_por_periodo.filter(

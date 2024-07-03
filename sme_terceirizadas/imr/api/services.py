@@ -209,7 +209,7 @@ class RelatorioNotificacaoService:
             'maior_frequencia_no_periodo': self.formulario_supervisao.maior_frequencia_no_periodo,
             'total_matriculados_por_data': self.formulario_supervisao.escola.quantidade_alunos_matriculados_por_data(self.formulario_supervisao.formulario_base.data),
             'data_visita': self.formulario_supervisao.formulario_base.data.strftime("%d/%m/%Y"),
-            'usuario': self.formulario_supervisao.formulario_base.usuario.nome,
+            'usuario': self.formulario_supervisao.formulario_base.usuario,
             'lote': self.formulario_supervisao.escola.lote.nome,
             'terceirizada': self.formulario_supervisao.escola.lote.terceirizada.nome_fantasia,
             'edital': f"Edital nº {self.formulario_supervisao.escola.edital.numero}" if self.formulario_supervisao.escola.edital else "-",
