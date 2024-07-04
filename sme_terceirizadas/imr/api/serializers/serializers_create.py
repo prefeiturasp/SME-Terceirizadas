@@ -463,10 +463,6 @@ class FormularioSupervisaoCreateSerializer(
             raise serializers.ValidationError(
                 {"nome_nutricionista_empresa": ["Este campo não pode ficar em branco!"]}
             )
-        if len(attrs["ocorrencias"]) > 0 and len(attrs["anexos"]) == 0:
-            raise serializers.ValidationError(
-                {"anexos": ["Este campo não pode ficar vazio!"]}
-            )
 
         return attrs
 
