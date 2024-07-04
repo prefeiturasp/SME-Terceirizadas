@@ -1285,7 +1285,6 @@ def get_lista_erros_inclusoes_cei(
     inclusoes,
     mes,
     ano,
-    faixas_etarias,
     categoria,
     logs,
 ):
@@ -1314,6 +1313,11 @@ def get_lista_erros_inclusoes_cei(
             inclusoes_ = get_inclusoes_filtradas_cei(inclusoes, dia, mes, ano, medicao)
             if not inclusoes_.exists():
                 continue
+            faixas_etarias = FaixaEtaria.objects.filter(
+                id__in=inclusoes_.values_list(
+                    "quantidade_alunos_da_inclusao__faixa_etaria__id", flat=True
+                )
+            )
             periodo_com_erro = (
                 validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
                     faixas_etarias,
@@ -1671,7 +1675,6 @@ def validate_lancamento_inclusoes_cei(solicitacao, lista_erros):
         return lista_erros
 
     categoria = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
-    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
     logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
         escola=escola, data__month=mes, data__year=ano
     )
@@ -1688,7 +1691,6 @@ def validate_lancamento_inclusoes_cei(solicitacao, lista_erros):
         inclusoes,
         mes,
         ano,
-        faixas_etarias,
         categoria,
         logs,
     )
