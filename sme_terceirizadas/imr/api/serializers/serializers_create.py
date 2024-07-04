@@ -451,7 +451,7 @@ class FormularioSupervisaoCreateSerializer(
         allow_null=True,
         queryset=FormularioOcorrenciasBase.objects.all(),
     )
-    anexos = serializers.JSONField(required=True, allow_null=True)
+    anexos = serializers.JSONField(required=False, allow_null=True)
 
     def validate(self, attrs):
         if "data" not in attrs:
@@ -462,10 +462,6 @@ class FormularioSupervisaoCreateSerializer(
         ):
             raise serializers.ValidationError(
                 {"nome_nutricionista_empresa": ["Este campo não pode ficar em branco!"]}
-            )
-        if len(attrs["ocorrencias"]) > 0 and len(attrs["anexos"]) == 0:
-            raise serializers.ValidationError(
-                {"anexos": ["Este campo não pode ficar vazio!"]}
             )
 
         return attrs
