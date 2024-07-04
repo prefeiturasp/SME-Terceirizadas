@@ -115,10 +115,15 @@ class DiretoriaRegional(
             str(uuid_)
             for uuid_ in set(
                 list(
-                    self.escolas.filter(
-                        lote__isnull=False,
-                        lote__contratos_do_lote__edital__isnull=False,
-                    ).values_list("lote__contratos_do_lote__edital__uuid", flat=True)
+                    set(
+                        self.escolas.filter(
+                            lote__isnull=False,
+                            lote__contratos_do_lote__edital__isnull=False,
+                            lote__contratos_do_lote__encerrado=False,
+                        ).values_list(
+                            "lote__contratos_do_lote__edital__uuid", flat=True
+                        )
+                    )
                 )
             )
         ]
@@ -583,6 +588,20 @@ class Escola(
             periodo_escolar__nome=periodo, ciclo=Aluno.CICLO_ALUNO_EMEI
         ).count()
 
+    def quantidade_alunos_matriculados_por_data(self, data, cei_ou_emei="N/A", infantil_ou_fundamental="N/A"):
+        today = datetime.date.today()
+        if data.strftime("%Y-%m-%d") == today.strftime("%Y-%m-%d"):
+            data = today - datetime.timedelta(days=1)
+
+        logs = self.logs_alunos_matriculados_por_periodo.filter(
+            criado_em=data,
+            cei_ou_emei=cei_ou_emei,
+            infantil_ou_fundamental=infantil_ou_fundamental,
+        ).aggregate(soma=Sum("quantidade_alunos"))
+
+        soma_quantidade_alunos = logs["soma"] or 0
+        return soma_quantidade_alunos
+
     @property
     def quantidade_alunos_emei_da_cemei(self):
         if not self.eh_cemei:
@@ -596,13 +615,26 @@ class Escola(
     @property
     def editais(self):
         if self.lote:
-            return [
-                str(edital)
-                for edital in self.lote.contratos_do_lote.filter(
-                    edital__isnull=False
-                ).values_list("edital__uuid", flat=True)
-            ]
+            return list(
+                set(
+                    [
+                        str(edital)
+                        for edital in self.lote.contratos_do_lote.filter(
+                            edital__isnull=False, encerrado=False
+                        ).values_list("edital__uuid", flat=True)
+                    ]
+                )
+            )
         return []
+
+    @property
+    def edital(self):
+        if self.lote:
+            for edital in self.lote.contratos_do_lote.filter(
+                edital__isnull=False
+            ):
+                return edital
+        return None
 
     def periodos_escolares(self, ano=datetime.date.today().year):
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""

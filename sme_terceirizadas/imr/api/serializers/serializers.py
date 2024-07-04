@@ -1,20 +1,20 @@
-from rest_framework import serializers
 import environ
+from rest_framework import serializers
+
+from sme_terceirizadas.escola.api.serializers import EscolaFormIMRSelializer
 from sme_terceirizadas.imr.models import (
+    AnexosFormularioBase,
     CategoriaOcorrencia,
     Equipamento,
+    FormularioOcorrenciasBase,
     FormularioSupervisao,
     Insumo,
     Mobiliario,
+    NotificacoesAssinadasFormularioBase,
+    OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PeriodoVisita,
     ReparoEAdaptacao,
-    TipoOcorrencia,
-    TipoPenalidade,
-    TipoPerguntaParametrizacaoOcorrencia,
-    UtensilioCozinha,
-    UtensilioMesa,
-    TipoAlimentacao,
     RespostaCampoNumerico,
     RespostaCampoTextoLongo,
     RespostaCampoTextoSimples,
@@ -27,12 +27,13 @@ from sme_terceirizadas.imr.models import (
     RespostaTipoAlimentacao,
     RespostaUtensilioCozinha,
     RespostaUtensilioMesa,
-    OcorrenciaNaoSeAplica,
-    FormularioOcorrenciasBase,
-    AnexosFormularioBase
+    TipoAlimentacao,
+    TipoOcorrencia,
+    TipoPenalidade,
+    TipoPerguntaParametrizacaoOcorrencia,
+    UtensilioCozinha,
+    UtensilioMesa,
 )
-
-from sme_terceirizadas.escola.models import Escola
 
 
 class PeriodoVisitaSerializer(serializers.ModelSerializer):
@@ -58,17 +59,27 @@ class AnexosFormularioBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnexosFormularioBase
-        exclude = ("id", )
+        exclude = ("id",)
+
+
+class NotificacoesAssinadasFormularioBaseSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField()
+    anexo_url = serializers.SerializerMethodField()
+
+    def get_anexo_url(self, instance):
+        env = environ.Env()
+        api_url = env.str("URL_ANEXO", default="http://localhost:8000")
+        return f"{api_url}{instance.notificacao_assinada.url}"
+
+    class Meta:
+        model = NotificacoesAssinadasFormularioBase
+        exclude = ("id",)
 
 
 class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
     diretoria_regional = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
-    escola = serializers.SlugRelatedField(
-        slug_field="uuid",
-        required=True,
-        queryset=Escola.objects.all(),
-    )
+    escola = EscolaFormIMRSelializer()
     periodo_visita = serializers.SlugRelatedField(
         slug_field="uuid",
         required=False,
@@ -83,15 +94,21 @@ class FormularioSupervisaoRetrieveSerializer(serializers.ModelSerializer):
     )
 
     anexos = serializers.SerializerMethodField()
+    notificacoes_assinadas = serializers.SerializerMethodField()
 
     def get_anexos(self, obj):
         return AnexosFormularioBaseSerializer(
             obj.formulario_base.anexos.all(), many=True
         ).data
 
+    def get_notificacoes_assinadas(self, obj):
+        return NotificacoesAssinadasFormularioBaseSerializer(
+            obj.formulario_base.notificacoes_assinadas.all(), many=True
+        ).data
+
     class Meta:
         model = FormularioSupervisao
-        exclude = ("id", )
+        exclude = ("id",)
 
     @staticmethod
     def get_serializer_class_by_name(name):
@@ -158,13 +175,7 @@ class ParametrizacaoOcorrenciaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParametrizacaoOcorrencia
-        fields = (
-            "uuid",
-            "posicao",
-            "titulo",
-            "tipo_pergunta",
-            "tipo_ocorrencia"
-        )
+        fields = ("uuid", "posicao", "titulo", "tipo_pergunta", "tipo_ocorrencia")
 
 
 class TipoPenalidadeSerializer(serializers.ModelSerializer):

@@ -117,6 +117,42 @@ class CategoriaOcorrencia(ModeloBase, Nomeavel, Posicao, PerfilDiretorSupervisao
         ordering = ("posicao", "nome")
 
 
+class FormularioOcorrenciasBase(ModeloBase):
+    usuario = models.ForeignKey(
+        Usuario,
+        verbose_name="Usuário",
+        on_delete=models.PROTECT,
+        related_name="formularios_ocorrencias",
+    )
+    data = models.DateField()
+
+    def __str__(self):
+        return f"{self.usuario.nome} - {self.data}"
+
+    def buscar_respostas(self, categoria=None):
+        respostas_por_formulario = []
+        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
+        for tipo_pergunta in tipos_perguntas:
+            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
+            if categoria:
+                respostas = modelo_reposta.objects.filter(
+                    formulario_base=self,
+                    parametrizacao__tipo_ocorrencia__categoria__nome=categoria,
+                )
+                for resposta in respostas:
+                    respostas_por_formulario.append(resposta)
+            else:
+                respostas = modelo_reposta.objects.filter(formulario_base=self)
+                for resposta in respostas:
+                    respostas_por_formulario.append(resposta)
+
+        return respostas_por_formulario
+
+    class Meta:
+        verbose_name = "Formulário Base - Ocorrências"
+        verbose_name_plural = "Formulários Base - Ocorrências"
+
+
 class TipoOcorrenciaParaNutriSupervisor(models.Manager):
     def get_queryset(self):
         return (
@@ -195,6 +231,35 @@ class TipoOcorrencia(
     para_diretores = TipoOcorrenciaParaDiretor()
     para_nutrisupervisores = TipoOcorrenciaParaNutriSupervisor()
 
+    def get_resposta(self, formulario_base: FormularioOcorrenciasBase) -> str:
+        if self.ocorrencias_nao_se_aplica.filter(
+            formulario_base=formulario_base
+        ).exists():
+            return "Não se aplica"
+
+        respostas = TipoRespostaModelo.objects.all()
+        if any(
+            resposta
+            for resposta in respostas
+            if resposta.model.objects.filter(
+                formulario_base=formulario_base, parametrizacao__tipo_ocorrencia=self
+            ).exists()
+        ):
+            return "Não"
+
+        return "Sim"
+
+    def quantidade_grupos(self, formulario_base: FormularioOcorrenciasBase) -> int:
+        quantidade_grupos = 1
+        respostas = TipoRespostaModelo.objects.all()
+        for resposta in respostas:
+            grupos = resposta.model.objects.filter(
+                formulario_base=formulario_base
+            ).values_list("grupo", flat=True)
+            if grupos:
+                return max(grupos)
+        return quantidade_grupos
+
     def __str__(self):
         return f"{self.edital.numero} - {self.titulo}"
 
@@ -258,6 +323,10 @@ class TipoRespostaModelo(ModeloBase, Nomeavel):
     def __str__(self):
         return f"{self.nome}"
 
+    @property
+    def model(self):
+        return apps.get_model("imr", self.nome)
+
     class Meta:
         verbose_name = "Tipo de Resposta (Modelo)"
         verbose_name_plural = "Tipos de Resposta (Modelo)"
@@ -292,6 +361,14 @@ class ParametrizacaoOcorrencia(ModeloBase, Posicao):
         related_name="parametrizacoes",
     )
 
+    def get_resposta_str(
+        self, formulario_base: FormularioOcorrenciasBase, grupo: int
+    ) -> str:
+        resposta_obj = self.tipo_pergunta.tipo_resposta.model.objects.get(
+            parametrizacao=self, formulario_base=formulario_base, grupo=grupo
+        )
+        return resposta_obj.resposta_str
+
     def __str__(self):
         return f"{self.tipo_ocorrencia.__str__()} {self.tipo_pergunta} - {self.posicao} - {self.titulo}"
 
@@ -312,33 +389,6 @@ class PeriodoVisita(ModeloBase, Nomeavel):
     class Meta:
         verbose_name = "Período de Visita"
         verbose_name_plural = "Períodos de Visita"
-
-
-class FormularioOcorrenciasBase(ModeloBase):
-    usuario = models.ForeignKey(
-        Usuario,
-        verbose_name="Usuário",
-        on_delete=models.PROTECT,
-        related_name="formularios_ocorrencias",
-    )
-    data = models.DateField()
-
-    def __str__(self):
-        return f"{self.usuario.nome} - {self.data}"
-
-    def buscar_respostas(self):
-        respostas_por_formulario = []
-        tipos_perguntas = TipoPerguntaParametrizacaoOcorrencia.objects.all()
-        for tipo_pergunta in tipos_perguntas:
-            modelo_reposta = tipo_pergunta.get_model_tipo_resposta()
-            respostas = modelo_reposta.objects.filter(formulario_base=self)
-            for resposta in respostas:
-                respostas_por_formulario.append(resposta)
-        return respostas_por_formulario
-
-    class Meta:
-        verbose_name = "Formulário Base - Ocorrências"
-        verbose_name_plural = "Formulários Base - Ocorrências"
 
 
 class AnexosFormularioBase(ModeloBase):
@@ -389,18 +439,12 @@ class NotificacoesAssinadasFormularioBase(ModeloBase):
             FileExtensionValidator(
                 allowed_extensions=[
                     "PDF",
-                    "XLS",
-                    "XLSX",
-                    "DOC",
-                    "DOCX",
-                    "PNG",
-                    "JPG",
-                    "JPEG",
                 ]
             ),
             validate_file_size_10mb,
         ],
     )
+    nome = models.CharField(max_length=200, null=True, blank=True)
     formulario_base = models.ForeignKey(
         FormularioOcorrenciasBase,
         on_delete=models.CASCADE,
@@ -508,6 +552,10 @@ class RespostaSimNao(ModeloBase, Grupo):
         related_name="respostas_sim_nao",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta
+
     def __str__(self):
         return self.resposta
 
@@ -531,6 +579,10 @@ class RespostaCampoNumerico(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_campo_numerico",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return str(self.resposta)
 
     def __str__(self):
         return str(self.resposta)
@@ -556,6 +608,10 @@ class RespostaCampoTextoSimples(ModeloBase, Grupo):
         related_name="respostas_campo_texto_simples",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta
+
     def __str__(self):
         return self.resposta
 
@@ -579,6 +635,10 @@ class RespostaCampoTextoLongo(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_campo_texto_longo",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta
 
     def __str__(self):
         return self.resposta
@@ -604,8 +664,12 @@ class RespostaDatas(ModeloBase, Grupo):
         related_name="respostas_datas",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.__str__()
+
     def __str__(self):
-        return str(self.resposta)
+        return ", ".join([data.strftime("%d/%m/%Y") for data in self.resposta])
 
     class Meta:
         verbose_name = "Resposta Datas"
@@ -631,6 +695,10 @@ class RespostaPeriodo(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_periodo",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
@@ -660,8 +728,12 @@ class RespostaFaixaEtaria(ModeloBase, Grupo):
         related_name="respostas_faixa_etaria",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.__str__()
+
     def __str__(self):
-        return self.resposta.nome
+        return self.resposta.__str__()
 
     class Meta:
         verbose_name = "Resposta Faixa Etária"
@@ -687,6 +759,10 @@ class RespostaTipoAlimentacao(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_tipos_alimentacao",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
@@ -716,6 +792,10 @@ class RespostaSimNaoNaoSeAplica(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_sim_nao_nao_se_aplica",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta
 
     def __str__(self):
         return self.resposta
@@ -1000,6 +1080,10 @@ class RespostaUtensilioMesa(ModeloBase, Grupo):
         related_name="respostas_utensilios_mesa",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
+
     def __str__(self):
         return self.resposta.nome
 
@@ -1027,6 +1111,10 @@ class RespostaUtensilioCozinha(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_utensilios_cozinha",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
@@ -1056,6 +1144,10 @@ class RespostaEquipamento(ModeloBase, Grupo):
         related_name="respostas_equipamentos",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
+
     def __str__(self):
         return self.resposta.nome
 
@@ -1083,6 +1175,10 @@ class RespostaMobiliario(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_mobiliarios",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome
@@ -1112,6 +1208,10 @@ class RespostaReparoEAdaptacao(ModeloBase, Grupo):
         related_name="respostas_reparos_e_adaptacoes",
     )
 
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
+
     def __str__(self):
         return self.resposta.nome
 
@@ -1139,6 +1239,10 @@ class RespostaInsumo(ModeloBase, Grupo):
         on_delete=models.CASCADE,
         related_name="respostas_insumos",
     )
+
+    @property
+    def resposta_str(self) -> str:
+        return self.resposta.nome
 
     def __str__(self):
         return self.resposta.nome

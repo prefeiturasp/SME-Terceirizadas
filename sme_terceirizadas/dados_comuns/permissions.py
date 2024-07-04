@@ -192,6 +192,28 @@ class UsuarioCODAENutriSupervisao(BasePermission):
         )
 
 
+class PermissaoParaVisualizarRelatorioFiscalizacaoNutri(BasePermission):
+    PERFIS_PERMITIDOS = [
+        COORDENADOR_SUPERVISAO_NUTRICAO,
+        COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+        COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+        ADMINISTRADOR_MEDICAO,
+    ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae)
+                    and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
+                )
+            )
+        )
+
+
 class UsuarioCODAEDietaEspecial(BasePermission):
     """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
 
@@ -1348,3 +1370,11 @@ class PermissaoParaAnalisarFichaTecnica(BasePermission):
             and usuario.vinculo_atual
             and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
         )
+
+
+class PermissaoObjetoFormularioSupervisao(BasePermission):
+    """Permite acesso ao objeto se o objeto pertence ao usuário."""
+
+    def has_object_permission(self, request, view, obj):
+        usuario = request.user
+        return obj.formulario_base.usuario == usuario

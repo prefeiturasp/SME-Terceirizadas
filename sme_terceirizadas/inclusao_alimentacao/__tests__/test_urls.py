@@ -943,7 +943,10 @@ def test_terceirizada_marca_conferencia_grupo_inclusao_normal_viewset(
     )
 
 
-def test_url_endpoint_inclusao_cemei(client_autenticado_vinculo_escola_inclusao):
+def test_url_endpoint_inclusao_cemei(
+    client_autenticado_vinculo_escola_inclusao,
+    tipo_alimentacao_refeicao,
+):
     data = {
         "escola": "230453bb-d6f1-4513-b638-8d6d150d1ac6",
         "dias_motivos_da_inclusao_cemei": [
@@ -962,6 +965,7 @@ def test_url_endpoint_inclusao_cemei(client_autenticado_vinculo_escola_inclusao)
                 "periodo_escolar": "208f7cb4-b03a-4357-ab6d-bda078a37748",
                 "quantidade_alunos": 30,
                 "matriculados_quando_criado": 46,
+                "tipos_alimentacao": [tipo_alimentacao_refeicao.uuid],
             }
         ],
     }
