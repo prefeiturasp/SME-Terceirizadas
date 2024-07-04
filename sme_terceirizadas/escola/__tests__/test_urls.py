@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from model_mommy import mommy
@@ -478,7 +479,7 @@ def test_url_endpoint_cria_dias_suspensao_atividades(
 def test_url_endpoint_matriculados_no_mes__quantidade_por_data(
     client_autenticado_coordenador_codae,
     escola_factory,
-    log_alunos_matriculados_periodo_escola_factory
+    log_alunos_matriculados_periodo_escola_factory,
 ):
     escola = escola_factory.create()
 
@@ -488,26 +489,26 @@ def test_url_endpoint_matriculados_no_mes__quantidade_por_data(
         escola=escola,
         quantidade_alunos=10,
         cei_ou_emei="N/A",
-        infantil_ou_fundamental="N/A"
+        infantil_ou_fundamental="N/A",
     )
     log_2 = log_alunos_matriculados_periodo_escola_factory.create(
         escola=escola,
         quantidade_alunos=15,
         cei_ou_emei="N/A",
-        infantil_ou_fundamental="N/A"
+        infantil_ou_fundamental="N/A",
     )
 
     log_1.criado_em = data
-    log_1.save(update_fields=['criado_em'])
+    log_1.save(update_fields=["criado_em"])
 
     log_2.criado_em = data
-    log_2.save(update_fields=['criado_em'])
+    log_2.save(update_fields=["criado_em"])
 
     data_formatted = data.strftime("%Y-%m-%d")
 
     response = client_autenticado_coordenador_codae.get(
         f"/matriculados-no-mes/quantidade-por-data/?data={data_formatted}&escola_uuid={escola.uuid}",
-        content_type="application/json"
+        content_type="application/json",
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -517,7 +518,7 @@ def test_url_endpoint_matriculados_no_mes__quantidade_por_data(
 def test_url_endpoint_matriculados_no_mes__quantidade_por_data_dia_atual(
     client_autenticado_coordenador_codae,
     escola_factory,
-    log_alunos_matriculados_periodo_escola_factory
+    log_alunos_matriculados_periodo_escola_factory,
 ):
     escola = escola_factory.create()
 
@@ -528,27 +529,56 @@ def test_url_endpoint_matriculados_no_mes__quantidade_por_data_dia_atual(
         escola=escola,
         quantidade_alunos=5,
         cei_ou_emei="N/A",
-        infantil_ou_fundamental="N/A"
+        infantil_ou_fundamental="N/A",
     )
     log_2 = log_alunos_matriculados_periodo_escola_factory.create(
         escola=escola,
         quantidade_alunos=15,
         cei_ou_emei="N/A",
-        infantil_ou_fundamental="N/A"
+        infantil_ou_fundamental="N/A",
     )
 
     log_1.criado_em = dia_anterior
-    log_1.save(update_fields=['criado_em'])
+    log_1.save(update_fields=["criado_em"])
 
     log_2.criado_em = dia_anterior
-    log_2.save(update_fields=['criado_em'])
+    log_2.save(update_fields=["criado_em"])
 
     data_formatted = data.strftime("%Y-%m-%d")
 
     response = client_autenticado_coordenador_codae.get(
         f"/matriculados-no-mes/quantidade-por-data/?data={data_formatted}&escola_uuid={escola.uuid}",
-        content_type="application/json"
+        content_type="application/json",
     )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == 20
+
+
+def test_url_endpoint_meses_anos(client_autenticado_da_escola):
+    response = client_autenticado_da_escola.get(
+        "/relatorio-controle-frequencia/meses-anos/"
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 3
+
+
+def test_url_endpoint_filtros(client_autenticado_da_escola):
+    response = client_autenticado_da_escola.get(
+        f"/relatorio-controle-frequencia/filtros/?mes=6&ano=2024"
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["periodos"] == []
+    assert response.data["data_inicial"] == datetime.date(2024, 6, 1)
+    assert response.data["data_final"] == datetime.date(2024, 6, 30)
+
+
+def test_url_endpoint_filtrar(
+    client_autenticado_da_escola, periodo_escolar, periodo_escolar_parcial
+):
+    response = client_autenticado_da_escola.get(
+        f"/relatorio-controle-frequencia/filtrar/?periodos={json.dumps([str(periodo_escolar.uuid)])}&data_inicial=2024-06-03&data_final=2024-06-25"
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["periodos"].get("INTEGRAL") == 0
+    assert response.data["total_matriculados"] == 0

@@ -1,3 +1,4 @@
+from PyPDF4 import PdfFileMerger
 import io
 import math
 from datetime import date
@@ -361,3 +362,27 @@ def deleta_log_temporario_se_necessario(
 
 def todas_escolas_sol_kit_lanche_unificado_cancelado(solicitacao):
     return not solicitacao.escolas_quantidades.filter(cancelado=False).exists()
+
+
+class PDFMergeService:
+    def __init__(self):
+        self.merger = PdfFileMerger(strict=False)
+        self.merger_arquivo_final = PdfFileMerger(strict=False)
+
+    def append_pdf(self, file):
+        self.merger.append(io.BytesIO(file))
+
+    def merge_pdfs(self):
+        output_merger = io.BytesIO()
+        self.merger.write(output_merger)
+        output_merger.seek(0)
+        self.merger_arquivo_final.append(output_merger)
+
+        output_final = io.BytesIO()
+        self.merger_arquivo_final.write(output_final)
+        output_final.seek(0)
+
+        self.merger.close()
+        self.merger_arquivo_final.close()
+
+        return output_final.getvalue()

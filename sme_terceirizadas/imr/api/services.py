@@ -1,7 +1,9 @@
 from django.http import HttpResponse
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
-
+from itertools import groupby
+from operator import attrgetter
+from datetime import datetime
 from sme_terceirizadas.dados_comuns.helper_planilha_modelo import (
     cria_validacao_lista_em_sheet_oculto,
 )
@@ -172,3 +174,47 @@ def exportar_planilha_importacao_tipos_ocorrencia(request, **kwargs):
     workbook.save(response)
 
     return response
+
+
+class RelatorioNotificacaoService:
+
+    def __init__(self, formulario_supervisao):
+        categoria_quantidade_qualidade = "QUANTIDADE/QUALIDADE DE UTENSÍLIOS/MOBILIÁRIOS/EQUIPAMENTOS"
+        categoria_reparo_e_adaptacao = "MANUTENÇÃO DE EQUIPAMENTOS/REPARO E ADAPTAÇÃO"
+        self.categoria_template_map = {
+            categoria_quantidade_qualidade: 'IMR/relatorio_de_notificacao/quantidade_qualidade/pdf.html',
+            categoria_reparo_e_adaptacao: 'IMR/relatorio_de_notificacao/reparo_e_adaptacao/pdf.html'
+        }
+        self.formulario_supervisao = formulario_supervisao
+
+    def get_lista_respostas(self, categoria):
+        respostas = self.formulario_supervisao.formulario_base.buscar_respostas(categoria=categoria)
+        respostas.sort(key=attrgetter('parametrizacao.tipo_ocorrencia.uuid', 'grupo'))
+        grouped = groupby(respostas, key=attrgetter('parametrizacao.tipo_ocorrencia.uuid', 'grupo'))
+        lista_respostas = []
+
+        for _, group in grouped:
+            _respostas = []
+            for resposta in group:
+                _respostas.append(resposta)
+
+            _respostas_sorted = sorted(_respostas, key=lambda x: int(x.parametrizacao.posicao))
+            lista_respostas.append(_respostas_sorted)
+        return lista_respostas
+
+    def retornar_dados_formatados(self, categoria):
+        dados = {
+            'diretoria_regional': self.formulario_supervisao.escola.diretoria_regional.nome,
+            'unidade': self.formulario_supervisao.escola.nome,
+            'maior_frequencia_no_periodo': self.formulario_supervisao.maior_frequencia_no_periodo,
+            'total_matriculados_por_data': self.formulario_supervisao.escola.quantidade_alunos_matriculados_por_data(self.formulario_supervisao.formulario_base.data),
+            'data_visita': self.formulario_supervisao.formulario_base.data.strftime("%d/%m/%Y"),
+            'usuario': self.formulario_supervisao.formulario_base.usuario,
+            'lote': self.formulario_supervisao.escola.lote.nome,
+            'terceirizada': self.formulario_supervisao.escola.lote.terceirizada.nome_fantasia,
+            'edital': f"Edital nº {self.formulario_supervisao.escola.edital.numero}" if self.formulario_supervisao.escola.edital else "-",
+            'respostas': self.get_lista_respostas(categoria),
+            'data_geracao': datetime.now().strftime("%d/%m/%Y"),
+            'hora_geracao': datetime.now().strftime("%H:%M:%S"),
+        }
+        return dados

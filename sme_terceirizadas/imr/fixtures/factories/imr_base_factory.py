@@ -7,6 +7,12 @@ from sme_terceirizadas.escola.fixtures.factories.escola_factory import EscolaFac
 from sme_terceirizadas.imr.models import (
     AnexosFormularioBase,
     CategoriaOcorrencia,
+    EditalEquipamento,
+    EditalInsumo,
+    EditalMobiliario,
+    EditalReparoEAdaptacao,
+    EditalUtensilioCozinha,
+    EditalUtensilioMesa,
     Equipamento,
     FaixaPontuacaoIMR,
     FormularioDiretor,
@@ -15,10 +21,13 @@ from sme_terceirizadas.imr.models import (
     Insumo,
     Mobiliario,
     ObrigacaoPenalidade,
+    OcorrenciaNaoSeAplica,
     ParametrizacaoOcorrencia,
     PerfilDiretorSupervisao,
     PeriodoVisita,
     ReparoEAdaptacao,
+    RespostaCampoNumerico,
+    RespostaCampoTextoSimples,
     TipoGravidade,
     TipoOcorrencia,
     TipoPenalidade,
@@ -146,11 +155,43 @@ class UtensilioMesaFactory(DjangoModelFactory):
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
 
 
+class EditalUtensilioMesaFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def utensilios_mesa(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for utensilio_mesa in extracted:
+                self.utensilios_mesa.add(utensilio_mesa)
+
+    class Meta:
+        model = EditalUtensilioMesa
+
+
 class UtensilioCozinhaFactory(DjangoModelFactory):
     class Meta:
         model = UtensilioCozinha
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EditalUtensilioCozinhaFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def utensilios_cozinha(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for utensilio_cozinha in extracted:
+                self.utensilios_cozinha.add(utensilio_cozinha)
+
+    class Meta:
+        model = EditalUtensilioCozinha
 
 
 class EquipamentoFactory(DjangoModelFactory):
@@ -160,11 +201,43 @@ class EquipamentoFactory(DjangoModelFactory):
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
 
 
+class EditalEquipamentoFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def equipamentos(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for equipamento in extracted:
+                self.equipamentos.add(equipamento)
+
+    class Meta:
+        model = EditalEquipamento
+
+
 class MobiliarioFactory(DjangoModelFactory):
     class Meta:
         model = Mobiliario
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EditalMobiliarioFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def mobiliarios(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for mobiliario in extracted:
+                self.mobiliarios.add(mobiliario)
+
+    class Meta:
+        model = EditalMobiliario
 
 
 class ReparoEAdaptacaoFactory(DjangoModelFactory):
@@ -174,11 +247,43 @@ class ReparoEAdaptacaoFactory(DjangoModelFactory):
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
 
 
+class EditalReparoEAdaptacaoFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def reparos_e_adaptacoes(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for reparo_e_adaptacao in extracted:
+                self.reparos_e_adaptacoes.add(reparo_e_adaptacao)
+
+    class Meta:
+        model = EditalReparoEAdaptacao
+
+
 class InsumoFactory(DjangoModelFactory):
     class Meta:
         model = Insumo
 
     nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+
+class EditalInsumoFactory(DjangoModelFactory):
+    edital = SubFactory(EditalFactory)
+
+    @factory.post_generation
+    def insumos(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for insumo in extracted:
+                self.insumos.add(insumo)
+
+    class Meta:
+        model = EditalInsumo
 
 
 class FormularioOcorrenciasBaseFactory(DjangoModelFactory):
@@ -216,3 +321,33 @@ class FormularioDiretorFactory(DjangoModelFactory):
 
     class Meta:
         model = FormularioDiretor
+
+
+class RespostaCampoTextoSimplesFactory(DjangoModelFactory):
+    resposta = Sequence(lambda n: f"resposta - {fake.unique.name()}")
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    parametrizacao = SubFactory(ParametrizacaoOcorrenciaFactory)
+    grupo = Sequence(lambda n: fake.random.randint(1, 5))
+
+    class Meta:
+        model = RespostaCampoTextoSimples
+
+
+class RespostaCampoNumericoFactory(DjangoModelFactory):
+    resposta = Sequence(lambda n: fake.random.randint(1, 300))
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    parametrizacao = SubFactory(ParametrizacaoOcorrenciaFactory)
+    grupo = Sequence(lambda n: fake.random.randint(1, 5))
+
+    class Meta:
+        model = RespostaCampoNumerico
+
+
+class OcorrenciaNaoSeAplicaFactory(DjangoModelFactory):
+    grupo = Sequence(lambda n: fake.random.randint(1, 5))
+    descricao = Sequence(lambda n: f"descricao - {fake.unique.name()}")
+    formulario_base = SubFactory(FormularioOcorrenciasBaseFactory)
+    tipo_ocorrencia = SubFactory(TipoOcorrenciaFactory)
+
+    class Meta:
+        model = OcorrenciaNaoSeAplica
