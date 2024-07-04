@@ -451,7 +451,7 @@ class FormularioSupervisaoCreateSerializer(
         allow_null=True,
         queryset=FormularioOcorrenciasBase.objects.all(),
     )
-    anexos = serializers.JSONField(required=True, allow_null=True)
+    anexos = serializers.JSONField(required=False, allow_null=True)
 
     def validate(self, attrs):
         if "data" not in attrs:
