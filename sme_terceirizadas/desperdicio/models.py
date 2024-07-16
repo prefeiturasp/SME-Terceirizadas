@@ -14,7 +14,8 @@ class ControleSobras(TemChaveExterna, CriadoEm):
     usuario = models.ForeignKey('perfil.Usuario', default='', on_delete=models.DO_NOTHING)
     data_medicao = models.DateField('Data da medição', null=True, default=None)
     periodo = models.CharField('Período', max_length=1, blank=True)
-
+    especificar = models.CharField('especificar', max_length=250, blank=True)
+    
     class Meta:
         verbose_name = 'Controle de Sobras'
 
@@ -29,6 +30,7 @@ class ControleRestos(TemChaveExterna, CriadoEm):
     data_medicao = models.DateField('Data da medição', null=True, default=None)
     quantidade_distribuida = models.DecimalField(max_digits=5, decimal_places=2)
     periodo = models.CharField('Período', max_length=1, blank=True)
+    observacoes = models.TextField('Observações', blank=True)
 
     @property
     def imagens(self):

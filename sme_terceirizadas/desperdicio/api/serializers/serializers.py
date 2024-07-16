@@ -51,6 +51,7 @@ class ControleSobrasCreateSerializer(serializers.Serializer):
     peso_sobra = serializers.CharField(required=True)
     data_medicao = serializers.DateField(required=True)
     periodo = serializers.CharField(required=True)
+    especificar = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, attrs):
         periodo = attrs['periodo']
@@ -71,6 +72,7 @@ class ControleSobrasCreateSerializer(serializers.Serializer):
         usuario = self.context['request'].user
         data_medicao = validated_data['data_medicao']
         periodo = validated_data['periodo']
+        especiar = validated_data['especificar']
 
         try:
             item = ControleSobras.objects.create(
@@ -83,12 +85,23 @@ class ControleSobrasCreateSerializer(serializers.Serializer):
                 peso_sobra=peso_sobra,
                 usuario=usuario,
                 data_medicao=data_medicao,
-                periodo=periodo
+                periodo=periodo,
+                especificar=especiar
             )
             return item
         except Exception as e:
             print(e)
             raise serializers.ValidationError('Erro ao criar ControleSobras.')
+        
+    def update(self, instance, validated_data):
+        validated_data['escola'] = Escola.objects.get(uuid=validated_data['escola'])
+        validated_data['tipo_alimentacao'] = TipoAlimentacao.objects.get(uuid=validated_data['tipo_alimentacao'])
+        validated_data['tipo_alimento'] = TipoAlimento.objects.get(uuid=validated_data['tipo_alimento'])
+        validated_data['tipo_recipiente'] = TipoRecipiente.objects.get(uuid=validated_data['tipo_recipiente'])
+        
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
 
 
 class ImagemControleRestoCreateSerializer(serializers.ModelSerializer):
@@ -142,6 +155,7 @@ class ControleRestosCreateSerializer(serializers.Serializer):
     quantidade_distribuida = serializers.CharField(required=True)
     data_medicao = serializers.DateField(required=True)
     periodo = serializers.CharField(required=True)
+    observacoes = serializers.CharField(required=False, allow_blank=True)
     imagens = serializers.ListField(
         required=False,
         child=ImagemControleRestoCreateSerializer()
@@ -166,6 +180,7 @@ class ControleRestosCreateSerializer(serializers.Serializer):
         quantidade_distribuida = validated_data['quantidade_distribuida']
         data_medicao = validated_data['data_medicao']
         periodo = validated_data['periodo']
+        observacoes = validated_data.get('observacoes', '')
 
         try:
             item = ControleRestos.objects.create(
@@ -177,7 +192,8 @@ class ControleRestosCreateSerializer(serializers.Serializer):
                 usuario=usuario,
                 data_medicao=data_medicao,
                 periodo=periodo,
-                quantidade_distribuida=quantidade_distribuida
+                quantidade_distribuida=quantidade_distribuida,
+                observacoes=observacoes
             )
 
             for imagem in imagens:
@@ -192,6 +208,14 @@ class ControleRestosCreateSerializer(serializers.Serializer):
         except Exception as e:
             print(e)
             raise serializers.ValidationError('Erro ao criar ControleRestos.')
+        
+    def update(self, instance, validated_data):
+        validated_data['escola'] = Escola.objects.get(uuid=validated_data['escola'])
+        validated_data['tipo_alimentacao'] = TipoAlimentacao.objects.get(uuid=validated_data['tipo_alimentacao'])
+
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
 
 def format_periodo(value):
     if (value is None):
