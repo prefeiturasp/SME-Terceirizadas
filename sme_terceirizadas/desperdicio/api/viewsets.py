@@ -23,6 +23,7 @@ from .serializers.serializers import (
     ControleRestosCreateSerializer,
     ControleRestosSerializer,
     serialize_relatorio_controle_sobras,
+    serialize_relatorio_controle_sobras_bruto,
     serialize_relatorio_controle_restos,
 )
 
@@ -34,6 +35,7 @@ from ..models import (
 
 from ..tasks import (
     gera_xls_relatorio_controle_sobras_async,
+    gera_xls_relatorio_controle_sobras_bruto_async,
     gera_xls_relatorio_controle_restos_async
 )
 
@@ -141,6 +143,51 @@ class ControleSobrasViewSet(viewsets.ModelViewSet):
             gera_xls_relatorio_controle_sobras_async.delay(
                 user=user,
                 nome_arquivo="relatorio_controle_sobras.xlsx",
+                data=rows,
+            )
+            return Response(
+                dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    class Meta:
+        model = ControleSobras
+
+    @action(detail=False, methods=["GET"], url_path=f"{constants.RELATORIO}-bruto")
+    def relatorio_bruto(self, request):
+        try:
+            form = ControleSobrasRelatorioForm(self.request.GET)
+            if not form.is_valid():
+                raise ValidationError(form.errors)
+
+            rows = obtem_dados_relatorio_controle_sobras(
+                form.cleaned_data, self.request.user, bruto=True
+            )
+            data = paginate_list(
+                request, rows, serializer=serialize_relatorio_controle_sobras_bruto
+            )
+            return Response(data)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=False, methods=["GET"], url_path=f"{constants.RELATORIO}-bruto/exportar-xlsx"
+    )
+    def relatorio_bruto_exportar_xlsx(self, request):
+        try:
+            form = ControleSobrasRelatorioForm(self.request.GET)
+            if not form.is_valid():
+                raise ValidationError(form.errors)
+
+            rows = obtem_dados_relatorio_controle_sobras(
+                form.cleaned_data, self.request.user, bruto=True
+            )
+            user = request.user.get_username()
+            gera_xls_relatorio_controle_sobras_bruto_async.delay(
+                user=user,
+                nome_arquivo="relatorio_controle_sobras_bruto.xlsx",
                 data=rows,
             )
             return Response(

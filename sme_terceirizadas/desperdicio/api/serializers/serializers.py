@@ -152,7 +152,6 @@ class ControleRestosCreateSerializer(serializers.Serializer):
     peso_resto = serializers.CharField(required=True)
     cardapio = serializers.CharField(required=True)
     resto_predominante = serializers.CharField(required=True)
-    quantidade_distribuida = serializers.CharField(required=True)
     data_medicao = serializers.DateField(required=True)
     periodo = serializers.CharField(required=True)
     observacoes = serializers.CharField(required=False, allow_blank=True)
@@ -177,7 +176,6 @@ class ControleRestosCreateSerializer(serializers.Serializer):
         resto_predominante = validated_data['resto_predominante']
         usuario = self.context['request'].user
         imagens = validated_data.pop('imagens', [])
-        quantidade_distribuida = validated_data['quantidade_distribuida']
         data_medicao = validated_data['data_medicao']
         periodo = validated_data['periodo']
         observacoes = validated_data.get('observacoes', '')
@@ -192,7 +190,6 @@ class ControleRestosCreateSerializer(serializers.Serializer):
                 usuario=usuario,
                 data_medicao=data_medicao,
                 periodo=periodo,
-                quantidade_distribuida=quantidade_distribuida,
                 observacoes=observacoes
             )
 
@@ -231,7 +228,7 @@ def format_periodo(value):
     return value
 
 def serialize_relatorio_controle_restos(row):
-    data_medicao, periodo, dre_nome, escola_nome, quantidade_distribuida_soma, peso_resto_soma, num_refeicoes, resto_per_capita, percent_resto, classificacao = row
+    dre_nome, escola_nome, data_medicao, periodo, cardapio, tipo_alimentacao_nome, resto_predominante, quantidade_distribuida, tipo_alimento_nome, peso_resto, num_refeicoes, resto_per_capita, percent_resto, aceitabilidade, observacoes, classificacao = row
 
     def format_float(value):
         if (value is None):
@@ -250,18 +247,24 @@ def serialize_relatorio_controle_restos(row):
         'escola_nome': escola_nome,
         'data_medicao': data_medicao.strftime('%d/%m/%Y') if data_medicao else None,
         'periodo': format_periodo(periodo),
-        'quantidade_distribuida_soma': format_float(quantidade_distribuida_soma),
-        'peso_resto_soma': format_float(peso_resto_soma),
+        'cardapio': cardapio,
+        'tipo_alimentacao_nome': tipo_alimentacao_nome,
+        'resto_predominante': resto_predominante,
+        'quantidade_distribuida': quantidade_distribuida,
+        'tipo_alimento_nome': tipo_alimento_nome,
+        'peso_resto': format_float(peso_resto),
         'num_refeicoes': format_int(num_refeicoes),
         'resto_per_capita': format_float(resto_per_capita),
         'percent_resto': format_float(percent_resto),
-        'classificacao': classificacao
+        'classificacao': classificacao,
+        'aceitabilidade': format_float(aceitabilidade),
+        'observacoes': observacoes
     }
 
 
 def serialize_relatorio_controle_sobras(row):
 
-    data_medicao, periodo, dre_nome, escola_nome, tipo_alimentacao_nome, tipo_alimento_nome, peso_alimento, peso_sobra, quantidade_distribuida, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao, classificacao = row
+    data_medicao, periodo, tipo_recipiente_nome, peso_recipiente, dre_nome, escola_nome, tipo_alimentacao_nome, tipo_alimento_nome, peso_alimento, peso_sobra, quantidade_distribuida, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao, classificacao = row
 
     def format_float(value):
         if (value is None):
@@ -282,9 +285,51 @@ def serialize_relatorio_controle_sobras(row):
         'tipo_alimento_nome': tipo_alimento_nome,
         'data_medicao': data_medicao.strftime('%d/%m/%Y') if data_medicao else None,
         'periodo': format_periodo(periodo),
+        'tipo_recipiente_nome': tipo_recipiente_nome,
+        'peso_recipiente': format_float(peso_recipiente),
         'peso_alimento': format_float(peso_alimento),
         'peso_sobra': format_float(peso_sobra),
         'quantidade_distribuida': format_float(quantidade_distribuida),
+        'frequencia': format_int(frequencia),
+        'total_primeira_oferta': format_int(total_primeira_oferta),
+        'total_repeticao': format_int(total_repeticao),
+        'percentual_sobra': format_float(percentual_sobra),
+        'media_por_aluno': format_float(media_por_aluno),
+        'media_por_refeicao': format_float(media_por_refeicao),
+        'classificacao': classificacao
+    }
+
+def serialize_relatorio_controle_sobras_bruto(row):
+
+    escola_nome, dre_nome, data_medicao, periodo, tipo_alimentacao_nome, tipo_alimento_nome, especificar, tipo_recipiente_nome, peso_recipiente, peso_alimento_pronto_com_recipiente, peso_sobra_com_recipiente, peso_alimento, peso_sobra, peso_distribuida, frequencia, total_primeira_oferta, total_repeticao, percentual_sobra, media_por_aluno, media_por_refeicao, classificacao = row
+    
+    def format_float(value):
+        if (value is None):
+            return None
+        
+        return "{:,.2f}".format(float(value)).replace(",", "X").replace(".", ",").replace("X", ".")
+    
+    def format_int(value):
+        if (value is None):
+            return None
+
+        return int(value)
+
+    return {
+        'dre_nome': dre_nome,
+        'escola_nome': escola_nome,
+        'data_medicao': data_medicao.strftime('%d/%m/%Y') if data_medicao else None,
+        'periodo': format_periodo(periodo),
+        'tipo_alimentacao_nome': tipo_alimentacao_nome,
+        'tipo_alimento_nome': tipo_alimento_nome,
+        'especificar': especificar,
+        'tipo_recipiente_nome': tipo_recipiente_nome,
+        'peso_recipiente': format_float(peso_recipiente),
+        'peso_alimento_pronto_com_recipiente': format_float(peso_alimento_pronto_com_recipiente),
+        'peso_sobra_com_recipiente': format_float(peso_sobra_com_recipiente),
+        'peso_alimento': format_float(peso_alimento),
+        'peso_sobra': format_float(peso_sobra),
+        'peso_distribuida': format_float(peso_distribuida),
         'frequencia': format_int(frequencia),
         'total_primeira_oferta': format_int(total_primeira_oferta),
         'total_repeticao': format_int(total_repeticao),
