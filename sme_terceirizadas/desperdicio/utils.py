@@ -18,7 +18,7 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
         group by 1, 2, 3, 4
     ),
     sobras as (
-        select COUNT(*) as quantidade_distribuida,
+        select 
             SUM(dcs.peso_alimento) as peso_alimento_total,
             SUM(dcs.peso_recipiente) as peso_recipiente_total,
             dcs.escola_id,
@@ -27,7 +27,16 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
             dcs.tipo_alimento_id
         from desperdicio_controlesobras dcs	
         where dcs.data_medicao between %s::date and %s::date
-        group by 4, 5, 6, 7
+        group by 3, 4, 5, 6
+    ),
+    sobras_todos_alimentos as (
+        select SUM(dcs.peso_alimento - dcs.peso_sobra) as quantidade_distribuida,
+            dcs.escola_id,
+            dcs.periodo,
+            dcs.data_medicao
+        from desperdicio_controlesobras dcs	
+        where dcs.data_medicao between %s::date and %s::date
+        group by 2, 3, 4
     ),
     relatorio as (
         select 
@@ -38,13 +47,13 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
             dcr.cardapio,
             cta.nome as tipo_alimentacao_nome,
             dcr.resto_predominante,
-            s.quantidade_distribuida,
+            sta.quantidade_distribuida,
             pta.nome as tipo_alimento_nome,
             dcr.peso_resto,
             m.num_refeicoes,
             CASE WHEN m.frequencia = 0 THEN 0 ELSE (dcr.peso_resto / m.frequencia::numeric) END as resto_per_capita,
-            CASE WHEN s.quantidade_distribuida = 0 THEN 0 ELSE (dcr.peso_resto / s.quantidade_distribuida) END as percent_resto,
-            case when s.peso_alimento_total is null then null
+            CASE WHEN sta.quantidade_distribuida = 0 THEN 0 ELSE (dcr.peso_resto / sta.quantidade_distribuida) * 100 END as percent_resto,
+            CASE WHEN s.peso_alimento_total is null then null
                 else 
                     cast(((s.peso_alimento_total - dcr.peso_resto) * 100 / (s.peso_alimento_total + s.peso_recipiente_total)) as numeric(10,2))
                 end as aceitabilidade,
@@ -61,6 +70,9 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
         left join sobras s on s.escola_id = dcr.escola_id 
             and s.data_medicao = dcr.data_medicao
             and s.periodo = dcr.periodo
+        left join sobras_todos_alimentos sta on sta.escola_id = dcr.escola_id 
+            and sta.data_medicao = dcr.data_medicao
+            and sta.periodo = dcr.periodo
         left join produto_tipoalimento pta on pta.id = s.tipo_alimento_id  
         join escola_escola ee on ee.id = dcr.escola_id
         join escola_diretoriaregional dre on dre.id = ee.diretoria_regional_id
@@ -70,7 +82,27 @@ SQL_RELATORIO_CONTROLE_RESTOS = """
         order by 1, 2, 3, 4
     )
     select 
-        r.*,
+        r.dre_nome, 
+        r.escola_nome, 
+        r.data_medicao, 
+        r.periodo, 
+        r.cardapio, 
+        r.tipo_alimentacao_nome, 
+        r.resto_predominante, 
+        r.quantidade_distribuida, 
+        r.tipo_alimento_nome, 
+        r.peso_resto, 
+        r.num_refeicoes, 
+        r.resto_per_capita, 
+        r.percent_resto, 
+        (
+            select dc.descricao 
+            from desperdicio_classificacao dc 
+            where r.aceitabilidade <= dc.valor and dc.tipo = 'AR'
+            order by valor
+            limit 1
+        ) as aceitabilidade,
+        r.observacoes, 
         (
             select dc.descricao 
             from desperdicio_classificacao dc 
@@ -271,7 +303,8 @@ def obtem_dados_relatorio_controle_restos(form_data, user):
     extra_arguments = [
         data_inicial, data_final,
         data_inicial, data_final,
-        data_inicial, data_final
+        data_inicial, data_final,
+        data_inicial, data_final,
     ]
 
     if user.tipo_usuario == 'escola':
