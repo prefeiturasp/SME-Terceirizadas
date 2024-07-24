@@ -257,7 +257,7 @@ def serialize_relatorio_controle_restos(row):
         'resto_per_capita': format_float(resto_per_capita),
         'percent_resto': format_float(percent_resto),
         'classificacao': classificacao,
-        'aceitabilidade': format_float(aceitabilidade),
+        'aceitabilidade': aceitabilidade,
         'observacoes': observacoes
     }
 
