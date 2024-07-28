@@ -82,6 +82,9 @@ from .pre_recebimento.fixtures.factories.layout_embalagem_factory import (
 from .pre_recebimento.fixtures.factories.unidade_medida_factory import (
     UnidadeMedidaFactory,
 )
+from .pre_recebimento.fixtures.factories.tipo_embalagem_qld_factory import (
+    TipoEmbalagemQldFactory,
+)
 from .produto.fixtures.factories.produto_factory import (
     FabricanteFactory,
     InformacaoNutricionalFactory,
@@ -124,6 +127,7 @@ register(EtapasDoCronogramaFactory)
 register(TipoDeInformacaoNutricionalFactory)
 register(InformacaoNutricionalFactory)
 register(LayoutDeEmbalagemFactory)
+register(TipoEmbalagemQldFactory)
 register(AnaliseFichaTecnicaFactory)
 register(QuestaoConferenciaFactory)
 register(QuestoesPorProdutoFactory)
