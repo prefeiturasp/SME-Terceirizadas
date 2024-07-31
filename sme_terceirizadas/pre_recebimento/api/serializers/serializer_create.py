@@ -946,6 +946,40 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
         fields = ("tipos_de_documentos",)
 
 
+class DocumentoDeRecebimentoAtualizacaoSerializer(serializers.ModelSerializer):
+    tipos_de_documentos = TipoDeDocumentoDeRecebimentoCorrecaoSerializer(
+        many=True, required=True
+    )
+
+    def update(self, instance, validated_data):
+        try:
+            user = self.context["request"].user
+
+            dados_tipos_documentos_corrigidos = validated_data.pop(
+                "tipos_de_documentos", []
+            )
+
+            for tipo_documento_antigo in instance.tipos_de_documentos.exclude(tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO):
+                tipo_documento_antigo.arquivos.all().delete()
+                tipo_documento_antigo.delete()
+
+            cria_tipos_de_documentos(dados_tipos_documentos_corrigidos, instance)
+
+            instance.fornecedor_atualiza(user=user)
+            instance.save()
+
+            return instance
+
+        except InvalidTransitionError as e:
+            raise serializers.ValidationError(
+                f"Erro de transição de estado. O status deste documento de recebimento não permite atualização: {e}"
+            )
+
+    class Meta:
+        model = DocumentoDeRecebimento
+        fields = ("tipos_de_documentos",)
+
+
 class InformacoesNutricionaisFichaTecnicaCreateSerializer(serializers.ModelSerializer):
     informacao_nutricional = serializers.UUIDField()
 
