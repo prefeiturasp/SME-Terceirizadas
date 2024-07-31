@@ -72,7 +72,7 @@ class ControleSobrasCreateSerializer(serializers.Serializer):
         usuario = self.context['request'].user
         data_medicao = validated_data['data_medicao']
         periodo = validated_data['periodo']
-        especiar = validated_data['especificar']
+        especiar = validated_data.get('especificar', '')
 
         try:
             item = ControleSobras.objects.create(
