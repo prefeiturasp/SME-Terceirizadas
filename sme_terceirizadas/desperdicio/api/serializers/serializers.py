@@ -72,7 +72,7 @@ class ControleSobrasCreateSerializer(serializers.Serializer):
         usuario = self.context['request'].user
         data_medicao = validated_data['data_medicao']
         periodo = validated_data['periodo']
-        especiar = validated_data['especificar']
+        especiar = validated_data.get('especificar', '')
 
         try:
             item = ControleSobras.objects.create(
@@ -250,7 +250,7 @@ def serialize_relatorio_controle_restos(row):
         'cardapio': cardapio,
         'tipo_alimentacao_nome': tipo_alimentacao_nome,
         'resto_predominante': resto_predominante,
-        'quantidade_distribuida': quantidade_distribuida,
+        'quantidade_distribuida': format_float(quantidade_distribuida),
         'tipo_alimento_nome': tipo_alimento_nome,
         'peso_resto': format_float(peso_resto),
         'num_refeicoes': format_int(num_refeicoes),

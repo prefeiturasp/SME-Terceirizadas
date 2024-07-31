@@ -94,7 +94,7 @@ def gera_xls_relatorio_controle_sobras_bruto_async(user, nome_arquivo, data):
 
         titulos_colunas = [
             'DRE', 'Unidade Educacional', 'Data da Medição', 'Período', 
-            'Tipo de Alimentação', 'Tipo de Alimento', 'Especificar',
+            'Tipo de Alimentação', 'Tipo de Alimento', 'Especificar Alimento',
             'Tipo de Recipiente', 'Peso do Recipiente',
             'Peso do Alimento Pronto com Recipiente', 'Peso da Sobra com Recipiente',
             'Peso do Alimento Pronto (Kg)', 'Peso da Sobra (Kg)', 'Peso da Refeição Distribuída (Kg)',
