@@ -78,6 +78,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCorrecaoSerializer,
+    DocumentoDeRecebimentoAtualizacaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
     FichaTecnicaAtualizacaoSerializer,
     FichaTecnicaCreateSerializer,
@@ -226,7 +227,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
                     "status": status,
                     "total": len(qs),
                     "dados": PainelCronogramaSerializer(
-                        qs[offset : limit + offset],
+                        qs[offset: limit + offset],
                         context={"request": self.request, "workflow": status},
                         many=True,
                     ).data,
@@ -1128,6 +1129,23 @@ class DocumentoDeRecebimentoModelViewSet(
             documentos_corrigidos = serializer.save()
             return Response(
                 DocRecebimentoDetalharSerializer(documentos_corrigidos).data
+            )
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        url_path="atualizar-documentos",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def fornecedor_realiza_atualizacao(self, request, uuid):
+        serializer = DocumentoDeRecebimentoAtualizacaoSerializer(
+            instance=self.get_object(), data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documentos_atualizados = serializer.save()
+            return Response(
+                DocRecebimentoDetalharSerializer(documentos_atualizados).data
             )
 
     @action(
