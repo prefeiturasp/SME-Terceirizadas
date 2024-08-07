@@ -71,6 +71,7 @@ from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory impor
     DataDeFabricaoEPrazoFactory,
     DocumentoDeRecebimentoFactory,
     TipoDeDocumentoDeRecebimentoFactory,
+    ArquivoDoTipoDeDocumentoFactory
 )
 from .pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import (
     AnaliseFichaTecnicaFactory,
@@ -122,6 +123,7 @@ register(MarcaFactory)
 register(ProdutoLogisticaFactory)
 register(ProdutoTerceirizadaFactory)
 register(TipoDeDocumentoDeRecebimentoFactory)
+register(ArquivoDoTipoDeDocumentoFactory)
 register(UnidadeMedidaFactory)
 register(EtapasDoCronogramaFactory)
 register(TipoDeInformacaoNutricionalFactory)
