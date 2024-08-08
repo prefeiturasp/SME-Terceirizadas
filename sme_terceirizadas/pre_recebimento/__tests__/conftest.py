@@ -840,10 +840,6 @@ def payload_ficha_tecnica_nao_pereciveis(
         "unidade_medida_volume_primaria": str(unidade_medida_logistica.uuid),
     }
 
-    payload.pop("numero_registro")
-    payload.pop("agroecologico")
-    payload.pop("organico")
-    payload.pop("mecanismo_controle")
     payload.pop("prazo_validade_descongelamento")
     payload.pop("temperatura_congelamento")
     payload.pop("temperatura_veiculo")
