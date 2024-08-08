@@ -2,7 +2,7 @@ import pytest
 import datetime
 from faker import Faker
 from model_mommy import mommy
-from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD, DILOG_CRONOGRAMA
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD, DILOG_CRONOGRAMA, DILOG_QUALIDADE
 from sme_terceirizadas.dados_comuns.fluxo_status import (
     FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
@@ -962,6 +962,34 @@ def client_autenticado_vinculo_dilog_cronograma(
         usuario=user,
         instituicao=codae,
         perfil=perfil_dilog_cronograma,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client, user
+
+
+@pytest.fixture
+def client_autenticado_vinculo_dilog_qualidade(
+    client, django_user_model, codae
+):
+    email = "test@test.com"
+    password = DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_dilog_qualidade = mommy.make(
+        "Perfil",
+        nome=DILOG_QUALIDADE,
+        ativo=True,
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
+    )
+
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_dilog_qualidade,
         data_inicial=datetime.date.today(),
         ativo=True,
     )
