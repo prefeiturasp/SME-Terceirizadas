@@ -1,15 +1,18 @@
+import tempfile
+import factory
+from django.core.files.base import ContentFile
 from datetime import date, timedelta
-
 from factory import DjangoModelFactory, LazyFunction, SubFactory
 from faker import Faker
 
 from sme_terceirizadas.pre_recebimento.fixtures.factories.cronograma_factory import (
-    CronogramaFactory,
+    CronogramaFactory, UnidadeMedidaFactory, LaboratorioFactory
 )
 from sme_terceirizadas.pre_recebimento.models import (
     DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
     TipoDeDocumentoDeRecebimento,
+    ArquivoDoTipoDeDocumento
 )
 
 fake = Faker("pt_BR")
@@ -31,6 +34,8 @@ class DocumentoDeRecebimentoFactory(DjangoModelFactory):
             ]
         )
     )
+    unidade_medida = SubFactory(UnidadeMedidaFactory)
+    laboratorio = SubFactory(LaboratorioFactory)
 
 
 class TipoDeDocumentoDeRecebimentoFactory(DjangoModelFactory):
@@ -39,6 +44,21 @@ class TipoDeDocumentoDeRecebimentoFactory(DjangoModelFactory):
 
     documento_recebimento = SubFactory(DocumentoDeRecebimentoFactory)
     tipo_documento = TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO
+
+
+class ArquivoDoTipoDeDocumentoFactory(DjangoModelFactory):
+    class Meta:
+        model = ArquivoDoTipoDeDocumento
+
+    tipo_de_documento = SubFactory(TipoDeDocumentoDeRecebimentoFactory)
+
+    @factory.lazy_attribute
+    def arquivo(self):
+        # Cria um arquivo temporário para o teste
+        file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        file.write(b'Teste de arquivo')
+        file.seek(0)
+        return ContentFile(file.read(), name='teste.pdf')
 
 
 class DataDeFabricaoEPrazoFactory(DjangoModelFactory):
