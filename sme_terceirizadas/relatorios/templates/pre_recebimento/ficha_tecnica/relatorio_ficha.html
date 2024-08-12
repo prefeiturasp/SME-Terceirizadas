@@ -43,18 +43,18 @@
 
         <div class="row pb-3">
           <div class="col-12">
-            Endereço: 
-            <span class="font-weight-bold"> 
+            Endereço:
+            <span class="font-weight-bold">
               {{ficha.endereco_fabricante}}, {{ficha.numero_fabricante}} - {{ficha.bairro_fabricante}} - {{ficha.cidade_fabricante}} - {{ficha.estado_fabricante}}
               - CEP: {{ficha.cep_fabricante}}
-            </span> 
+            </span>
           </div>
         </div>
 
         <div class="row pb-3">
           <div class="col-6">CNPJ: <span class="font-weight-bold"> {{ficha.cnpj_fabricante}}</span> </div>
           <div class="col-6">Telefone: <span class="font-weight-bold"> {{ficha.telefone_fabricante}}</span> </div>
-          
+
         </div>
 
         <div class="row pb-3">
@@ -72,34 +72,32 @@
           <div class="col-12">Prazo de Validade: <span class="font-weight-bold"> {{ficha.prazo_validade}}</span> </div>
         </div>
 
-        {% if ficha.categoria == "PERECIVEIS" %}
-          <div class="row pb-3">
-            <div class="col-12">
-              Nº do Registro do Rótulo do Produto e Nome do Órgão Competente:
-              <span class="font-weight-bold"> {{ficha.numero_registro}}</span> 
-            </div>
+        <div class="row pb-3">
+          <div class="col-12">
+            Nº do Registro do Rótulo do Produto e Nome do Órgão Competente:
+            <span class="font-weight-bold"> {{ficha.numero_registro}}</span>
           </div>
+        </div>
 
-          <div class="row pb-3">
-            <div class="col-12">
-              O Produto é agroecológico?
-              <span class="font-weight-bold"> {{ ficha.agroecologico|yesno:"SIM,NÃO"}}</span> 
-            </div>
+        <div class="row pb-3">
+          <div class="col-12">
+            O Produto é agroecológico?
+            <span class="font-weight-bold"> {{ ficha.agroecologico|yesno:"SIM,NÃO"}}</span>
           </div>
+        </div>
 
-          <div class="row pb-3">
-            <div class="col-4">
-              O Produto é orgânico?
-              <span class="font-weight-bold"> {{ ficha.organico |yesno:"SIM,NÃO" }}</span> 
-            </div>
-            {% if ficha.organico %}
-            <div class="col-8">
-              Qual é o mecanismo de controle?
-              <span class="font-weight-bold"> {{ficha.mecanismo_controle}}</span> 
-            </div>
-          {% endif %}
+        <div class="row pb-3">
+          <div class="col-4">
+            O Produto é orgânico?
+            <span class="font-weight-bold"> {{ ficha.organico |yesno:"SIM,NÃO" }}</span>
+          </div>
+          {% if ficha.organico %}
+          <div class="col-8">
+            Qual é o mecanismo de controle?
+            <span class="font-weight-bold"> {{ficha.mecanismo_controle}}</span>
           </div>
         {% endif %}
+        </div>
 
         <div class="row pb-3">
           <div class="col-12">Componentes do Produto: <span class="font-weight-bold"> {{ficha.componentes_produto}}</span> </div>
@@ -108,7 +106,7 @@
         <div class="row pb-3">
           <div class="col-12">
             O Produto contém ou pode conter ingredientes/aditivos alergênicos?
-            <span class="font-weight-bold"> {{ ficha.alergenicos |yesno:"SIM,NÃO" }}</span> 
+            <span class="font-weight-bold"> {{ ficha.alergenicos |yesno:"SIM,NÃO" }}</span>
           </div>
         </div>
 
@@ -116,7 +114,7 @@
           <div class="row pb-3">
             <div class="col-12">
               Quais ingredientes/aditivos alergênicos? Indicar conforme a RDC Nº727/22, Anvisa.
-              <span class="font-weight-bold"> {{ ficha.ingredientes_alergenicos }}</span> 
+              <span class="font-weight-bold"> {{ ficha.ingredientes_alergenicos }}</span>
             </div>
           </div>
         {% endif %}
@@ -124,13 +122,13 @@
         <div class="row pb-3">
           <div class="col-12">
             O Produto contém glúten? Indicar conforme Lei Federal Nº 10.674/03, Anvisa.
-            <span class="font-weight-bold"> {{ ficha.gluten |yesno:"SIM,NÃO" }}</span> 
+            <span class="font-weight-bold"> {{ ficha.gluten |yesno:"SIM,NÃO" }}</span>
           </div>
         </div>
 
         <div class="row pb-3">
           <div class="col-12">O Produto contém lactose?
-            <span class="font-weight-bold"> {{ ficha.lactose |yesno:"SIM,NÃO" }}</span> 
+            <span class="font-weight-bold"> {{ ficha.lactose |yesno:"SIM,NÃO" }}</span>
           </div>
         </div>
 
@@ -138,7 +136,7 @@
           <div class="row pb-3">
             <div class="col-12">
               Detalhar: Indicar conforme a RDC Nº 727/22, Anvisa.
-              <span class="font-weight-bold"> {{ ficha.lactose_detalhe }}</span> 
+              <span class="font-weight-bold"> {{ ficha.lactose_detalhe }}</span>
             </div>
           </div>
         {% endif %}
@@ -153,14 +151,14 @@
       <div class="content">
         <div class="row pb-3">
           <div class="col-6">
-            Porção: 
-            <span class="font-weight-bold"> 
+            Porção:
+            <span class="font-weight-bold">
               {{ficha.porcao}} {{ficha.unidade_medida_porcao.abreviacao}}
             </span>
           </div>
           <div class="col-6">
-            Unidade Caseira: 
-            <span class="font-weight-bold"> 
+            Unidade Caseira:
+            <span class="font-weight-bold">
               {{ficha.valor_unidade_caseira}} {{ficha.unidade_medida_caseira}}
             </span>
           </div>
@@ -211,8 +209,8 @@
         {% if ficha.categoria == "PERECIVEIS" %}
           <div class="row pb-3">
             <div class="col-12">
-              Prazo de validade após o descongelamento e mantido sob refrigeração: 
-              <span class="font-weight-bold"> 
+              Prazo de validade após o descongelamento e mantido sob refrigeração:
+              <span class="font-weight-bold">
                 {{ficha.prazo_validade_descongelamento}}
               </span>
             </div>
@@ -220,8 +218,8 @@
         {% endif %}
         <div class="row pb-3">
           <div class="col-12">
-            Condições de conservação e Prazo máximo para consumo após a abertura da embalagem primária: 
-            <span class="font-weight-bold"> 
+            Condições de conservação e Prazo máximo para consumo após a abertura da embalagem primária:
+            <span class="font-weight-bold">
               {{ficha.condicoes_de_conservacao}}
             </span>
           </div>
@@ -234,32 +232,32 @@
         <h5 class="title titulo-secao separator">TEMPERATURA E TRANSPORTE</h5>
 
         <div class="content">
-          
+
 
           <div class="row pb-3">
             <div class="col-12">
-              Temperatura de Congelamento do Produto: 
-              <span class="font-weight-bold"> 
+              Temperatura de Congelamento do Produto:
+              <span class="font-weight-bold">
                 {{ficha.temperatura_congelamento}} ºC
               </span>
             </div>
           </div>
 
-          
+
           <div class="row pb-3">
             <div class="col-12">
-              Temperatura Interna do Veículo para Transporte: 
-              <span class="font-weight-bold"> 
+              Temperatura Interna do Veículo para Transporte:
+              <span class="font-weight-bold">
                 {{ficha.temperatura_veiculo}} ºC
               </span>
             </div>
           </div>
 
-          
+
           <div class="row pb-3">
             <div class="col-12">
-              Condições de Transporte: 
-              <span class="font-weight-bold"> 
+              Condições de Transporte:
+              <span class="font-weight-bold">
                 {{ficha.condicoes_de_transporte}}
               </span>
             </div>
@@ -275,14 +273,14 @@
       <div class="content">
         <div class="row pb-3">
           <div class="col-6">
-            Embalagem Primária: 
-            <span class="font-weight-bold"> 
+            Embalagem Primária:
+            <span class="font-weight-bold">
               {{ficha.embalagem_primaria}}
             </span>
           </div>
           <div class="col-6">
-            Embalagem Secundária: 
-            <span class="font-weight-bold"> 
+            Embalagem Secundária:
+            <span class="font-weight-bold">
               {{ficha.embalagem_secundaria}}
             </span>
           </div>
@@ -298,7 +296,7 @@
           <div class="col-12">
             <div class="checkbox-preenchido">
               <span class="check-verde">&#10004; </span>
-              <label> 
+              <label>
                 Declaro que as embalagens primária e secundária em que serão entregues
                 o produto estarão de acordo com as especificações do Anexo I do Edital.
               </label>
@@ -308,8 +306,8 @@
 
         <div class="row pb-3">
           <div class="col-12">
-            Descreva o material de embalagem primária: 
-            <span class="font-weight-bold"> 
+            Descreva o material de embalagem primária:
+            <span class="font-weight-bold">
               {{ficha.material_embalagem_primaria}}
             </span>
           </div>
@@ -319,7 +317,7 @@
           <div class="row pb-3">
             <div class="col-12">
               O produto é líquido?
-              <span class="font-weight-bold"> 
+              <span class="font-weight-bold">
                 {{ficha.produto_eh_liquido |yesno:"SIM,NÃO"}}
               </span>
             </div>
@@ -328,8 +326,8 @@
           {% if ficha.produto_eh_liquido %}
             <div class="row pb-3">
               <div class="col-12">
-                Volume do Produto na Embalagem Primária: 
-                <span class="font-weight-bold"> 
+                Volume do Produto na Embalagem Primária:
+                <span class="font-weight-bold">
                   {{ficha.volume_embalagem_primaria}} {{ficha.unidade_medida_volume_primaria.abreviacao}}
                 </span>
               </div>
@@ -339,14 +337,14 @@
 
         <div class="row pb-3">
           <div class="col-6">
-            Peso Líquido do Produto na Embalagem Primária: 
-            <span class="font-weight-bold"> 
+            Peso Líquido do Produto na Embalagem Primária:
+            <span class="font-weight-bold">
               {{ficha.peso_liquido_embalagem_primaria}} {{ficha.unidade_medida_primaria.abreviacao}}
             </span>
           </div>
           <div class="col-6">
-            Peso Líquido do Produto na Embalagem Secundária: 
-            <span class="font-weight-bold"> 
+            Peso Líquido do Produto na Embalagem Secundária:
+            <span class="font-weight-bold">
               {{ficha.peso_liquido_embalagem_secundaria}} {{ficha.unidade_medida_secundaria.abreviacao}}
             </span>
           </div>
@@ -354,14 +352,14 @@
 
         <div class="row pb-3">
           <div class="col-6">
-            Peso da Embalagem Primária Vazia: 
-            <span class="font-weight-bold"> 
+            Peso da Embalagem Primária Vazia:
+            <span class="font-weight-bold">
               {{ficha.peso_embalagem_primaria_vazia}} {{ficha.unidade_medida_primaria_vazia.abreviacao}}
             </span>
           </div>
           <div class="col-6">
-            Peso da Embalagem Secundária Vazia: 
-            <span class="font-weight-bold"> 
+            Peso da Embalagem Secundária Vazia:
+            <span class="font-weight-bold">
               {{ficha.peso_embalagem_secundaria_vazia}} {{ficha.unidade_medida_secundaria_vazia.abreviacao}}
             </span>
           </div>
@@ -370,8 +368,8 @@
         {% if ficha.categoria == "PERECIVEIS" %}
           <div class="row pb-3">
             <div class="col-12">
-              Variação Porcentual do Peso do Produto ao Descongelar: 
-              <span class="font-weight-bold"> 
+              Variação Porcentual do Peso do Produto ao Descongelar:
+              <span class="font-weight-bold">
                 {{ficha.variacao_percentual}}%
               </span>
             </div>
@@ -380,8 +378,8 @@
 
         <div class="row pb-3">
           <div class="col-12">
-            Descrever o Sistema de Vedação da Embalagem Secundária: 
-            <span class="font-weight-bold"> 
+            Descrever o Sistema de Vedação da Embalagem Secundária:
+            <span class="font-weight-bold">
               {{ficha.sistema_vedacao_embalagem_secundaria}}
             </span>
           </div>
@@ -391,7 +389,7 @@
           <div class="col-12">
             <div class="checkbox-preenchido">
               <span class="check-verde">&#10004; </span>
-              <label> 
+              <label>
                 Declaro que no rótulo da embalagem primária e, se for o caso, da secundária, constarão,
                 de forma legível e indelével, todas as informações solicitadas do Anexo I do Edital.
               </label>
@@ -408,22 +406,22 @@
       <div class="content">
         <div class="row pb-3">
           <div class="col-12">
-            Nome completo do Responsável Técnico: 
-            <span class="font-weight-bold"> 
+            Nome completo do Responsável Técnico:
+            <span class="font-weight-bold">
               {{ficha.nome_responsavel_tecnico}}
             </span>
           </div>
         </div>
         <div class="row pb-3">
           <div class="col-6">
-            Habilitação: 
-            <span class="font-weight-bold"> 
+            Habilitação:
+            <span class="font-weight-bold">
               {{ficha.habilitacao}}
             </span>
           </div>
           <div class="col-6">
-            Nº do Registro em Órgão Competente: 
-            <span class="font-weight-bold"> 
+            Nº do Registro em Órgão Competente:
+            <span class="font-weight-bold">
               {{ficha.numero_registro_orgao}}
             </span>
           </div>
@@ -438,8 +436,8 @@
         <div class="content">
           <div class="row pb-3">
             <div class="col-12">
-              Modo de preparo do produto: 
-              <span class="font-weight-bold"> 
+              Modo de preparo do produto:
+              <span class="font-weight-bold">
                 {{ficha.modo_de_preparo}}
               </span>
             </div>
@@ -455,8 +453,8 @@
         <div class="content">
           <div class="row pb-3">
             <div class="col-12">
-              Informações Adicionais: 
-              <span class="font-weight-bold"> 
+              Informações Adicionais:
+              <span class="font-weight-bold">
                 {{ficha.informacoes_adicionais}}
               </span>
             </div>
@@ -465,7 +463,7 @@
       </div>
     {% endif %}
 
-    <div class="assinaturas content"> 
+    <div class="assinaturas content">
 
       {% get_assinatura_fornecedor_ficha logs as log_fornecedor %}
 
@@ -512,7 +510,7 @@
         </div>
 
 
-    
+
     </div>
 
   </div>
