@@ -1068,7 +1068,7 @@ class DocumentoDeRecebimentoModelViewSet(
     )
     def dashboard(self, request):
         dashboard_service = ServiceDashboardDocumentosDeRecebimento(
-            self.get_queryset(),
+            self.get_queryset().order_by("-alterado_em"),
             DocumentoDeRecebimentoFilter,
             PainelDocumentoDeRecebimentoSerializer,
             request,
