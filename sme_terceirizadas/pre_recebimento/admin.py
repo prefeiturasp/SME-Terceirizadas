@@ -166,6 +166,11 @@ class FichaTecnicaDoProdutoAdmin(admin.ModelAdmin):
         InformacoesNutricionaisFichaTecnicaInline,
         AnaliseFichaTecnicaInline,
     )
+    search_fields = ("produto__nome", "numero", "categoria__nome", "empresa__nome", "fabricante__nome", )
+    search_help_text = "Pesquise por: nome do produto, número, nome da categoria, nome da empresa, nome do fabricante"
+    list_filter = (
+        "status",
+    )
 
 
 class EtapasInline(admin.TabularInline):
