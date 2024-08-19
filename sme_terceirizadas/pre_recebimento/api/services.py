@@ -100,7 +100,7 @@ class BaseServiceDashboard:
         dados = {
             "status": lista_status_ver_mais,
             "total": len(qs),
-            "dados": self.serializer_class(qs[offset : offset + limit], many=True).data,
+            "dados": self.serializer_class(qs[offset: offset + limit], many=True).data,
         }
 
         return dados
@@ -114,7 +114,7 @@ class BaseServiceDashboard:
                 {
                     "status": status_perfil,
                     "dados": self.serializer_class(
-                        qs[offset : offset + limit], many=True
+                        qs[offset: offset + limit], many=True
                     ).data,
                 }
             )
@@ -251,6 +251,11 @@ class ServiceDashboardFichaTecnica(BaseServiceDashboard):
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
         ],
         DILOG_DIRETORIA: [
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            FichaTecnicaDoProdutoWorkflow.APROVADA,
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
+        ],
+        DILOG_QUALIDADE: [
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             FichaTecnicaDoProdutoWorkflow.APROVADA,
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
