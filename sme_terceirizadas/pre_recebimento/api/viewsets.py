@@ -1260,6 +1260,25 @@ class FichaTecnicaModelViewSet(
     @action(
         detail=False,
         methods=["GET"],
+        url_path="lista-simples-aprovadas",
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
+    )
+    def lista_simples_aprovadas(self, request, **kwargs):
+        usuario = self.request.user
+
+        qs = (
+            self.get_queryset().filter(empresa=usuario.vinculo_atual.instituicao)
+            if usuario.eh_empresa
+            else self.get_queryset()
+        )
+
+        qs = qs.filter(status=FichaTecnicaDoProduto.workflow_class.APROVADA)
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=False,
+        methods=["GET"],
         url_path="lista-simples-sem-cronograma",
         permission_classes=(PermissaoParaVisualizarFichaTecnica,),
     )
