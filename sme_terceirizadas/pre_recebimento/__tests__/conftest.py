@@ -1,8 +1,8 @@
 import pytest
+import datetime
 from faker import Faker
 from model_mommy import mommy
-
-from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD, DILOG_CRONOGRAMA, DILOG_QUALIDADE
 from sme_terceirizadas.dados_comuns.fluxo_status import (
     FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
@@ -20,6 +20,11 @@ from ..models import (
 )
 
 fake = Faker("pt_BR")
+
+
+@pytest.fixture
+def codae():
+    return mommy.make("Codae")
 
 
 @pytest.fixture
@@ -835,10 +840,6 @@ def payload_ficha_tecnica_nao_pereciveis(
         "unidade_medida_volume_primaria": str(unidade_medida_logistica.uuid),
     }
 
-    payload.pop("numero_registro")
-    payload.pop("agroecologico")
-    payload.pop("organico")
-    payload.pop("mecanismo_controle")
     payload.pop("prazo_validade_descongelamento")
     payload.pop("temperatura_congelamento")
     payload.pop("temperatura_veiculo")
@@ -934,3 +935,59 @@ def analise_ficha_tecnica(
         ficha_tecnica=ficha_tecnica_perecivel_enviada_para_analise,
         **payload_analise_ficha_tecnica,
     )
+
+
+@pytest.fixture
+def client_autenticado_vinculo_dilog_cronograma(
+    client, django_user_model, codae
+):
+    email = "test@test.com"
+    password = DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_dilog_cronograma = mommy.make(
+        "Perfil",
+        nome=DILOG_CRONOGRAMA,
+        ativo=True,
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
+    )
+
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_dilog_cronograma,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client, user
+
+
+@pytest.fixture
+def client_autenticado_vinculo_dilog_qualidade(
+    client, django_user_model, codae
+):
+    email = "test@test.com"
+    password = DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_dilog_qualidade = mommy.make(
+        "Perfil",
+        nome=DILOG_QUALIDADE,
+        ativo=True,
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
+    )
+
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_dilog_qualidade,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client, user

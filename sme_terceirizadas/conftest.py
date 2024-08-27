@@ -71,6 +71,7 @@ from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory impor
     DataDeFabricaoEPrazoFactory,
     DocumentoDeRecebimentoFactory,
     TipoDeDocumentoDeRecebimentoFactory,
+    ArquivoDoTipoDeDocumentoFactory
 )
 from .pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import (
     AnaliseFichaTecnicaFactory,
@@ -81,6 +82,9 @@ from .pre_recebimento.fixtures.factories.layout_embalagem_factory import (
 )
 from .pre_recebimento.fixtures.factories.unidade_medida_factory import (
     UnidadeMedidaFactory,
+)
+from .pre_recebimento.fixtures.factories.tipo_embalagem_qld_factory import (
+    TipoEmbalagemQldFactory,
 )
 from .produto.fixtures.factories.produto_factory import (
     FabricanteFactory,
@@ -119,11 +123,13 @@ register(MarcaFactory)
 register(ProdutoLogisticaFactory)
 register(ProdutoTerceirizadaFactory)
 register(TipoDeDocumentoDeRecebimentoFactory)
+register(ArquivoDoTipoDeDocumentoFactory)
 register(UnidadeMedidaFactory)
 register(EtapasDoCronogramaFactory)
 register(TipoDeInformacaoNutricionalFactory)
 register(InformacaoNutricionalFactory)
 register(LayoutDeEmbalagemFactory)
+register(TipoEmbalagemQldFactory)
 register(AnaliseFichaTecnicaFactory)
 register(QuestaoConferenciaFactory)
 register(QuestoesPorProdutoFactory)

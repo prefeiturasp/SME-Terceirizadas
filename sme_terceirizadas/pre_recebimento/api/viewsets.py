@@ -78,6 +78,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCorrecaoSerializer,
+    DocumentoDeRecebimentoAtualizacaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
     FichaTecnicaAtualizacaoSerializer,
     FichaTecnicaCreateSerializer,
@@ -226,7 +227,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
                     "status": status,
                     "total": len(qs),
                     "dados": PainelCronogramaSerializer(
-                        qs[offset : limit + offset],
+                        qs[offset: limit + offset],
                         context={"request": self.request, "workflow": status},
                         many=True,
                     ).data,
@@ -1067,7 +1068,7 @@ class DocumentoDeRecebimentoModelViewSet(
     )
     def dashboard(self, request):
         dashboard_service = ServiceDashboardDocumentosDeRecebimento(
-            self.get_queryset(),
+            self.get_queryset().order_by("-alterado_em"),
             DocumentoDeRecebimentoFilter,
             PainelDocumentoDeRecebimentoSerializer,
             request,
@@ -1128,6 +1129,23 @@ class DocumentoDeRecebimentoModelViewSet(
             documentos_corrigidos = serializer.save()
             return Response(
                 DocRecebimentoDetalharSerializer(documentos_corrigidos).data
+            )
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        url_path="atualizar-documentos",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def fornecedor_realiza_atualizacao(self, request, uuid):
+        serializer = DocumentoDeRecebimentoAtualizacaoSerializer(
+            instance=self.get_object(), data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documentos_atualizados = serializer.save()
+            return Response(
+                DocRecebimentoDetalharSerializer(documentos_atualizados).data
             )
 
     @action(
@@ -1236,6 +1254,25 @@ class FichaTecnicaModelViewSet(
         )
 
         qs = qs.exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO)
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-simples-aprovadas",
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
+    )
+    def lista_simples_aprovadas(self, request, **kwargs):
+        usuario = self.request.user
+
+        qs = (
+            self.get_queryset().filter(empresa=usuario.vinculo_atual.instituicao)
+            if usuario.eh_empresa
+            else self.get_queryset()
+        )
+
+        qs = qs.filter(status=FichaTecnicaDoProduto.workflow_class.APROVADA)
 
         return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
 

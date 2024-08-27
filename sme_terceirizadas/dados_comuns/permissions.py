@@ -1315,6 +1315,7 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         ADMINISTRADOR_CODAE_GABINETE,
         DILOG_DIRETORIA,
+        DILOG_QUALIDADE,
     ]
 
     def has_permission(self, request, view):

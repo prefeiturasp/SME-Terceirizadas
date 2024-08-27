@@ -5250,6 +5250,7 @@ class DocumentoDeRecebimentoWorkflow(xwf_models.Workflow):
         ("qualidade_solicita_correcao", ENVIADO_PARA_ANALISE, ENVIADO_PARA_CORRECAO),
         ("qualidade_aprova_analise", ENVIADO_PARA_ANALISE, APROVADO),
         ("fornecedor_realiza_correcao", ENVIADO_PARA_CORRECAO, ENVIADO_PARA_ANALISE),
+        ("fornecedor_atualiza", APROVADO, ENVIADO_PARA_ANALISE),
     )
 
     initial_state = DOCUMENTO_CRIADO
@@ -5409,6 +5410,61 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
                     nomes_perfis=[
                         constants.DILOG_QUALIDADE,
                         constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
+                    ],
+                    somente_email=True,
+                ),
+            )
+
+    @xworkflows.after_transition("fornecedor_atualiza")
+    def _fornecedor_atualiza_hook(self, *args, **kwargs):
+        user = kwargs["user"]
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.DOCUMENTO_ENVIADO_PARA_ANALISE,
+                usuario=user,
+            )
+
+            numero_cronograma = self.cronograma.numero
+            url_documento_recebimento = (
+                f"/pre-recebimento/analise-documento-recebimento?uuid={self.uuid}"
+            )
+            contexto = {
+                "numero_cronograma": numero_cronograma,
+                "nome_empresa": self.cronograma.empresa.nome_fantasia,
+                "nome_produto": self.cronograma.ficha_tecnica.produto.nome if self.cronograma.ficha_tecnica else "-",
+                "nome_usuario_empresa": user.nome,
+                "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
+                "data_envio": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
+                "url_documento_recebimento": base_url + url_documento_recebimento,
+            }
+
+            EmailENotificacaoService.enviar_notificacao(
+                template="pre_recebimento_notificacao_fornecedor_envia_documento_recebimento.html",
+                contexto_template=contexto,
+                titulo_notificacao=f"Documentos do Cronograma {numero_cronograma} foram Enviados para Análise",
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO,
+                link_acesse_aqui=url_documento_recebimento,
+                usuarios=PartesInteressadasService.usuarios_por_perfis(
+                    [
+                        constants.DILOG_QUALIDADE,
+                        constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
+                    ]
+                ),
+            )
+
+            EmailENotificacaoService.enviar_email(
+                titulo=f"Documentos de Recebimento Pendentes de Aprovação Cronograma Nº {numero_cronograma}",
+                assunto=f"[SIGPAE] Documentos de Recebimento Pendentes de Aprovação | Cronograma Nº {numero_cronograma}",
+                template="pre_recebimento_email_fornecedor_envia_documento_recebimento.html",
+                contexto_template=contexto,
+                destinatarios=PartesInteressadasService.usuarios_por_perfis(
+                    nomes_perfis=[
+                        constants.DILOG_QUALIDADE,
+                        constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
+                        constants.DILOG_DIRETORIA,
+                        constants.ADMINISTRADOR_CODAE_GABINETE
+
                     ],
                     somente_email=True,
                 ),
