@@ -62,9 +62,17 @@ def valida_campos_pereciveis_ficha_tecnica(attrs):
 
 
 def valida_campos_nao_pereciveis_ficha_tecnica(attrs):
-    if attrs.get("produto_eh_liquido") is None:
+    attrs_obrigatorios_pereciveis = {
+        "numero_registro",
+        "agroecologico",
+        "organico",
+        "produto_eh_liquido"
+    }
+
+    if not attrs_obrigatorios_pereciveis.issubset(attrs.keys()):
         raise serializers.ValidationError(
-            "Fichas Técnicas de Produtos NÃO PERECÍVEIS exigem que sejam forncecidos valores para o campo produto_eh_liquido"
+            "Fichas Técnicas de Produtos NÃO PERECÍVEIS exigem que sejam forncecidos valores para os campos"
+            + " numero_registro, agroecologico, organico, e produto_eh_liquido"
         )
 
 
