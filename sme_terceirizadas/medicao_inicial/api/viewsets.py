@@ -300,13 +300,15 @@ class SolicitacaoMedicaoInicialViewSet(
         return queryset
 
     def ordena_qs(self, qs, workflow, request):
-        if workflow == "TODOS_OS_LANCAMENTOS":
+        if not request.query_params.get("status"):
+            return qs
+        if request.query_params.get("status") == "TODOS_OS_LANCAMENTOS":
             qs = sorted(
                 qs.distinct().all(),
                 key=lambda x: (x.criado_em),
                 reverse=True,
             )
-        elif workflow == request.query_params.get("status"):
+        elif request.query_params.get("status") == workflow:
             qs = sorted(
                 qs.distinct().all(),
                 key=lambda x: (
