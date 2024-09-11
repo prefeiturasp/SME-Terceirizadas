@@ -299,6 +299,25 @@ class SolicitacaoMedicaoInicialViewSet(
             return queryset.filter(status__in=STATUS_RELACAO_DRE_MEDICAO)
         return queryset
 
+    def ordena_qs(self, qs, workflow, request):
+        if not request.query_params.get("status"):
+            return qs
+        if request.query_params.get("status") == "TODOS_OS_LANCAMENTOS":
+            qs = sorted(
+                qs.distinct().all(),
+                key=lambda x: (x.criado_em),
+                reverse=True,
+            )
+        elif request.query_params.get("status") == workflow:
+            qs = sorted(
+                qs.distinct().all(),
+                key=lambda x: (
+                    x.log_mais_recente.criado_em if x.log_mais_recente else "-criado_em"
+                ),
+                reverse=True,
+            )
+        return qs
+
     def dados_dashboard(
         self, request, query_set: QuerySet, kwargs: dict, use_raw=True
     ) -> list:
@@ -344,26 +363,18 @@ class SolicitacaoMedicaoInicialViewSet(
                 )
                 qs = qs.filter(**kwargs)
                 qs = self.condicao_por_usuario(qs)
-                qs = sorted(
-                    qs.distinct().all(),
-                    key=lambda x: (
-                        x.log_mais_recente.criado_em
-                        if x.log_mais_recente
-                        else "-criado_em"
-                    ),
-                    reverse=True,
-                )
-            sumario.append(
-                {
-                    "status": workflow,
-                    "total": len(qs),
-                    "dados": SolicitacaoMedicaoInicialDashboardSerializer(
-                        qs[offset : limit + offset],
-                        context={"request": self.request, "workflow": workflow},
-                        many=True,
-                    ).data,
-                }
-            )
+
+            qs = self.ordena_qs(qs, workflow, request)
+            result = {
+                "status": workflow,
+                "total": len(qs),
+                "dados": SolicitacaoMedicaoInicialDashboardSerializer(
+                    qs[offset : limit + offset],
+                    context={"request": self.request, "workflow": workflow},
+                    many=True,
+                ).data,
+            }
+            sumario.append(result)
         if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
             status_medicao_corrigida = [
                 "MEDICAO_CORRIGIDA_PELA_UE",
