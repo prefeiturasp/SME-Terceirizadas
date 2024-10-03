@@ -164,7 +164,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(msg))
             ontem = date.today() - timedelta(days=1)
             periodos_faixas_gerais = escola.alunos_por_periodo_e_faixa_etaria()
-            periodos_faixas_parciais = escola.alunos_periodo_parcial_e_faixa_etaria()
+            periodos_faixas_parciais = escola.alunos_periodo_parcial_e_faixa_etaria(
+                ontem
+            )
             periodos_faixas = self.periodos_integral_sem_alunos_pariciais(
                 periodos_faixas_gerais, periodos_faixas_parciais
             )
