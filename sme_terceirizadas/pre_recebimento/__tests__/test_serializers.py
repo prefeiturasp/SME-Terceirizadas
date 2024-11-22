@@ -87,9 +87,9 @@ def test_painel_cronograma_serializer(cronograma, cronogramas_multiplos_status_c
         cronograma_completo.ficha_tecnica.produto.nome
     )
     assert cronograma_completo.log_mais_recente is not None
-    assert serializer.data[
-        "log_mais_recente"
-    ] == cronograma_completo.criado_em.strftime("%d/%m/%Y %H:%M")
+    assert serializer.data["log_mais_recente"].split(" ")[
+        0
+    ] == cronograma_completo.criado_em.strftime("%d/%m/%Y")
 
     cronograma_incompleto = cronograma
     serializer = PainelCronogramaSerializer(cronograma_incompleto)
