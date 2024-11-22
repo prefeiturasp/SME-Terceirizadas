@@ -7,7 +7,7 @@ from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
     campo_nao_pode_ser_nulo,
     deve_pedir_com_antecedencia,
-    deve_ser_dia_letivo,
+    deve_ser_dia_letivo_e_dia_da_semana,
     deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
@@ -169,8 +169,8 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
             data_de, data_para, escola, tipos_alimentacao
         )
         nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para)
-        deve_ser_dia_letivo(escola, data_de)
-        deve_ser_dia_letivo(escola, data_para)
+        deve_ser_dia_letivo_e_dia_da_semana(escola, data_de)
+        deve_ser_dia_letivo_e_dia_da_semana(escola, data_para)
         if "data_de_2" in attrs and attrs["data_de_2"] is not None:
             data_de_2 = attrs["data_de_2"]
             data_para_2 = attrs["data_para_2"]
@@ -178,8 +178,8 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
                 data_de_2, data_para_2, escola, tipos_alimentacao
             )
             nao_pode_ter_mais_que_60_dias_diferenca(data_de_2, data_para_2)
-            deve_ser_dia_letivo(escola, data_de_2)
-            deve_ser_dia_letivo(escola, data_para_2)
+            deve_ser_dia_letivo_e_dia_da_semana(escola, data_de_2)
+            deve_ser_dia_letivo_e_dia_da_semana(escola, data_para_2)
 
         return attrs
 
