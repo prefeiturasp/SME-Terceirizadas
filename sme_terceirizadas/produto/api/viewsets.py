@@ -413,15 +413,25 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         return raw_sql
 
     def melhora_eficiencia_quando_terc(self, qs, usuario, workflow):
-        if usuario == "terceirizada" and workflow in [
-            "CODAE_HOMOLOGADO",
-        ]:
-            ultimos_cem_logs = LogSolicitacoesUsuario.objects.filter(
-                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
-            )[:100]
-            qs = qs.filter(
-                uuid__in=ultimos_cem_logs.values_list("uuid_original", flat=True)
-            )
+        if usuario == "terceirizada":
+            if workflow == "CODAE_HOMOLOGADO":
+                ultimos_cem_logs = LogSolicitacoesUsuario.objects.filter(
+                    solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
+                )[:100]
+                qs = qs.filter(
+                    uuid__in=ultimos_cem_logs.values_list("uuid_original", flat=True)
+                )
+            elif workflow == "CODAE_SUSPENDEU":
+                ultimos_cem_logs = LogSolicitacoesUsuario.objects.filter(
+                    status_evento__in=[
+                        LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
+                        LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                        LogSolicitacoesUsuario.ATIVO_EM_ALGUNS_EDITAIS,
+                    ],
+                )[:100]
+                qs = qs.filter(
+                    uuid__in=ultimos_cem_logs.values_list("uuid_original", flat=True)
+                )
         return qs
 
     def dados_dashboard(self, query_set: QuerySet, edital: str, use_raw=True) -> list:
