@@ -3302,6 +3302,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                 titulo = "Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias"
                 dieta_origem = self.aluno.dietas_especiais.filter(
                     tipo_solicitacao="COMUM",
+                    ativo=True,
                     status=self.workflow_class.CODAE_AUTORIZADO,
                 ).last()
                 self._envia_email_autorizar(
@@ -5431,7 +5432,9 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             contexto = {
                 "numero_cronograma": numero_cronograma,
                 "nome_empresa": self.cronograma.empresa.nome_fantasia,
-                "nome_produto": self.cronograma.ficha_tecnica.produto.nome if self.cronograma.ficha_tecnica else "-",
+                "nome_produto": self.cronograma.ficha_tecnica.produto.nome
+                if self.cronograma.ficha_tecnica
+                else "-",
                 "nome_usuario_empresa": user.nome,
                 "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
                 "data_envio": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
@@ -5463,8 +5466,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
                         constants.DILOG_QUALIDADE,
                         constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
                         constants.DILOG_DIRETORIA,
-                        constants.ADMINISTRADOR_CODAE_GABINETE
-
+                        constants.ADMINISTRADOR_CODAE_GABINETE,
                     ],
                     somente_email=True,
                 ),
