@@ -790,4 +790,4 @@ def client_autenticado_vinculo_terceirizada_inclusao(
         template_html="@id @criado_em @status @link",
     )
     client.login(username=email, password=password)
-    return client
+    return client, user
