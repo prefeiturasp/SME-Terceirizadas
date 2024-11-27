@@ -14,6 +14,7 @@ from .dados_comuns.models import TemplateMensagem
 from .escola.fixtures.factories.escola_factory import (
     DiretoriaRegionalFactory,
     EscolaFactory,
+    FaixaEtariaFactory,
     LogAlunosMatriculadosPeriodoEscolaFactory,
     LoteFactory,
     PeriodoEscolarFactory,
@@ -55,7 +56,9 @@ from .imr.fixtures.factories.imr_importacao_planilha_base_factory import (
     ImportacaoPlanilhaTipoPenalidadeFactory,
 )
 from .inclusao_alimentacao.fixtures.factories.base_factory import (
+    DiasMotivosInclusaoDeAlimentacaoCEIFactory,
     InclusaoAlimentacaoDaCEIFactory,
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEIFactory,
 )
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -183,6 +186,9 @@ register(EditalEquipamentoFactory)
 register(EditalUtensilioMesaFactory)
 register(EditalUtensilioCozinhaFactory)
 register(InclusaoAlimentacaoDaCEIFactory)
+register(FaixaEtariaFactory)
+register(QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEIFactory)
+register(DiasMotivosInclusaoDeAlimentacaoCEIFactory)
 
 
 @pytest.fixture
