@@ -82,3 +82,56 @@ def test_get_solicitacoes_diretoria_regional_eol_exception(
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"detail": "API EOL com erro. Status: 404"}
+
+
+def test_get_solicitacoes_codae_gestao_alimentacao(
+    client_autenticado_vinculo_codae_inclusao,
+    inclusao_alimentacao_da_cei_factory,
+    quantidade_de_alunos_por_faixa_etaria_da_inclusao_de_alimentacao_da_cei_factory,
+    escola,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        EOLService,
+        "get_informacoes_escola_turma_aluno",
+        lambda p1: mocked_informacoes_escola_turma_aluno(),
+    )
+
+    inclusao_alimentacao_da_cei = inclusao_alimentacao_da_cei_factory.create(
+        escola=escola,
+        rastro_dre=escola.diretoria_regional,
+        rastro_lote=escola.lote,
+        status="DRE_VALIDADO",
+    )
+    quantidade_de_alunos_por_faixa_etaria_da_inclusao_de_alimentacao_da_cei_factory.create(
+        inclusao_alimentacao_da_cei=inclusao_alimentacao_da_cei,
+    )
+
+    response = client_autenticado_vinculo_codae_inclusao.get(
+        f"/inclusoes-alimentacao-da-cei/pedidos-codae/sem_filtro/?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+
+
+def test_get_solicitacoes_codae_gestao_alimentacao_eol_exception(
+    client_autenticado_vinculo_codae_inclusao,
+    inclusao_alimentacao_da_cei_factory,
+    quantidade_de_alunos_por_faixa_etaria_da_inclusao_de_alimentacao_da_cei_factory,
+    escola,
+):
+    inclusao_alimentacao_da_cei = inclusao_alimentacao_da_cei_factory.create(
+        escola=escola,
+        rastro_dre=escola.diretoria_regional,
+        rastro_lote=escola.lote,
+        status="DRE_VALIDADO",
+    )
+    quantidade_de_alunos_por_faixa_etaria_da_inclusao_de_alimentacao_da_cei_factory.create(
+        inclusao_alimentacao_da_cei=inclusao_alimentacao_da_cei,
+    )
+
+    response = client_autenticado_vinculo_codae_inclusao.get(
+        f"/inclusoes-alimentacao-da-cei/pedidos-codae/sem_filtro/?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "API EOL com erro. Status: 404"}

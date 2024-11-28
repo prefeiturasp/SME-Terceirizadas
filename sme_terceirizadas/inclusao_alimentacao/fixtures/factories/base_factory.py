@@ -3,6 +3,7 @@ from factory import DjangoModelFactory, Sequence, SubFactory
 from faker import Faker
 
 from sme_terceirizadas.escola.fixtures.factories.escola_factory import (
+    DiretoriaRegionalFactory,
     EscolaFactory,
     FaixaEtariaFactory,
     LoteFactory,
@@ -23,8 +24,9 @@ fake = Faker("pt_BR")
 class InclusaoAlimentacaoDaCEIFactory(DjangoModelFactory):
     criado_por = SubFactory(UsuarioFactory)
     escola = SubFactory(EscolaFactory)
-    rastro_lote = SubFactory(LoteFactory)
     periodo_escolar = SubFactory(PeriodoEscolarFactory)
+    rastro_dre = SubFactory(DiretoriaRegionalFactory)
+    rastro_lote = SubFactory(LoteFactory)
 
     @factory.post_generation
     def tipos_alimentacao(self, create, extracted, **kwargs):
