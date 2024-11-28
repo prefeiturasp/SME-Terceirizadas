@@ -108,7 +108,8 @@ def test_get_solicitacoes_codae_gestao_alimentacao(
     )
 
     response = client_autenticado_vinculo_codae_inclusao.get(
-        f"/inclusoes-alimentacao-da-cei/pedidos-codae/sem_filtro/?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
+        f"/inclusoes-alimentacao-da-cei/pedidos-codae/sem_filtro/"
+        f"?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
@@ -131,7 +132,8 @@ def test_get_solicitacoes_codae_gestao_alimentacao_eol_exception(
     )
 
     response = client_autenticado_vinculo_codae_inclusao.get(
-        f"/inclusoes-alimentacao-da-cei/pedidos-codae/sem_filtro/?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
+        f"/inclusoes-alimentacao-da-cei/pedidos-codae/sem_filtro/"
+        f"?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"detail": "API EOL com erro. Status: 404"}

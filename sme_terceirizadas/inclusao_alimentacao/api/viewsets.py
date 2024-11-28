@@ -270,6 +270,16 @@ class TerceirizadaTomaCiencia:
         serializer = self.get_serializer(solicitacao)
         return Response(serializer.data)
 
+    def destroy(self, request, *args, **kwargs):
+        solicitacao = self.get_object()
+        if solicitacao.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(
+                dict(detail="Você só pode excluir quando o status for RASCUNHO."),
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
 
 class InclusaoAlimentacaoViewSetBase(
     ModelViewSet,
@@ -291,17 +301,6 @@ class InclusaoAlimentacaoViewSetBase(
         elif self.action in ["create", "destroy"]:
             self.permission_classes = (IsAuthenticated, UsuarioEscolaTercTotal)
         return super(InclusaoAlimentacaoViewSetBase, self).get_permissions()
-
-    @action(
-        detail=True,
-        methods=["GET"],
-        url_path=f"{constants.RELATORIO}",
-        permission_classes=(IsAuthenticated,),
-    )
-    def relatorio(self, request, uuid=None):
-        return relatorio_inclusao_alimentacao_cei(
-            request, solicitacao=self.get_object()
-        )
 
 
 class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
@@ -387,6 +386,17 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
             return Response(
                 data={"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST
             )
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path=f"{constants.RELATORIO}",
+        permission_classes=(IsAuthenticated,),
+    )
+    def relatorio(self, request, uuid=None):
+        return relatorio_inclusao_alimentacao_cei(
+            request, solicitacao=self.get_object()
+        )
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -500,16 +510,6 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         return relatorio_inclusao_alimentacao_normal(
             request, solicitacao=self.get_object()
         )
-
-    def destroy(self, request, *args, **kwargs):
-        grupo_alimentacao_normal = self.get_object()
-        if grupo_alimentacao_normal.pode_excluir:
-            return super().destroy(request, *args, **kwargs)
-        else:
-            return Response(
-                dict(detail="Você só pode excluir quando o status for RASCUNHO."),
-                status=status.HTTP_403_FORBIDDEN,
-            )
 
 
 class InclusaoAlimentacaoContinuaViewSet(
