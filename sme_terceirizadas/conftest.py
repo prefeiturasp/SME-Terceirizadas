@@ -68,6 +68,11 @@ from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
 )
+from .kit_lanche.fixtures.factories.base_factory import (
+    KitLancheFactory,
+    SolicitacaoKitLancheAvulsaBaseFactory,
+    SolicitacaoKitLancheFactory,
+)
 from .medicao_inicial.fixtures.factories.solicitacao_medicao_inicial_base_factory import (
     SolicitacaoMedicaoInicialFactory,
 )
@@ -197,6 +202,9 @@ register(MotivoInclusaoNormalFactory)
 register(GrupoInclusaoAlimentacaoNormalFactory)
 register(InclusaoAlimentacaoNormalFactory)
 register(QuantidadePorPeriodoFactory)
+register(KitLancheFactory)
+register(SolicitacaoKitLancheFactory)
+register(SolicitacaoKitLancheAvulsaBaseFactory)
 
 
 @pytest.fixture
