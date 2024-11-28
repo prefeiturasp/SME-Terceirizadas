@@ -11,14 +11,58 @@ from sme_terceirizadas.escola.fixtures.factories.escola_factory import (
 )
 from sme_terceirizadas.inclusao_alimentacao.models import (
     DiasMotivosInclusaoDeAlimentacaoCEI,
+    GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoDaCEI,
+    InclusaoAlimentacaoNormal,
+    MotivoInclusaoNormal,
     QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
+    QuantidadePorPeriodo,
 )
 from sme_terceirizadas.perfil.fixtures.factories.perfil_base_factories import (
     UsuarioFactory,
 )
 
 fake = Faker("pt_BR")
+
+
+class MotivoInclusaoNormalFactory(DjangoModelFactory):
+    nome = Sequence(lambda n: f"nome - {fake.unique.name()}")
+
+    class Meta:
+        model = MotivoInclusaoNormal
+
+
+class GrupoInclusaoAlimentacaoNormalFactory(DjangoModelFactory):
+    escola = SubFactory(EscolaFactory)
+
+    class Meta:
+        model = GrupoInclusaoAlimentacaoNormal
+
+
+class InclusaoAlimentacaoNormalFactory(DjangoModelFactory):
+    motivo = SubFactory(MotivoInclusaoNormalFactory)
+    grupo_inclusao = SubFactory(GrupoInclusaoAlimentacaoNormalFactory)
+
+    class Meta:
+        model = InclusaoAlimentacaoNormal
+
+
+class QuantidadePorPeriodoFactory(DjangoModelFactory):
+    numero_alunos = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
+    periodo_escolar = SubFactory(PeriodoEscolarFactory)
+    grupo_inclusao_normal = SubFactory(GrupoInclusaoAlimentacaoNormalFactory)
+
+    @factory.post_generation
+    def tipos_alimentacao(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for tipo_alimentacao in extracted:
+                self.tipos_alimentacao.add(tipo_alimentacao)
+
+    class Meta:
+        model = QuantidadePorPeriodo
 
 
 class InclusaoAlimentacaoDaCEIFactory(DjangoModelFactory):

@@ -57,8 +57,12 @@ from .imr.fixtures.factories.imr_importacao_planilha_base_factory import (
 )
 from .inclusao_alimentacao.fixtures.factories.base_factory import (
     DiasMotivosInclusaoDeAlimentacaoCEIFactory,
+    GrupoInclusaoAlimentacaoNormalFactory,
     InclusaoAlimentacaoDaCEIFactory,
+    InclusaoAlimentacaoNormalFactory,
+    MotivoInclusaoNormalFactory,
     QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEIFactory,
+    QuantidadePorPeriodoFactory,
 )
 from .inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -189,6 +193,10 @@ register(InclusaoAlimentacaoDaCEIFactory)
 register(FaixaEtariaFactory)
 register(QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEIFactory)
 register(DiasMotivosInclusaoDeAlimentacaoCEIFactory)
+register(MotivoInclusaoNormalFactory)
+register(GrupoInclusaoAlimentacaoNormalFactory)
+register(InclusaoAlimentacaoNormalFactory)
+register(QuantidadePorPeriodoFactory)
 
 
 @pytest.fixture
