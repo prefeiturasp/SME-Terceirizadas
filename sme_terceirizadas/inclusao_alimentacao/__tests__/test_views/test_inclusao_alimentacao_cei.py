@@ -37,6 +37,58 @@ def test_get_minhas_solicitacoes(
     assert len(response.json()["results"]) == 1
 
 
+def test_destroy(
+    client_autenticado_vinculo_escola_inclusao,
+    inclusao_alimentacao_da_cei_factory,
+    escola,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        EOLService,
+        "get_informacoes_escola_turma_aluno",
+        lambda p1: mocked_informacoes_escola_turma_aluno(),
+    )
+    user = Usuario.objects.get(
+        id=client_autenticado_vinculo_escola_inclusao.session["_auth_user_id"]
+    )
+    inclusao_alimentacao_da_cei = inclusao_alimentacao_da_cei_factory.create(
+        criado_por=user, escola=escola
+    )
+    assert inclusao_alimentacao_da_cei.status == "RASCUNHO"
+
+    response = client_autenticado_vinculo_escola_inclusao.delete(
+        f"/inclusoes-alimentacao-da-cei/{inclusao_alimentacao_da_cei.uuid}/"
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_destroy_falha(
+    client_autenticado_vinculo_escola_inclusao,
+    inclusao_alimentacao_da_cei_factory,
+    escola,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        EOLService,
+        "get_informacoes_escola_turma_aluno",
+        lambda p1: mocked_informacoes_escola_turma_aluno(),
+    )
+    user = Usuario.objects.get(
+        id=client_autenticado_vinculo_escola_inclusao.session["_auth_user_id"]
+    )
+    inclusao_alimentacao_da_cei = inclusao_alimentacao_da_cei_factory.create(
+        criado_por=user, escola=escola, status="DRE_A_VALIDAR"
+    )
+
+    response = client_autenticado_vinculo_escola_inclusao.delete(
+        f"/inclusoes-alimentacao-da-cei/{inclusao_alimentacao_da_cei.uuid}/"
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {
+        "detail": "Você só pode excluir quando o status for RASCUNHO."
+    }
+
+
 def test_get_solicitacoes_diretoria_regional(
     client_autenticado_vinculo_dre_inclusao,
     inclusao_alimentacao_da_cei_factory,

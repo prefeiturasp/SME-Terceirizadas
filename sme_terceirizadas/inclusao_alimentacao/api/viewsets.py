@@ -270,16 +270,6 @@ class TerceirizadaTomaCiencia:
         serializer = self.get_serializer(solicitacao)
         return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
-        solicitacao = self.get_object()
-        if solicitacao.pode_excluir:
-            return super().destroy(request, *args, **kwargs)
-        else:
-            return Response(
-                dict(detail="Você só pode excluir quando o status for RASCUNHO."),
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
 
 class InclusaoAlimentacaoViewSetBase(
     ModelViewSet,
@@ -301,6 +291,16 @@ class InclusaoAlimentacaoViewSetBase(
         elif self.action in ["create", "destroy"]:
             self.permission_classes = (IsAuthenticated, UsuarioEscolaTercTotal)
         return super(InclusaoAlimentacaoViewSetBase, self).get_permissions()
+
+    def destroy(self, request, *args, **kwargs):
+        solicitacao = self.get_object()
+        if solicitacao.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(
+                dict(detail="Você só pode excluir quando o status for RASCUNHO."),
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
 
 class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):

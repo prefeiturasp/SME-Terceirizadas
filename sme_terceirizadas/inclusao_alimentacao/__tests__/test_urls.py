@@ -812,6 +812,7 @@ def test_url_endpoint_inclusao_continua_minhas_solicitacoes(
 def test_url_endpoint_inclusao_continua_solicitacoes_codae(
     client_autenticado_vinculo_codae_inclusao,
     inclusao_alimentacao_continua_dre_validado,
+    escola,
 ):
     assert (
         inclusao_alimentacao_continua_dre_validado.status
@@ -819,6 +820,7 @@ def test_url_endpoint_inclusao_continua_solicitacoes_codae(
     )
     response = client_autenticado_vinculo_codae_inclusao.get(
         f"/inclusoes-alimentacao-continua/{constants.PEDIDOS_CODAE}/{constants.DAQUI_A_TRINTA_DIAS}/"
+        f"?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
@@ -826,7 +828,9 @@ def test_url_endpoint_inclusao_continua_solicitacoes_codae(
 
 @freeze_time("2019-9-30")
 def test_url_endpoint_inclusao_continua_solicitacoes_dre(
-    client_autenticado_vinculo_dre_inclusao, inclusao_alimentacao_continua_dre_validar
+    client_autenticado_vinculo_dre_inclusao,
+    inclusao_alimentacao_continua_dre_validar,
+    escola,
 ):
     assert (
         inclusao_alimentacao_continua_dre_validar.status
@@ -834,6 +838,7 @@ def test_url_endpoint_inclusao_continua_solicitacoes_dre(
     )
     response = client_autenticado_vinculo_dre_inclusao.get(
         f"/inclusoes-alimentacao-continua/{constants.PEDIDOS_DRE}/{constants.DAQUI_A_TRINTA_DIAS}/"
+        f"?lote={escola.lote.uuid}"
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
@@ -1055,7 +1060,7 @@ def test_url_inclusao_cemei_delete_403(
 
 
 def test_url_inclusao_cemei_dre(
-    client_autenticado_vinculo_dre_inclusao, inclusao_alimentacao_cemei
+    client_autenticado_vinculo_dre_inclusao, inclusao_alimentacao_cemei, escola
 ):
     response = client_autenticado_vinculo_dre_inclusao.get(
         "/inclusao-alimentacao-cemei/", content_type="application/json"
@@ -1076,13 +1081,13 @@ def test_url_inclusao_cemei_dre(
     )
     inclusao_alimentacao_cemei.save()
     response = client_autenticado_vinculo_dre_inclusao.get(
-        f"/inclusao-alimentacao-cemei/{PEDIDOS_DRE}/{SEM_FILTRO}/"
+        f"/inclusao-alimentacao-cemei/{PEDIDOS_DRE}/{SEM_FILTRO}/?lote={escola.lote.uuid}"
     )
     assert response.json()["count"] == 1
 
 
 def test_url_inclusao_cemei_codae(
-    client_autenticado_vinculo_codae_inclusao, inclusao_alimentacao_cemei
+    client_autenticado_vinculo_codae_inclusao, inclusao_alimentacao_cemei, escola
 ):
     inclusao_alimentacao_cemei.status = (
         InclusaoDeAlimentacaoCEMEI.workflow_class.DRE_VALIDADO
@@ -1090,6 +1095,7 @@ def test_url_inclusao_cemei_codae(
     inclusao_alimentacao_cemei.save()
     response = client_autenticado_vinculo_codae_inclusao.get(
         f"/inclusao-alimentacao-cemei/{PEDIDOS_CODAE}/{SEM_FILTRO}/"
+        f"?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
     )
     assert response.json()["count"] == 1
 
