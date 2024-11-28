@@ -825,24 +825,6 @@ def test_url_endpoint_inclusao_continua_solicitacoes_codae(
 
 
 @freeze_time("2019-9-30")
-def test_url_endpoint_inclusao_continua_solicitacoes_terceirizada(
-    client_autenticado_vinculo_terceirizada_inclusao,
-    inclusao_alimentacao_continua_codae_autorizado,
-):
-    client, user = client_autenticado_vinculo_terceirizada_inclusao
-
-    assert (
-        inclusao_alimentacao_continua_codae_autorizado.status
-        == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
-    )
-    response = client.get(
-        f"/inclusoes-alimentacao-continua/{constants.PEDIDOS_TERCEIRIZADA}/{constants.DAQUI_A_TRINTA_DIAS}/"
-    )
-    assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 1
-
-
-@freeze_time("2019-9-30")
 def test_url_endpoint_inclusao_continua_solicitacoes_dre(
     client_autenticado_vinculo_dre_inclusao, inclusao_alimentacao_continua_dre_validar
 ):

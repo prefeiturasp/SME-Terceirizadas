@@ -462,24 +462,6 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(
-        detail=False,
-        url_path=f"{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}",
-        permission_classes=(UsuarioTerceirizada,),
-    )
-    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
-        # TODO: colocar regras de terceirizada aqui...
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = (
-            terceirizada.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
-                filtro_aplicado
-            )
-        )
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
     # TODO rever os demais endpoints. Essa action consolida em uma única
     # pesquisa as pesquisas por prioridade.
     @action(
@@ -645,24 +627,6 @@ class InclusaoAlimentacaoContinuaViewSet(
             inclusoes_continuas = inclusoes_continuas.filter(
                 rastro_lote__uuid=lote_uuid
             )
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(
-        detail=False,
-        url_path=f"{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}",
-        permission_classes=(UsuarioTerceirizada,),
-    )
-    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
-        # TODO: colocar regras de terceirizada aqui...
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = (
-            terceirizada.inclusoes_alimentacao_continua_das_minhas_escolas(
-                filtro_aplicado
-            )
-        )
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
