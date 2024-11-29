@@ -173,33 +173,16 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     @action(
         detail=False,
-        url_path=f"{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}",
-        permission_classes=(UsuarioTerceirizada,),
-    )
-    def solicitacoes_terceirizadas(self, request, filtro_aplicado="sem_filtro"):
-        usuario = request.user
-        terceirizadas = usuario.vinculo_atual.instituicao
-        kit_lanches_avulso = (
-            terceirizadas.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
-                filtro_aplicado
-            )
-        )
-        page = self.paginate_queryset(kit_lanches_avulso)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(
-        detail=False,
         url_path=constants.SOLICITACOES_DO_USUARIO,
         permission_classes=(UsuarioEscolaTercTotal,),
     )
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        solicitacoes_unificadas = self.get_queryset().filter(
+        solicitacoes_kit_lanche = self.get_queryset().filter(
             criado_por=usuario,
             status=SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO,
         )
-        page = self.paginate_queryset(solicitacoes_unificadas)
+        page = self.paginate_queryset(solicitacoes_kit_lanche)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -442,16 +425,10 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     )
     def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa: SolicitacaoKitLancheAvulsa = self.get_object()
-        try:
-            solicitacao_kit_lanche_avulsa.terceirizada_conferiu_gestao = True
-            solicitacao_kit_lanche_avulsa.save()
-            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                dict(detail=f"Erro ao marcar solicitação como conferida: {e}"),
-                status=status.HTTP_400_BAD_REQUEST,
-            )  # noqa
+        solicitacao_kit_lanche_avulsa.terceirizada_conferiu_gestao = True
+        solicitacao_kit_lanche_avulsa.save()
+        serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
+        return Response(serializer.data)
 
 
 class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):

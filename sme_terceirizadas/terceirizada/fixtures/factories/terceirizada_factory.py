@@ -1,3 +1,4 @@
+import factory
 from factory import (
     DjangoModelFactory,
     LazyAttribute,
@@ -32,9 +33,6 @@ class EditalFactory(DjangoModelFactory):
 
 
 class ContratoFactory(DjangoModelFactory):
-    class Meta:
-        model = Contrato
-
     numero = Sequence(lambda n: f"{str(n).zfill(5)}")
     terceirizada = SubFactory(EmpresaFactory)
     edital = SubFactory(EditalFactory)
@@ -42,3 +40,15 @@ class ContratoFactory(DjangoModelFactory):
     numero_chamada_publica = LazyFunction(
         lambda: str(fake.random_number(digits=10, fix_len=True))
     )
+
+    @factory.post_generation
+    def lotes(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for lote in extracted:
+                self.lotes.add(lote)
+
+    class Meta:
+        model = Contrato

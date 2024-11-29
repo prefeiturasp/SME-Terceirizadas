@@ -263,18 +263,12 @@ class TerceirizadaTomaCiencia:
         url_path=constants.MARCAR_CONFERIDA,
         permission_classes=(IsAuthenticated,),
     )
-    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
-        inclusao_alimentacao_cei: InclusaoAlimentacaoDaCEI = self.get_object()
-        try:
-            inclusao_alimentacao_cei.terceirizada_conferiu_gestao = True
-            inclusao_alimentacao_cei.save()
-            serializer = self.get_serializer(inclusao_alimentacao_cei)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                dict(detail=f"Erro ao marcar solicitação como conferida: {e}"),
-                status=status.HTTP_400_BAD_REQUEST,
-            )  # noqa
+    def terceirizada_marca_como_conferida(self, request, uuid=None):
+        solicitacao = self.get_object()
+        solicitacao.terceirizada_conferiu_gestao = True
+        solicitacao.save()
+        serializer = self.get_serializer(solicitacao)
+        return Response(serializer.data)
 
 
 class InclusaoAlimentacaoViewSetBase(
@@ -298,16 +292,15 @@ class InclusaoAlimentacaoViewSetBase(
             self.permission_classes = (IsAuthenticated, UsuarioEscolaTercTotal)
         return super(InclusaoAlimentacaoViewSetBase, self).get_permissions()
 
-    @action(
-        detail=True,
-        methods=["GET"],
-        url_path=f"{constants.RELATORIO}",
-        permission_classes=(IsAuthenticated,),
-    )
-    def relatorio(self, request, uuid=None):
-        return relatorio_inclusao_alimentacao_cei(
-            request, solicitacao=self.get_object()
-        )
+    def destroy(self, request, *args, **kwargs):
+        solicitacao = self.get_object()
+        if solicitacao.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(
+                dict(detail="Você só pode excluir quando o status for RASCUNHO."),
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
 
 class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
@@ -395,41 +388,15 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
             )
 
     @action(
-        detail=False,
-        url_path=f"{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}",
-        permission_classes=(UsuarioTerceirizada,),
-    )
-    def solicitacoes_terceirizada(self, request, filtro_aplicado="sem_filtro"):
-        # TODO: colocar regras de terceirizada aqui...
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_alimentacao_cei = (
-            terceirizada.inclusoes_alimentacao_de_cei_das_minhas_escolas(
-                filtro_aplicado
-            )
-        )
-        page = self.paginate_queryset(inclusoes_alimentacao_cei)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(
         detail=True,
-        methods=["patch"],
-        url_path=constants.MARCAR_CONFERIDA,
+        methods=["GET"],
+        url_path=f"{constants.RELATORIO}",
         permission_classes=(IsAuthenticated,),
     )
-    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
-        inclusao_alimentacao_cei: InclusaoAlimentacaoDaCEI = self.get_object()
-        try:
-            inclusao_alimentacao_cei.terceirizada_conferiu_gestao = True
-            inclusao_alimentacao_cei.save()
-            serializer = self.get_serializer(inclusao_alimentacao_cei)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                dict(detail=f"Erro ao marcar solicitação como conferida: {e}"),
-                status=status.HTTP_400_BAD_REQUEST,
-            )  # noqa
+    def relatorio(self, request, uuid=None):
+        return relatorio_inclusao_alimentacao_cei(
+            request, solicitacao=self.get_object()
+        )
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -505,24 +472,6 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(
-        detail=False,
-        url_path=f"{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}",
-        permission_classes=(UsuarioTerceirizada,),
-    )
-    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
-        # TODO: colocar regras de terceirizada aqui...
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = (
-            terceirizada.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
-                filtro_aplicado
-            )
-        )
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
     # TODO rever os demais endpoints. Essa action consolida em uma única
     # pesquisa as pesquisas por prioridade.
     @action(
@@ -561,35 +510,6 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         return relatorio_inclusao_alimentacao_normal(
             request, solicitacao=self.get_object()
         )
-
-    def destroy(self, request, *args, **kwargs):
-        grupo_alimentacao_normal = self.get_object()
-        if grupo_alimentacao_normal.pode_excluir:
-            return super().destroy(request, *args, **kwargs)
-        else:
-            return Response(
-                dict(detail="Você só pode excluir quando o status for RASCUNHO."),
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-    @action(
-        detail=True,
-        methods=["patch"],
-        url_path=constants.MARCAR_CONFERIDA,
-        permission_classes=(IsAuthenticated,),
-    )
-    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
-        inclusao_alimentacao_normal: GrupoInclusaoAlimentacaoNormal = self.get_object()
-        try:
-            inclusao_alimentacao_normal.terceirizada_conferiu_gestao = True
-            inclusao_alimentacao_normal.save()
-            serializer = self.get_serializer(inclusao_alimentacao_normal)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                dict(detail=f"Erro ao marcar solicitação como conferida: {e}"),
-                status=status.HTTP_400_BAD_REQUEST,
-            )  # noqa
 
 
 class InclusaoAlimentacaoContinuaViewSet(
@@ -713,24 +633,6 @@ class InclusaoAlimentacaoContinuaViewSet(
 
     @action(
         detail=False,
-        url_path=f"{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}",
-        permission_classes=(UsuarioTerceirizada,),
-    )
-    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
-        # TODO: colocar regras de terceirizada aqui...
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = (
-            terceirizada.inclusoes_alimentacao_continua_das_minhas_escolas(
-                filtro_aplicado
-            )
-        )
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(
-        detail=False,
         url_path=f"{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}",
         permission_classes=(UsuarioDiretoriaRegional,),
     )
@@ -772,30 +674,6 @@ class InclusaoAlimentacaoContinuaViewSet(
             return Response(
                 dict(detail="Você só pode excluir quando o status for RASCUNHO."),
                 status=status.HTTP_403_FORBIDDEN,
-            )
-
-    @action(
-        detail=True,
-        methods=["patch"],
-        url_path=constants.MARCAR_CONFERIDA,
-        permission_classes=(IsAuthenticated,),
-    )
-    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
-        inclusao_alimentacao_continua: InclusaoAlimentacaoContinua = self.get_object()
-        try:
-            if (
-                inclusao_alimentacao_continua.status
-                != inclusao_alimentacao_continua.workflow_class.CODAE_AUTORIZADO
-            ):
-                raise AssertionError("inclusão não está no status AUTORIZADO")
-            inclusao_alimentacao_continua.terceirizada_conferiu_gestao = True
-            inclusao_alimentacao_continua.save()
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
-            return Response(serializer.data)
-        except AssertionError as e:
-            return Response(
-                dict(detail=f"Erro ao marcar solicitação como conferida: {e}"),
-                status=status.HTTP_400_BAD_REQUEST,
             )
 
 
