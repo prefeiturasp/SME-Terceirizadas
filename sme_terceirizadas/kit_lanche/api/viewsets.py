@@ -425,16 +425,10 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     )
     def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa: SolicitacaoKitLancheAvulsa = self.get_object()
-        try:
-            solicitacao_kit_lanche_avulsa.terceirizada_conferiu_gestao = True
-            solicitacao_kit_lanche_avulsa.save()
-            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(
-                dict(detail=f"Erro ao marcar solicitação como conferida: {e}"),
-                status=status.HTTP_400_BAD_REQUEST,
-            )  # noqa
+        solicitacao_kit_lanche_avulsa.terceirizada_conferiu_gestao = True
+        solicitacao_kit_lanche_avulsa.save()
+        serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
+        return Response(serializer.data)
 
 
 class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
