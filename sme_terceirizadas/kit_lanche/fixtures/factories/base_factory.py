@@ -12,6 +12,9 @@ from sme_terceirizadas.kit_lanche.models import (
     SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa,
 )
+from sme_terceirizadas.perfil.fixtures.factories.perfil_base_factories import (
+    UsuarioFactory,
+)
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EditalFactory,
     EmpresaFactory,
@@ -56,6 +59,7 @@ class SolicitacaoKitLancheFactory(DjangoModelFactory):
 
 class SolicitacaoKitLancheAvulsaFactory(DjangoModelFactory):
     solicitacao_kit_lanche = SubFactory(SolicitacaoKitLancheFactory)
+    criado_por = SubFactory(UsuarioFactory)
     rastro_lote = SubFactory(LoteFactory)
     rastro_dre = SubFactory(DiretoriaRegionalFactory)
     rastro_terceirizada = SubFactory(EmpresaFactory)
