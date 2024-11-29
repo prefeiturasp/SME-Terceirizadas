@@ -2,6 +2,11 @@ import factory
 from factory import DjangoModelFactory, Sequence, SubFactory
 from faker import Faker
 
+from sme_terceirizadas.escola.fixtures.factories.escola_factory import (
+    DiretoriaRegionalFactory,
+    EscolaFactory,
+    LoteFactory,
+)
 from sme_terceirizadas.kit_lanche.models import (
     KitLanche,
     SolicitacaoKitLanche,
@@ -9,6 +14,7 @@ from sme_terceirizadas.kit_lanche.models import (
 )
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EditalFactory,
+    EmpresaFactory,
 )
 
 fake = Faker("pt_BR")
@@ -32,6 +38,7 @@ class KitLancheFactory(DjangoModelFactory):
 
 
 class SolicitacaoKitLancheFactory(DjangoModelFactory):
+    data = factory.Faker("date")
     tempo_passeio = Sequence(lambda n: fake.unique.random_int(min=0, max=2))
 
     @factory.post_generation
@@ -47,8 +54,22 @@ class SolicitacaoKitLancheFactory(DjangoModelFactory):
         model = SolicitacaoKitLanche
 
 
-class SolicitacaoKitLancheAvulsaBaseFactory(DjangoModelFactory):
+class SolicitacaoKitLancheAvulsaFactory(DjangoModelFactory):
     solicitacao_kit_lanche = SubFactory(SolicitacaoKitLancheFactory)
+    rastro_lote = SubFactory(LoteFactory)
+    rastro_dre = SubFactory(DiretoriaRegionalFactory)
+    rastro_terceirizada = SubFactory(EmpresaFactory)
+    quantidade_alunos = Sequence(lambda n: fake.unique.random_int(min=1, max=100))
+    escola = SubFactory(EscolaFactory)
+
+    @factory.post_generation
+    def alunos_com_dieta_especial_participantes(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for aluno in extracted:
+                self.alunos_com_dieta_especial_participantes.add(aluno)
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa

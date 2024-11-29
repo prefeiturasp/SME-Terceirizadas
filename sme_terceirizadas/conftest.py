@@ -70,7 +70,7 @@ from .inclusao_alimentacao.models import (
 )
 from .kit_lanche.fixtures.factories.base_factory import (
     KitLancheFactory,
-    SolicitacaoKitLancheAvulsaBaseFactory,
+    SolicitacaoKitLancheAvulsaFactory,
     SolicitacaoKitLancheFactory,
 )
 from .medicao_inicial.fixtures.factories.solicitacao_medicao_inicial_base_factory import (
@@ -204,7 +204,7 @@ register(InclusaoAlimentacaoNormalFactory)
 register(QuantidadePorPeriodoFactory)
 register(KitLancheFactory)
 register(SolicitacaoKitLancheFactory)
-register(SolicitacaoKitLancheAvulsaBaseFactory)
+register(SolicitacaoKitLancheAvulsaFactory)
 
 
 @pytest.fixture
