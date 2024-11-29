@@ -233,13 +233,38 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terc_resp_quest(
     )
 
 
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terc_resp_quest_erro(
+    client_autenticado_da_terceirizada, solic_avulsa_terc_respondeu_questionamento
+):
+    justificativa = "VAI DAR NÂO :("
+    resposta_sim_nao = False
+    assert (
+        str(solic_avulsa_terc_respondeu_questionamento.status)
+        == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+    )
+    response = client_autenticado_da_terceirizada.patch(
+        f"/{ENDPOINT_AVULSO}/"
+        f"{solic_avulsa_terc_respondeu_questionamento.uuid}/"
+        f"{constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/",
+        data={"justificativa": justificativa, "resposta_sim_nao": resposta_sim_nao},
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "detail": (
+            "Erro de transição de estado: Transition 'terceirizada_responde_questionamento' isn't available from state "
+            + "'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'."
+        )
+    }
+
+
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona_erro(
     client_autenticado_da_codae, solic_avulsa_terc_respondeu_questionamento
 ):
     assert (
         str(solic_avulsa_terc_respondeu_questionamento.status)
         == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-    )  # noqa
+    )
     response = client_autenticado_da_codae.patch(
         f"/{ENDPOINT_AVULSO}/{solic_avulsa_terc_respondeu_questionamento.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/",
     )
@@ -409,6 +434,22 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_deletar(
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert response.data is None
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_deletar_403_nao_e_rascunho(
+    client_autenticado_da_escola, solicitacao_avulsa_dre_a_validar
+):
+    assert (
+        str(solicitacao_avulsa_dre_a_validar.status)
+        != PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    )
+    response = client_autenticado_da_escola.delete(
+        f"/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_a_validar.uuid}/"
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {
+        "detail": "Você só pode excluir quando o status for RASCUNHO."
+    }
 
 
 #

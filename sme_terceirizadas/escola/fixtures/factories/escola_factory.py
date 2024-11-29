@@ -5,6 +5,7 @@ from sme_terceirizadas.escola.constants import CEI_OU_EMEI, INFANTIL_OU_FUNDAMEN
 from sme_terceirizadas.escola.models import (
     DiretoriaRegional,
     Escola,
+    FaixaEtaria,
     LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
@@ -76,3 +77,11 @@ class LogAlunosMatriculadosPeriodoEscolaFactory(DjangoModelFactory):
             elements=[choice[0] for choice in INFANTIL_OU_FUNDAMENTAL]
         )
     )
+
+
+class FaixaEtariaFactory(DjangoModelFactory):
+    inicio = Sequence(lambda n: fake.unique.random_int(min=0, max=10))
+    fim = Sequence(lambda n: fake.unique.random_int(min=11, max=36))
+
+    class Meta:
+        model = FaixaEtaria

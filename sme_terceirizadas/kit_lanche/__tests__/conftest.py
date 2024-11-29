@@ -23,8 +23,8 @@ Faker.seed(420)
 
 
 @pytest.fixture
-def lote():
-    return mommy.make("Lote")
+def lote(diretoria_regional):
+    return mommy.make("Lote", diretoria_regional=diretoria_regional)
 
 
 @pytest.fixture
