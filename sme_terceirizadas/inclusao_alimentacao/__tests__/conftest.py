@@ -225,6 +225,7 @@ def inclusao_alimentacao_continua(
         outro_motivo=fake.name(),
         escola=escola,
         rastro_escola=escola,
+        rastro_lote=escola.lote,
         rastro_dre=escola.diretoria_regional,
     )
     mommy.make(
@@ -247,6 +248,7 @@ def inclusao_alimentacao_cemei(
     inclusao_cemei = mommy.make(
         "InclusaoDeAlimentacaoCEMEI",
         escola=escola,
+        rastro_lote=escola.lote,
         rastro_dre=escola.diretoria_regional,
         rastro_terceirizada=escola.lote.terceirizada,
         uuid="ba5551b3-b770-412b-a923-b0e78301d1fd",
@@ -790,4 +792,4 @@ def client_autenticado_vinculo_terceirizada_inclusao(
         template_html="@id @criado_em @status @link",
     )
     client.login(username=email, password=password)
-    return client
+    return client, user

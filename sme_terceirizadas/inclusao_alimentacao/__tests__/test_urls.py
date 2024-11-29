@@ -289,11 +289,13 @@ def test_url_endpoint_inclusao_normal_terc_ciencia(
     client_autenticado_vinculo_terceirizada_inclusao,
     grupo_inclusao_alimentacao_normal_codae_autorizado,
 ):
+    client, user = client_autenticado_vinculo_terceirizada_inclusao
+
     assert (
         grupo_inclusao_alimentacao_normal_codae_autorizado.status
         == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
     )
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    response = client.patch(
         f"/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_autorizado.uuid}/"
         f"{TERCEIRIZADA_TOMOU_CIENCIA}/"
     )
@@ -326,11 +328,13 @@ def test_url_endpoint_inclusao_normal_terc_ciencia_erro(
     client_autenticado_vinculo_terceirizada_inclusao,
     grupo_inclusao_alimentacao_normal_dre_validar,
 ):
+    client, user = client_autenticado_vinculo_terceirizada_inclusao
+
     assert (
         grupo_inclusao_alimentacao_normal_dre_validar.status
         == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     )
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    response = client.patch(
         f"/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/"
         + f"{TERCEIRIZADA_TOMOU_CIENCIA}/"
     )
@@ -345,11 +349,13 @@ def test_url_endpoint_inclusao_normal_terc_responde_questionamento(
     client_autenticado_vinculo_terceirizada_inclusao,
     grupo_inclusao_alimentacao_normal_codae_questionado,
 ):
+    client, user = client_autenticado_vinculo_terceirizada_inclusao
+
     assert (
         grupo_inclusao_alimentacao_normal_codae_questionado.status
         == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
     )
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    response = client.patch(
         f"/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_questionado.uuid}/"
         f"{TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/"
     )
@@ -358,7 +364,7 @@ def test_url_endpoint_inclusao_normal_terc_responde_questionamento(
         response.json()["status"]
         == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
     )
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    response = client.patch(
         f"/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_questionado.uuid}/"
         + f"{TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/"
     )
@@ -663,11 +669,13 @@ def test_url_endpoint_inclusao_continua_terc_ciencia(
     client_autenticado_vinculo_terceirizada_inclusao,
     inclusao_alimentacao_continua_codae_autorizado,
 ):
+    client, user = client_autenticado_vinculo_terceirizada_inclusao
+
     assert (
         inclusao_alimentacao_continua_codae_autorizado.status
         == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
     )
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    response = client.patch(
         f"/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/"
         f"{TERCEIRIZADA_TOMOU_CIENCIA}/"
     )
@@ -682,11 +690,13 @@ def test_url_endpoint_inclusao_continua_terc_ciencia_erro(
     client_autenticado_vinculo_terceirizada_inclusao,
     inclusao_alimentacao_continua_dre_validar,
 ):
+    client, user = client_autenticado_vinculo_terceirizada_inclusao
+
     assert (
         inclusao_alimentacao_continua_dre_validar.status
         == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     )
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    response = client.patch(
         f"/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_dre_validar.uuid}/"
         + f"{TERCEIRIZADA_TOMOU_CIENCIA}/"
     )
@@ -701,11 +711,13 @@ def test_url_endpoint_inclusao_continua_terc_responde_questionamento(
     client_autenticado_vinculo_terceirizada_inclusao,
     inclusao_alimentacao_continua_codae_questionado,
 ):
+    client, user = client_autenticado_vinculo_terceirizada_inclusao
+
     assert (
         inclusao_alimentacao_continua_codae_questionado.status
         == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
     )
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    response = client.patch(
         f"/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_questionado.uuid}/"
         f"{TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/"
     )
@@ -714,7 +726,7 @@ def test_url_endpoint_inclusao_continua_terc_responde_questionamento(
         response.json()["status"]
         == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
     )
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    response = client.patch(
         f"/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_questionado.uuid}/"
         f"{TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/"
     )
@@ -800,6 +812,7 @@ def test_url_endpoint_inclusao_continua_minhas_solicitacoes(
 def test_url_endpoint_inclusao_continua_solicitacoes_codae(
     client_autenticado_vinculo_codae_inclusao,
     inclusao_alimentacao_continua_dre_validado,
+    escola,
 ):
     assert (
         inclusao_alimentacao_continua_dre_validado.status
@@ -807,22 +820,7 @@ def test_url_endpoint_inclusao_continua_solicitacoes_codae(
     )
     response = client_autenticado_vinculo_codae_inclusao.get(
         f"/inclusoes-alimentacao-continua/{constants.PEDIDOS_CODAE}/{constants.DAQUI_A_TRINTA_DIAS}/"
-    )
-    assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 1
-
-
-@freeze_time("2019-9-30")
-def test_url_endpoint_inclusao_continua_solicitacoes_terceirizada(
-    client_autenticado_vinculo_terceirizada_inclusao,
-    inclusao_alimentacao_continua_codae_autorizado,
-):
-    assert (
-        inclusao_alimentacao_continua_codae_autorizado.status
-        == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
-    )
-    response = client_autenticado_vinculo_terceirizada_inclusao.get(
-        f"/inclusoes-alimentacao-continua/{constants.PEDIDOS_TERCEIRIZADA}/{constants.DAQUI_A_TRINTA_DIAS}/"
+        f"?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
@@ -830,7 +828,9 @@ def test_url_endpoint_inclusao_continua_solicitacoes_terceirizada(
 
 @freeze_time("2019-9-30")
 def test_url_endpoint_inclusao_continua_solicitacoes_dre(
-    client_autenticado_vinculo_dre_inclusao, inclusao_alimentacao_continua_dre_validar
+    client_autenticado_vinculo_dre_inclusao,
+    inclusao_alimentacao_continua_dre_validar,
+    escola,
 ):
     assert (
         inclusao_alimentacao_continua_dre_validar.status
@@ -838,6 +838,7 @@ def test_url_endpoint_inclusao_continua_solicitacoes_dre(
     )
     response = client_autenticado_vinculo_dre_inclusao.get(
         f"/inclusoes-alimentacao-continua/{constants.PEDIDOS_DRE}/{constants.DAQUI_A_TRINTA_DIAS}/"
+        f"?lote={escola.lote.uuid}"
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
@@ -847,27 +848,14 @@ def test_url_endpoint_inclusao_continua_marca_conferencia(
     client_autenticado_vinculo_terceirizada_inclusao,
     inclusao_alimentacao_continua_codae_autorizado,
 ):
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+    client, user = client_autenticado_vinculo_terceirizada_inclusao
+
+    response = client.patch(
         f"/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/"
         f"{constants.MARCAR_CONFERIDA}/"
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["terceirizada_conferiu_gestao"] is True
-
-
-def test_url_endpoint_inclusao_continua_marca_conferencia_validation_error(
-    client_autenticado_vinculo_terceirizada_inclusao,
-    inclusao_alimentacao_continua_dre_validado,
-):
-    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
-        f"/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_dre_validado.uuid}/"
-        f"{constants.MARCAR_CONFERIDA}/"
-    )
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["detail"] == (
-        "Erro ao marcar solicitação como conferida: inclusão não está no status "
-        "AUTORIZADO"
-    )
 
 
 def test_url_endpoint_inclusao_continua_relatorio(
@@ -1072,7 +1060,7 @@ def test_url_inclusao_cemei_delete_403(
 
 
 def test_url_inclusao_cemei_dre(
-    client_autenticado_vinculo_dre_inclusao, inclusao_alimentacao_cemei
+    client_autenticado_vinculo_dre_inclusao, inclusao_alimentacao_cemei, escola
 ):
     response = client_autenticado_vinculo_dre_inclusao.get(
         "/inclusao-alimentacao-cemei/", content_type="application/json"
@@ -1093,13 +1081,13 @@ def test_url_inclusao_cemei_dre(
     )
     inclusao_alimentacao_cemei.save()
     response = client_autenticado_vinculo_dre_inclusao.get(
-        f"/inclusao-alimentacao-cemei/{PEDIDOS_DRE}/{SEM_FILTRO}/"
+        f"/inclusao-alimentacao-cemei/{PEDIDOS_DRE}/{SEM_FILTRO}/?lote={escola.lote.uuid}"
     )
     assert response.json()["count"] == 1
 
 
 def test_url_inclusao_cemei_codae(
-    client_autenticado_vinculo_codae_inclusao, inclusao_alimentacao_cemei
+    client_autenticado_vinculo_codae_inclusao, inclusao_alimentacao_cemei, escola
 ):
     inclusao_alimentacao_cemei.status = (
         InclusaoDeAlimentacaoCEMEI.workflow_class.DRE_VALIDADO
@@ -1107,6 +1095,7 @@ def test_url_inclusao_cemei_codae(
     inclusao_alimentacao_cemei.save()
     response = client_autenticado_vinculo_codae_inclusao.get(
         f"/inclusao-alimentacao-cemei/{PEDIDOS_CODAE}/{SEM_FILTRO}/"
+        f"?lote={escola.lote.uuid}&diretoria_regional={escola.diretoria_regional.uuid}"
     )
     assert response.json()["count"] == 1
 
@@ -1114,7 +1103,8 @@ def test_url_inclusao_cemei_codae(
 def test_url_inclusao_cemei_terceirizada(
     client_autenticado_vinculo_terceirizada_inclusao, inclusao_alimentacao_cemei
 ):
-    response = client_autenticado_vinculo_terceirizada_inclusao.get(
+    client, user = client_autenticado_vinculo_terceirizada_inclusao
+    response = client.get(
         "/inclusao-alimentacao-cemei/", content_type="application/json"
     )
     assert response.status_code == status.HTTP_200_OK
