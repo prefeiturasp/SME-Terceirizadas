@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from rest_framework import status
 
@@ -58,3 +60,89 @@ def test_list_escola_cemei(
     response = client_autenticado_da_escola.get("/kit-lanches/")
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
+
+
+def test_valida_nome_kit_lanche(
+    client_autenticado_da_escola,
+    kit_lanche_factory,
+    contrato_factory,
+    edital_factory,
+    escola,
+):
+    edital = edital_factory.create(numero="78/SME/2016")
+    contrato_factory.create(
+        edital=edital, terceirizada=escola.lote.terceirizada, lotes=Lote.objects.all()
+    )
+    kit_lanche_factory.create(
+        nome="KIT_1", edital=edital, tipos_unidades=TipoUnidadeEscolar.objects.all()
+    )
+
+    url = (
+        f"/kit-lanches/nome-existe/"
+        f"?nome=KIT_1"
+        f"&edital={str(edital.uuid)}"
+        f"&tipos_unidades[]={str(escola.tipo_unidade.uuid)}"
+        f"&uuid={str(uuid.uuid4())}"
+    )
+
+    response = client_autenticado_da_escola.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "detail": "Esse nome de kit lanche já existe para o edital e tipos de unidades selecionados"
+    }
+
+
+def test_valida_nome_kit_lanche_404_mesmo_uuid(
+    client_autenticado_da_escola,
+    kit_lanche_factory,
+    contrato_factory,
+    edital_factory,
+    escola,
+):
+    edital = edital_factory.create(numero="78/SME/2016")
+    contrato_factory.create(
+        edital=edital, terceirizada=escola.lote.terceirizada, lotes=Lote.objects.all()
+    )
+    kit_lanche = kit_lanche_factory.create(
+        nome="KIT_1", edital=edital, tipos_unidades=TipoUnidadeEscolar.objects.all()
+    )
+
+    url = (
+        f"/kit-lanches/nome-existe/"
+        f"?nome=KIT_1"
+        f"&edital={str(edital.uuid)}"
+        f"&tipos_unidades[]={str(escola.tipo_unidade.uuid)}"
+        f"&uuid={kit_lanche.uuid}"
+    )
+
+    response = client_autenticado_da_escola.get(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"detail": "Nome válido"}
+
+
+def test_valida_nome_kit_lanche_404_kit_lanche_does_not_exist(
+    client_autenticado_da_escola,
+    kit_lanche_factory,
+    contrato_factory,
+    edital_factory,
+    escola,
+):
+    edital = edital_factory.create(numero="78/SME/2016")
+    contrato_factory.create(
+        edital=edital, terceirizada=escola.lote.terceirizada, lotes=Lote.objects.all()
+    )
+    kit_lanche = kit_lanche_factory.create(
+        nome="KIT_1", edital=edital, tipos_unidades=TipoUnidadeEscolar.objects.all()
+    )
+
+    url = (
+        f"/kit-lanches/nome-existe/"
+        f"?nome=KIT_2"
+        f"&edital={str(edital.uuid)}"
+        f"&tipos_unidades[]={str(escola.tipo_unidade.uuid)}"
+        f"&uuid={kit_lanche.uuid}"
+    )
+
+    response = client_autenticado_da_escola.get(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"detail": "Nome válido"}
