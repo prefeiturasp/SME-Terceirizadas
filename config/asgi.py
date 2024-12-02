@@ -1,5 +1,5 @@
 """
-ASGI config for SME-Terceirizadas project.
+ASGI config for SME-SIGPAE-API project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 For more information on this file, see
