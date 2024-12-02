@@ -1,20 +1,20 @@
 from random import choice
 
-from sme_terceirizadas.dieta_especial.data.alergia_intolerancia import (
+from sme_sigpae_api.dieta_especial.data.alergia_intolerancia import (
     data_alergia_intolerancias,
 )
-from sme_terceirizadas.dieta_especial.data.alimentos import data_alimentos
-from sme_terceirizadas.dieta_especial.data.alimentos_proprios_codae import (
+from sme_sigpae_api.dieta_especial.data.alimentos import data_alimentos
+from sme_sigpae_api.dieta_especial.data.alimentos_proprios_codae import (
     data_alimentos_proprios_codae,
 )
-from sme_terceirizadas.dieta_especial.data.classificacao_dieta import (
+from sme_sigpae_api.dieta_especial.data.classificacao_dieta import (
     data_classificacoes_dieta,
 )
-from sme_terceirizadas.dieta_especial.data.motivo_alteracao_ue import (
+from sme_sigpae_api.dieta_especial.data.motivo_alteracao_ue import (
     data_motivo_alteracao_ue,
 )
-from sme_terceirizadas.dieta_especial.data.motivo_negacao import data_motivo_negacoes
-from sme_terceirizadas.dieta_especial.models import (
+from sme_sigpae_api.dieta_especial.data.motivo_negacao import data_motivo_negacoes
+from sme_sigpae_api.dieta_especial.models import (
     AlergiaIntolerancia,
     Alimento,
     AlimentoProprio,
@@ -22,7 +22,7 @@ from sme_terceirizadas.dieta_especial.models import (
     MotivoAlteracaoUE,
     MotivoNegacao,
 )
-from sme_terceirizadas.produto.models import Marca
+from sme_sigpae_api.produto.models import Marca
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
 

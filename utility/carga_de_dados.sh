@@ -13,7 +13,7 @@ echo "Atualizar dados com base na API do EOL em tempo real? (S/N)"
 read atualizacao_tempo_real
 
 ./manage.py migrate
-./manage.py loaddata sme_terceirizadas/**/fixtures/*.json
+./manage.py loaddata sme_sigpae_api/**/fixtures/*.json
 
 ./manage.py shell -c "from utility.carga_dados.escola import _2_escola_EMEF_EMEFM_EMEBS_CIEJA"
 ./manage.py shell -c "from utility.carga_dados.escola import _3_escola_EMEI"

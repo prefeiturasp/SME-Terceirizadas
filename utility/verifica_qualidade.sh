@@ -16,7 +16,7 @@ echo "Verificando estilo e qualidade de código..."
 flake8
 
 echo "Verificando falhas de segurança média ou superior..."
-bandit -r sme_terceirizadas -ll
+bandit -r sme_sigpae_api -ll
 
 echo "Gerando coverage html..."
 coverage html

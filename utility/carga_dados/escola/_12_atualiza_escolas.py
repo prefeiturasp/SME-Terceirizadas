@@ -6,10 +6,10 @@ import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 
-from sme_terceirizadas.escola.management.commands.helper import (
+from sme_sigpae_api.escola.management.commands.helper import (
     calcula_total_alunos_por_escola_por_periodo,
 )
-from sme_terceirizadas.escola.models import Escola, EscolaPeriodoEscolar, PeriodoEscolar
+from sme_sigpae_api.escola.models import Escola, EscolaPeriodoEscolar, PeriodoEscolar
 from utility.carga_dados.escola.helper import bcolors, printa_pontinhos
 
 ROOT_DIR = environ.Path(__file__) - 1

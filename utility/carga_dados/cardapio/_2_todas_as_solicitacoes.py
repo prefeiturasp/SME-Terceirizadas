@@ -8,7 +8,7 @@ import numpy as np
 from faker import Faker
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.cardapio.models import (
+from sme_sigpae_api.cardapio.models import (
     AlteracaoCardapio,
     Cardapio,
     GrupoSuspensaoAlimentacao,
@@ -19,8 +19,8 @@ from sme_terceirizadas.cardapio.models import (
     SuspensaoAlimentacao,
     TipoAlimentacao,
 )
-from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, PeriodoEscolar
-from sme_terceirizadas.inclusao_alimentacao.models import (
+from sme_sigpae_api.escola.models import DiretoriaRegional, Escola, PeriodoEscolar
+from sme_sigpae_api.inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoNormal,
@@ -28,14 +28,14 @@ from sme_terceirizadas.inclusao_alimentacao.models import (
     MotivoInclusaoNormal,
     QuantidadePorPeriodo,
 )
-from sme_terceirizadas.kit_lanche.models import (
+from sme_sigpae_api.kit_lanche.models import (
     EscolaQuantidade,
     KitLanche,
     SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa,
     SolicitacaoKitLancheUnificada,
 )
-from sme_terceirizadas.perfil.models import Usuario
+from sme_sigpae_api.perfil.models import Usuario
 
 f = Faker("pt-br")
 f.seed(420)
