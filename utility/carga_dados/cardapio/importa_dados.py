@@ -1,13 +1,13 @@
 from random import randint, sample
 
-from sme_terceirizadas.cardapio.data.motivos_alteracao_cardapio import (
+from sme_sigpae_api.cardapio.data.motivos_alteracao_cardapio import (
     data_motivoalteracaocardapio,
 )
-from sme_terceirizadas.cardapio.data.motivos_suspensao_alimentacao import (
+from sme_sigpae_api.cardapio.data.motivos_suspensao_alimentacao import (
     data_motivosuspensao,
 )
-from sme_terceirizadas.cardapio.data.tipo_alimentacao import data_tipo_alimentacao
-from sme_terceirizadas.cardapio.models import (
+from sme_sigpae_api.cardapio.data.tipo_alimentacao import data_tipo_alimentacao
+from sme_sigpae_api.cardapio.models import (
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
@@ -15,7 +15,7 @@ from sme_terceirizadas.cardapio.models import (
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
 )
-from sme_terceirizadas.escola.models import PeriodoEscolar, TipoUnidadeEscolar
+from sme_sigpae_api.escola.models import PeriodoEscolar, TipoUnidadeEscolar
 from utility.carga_dados.helper import ja_existe, progressbar
 
 

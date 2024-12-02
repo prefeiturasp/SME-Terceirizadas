@@ -287,7 +287,7 @@ pip-selfcheck.json
 
 ### Project template
 
-sme_terceirizadas/media/
+sme_sigpae_api/media/
 
 .pytest_cache/
 .testmondata

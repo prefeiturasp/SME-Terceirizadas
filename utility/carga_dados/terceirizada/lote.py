@@ -2,7 +2,7 @@ from unicodedata import normalize
 
 import pandas as pd
 
-from sme_terceirizadas.escola.models import DiretoriaRegional, Lote
+from sme_sigpae_api.escola.models import DiretoriaRegional, Lote
 
 caminho_excel = "/home/amcom/Documentos/docs PO alimentacao/lista de lotes.xlsx"
 

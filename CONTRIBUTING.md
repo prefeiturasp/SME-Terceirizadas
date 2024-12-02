@@ -16,12 +16,12 @@ Existem diversas formas de contribuir com o projeto:
 
 ### Reportando bugs
 
-Se encontrou um bug no SIGPAE você pode reportá-lo usando a ferramenta de [issues do GitHub](https://github.com/prefeiturasp/SME-Terceirizadas/issues). Porém antes de enviar seu bug é importante fazer as seguintes verificações:
+Se encontrou um bug no SIGPAE você pode reportá-lo usando a ferramenta de [issues do GitHub](https://github.com/prefeiturasp/SME-SIGPAE-API/issues). Porém antes de enviar seu bug é importante fazer as seguintes verificações:
 
 1. Atualize seu repositório local no branch `master` mais recente. Talvez seu bug já tenha sido corrigido na versão mais recente;
 2. Verifique se o bug já foi reportado por outra pessoa fazendo uma busca pelas issues.
 
-Se o bug realmente não foi resolvido ou acolhido então está na hora de [criar uma nova issue](https://github.com/prefeiturasp/SME-Terceirizadas/issues/new).  Siga o template fornecido.
+Se o bug realmente não foi resolvido ou acolhido então está na hora de [criar uma nova issue](https://github.com/prefeiturasp/SME-SIGPAE-API/issues/new).  Siga o template fornecido.
 
 #### Nota sobre falhas de segurança
 
@@ -37,7 +37,7 @@ algum recurso ou qualquer outra coisa relacionada, siga estes passos:
 Outra ótima forma de contribuir é indicando melhorias ao código e em como ele está estruturado. Se você tem qualquer ideia de como podemos melhorar alguma abordagem na solução de problemas, refatoração de código, melhoria em
 algum recurso ou qualquer outra coisa relacionada, siga estes passos:
 
-1. Certifique-se de que sua ideia já não esteja sendo abordada dentro do conjuntos de issues [issues do GitHub](https://github.com/prefeiturasp/SME-Terceirizadas/issues);
+1. Certifique-se de que sua ideia já não esteja sendo abordada dentro do conjuntos de issues [issues do GitHub](https://github.com/prefeiturasp/SME-SIGPAE-API/issues);
 2. Defenda a sua ideia e explique de forma convincente porque ela deve ser
    acolhida. Eis algumas questões a considerar:
    1. Você realmente esta propondo uma ideia só ou um conjunto de ideias?
@@ -46,7 +46,7 @@ algum recurso ou qualquer outra coisa relacionada, siga estes passos:
    4. Realmente vale a pena demandar tempo para implementar sua ideia dentro de nossas prioridades?
       
       Tendo passado pelo crivo de todos estes questionamentos basta [criar uma nova issue](Tendo passado pelo crivo de todos estes questionamentos basta
-[criar uma nova issue](https://github.com/prefeiturasp/SME-Terceirizadas/issues/new) descrevendo as melhorias e usando o label **melhorias**./new) descrevendo as melhorias e usando o label **melhorias**.
+[criar uma nova issue](https://github.com/prefeiturasp/SME-SIGPAE-API/issues/new) descrevendo as melhorias e usando o label **melhorias**./new) descrevendo as melhorias e usando o label **melhorias**.
 
 ### Pedindo recursos
 
@@ -69,7 +69,7 @@ apenas se:
 Um exemplo de um bom recurso implementado para o i-Educar é o módulo do **censo escolar** que visa resolver todo o processo de exportação de dados para o Censo Escolar com apenas alguns cliques, otimizando de forma radical este processo que
 antes poderia demorar semanas envolvendo o trabalho de muitas pessoas.
 
-Para criar seu pedido de recurso basta [criar uma nova issue](https://github.com/prefeiturasp/SME-Terceirizadas/issues/new) usando o label **recurso**. /new) usando o label **recurso**.
+Para criar seu pedido de recurso basta [criar uma nova issue](https://github.com/prefeiturasp/SME-SIGPAE-API/issues/new) usando o label **recurso**. /new) usando o label **recurso**.
 
 ### Discutindo as issues
 

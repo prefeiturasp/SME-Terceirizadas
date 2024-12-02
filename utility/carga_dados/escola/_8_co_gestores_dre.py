@@ -4,8 +4,8 @@ import environ
 import numpy as np
 import pandas as pd
 
-from sme_terceirizadas.escola.models import DiretoriaRegional
-from sme_terceirizadas.perfil.models import Perfil, Usuario
+from sme_sigpae_api.escola.models import DiretoriaRegional
+from sme_sigpae_api.perfil.models import Perfil, Usuario
 from utility.carga_dados.escola.helper import (
     bcolors,
     coloca_zero_a_esquerda,

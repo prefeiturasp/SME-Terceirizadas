@@ -1,4 +1,4 @@
-# SME-PratoAberto-Terceirizadas documentation build configuration file, created by
+# SME-SIGPAE-API documentation build configuration file, created by
 # sphinx-quickstart.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -36,8 +36,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "SME-PratoAberto-Terceirizadas"
-copyright = """2019, Equipe AMCOM|SME"""
+project = "SME-SIGPAE-API"
+copyright = """2025, Equipe SME"""
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -160,7 +160,7 @@ html_static_path = ["_static"]
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "sme_terceirizadasdoc"
+htmlhelp_basename = "sme_sigpaeapidoc"
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -179,9 +179,9 @@ latex_elements = {
 latex_documents = [
     (
         "index",
-        "sme_terceirizadas.tex",
-        "SME-PratoAberto-Terceirizadas Documentation",
-        """Equipe AMCOM|SME""",
+        "sme_sigpae_api.tex",
+        "SME-SIGPAE-API Documentation",
+        """Equipe SME""",
         "manual",
     )
 ]
@@ -214,9 +214,9 @@ latex_documents = [
 man_pages = [
     (
         "index",
-        "sme_terceirizadas",
-        "SME-PratoAberto-Terceirizadas Documentation",
-        ["""Equipe AMCOM|SME"""],
+        "sme_sigpae_api",
+        "SME-SIGPAE-API Documentation",
+        ["""Equipe SME"""],
         1,
     )
 ]
@@ -233,10 +233,10 @@ man_pages = [
 texinfo_documents = [
     (
         "index",
-        "sme_terceirizadas",
-        "SME-PratoAberto-Terceirizadas Documentation",
-        """Equipe AMCOM|SME""",
-        "SME-PratoAberto-Terceirizadas",
+        "sme_sigpae_api",
+        "SME-SIGPAE-API Documentation",
+        """Equipe SME""",
+        "SME-SIGPAE-API",
         """Sistema de alimentação focado em terceirizadas""",
         "Miscellaneous",
     )

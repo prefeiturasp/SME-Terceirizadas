@@ -3,16 +3,16 @@ from random import choice, randint
 import environ
 from django.db.models import Q
 
-from sme_terceirizadas.cardapio.models import TipoAlimentacao
-from sme_terceirizadas.dados_comuns.models import Contato
-from sme_terceirizadas.escola.data.diretorias_regionais import (  # noqa
+from sme_sigpae_api.cardapio.models import TipoAlimentacao
+from sme_sigpae_api.dados_comuns.models import Contato
+from sme_sigpae_api.escola.data.diretorias_regionais import (  # noqa
     data_diretorias_regionais,
 )
-from sme_terceirizadas.escola.data.lotes import data_lotes
-from sme_terceirizadas.escola.data.periodo_escolar import data_periodo_escolar
-from sme_terceirizadas.escola.data.subprefeituras import data_subprefeituras
-from sme_terceirizadas.escola.data.tipos_gestao import data_tipos_gestao
-from sme_terceirizadas.escola.models import (
+from sme_sigpae_api.escola.data.lotes import data_lotes
+from sme_sigpae_api.escola.data.periodo_escolar import data_periodo_escolar
+from sme_sigpae_api.escola.data.subprefeituras import data_subprefeituras
+from sme_sigpae_api.escola.data.tipos_gestao import data_tipos_gestao
+from sme_sigpae_api.escola.models import (
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -22,9 +22,9 @@ from sme_terceirizadas.escola.models import (
     TipoGestao,
     TipoUnidadeEscolar,
 )
-from sme_terceirizadas.perfil.models import Perfil, Usuario
-from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
-from sme_terceirizadas.terceirizada.models import Terceirizada
+from sme_sigpae_api.perfil.models import Perfil, Usuario
+from sme_sigpae_api.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
+from sme_sigpae_api.terceirizada.models import Terceirizada
 from utility.carga_dados.escola.helper import (
     bcolors,
     email_valido,

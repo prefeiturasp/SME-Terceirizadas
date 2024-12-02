@@ -10,8 +10,8 @@ import environ
 import numpy as np
 import pandas as pd
 
-from sme_terceirizadas.dados_comuns.models import Contato
-from sme_terceirizadas.escola.models import (
+from sme_sigpae_api.dados_comuns.models import Contato
+from sme_sigpae_api.escola.models import (
     DiretoriaRegional,
     Escola,
     Lote,

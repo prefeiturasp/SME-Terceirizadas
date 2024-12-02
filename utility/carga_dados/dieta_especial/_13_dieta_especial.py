@@ -1,7 +1,7 @@
 import environ
 import pandas as pd
 
-from sme_terceirizadas.dieta_especial.models import (
+from sme_sigpae_api.dieta_especial.models import (
     AlergiaIntolerancia,
     Alimento,
     ClassificacaoDieta,

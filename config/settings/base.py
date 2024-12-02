@@ -8,12 +8,12 @@ import environ
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-from sme_terceirizadas import __version__ as api_version
+from sme_sigpae_api import __version__ as api_version
 
-# (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
+# (sme_sigpae_api/config/settings/base.py - 3 = sme_sigpae_api/)
 
 ROOT_DIR = environ.Path(__file__) - 3
-APPS_DIR = ROOT_DIR.path("sme_terceirizadas")
+APPS_DIR = ROOT_DIR.path("sme_sigpae_api")
 
 env = environ.Env()
 
@@ -114,23 +114,23 @@ THIRD_PARTY_APPS = [
     "nested_inline",
 ]
 LOCAL_APPS = [
-    "sme_terceirizadas.perfil.apps.PerfilConfig",
-    "sme_terceirizadas.dados_comuns.apps.DadosComunsConfig",
-    "sme_terceirizadas.escola.apps.EscolaConfig",
-    "sme_terceirizadas.kit_lanche.apps.KitLancheConfig",
-    "sme_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig",
-    "sme_terceirizadas.cardapio.apps.CardapioConfig",
-    "sme_terceirizadas.terceirizada.apps.TerceirizadaConfig",
-    "sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig",
-    "sme_terceirizadas.dieta_especial.apps.DietaEspecialConfig",
-    "sme_terceirizadas.relatorios.apps.RelatoriosConfig",
-    "sme_terceirizadas.produto.apps.ProdutoConfig",
-    "sme_terceirizadas.lancamento_inicial.apps.LancamentoInicialConfig",
-    "sme_terceirizadas.logistica.apps.LogisticaConfig",
-    "sme_terceirizadas.medicao_inicial.apps.MedicaoInicialConfig",
-    "sme_terceirizadas.pre_recebimento.apps.PreRecebimentoConfig",
-    "sme_terceirizadas.recebimento.apps.RecebimentoConfig",
-    "sme_terceirizadas.imr.apps.ImrConfig",
+    "sme_sigpae_api.perfil.apps.PerfilConfig",
+    "sme_sigpae_api.dados_comuns.apps.DadosComunsConfig",
+    "sme_sigpae_api.escola.apps.EscolaConfig",
+    "sme_sigpae_api.kit_lanche.apps.KitLancheConfig",
+    "sme_sigpae_api.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig",
+    "sme_sigpae_api.cardapio.apps.CardapioConfig",
+    "sme_sigpae_api.terceirizada.apps.TerceirizadaConfig",
+    "sme_sigpae_api.paineis_consolidados.apps.PaineisConsolidadosConfig",
+    "sme_sigpae_api.dieta_especial.apps.DietaEspecialConfig",
+    "sme_sigpae_api.relatorios.apps.RelatoriosConfig",
+    "sme_sigpae_api.produto.apps.ProdutoConfig",
+    "sme_sigpae_api.lancamento_inicial.apps.LancamentoInicialConfig",
+    "sme_sigpae_api.logistica.apps.LogisticaConfig",
+    "sme_sigpae_api.medicao_inicial.apps.MedicaoInicialConfig",
+    "sme_sigpae_api.pre_recebimento.apps.PreRecebimentoConfig",
+    "sme_sigpae_api.recebimento.apps.RecebimentoConfig",
+    "sme_sigpae_api.imr.apps.ImrConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -138,7 +138,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "sme_terceirizadas.contrib.sites.migrations"}
+MIGRATION_MODULES = {"sites": "sme_sigpae_api.contrib.sites.migrations"}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -196,7 +196,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
-    "sme_terceirizadas.jwt_middleware.JWTAuthenticationMiddleware",
+    "sme_sigpae_api.jwt_middleware.JWTAuthenticationMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
 ]
 

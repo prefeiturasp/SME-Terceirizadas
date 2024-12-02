@@ -12,7 +12,7 @@ SECRET_KEY = env(
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list(
-    "DJANGO_ALLOWED_HOSTS", default=["terceirizadas.sme.prefeitura.sp.gov.br"]
+    "DJANGO_ALLOWED_HOSTS", default=["sigpae.sme.prefeitura.sp.gov.br"]
 )
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=True)
