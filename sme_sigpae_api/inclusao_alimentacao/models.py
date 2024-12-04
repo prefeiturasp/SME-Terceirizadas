@@ -650,7 +650,7 @@ class InclusaoAlimentacaoDaCEI(
     def adiciona_inclusao_a_quantidade_por_faixa_etaria(
         self,
         quantidade_por_faixa_etaria: QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
-    ):  # noqa E128
+    ):
         quantidade_por_faixa_etaria.inclusao_alimentacao_da_cei = self
         quantidade_por_faixa_etaria.save()
 
