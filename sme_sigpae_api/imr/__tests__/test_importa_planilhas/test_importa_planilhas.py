@@ -1,4 +1,3 @@
-from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
@@ -21,9 +20,6 @@ from sme_sigpae_api.imr.models import (
 pytestmark = pytest.mark.django_db
 
 
-script_dir = Path(__file__).parent
-
-
 def test_importa_planilha_tipo_penalidade(
     client_autenticado_vinculo_coordenador_supervisao_nutricao,
     edital_factory,
@@ -35,10 +31,10 @@ def test_importa_planilha_tipo_penalidade(
     edital = edital_factory.create(numero="EDITAL MODELO IMR")
     gravidade = tipo_gravidade_factory.create(tipo="Leve")
 
-    file_path = (
-        script_dir / "arquivos_teste" / "planilha_importacao_tipos_penalidade.xlsx"
+    workbook = load_workbook(
+        "sme_sigpae_api/imr/__tests__/test_importa_planilhas/arquivos_teste/"
+        "planilha_importacao_tipos_penalidade.xlsx"
     )
-    workbook = load_workbook(file_path)
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
@@ -81,10 +77,10 @@ def test_importa_planilha_tipo_penalidade_erro_seleciona_mais_de_um_arquivo(
     edital_factory.create(numero="EDITAL MODELO IMR")
     tipo_gravidade_factory.create(tipo="Leve")
 
-    file_path = (
-        script_dir / "arquivos_teste" / "planilha_importacao_tipos_penalidade.xlsx"
+    workbook = load_workbook(
+        "sme_sigpae_api/imr/__tests__/test_importa_planilhas/arquivos_teste/"
+        "planilha_importacao_tipos_penalidade.xlsx"
     )
-    workbook = load_workbook(file_path)
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
@@ -124,10 +120,10 @@ def test_importa_planilha_tipo_penalidade_erro_arquivo_formato_incorreto(
     edital_factory.create(numero="EDITAL MODELO IMR")
     tipo_gravidade_factory.create(tipo="Leve")
 
-    file_path = (
-        script_dir / "arquivos_teste" / "planilha_importacao_tipos_penalidade.xlsx"
+    workbook = load_workbook(
+        "sme_sigpae_api/imr/__tests__/test_importa_planilhas/arquivos_teste/"
+        "planilha_importacao_tipos_penalidade.xlsx"
     )
-    workbook = load_workbook(file_path)
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
@@ -172,10 +168,10 @@ def test_importa_planilha_tipo_ocorrencia(
         numero_clausula="1.1.", edital=edital
     )
 
-    file_path = (
-        script_dir / "arquivos_teste" / "planilha_importacao_tipos_ocorrencia.xlsx"
+    workbook = load_workbook(
+        "sme_sigpae_api/imr/__tests__/test_importa_planilhas/arquivos_teste/"
+        "planilha_importacao_tipos_ocorrencia.xlsx"
     )
-    workbook = load_workbook(file_path)
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
@@ -220,10 +216,10 @@ def test_importa_planilha_tipo_ocorrencia_erro_seleciona_mais_de_um_arquivo(
 ):
     client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
 
-    file_path = (
-        script_dir / "arquivos_teste" / "planilha_importacao_tipos_ocorrencia.xlsx"
+    workbook = load_workbook(
+        "sme_sigpae_api/imr/__tests__/test_importa_planilhas/arquivos_teste/"
+        "planilha_importacao_tipos_ocorrencia.xlsx"
     )
-    workbook = load_workbook(file_path)
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
@@ -258,10 +254,10 @@ def test_importa_planilha_tipo_ocorrencia_erro_arquivo_formato_incorreto(
 ):
     client, usuario = client_autenticado_vinculo_coordenador_supervisao_nutricao
 
-    file_path = (
-        script_dir / "arquivos_teste" / "planilha_importacao_tipos_ocorrencia.xlsx"
+    workbook = load_workbook(
+        "sme_sigpae_api/imr/__tests__/test_importa_planilhas/arquivos_teste/"
+        "planilha_importacao_tipos_ocorrencia.xlsx"
     )
-    workbook = load_workbook(file_path)
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
