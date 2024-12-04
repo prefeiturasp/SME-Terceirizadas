@@ -32,7 +32,7 @@ def test_importa_planilha_tipo_penalidade(
     gravidade = tipo_gravidade_factory.create(tipo="Leve")
 
     workbook = load_workbook(
-        "sme_sigpae_api/imr/__tests__/test_importa_planilhas/arquivos_teste/"
+        "sme_terceirizadas/imr/__tests__/test_importa_planilhas/arquivos_teste/"
         "planilha_importacao_tipos_penalidade.xlsx"
     )
     response = HttpResponse(
