@@ -1494,7 +1494,7 @@ class AlteracoesCardapioCEMEIViewSet(
             return AlteracaoCardapioCEMEISerializerCreate
         return AlteracaoCardapioCEMEISerializer
 
-    def get_queryset(self):  # noqa C901
+    def get_queryset(self):
         queryset = AlteracaoCardapioCEMEI.objects.all()
         user = self.request.user
         if user.tipo_usuario == "escola":
