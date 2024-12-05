@@ -4,6 +4,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
+from django.db.models import QuerySet
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
@@ -185,14 +186,16 @@ class SolicitacaoDietaEspecial(
 
     @classmethod
     def _get_quantidade_solicitacoes_que_ja_estiveram_nos_status(
-        cls, solicitacoes: list, status: list
+        cls, solicitacoes: QuerySet, status: list
     ):
-        solicitacoes = [
-            solicitacao
-            for solicitacao in solicitacoes
-            if solicitacao.logs.filter(status_evento__in=status).distinct().exists()
-        ]
-        return len(solicitacoes)
+        uuids = set(list(solicitacoes.values_list("uuid", flat=True)))
+        return len(
+            set(
+                LogSolicitacoesUsuario.objects.filter(
+                    uuid_original__in=uuids, status_evento__in=status
+                ).values_list("uuid_original", flat=True)
+            )
+        )
 
     @classmethod
     def quantidade_solicitacoes_que_ja_estiveram_pendentes(cls, solicitacoes):
@@ -214,11 +217,9 @@ class SolicitacaoDietaEspecial(
 
     @classmethod
     def quantidade_solicitacoes_que_ja_estiveram_canceladas(cls, solicitacoes):
-        solicitacoes = [
-            solicitacao
-            for solicitacao in solicitacoes
-            if solicitacao.tipo_solicitacao in ["ALTERACAO_UE", "COMUM"]
-        ]
+        solicitacoes = solicitacoes.filter(
+            tipo_solicitacao__in=["ALTERACAO_UE", "COMUM"]
+        )
         status = (
             CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP + CANCELADOS_EVENTO_DIETA_ESPECIAL
         )
@@ -232,23 +233,21 @@ class SolicitacaoDietaEspecial(
             SolicitacaoDietaEspecial.objects.all() if queryset is None else queryset
         )
 
-        solicitacoes = list(queryset.only("uuid", "tipo_solicitacao"))
-
         total_solicitacoes = (
             SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_pendentes(
-                solicitacoes
+                queryset
             )
         )
         total_autorizadas = SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_autorizadas(
-            solicitacoes
+            queryset
         )
         total_negadas = (
             SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_negadas(
-                solicitacoes
+                queryset
             )
         )
         total_canceladas = SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_canceladas(
-            solicitacoes
+            queryset
         )
 
         return {
