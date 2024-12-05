@@ -12,28 +12,28 @@ from drf_spectacular.views import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from sme_terceirizadas.cardapio.urls import urlpatterns as cardapio_urls
-from sme_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
-from sme_terceirizadas.dieta_especial.urls import urlpatterns as dieta_especial_urls
-from sme_terceirizadas.eol_servico.urls import urlpatterns as eol_servico_urls
-from sme_terceirizadas.escola.urls import urlpatterns as escola_urls
-from sme_terceirizadas.imr.urls import urlpatterns as imr_urls
-from sme_terceirizadas.inclusao_alimentacao.urls import urlpatterns as inclusao_urls
-from sme_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
-from sme_terceirizadas.lancamento_inicial.urls import (
+from sme_sigpae_api.cardapio.urls import urlpatterns as cardapio_urls
+from sme_sigpae_api.dados_comuns.urls import urlpatterns as comuns_urls
+from sme_sigpae_api.dieta_especial.urls import urlpatterns as dieta_especial_urls
+from sme_sigpae_api.eol_servico.urls import urlpatterns as eol_servico_urls
+from sme_sigpae_api.escola.urls import urlpatterns as escola_urls
+from sme_sigpae_api.imr.urls import urlpatterns as imr_urls
+from sme_sigpae_api.inclusao_alimentacao.urls import urlpatterns as inclusao_urls
+from sme_sigpae_api.kit_lanche.urls import urlpatterns as kit_lanche_urls
+from sme_sigpae_api.lancamento_inicial.urls import (
     urlpatterns as lancamento_inicial_urls,
 )
-from sme_terceirizadas.logistica.urls import urlpatterns as logistica_urls
-from sme_terceirizadas.medicao_inicial.urls import urlpatterns as medicao_inicial_urls
-from sme_terceirizadas.paineis_consolidados.urls import (
+from sme_sigpae_api.logistica.urls import urlpatterns as logistica_urls
+from sme_sigpae_api.medicao_inicial.urls import urlpatterns as medicao_inicial_urls
+from sme_sigpae_api.paineis_consolidados.urls import (
     urlpatterns as paineis_consolidados_urls,
 )
-from sme_terceirizadas.perfil.urls import urlpatterns as perfil_urls
-from sme_terceirizadas.pre_recebimento.urls import urlpatterns as pre_recebimento_urls
-from sme_terceirizadas.produto.urls import urlpatterns as produto_urls
-from sme_terceirizadas.recebimento.urls import urlpatterns as recebimento_urls
-from sme_terceirizadas.relatorios.urls import urlpatterns as relatorio_urls
-from sme_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
+from sme_sigpae_api.perfil.urls import urlpatterns as perfil_urls
+from sme_sigpae_api.pre_recebimento.urls import urlpatterns as pre_recebimento_urls
+from sme_sigpae_api.produto.urls import urlpatterns as produto_urls
+from sme_sigpae_api.recebimento.urls import urlpatterns as recebimento_urls
+from sme_sigpae_api.relatorios.urls import urlpatterns as relatorio_urls
+from sme_sigpae_api.terceirizada.urls import urlpatterns as terceirizada_urls
 
 env = environ.Env()
 

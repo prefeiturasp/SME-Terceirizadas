@@ -2,7 +2,7 @@ import random
 
 from faker import Faker
 
-from sme_terceirizadas.dados_comuns.models import (
+from sme_sigpae_api.dados_comuns.models import (
     CategoriaPerguntaFrequente,
     PerguntaFrequente,
 )

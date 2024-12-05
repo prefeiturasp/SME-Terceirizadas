@@ -2,23 +2,23 @@ from random import choice, randint, random
 
 from faker import Faker
 
-from sme_terceirizadas.dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
-from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
-from sme_terceirizadas.dieta_especial.models import Alimento
-from sme_terceirizadas.perfil.models import Usuario
-from sme_terceirizadas.produto.data.informacao_nutricional import (  # noqa
+from sme_sigpae_api.dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
+from sme_sigpae_api.dados_comuns.models import LogSolicitacoesUsuario
+from sme_sigpae_api.dieta_especial.models import Alimento
+from sme_sigpae_api.perfil.models import Usuario
+from sme_sigpae_api.produto.data.informacao_nutricional import (  # noqa
     data_informacao_nutricional,
 )
-from sme_terceirizadas.produto.data.marcas import data_marcas
-from sme_terceirizadas.produto.data.produtos import data_produtos
-from sme_terceirizadas.produto.data.produtos_marcas import data_produtos_marcas
-from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import (  # noqa
+from sme_sigpae_api.produto.data.marcas import data_marcas
+from sme_sigpae_api.produto.data.produtos import data_produtos
+from sme_sigpae_api.produto.data.produtos_marcas import data_produtos_marcas
+from sme_sigpae_api.produto.data.protocolo_de_dieta_especial import (  # noqa
     data_protocolo_de_dieta_especial,
 )
-from sme_terceirizadas.produto.data.tipo_informacao_nutricional import (  # noqa
+from sme_sigpae_api.produto.data.tipo_informacao_nutricional import (  # noqa
     data_tipo_informacao_nutricional,
 )
-from sme_terceirizadas.produto.models import (
+from sme_sigpae_api.produto.models import (
     Fabricante,
     HomologacaoDoProduto,
     InformacaoNutricional,

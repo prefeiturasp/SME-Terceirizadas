@@ -96,7 +96,7 @@ equipes CODAE:
 
 ## Descobertas
 
-Confira as descobertas realizadas [neste link](https://github.com/prefeiturasp/SME-Terceirizadas/blob/master/README.md). 
+Confira as descobertas realizadas [neste link](https://github.com/prefeiturasp/SME-SIGPAE-API/blob/master/README.md). 
 
 **Roadmap inicial macro:** https://whimsical.com/roadmap-macro-WXMHyJjhoxy7CgvwypErU1
 
@@ -122,7 +122,7 @@ Confira as descobertas realizadas [neste link](https://github.com/prefeiturasp/S
 
 | Canal de comunicação | Objetivos |
 |----------------------|-----------|
-| [Issues do Github](https://github.com/prefeiturasp/SME-Terceirizadas/issues) | - Sugestão de novas funcionalidades<br> - Reportar bugs<br> - Discussões técnicas |
+| [Issues do Github](https://github.com/prefeiturasp/SME-SIGPAE-API/issues) | - Sugestão de novas funcionalidades<br> - Reportar bugs<br> - Discussões técnicas |
 
 # Como contribuir
 
@@ -132,10 +132,10 @@ Contribuições são **super bem vindas**! Se você tem vontade de construir o S
 
 Informar os repositórios de código que envolvem a solução:
 
-[SME-TERCEIRIZADAS] [https://github.com/prefeiturasp/SME-Terceirizadas](https://github.com/prefeiturasp/SME-Terceirizadas)
+[SME-SIGPAE-API] [https://github.com/prefeiturasp/SME-SIGPAE-API](https://github.com/prefeiturasp/SME-SIGPAE-API)
 
-[SME-TERCEIRIZADAS-FRONTEND]
-[https://github.com/prefeiturasp/SME-Terceirizadas-Frontend](https://github.com/prefeiturasp/SME-Terceirizadas-Frontend)
+[SME-SIGPAE-FRONTEND]
+[https://github.com/prefeiturasp/SME-SIGPAE-Frontend](https://github.com/prefeiturasp/SME-SIGPAE-Frontend)
  
 # Instalação e Configuração
 

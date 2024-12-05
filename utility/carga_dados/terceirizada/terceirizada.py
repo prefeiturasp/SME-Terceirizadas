@@ -1,4 +1,4 @@
-from sme_terceirizadas.terceirizada.models import Terceirizada
+from sme_sigpae_api.terceirizada.models import Terceirizada
 
 empresas = [
     {"empresa": "SINGULAR GESTAO DE SERVIÇOS LTDA", "lotes": [4, 5, 8, 9]},
