@@ -1,8 +1,8 @@
-from sme_terceirizadas.cardapio.models import (
+from sme_sigpae_api.cardapio.models import (
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
 )
-from sme_terceirizadas.escola.models import PeriodoEscolar, TipoUnidadeEscolar
+from sme_sigpae_api.escola.models import PeriodoEscolar, TipoUnidadeEscolar
 from utility.carga_dados.escola.helper import printa_pontinhos
 
 
