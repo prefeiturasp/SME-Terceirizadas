@@ -7,10 +7,10 @@ from .base import env
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list(
-    "DJANGO_ALLOWED_HOSTS", default=["terceirizadas.sme.prefeitura.sp.gov.br"]
+    "DJANGO_ALLOWED_HOSTS", default=["sigpae.sme.prefeitura.sp.gov.br"]
 )
 # TODO: verificar essa conf...
-# CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', default=['terceirizadas.sme.prefeitura.sp.gov.br']) noqa
+# CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', default=['sigpae.sme.prefeitura.sp.gov.br']) noqa
 CORS_ORIGIN_ALLOW_ALL = True
 
 # DATABASES
@@ -62,14 +62,12 @@ TEMPLATES[0]["OPTIONS"]["loaders"] = [  # noqa F405
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = env(
     "DJANGO_DEFAULT_FROM_EMAIL",
-    default="SME-PratoAberto-Terceirizadas <noreply@terceirizadas.sme.prefeitura.sp.gov.br>",
+    default="SME-SIGPAE-API <noreply@sigpae.sme.prefeitura.sp.gov.br>",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-subject-prefix
-EMAIL_SUBJECT_PREFIX = env(
-    "DJANGO_EMAIL_SUBJECT_PREFIX", default="[SME-PratoAberto-Terceirizadas]"
-)
+EMAIL_SUBJECT_PREFIX = env("DJANGO_EMAIL_SUBJECT_PREFIX", default="[SME-SIGPAE-API]")
 
 # ADMIN
 # ------------------------------------------------------------------------------
