@@ -48,32 +48,39 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        tic = timeit.default_timer()
+        try:
+            tic = timeit.default_timer()
 
-        quantidade_alunos_antes = Aluno.objects.all().count()
+            quantidade_alunos_antes = Aluno.objects.all().count()
 
-        hoje = datetime.date.today()
-        ano = hoje.year
-        ultimo_dia_setembro = datetime.date(ano, 10, 1) - datetime.timedelta(days=1)
+            hoje = datetime.date.today()
+            ano = hoje.year
+            ultimo_dia_setembro = datetime.date(ano, 10, 1) - datetime.timedelta(days=1)
 
-        if hoje > ultimo_dia_setembro:
-            self._atualiza_todas_as_escolas_d_menos_2()
-        else:
-            self._atualiza_todas_as_escolas_d_menos_1()
+            if hoje > ultimo_dia_setembro:
+                self._atualiza_todas_as_escolas_d_menos_2()
+            else:
+                self._atualiza_todas_as_escolas_d_menos_1()
 
-        quantidade_alunos_atual = Aluno.objects.all().count()
+            quantidade_alunos_atual = Aluno.objects.all().count()
 
-        LogRotinaDiariaAlunos.objects.create(
-            quantidade_alunos_antes=quantidade_alunos_antes,
-            quantidade_alunos_atual=quantidade_alunos_atual,
-        )
+            LogRotinaDiariaAlunos.objects.create(
+                quantidade_alunos_antes=quantidade_alunos_antes,
+                quantidade_alunos_atual=quantidade_alunos_atual,
+            )
 
-        toc = timeit.default_timer()
-        result = round(toc - tic, 2)
-        if result > 60:
-            logger.debug(f"Total time: {round(result // 60, 2)} min")
-        else:
-            logger.debug(f"Total time: {round(result, 2)} s")
+            toc = timeit.default_timer()
+            result = round(toc - tic, 2)
+            if result > 60:
+                logger.debug(f"Total time: {round(result // 60, 2)} min")
+            else:
+                logger.debug(f"Total time: {round(result, 2)} s")
+
+        except MaxRetriesExceeded as e:
+            logger.error(str(e))
+            self.stdout.write(
+                self.style.ERROR("Execution stopped due to repeated failures.")
+            )
 
     def _salva_logs_requisicao(self, r, cod_eol_escola):
         if not r.status_code == 404:
@@ -88,28 +95,45 @@ class Command(BaseCommand):
 
     def _obtem_alunos_escola(self, cod_eol_escola, ano_param=None):  # noqa C901
         ano = datetime.date.today().year
-        try:
-            r = requests.get(
-                f"{DJANGO_EOL_SGP_API_URL}/alunos/ues/{cod_eol_escola}/anosLetivos/{ano_param or ano}",
-                headers=self.headers,
-            )
-            self._salva_logs_requisicao(r, cod_eol_escola)
-            if r.status_code == 200:
-                json = r.json()
-                return json
-            else:
-                return []
-        except ConnectionError as e:
-            msg = f"Erro de conexão na api do EOL: {e}"
-            log_erro = LogAtualizaDadosAluno(
-                status=502,
-                codigo_eol=cod_eol_escola,
-                criado_em=datetime.date.today(),
-                msg_erro=msg,
-            )
-            log_erro.save()
-            logger.error(msg)
-            self.stdout.write(self.style.ERROR(msg))
+        tentativas = 0
+        max_tentativas = 10
+
+        while tentativas < max_tentativas:
+            try:
+                r = requests.get(
+                    f"{DJANGO_EOL_SGP_API_URL}/alunos/ues/{cod_eol_escola}/anosLetivos/{ano_param or ano}",
+                    headers=self.headers,
+                )
+                self._salva_logs_requisicao(r, cod_eol_escola)
+
+                # If status is 200 or 404, return the result or an empty list
+                if r.status_code == 201:
+                    return r.json()
+                elif r.status_code == 404:
+                    return []
+
+                # Increment retry counter for other status codes
+                tentativas += 1
+                logger.warning(
+                    f"Tentativa {tentativas}/{max_tentativas} for escola {cod_eol_escola}: Status {r.status_code}"
+                )
+
+            except ConnectionError as e:
+                tentativas += 1
+                msg = f"Erro de conexão na API do EOL para escola {cod_eol_escola}: {e}"
+                log_erro = LogAtualizaDadosAluno(
+                    status=502,
+                    codigo_eol=cod_eol_escola,
+                    criado_em=datetime.date.today(),
+                    msg_erro=msg,
+                )
+                log_erro.save()
+                logger.error(msg)
+                self.stdout.write(self.style.ERROR(msg))
+
+        raise MaxRetriesExceeded(
+            f"Máximo de tentativas alcançada para a escola {cod_eol_escola}. Abortado."
+        )
 
     def _monta_obj_aluno(self, registro, escola, data_nascimento):
         obj_aluno = Aluno(
@@ -286,3 +310,7 @@ class Command(BaseCommand):
                 self._atualiza_alunos_da_escola(
                     escola, dados_alunos_escola, dados_alunos_escola_prox_ano
                 )
+
+
+class MaxRetriesExceeded(Exception):
+    pass
