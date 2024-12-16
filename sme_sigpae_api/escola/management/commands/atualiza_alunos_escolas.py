@@ -6,6 +6,7 @@ import environ
 import requests
 from django.core.management.base import BaseCommand
 from requests import ConnectionError
+from rest_framework import status
 
 from ....dados_comuns.constants import DJANGO_EOL_SGP_API_TOKEN, DJANGO_EOL_SGP_API_URL
 from ...models import (
@@ -82,40 +83,43 @@ class Command(BaseCommand):
                 self.style.ERROR("Execution stopped due to repeated failures.")
             )
 
-    def _salva_logs_requisicao(self, r, cod_eol_escola):
-        if not r.status_code == 404:
-            msg_erro = "" if r.status_code == 200 else r.text
+    def _salva_logs_requisicao(self, response, cod_eol_escola):
+        if not response.status_code == status.HTTP_404_NOT_FOUND:
+            msg_erro = "" if response.status_code == 200 else response.text
             log_erro = LogAtualizaDadosAluno(
-                status=r.status_code,
+                status=response.status_code,
                 codigo_eol=cod_eol_escola,
                 criado_em=datetime.date.today(),
                 msg_erro=msg_erro,
             )
             log_erro.save()
 
-    def _obtem_alunos_escola(self, cod_eol_escola, ano_param=None):  # noqa C901
+    def get_response_alunos_por_escola(self, cod_eol_escola, ano_param=None):
         ano = datetime.date.today().year
+        return requests.get(
+            f"{DJANGO_EOL_SGP_API_URL}/alunos/ues/{cod_eol_escola}/anosLetivos/{ano_param or ano}",
+            headers=self.headers,
+        )
+
+    def _obtem_alunos_escola(self, cod_eol_escola, ano_param=None):
         tentativas = 0
         max_tentativas = 10
 
         while tentativas < max_tentativas:
             try:
-                r = requests.get(
-                    f"{DJANGO_EOL_SGP_API_URL}/alunos/ues/{cod_eol_escola}/anosLetivos/{ano_param or ano}",
-                    headers=self.headers,
+                response = self.get_response_alunos_por_escola(
+                    cod_eol_escola, ano_param
                 )
-                self._salva_logs_requisicao(r, cod_eol_escola)
+                self._salva_logs_requisicao(response, cod_eol_escola)
 
-                # If status is 200 or 404, return the result or an empty list
-                if r.status_code == 201:
-                    return r.json()
-                elif r.status_code == 404:
+                if response.status_code == status.HTTP_200_OK:
+                    return response.json()
+                elif response.status_code == status.HTTP_404_NOT_FOUND:
                     return []
 
-                # Increment retry counter for other status codes
                 tentativas += 1
                 logger.warning(
-                    f"Tentativa {tentativas}/{max_tentativas} for escola {cod_eol_escola}: Status {r.status_code}"
+                    f"Tentativa {tentativas}/{max_tentativas} for escola {cod_eol_escola}: Status {response.status_code}"
                 )
 
             except ConnectionError as e:
