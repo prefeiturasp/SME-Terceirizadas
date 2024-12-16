@@ -245,10 +245,7 @@ class Command(BaseCommand):
         ).update(nao_matriculado=True, escola=None)
 
     def _desvincular_matriculas(self, alunos):
-        for aluno in alunos:
-            aluno.nao_matriculado = True
-            aluno.escola = None
-            aluno.save()
+        alunos.update(nao_matriculado=True, escola=None)
 
     def aluno_matriculado_prox_ano(self, dados, aluno_nome):
         aluno_encontrado = next(
