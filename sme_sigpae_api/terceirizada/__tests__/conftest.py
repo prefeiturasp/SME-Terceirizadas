@@ -12,6 +12,7 @@ from ..api.serializers.serializers import (
     EditalSerializer,
     EditalSimplesSerializer,
     EmailsTerceirizadaPorModuloSerializer,
+    ModalidadeSerializer,
     TerceirizadaSimplesSerializer,
     VigenciaContratoSimplesSerializer,
 )
@@ -19,6 +20,7 @@ from ..models import (
     Contrato,
     Edital,
     EmailTerceirizadaPorModulo,
+    Modalidade,
     Modulo,
     Nutricionista,
     Terceirizada,
@@ -288,3 +290,13 @@ def nutricionista():
 @pytest.fixture
 def perfil_distribuidor():
     return mommy.make(Perfil, nome="ADMINISTRADOR_EMPRESA")
+
+
+@pytest.fixture
+def modalidade():
+    return mommy.make(Modalidade, nome="Pregão Eletrônico")
+
+@pytest.fixture
+def modalidade_serializer():
+    modalidade = mommy.make(Modalidade)
+    return ModalidadeSerializer(modalidade)

@@ -45,7 +45,7 @@ def test_url_endpoint_empresas_nao_terceirizadas_create(
             {
                 "numero": "12345",
                 "processo": "123",
-                "modalidade": "PREGAO_ELETRONICO",
+                "modalidade": 1,
                 "numero_pregao": "12345",
                 "ata": "1234",
                 "vigencias": [
@@ -172,4 +172,9 @@ def test_url_endpoint_contratos_actions(client_autenticado_dilog_cronograma):
     client = client_autenticado_dilog_cronograma
 
     response = client.get("/contratos/numeros-contratos-cadastrados/")
+    assert response.status_code == status.HTTP_200_OK
+
+def test_url_endpoint_modalidade(client_autenticado_dilog_cronograma):
+
+    response = client_autenticado_dilog_cronograma.get("/modalidades/")
     assert response.status_code == status.HTTP_200_OK
