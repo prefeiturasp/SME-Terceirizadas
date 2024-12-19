@@ -8,7 +8,12 @@ from factory import (
 )
 from faker import Faker
 
-from sme_sigpae_api.terceirizada.models import Contrato, Edital, Modalidade, Terceirizada
+from sme_sigpae_api.terceirizada.models import (
+    Contrato,
+    Edital,
+    Modalidade,
+    Terceirizada,
+)
 
 fake = Faker("pt_BR")
 

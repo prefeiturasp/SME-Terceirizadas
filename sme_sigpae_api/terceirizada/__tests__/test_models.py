@@ -194,6 +194,7 @@ def test_alteracoes_cardapio_das_minhas_escolas_cei(terceirizada):
     alteracao = terceirizada.alteracoes_cardapio_cei_das_minhas(filtro_aplicado="hoje")
     assert len(alteracao) == 0
 
+
 def test_modelo_modalidade(modalidade):
     assert modalidade.__str__() == "Pregão Eletrônico"
     assert modalidade.uuid is not None

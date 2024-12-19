@@ -1,9 +1,12 @@
 import datetime
+from unittest.mock import MagicMock, patch
 
 import pytest
 from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
+
+from sme_sigpae_api.dados_comuns.constants import ADMINISTRADOR_EMPRESA
 
 from ...perfil.models import Perfil, Usuario
 from ..api.serializers.serializers import (
@@ -268,6 +271,12 @@ def terceirizada_simples_serializer():
 
 
 @pytest.fixture
+def modalidade_serializer():
+    modalidade = mommy.make(Modalidade)
+    return ModalidadeSerializer(modalidade)
+
+
+@pytest.fixture
 def terceirizada():
     return mommy.make(
         Terceirizada,
@@ -296,7 +305,43 @@ def perfil_distribuidor():
 def modalidade():
     return mommy.make(Modalidade, nome="Pregão Eletrônico")
 
+
 @pytest.fixture
-def modalidade_serializer():
-    modalidade = mommy.make(Modalidade)
-    return ModalidadeSerializer(modalidade)
+def mock_request():
+    request = MagicMock()
+    request.user = MagicMock()
+    return request
+
+
+@pytest.fixture
+def mock_vinculo_atual():
+    vinculo = MagicMock()
+    vinculo.perfil.nome = ADMINISTRADOR_EMPRESA
+    return vinculo
+
+
+@pytest.fixture
+def mock_form_data():
+    return {
+        "nome_terceirizada": "",
+        "data_inicial": None,
+        "data_final": None,
+    }
+
+
+@pytest.fixture
+def mock_cursor():
+    cursor = MagicMock()
+    cursor.fetchall.return_value = [
+        ("Terceirizada A", "CODAE_HOMOLOGADO", 5),
+        ("Terceirizada A", "CODAE_QUESTIONADO", 3),
+        ("Terceirizada B", "CODAE_PEDIU_ANALISE_RECLAMACAO", 2),
+    ]
+    return cursor
+
+
+@pytest.fixture
+def mock_connection(mock_cursor):
+    with patch("sme_sigpae_api.terceirizada.utils.connection.cursor") as mock_conn:
+        mock_conn.return_value.__enter__.return_value = mock_cursor
+        yield mock_conn
