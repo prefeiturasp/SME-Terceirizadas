@@ -31,10 +31,10 @@ def test_usuario_update_serializer_partial_update(
 def test_usuario_update_serializer_create(monkeypatch):
     monkeypatch.setattr(
         UsuarioUpdateSerializer,
-        "get_informacoes_usuario",
+        "get_dados_usuario",
         lambda p1, p2: mocked_request_api_eol(),
     )
-    data = {"registro_funcional": "5696569", "instituicao": "NOE AZEVEDO, PROF"}
+    data = {"registro_funcional": "5858585", "instituicao": "IRAPARA"}
     usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
     assert isinstance(usuario, Usuario)
     assert usuario.registro_funcional == "5696569"
