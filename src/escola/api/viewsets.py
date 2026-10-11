@@ -655,6 +655,11 @@ class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+
+        grupo = self.request.query_params.get("grupo")
+        if grupo:
+            qs = qs.filter(grupounidadeescolar__nome=grupo)
+
         dre = self.request.query_params.get("dre")
         if dre:
             qs = (
