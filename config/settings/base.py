@@ -129,6 +129,7 @@ LOCAL_APPS = [
     "src.recebimento.apps.RecebimentoConfig",
     "src.pos_recebimento.apps.PosRecebimentoConfig",
     "src.imr.apps.ImrConfig",
+    "src.escola_aberta.apps.EscolaAbertaConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

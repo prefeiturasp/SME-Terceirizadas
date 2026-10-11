@@ -32,6 +32,7 @@ from src.produto.urls import urlpatterns as produto_urls
 from src.recebimento.urls import urlpatterns as recebimento_urls
 from src.relatorios.urls import urlpatterns as relatorio_urls
 from src.terceirizada.urls import urlpatterns as terceirizada_urls
+from src.escola_aberta.urls import urlpatterns as escola_aberta_urls
 
 env = environ.Env()
 
@@ -78,6 +79,7 @@ urlpatterns += recebimento_urls
 urlpatterns += pos_recebimento_urls
 urlpatterns += imr_urls
 urlpatterns += dias_letivos_urls
+urlpatterns += escola_aberta_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
