@@ -20,6 +20,7 @@ from ...dados_comuns.constants import (
     TIPOS_UNIDADE_ESCOLAR,
     EmailsParaTeste,
     NomesParaTesteDiretoriaRegional,
+    StringsCaminhoModelos,
 )
 from .. import models
 from ..api.serializers import UsuarioSerializer, UsuarioUpdateSerializer
@@ -269,7 +270,7 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
         codigo_eol=987656,
     )
     tipo_unidade_escolar = baker.make(
-        "escola.TipoUnidadeEscolar",
+        StringsCaminhoModelos.MODEL_TIPOUNIDADEESCOLAR.value,
         iniciais=f.name()[:10],
         uuid="56725de5-89d3-4edf-8633-3e0b5c99e9d4",
     )
@@ -357,7 +358,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
         codigo_eol=987656,
     )
     tipo_unidade_escolar = baker.make(
-        "escola.TipoUnidadeEscolar",
+        StringsCaminhoModelos.MODEL_TIPOUNIDADEESCOLAR.value,
         iniciais=TIPOS_UNIDADE_ESCOLAR.EMEF.value,
         uuid="56725de5-89d3-4edf-8633-3e0b5c99e9d4",
     )
@@ -727,7 +728,7 @@ def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
         codigo_eol=987656,
     )
     tipo_unidade_escolar = baker.make(
-        "escola.TipoUnidadeEscolar",
+        StringsCaminhoModelos.MODEL_TIPOUNIDADEESCOLAR.value,
         iniciais=TIPOS_UNIDADE_ESCOLAR.EMEF.value,
         uuid="56725de5-89d3-4edf-8633-3e0b5c99e9d4",
     )
