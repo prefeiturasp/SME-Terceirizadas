@@ -151,7 +151,11 @@ class LogSolicitacoesUsuario(models.Model):
         MEDICAO_CODAE_REABRIU_LANCAMENTO,
         CODAE_MANTEVE_PRODUTO_SUSPENSO,
         DOCUMENTO_REPROVADO,
-    ) = range(118)
+        # TERMO DE RECEBIMENTO DEFINITIVO
+        TERMO_RECEBIMENTO_DEFINITIVO_ENVIADO_AOS_FISCAIS,
+        TERMO_RECEBIMENTO_DEFINITIVO_ASSINADO_PELO_FISCAL,
+        TERMO_RECEBIMENTO_DEFINITIVO_ETAPA_FISCAIS_CONCLUIDA,
+    ) = range(121)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, "Solicitação Realizada"),
@@ -341,6 +345,18 @@ class LogSolicitacoesUsuario(models.Model):
         (MEDICAO_CODAE_REABRIU_LANCAMENTO, "CODAE reabriu lançamento"),
         (CODAE_MANTEVE_PRODUTO_SUSPENSO, "CODAE manteve o produto suspenso"),
         (DOCUMENTO_REPROVADO, "Documento de Recebimento reprovado"),
+        (
+            TERMO_RECEBIMENTO_DEFINITIVO_ENVIADO_AOS_FISCAIS,
+            "Termo de Recebimento Definitivo enviado aos Fiscais",
+        ),
+        (
+            TERMO_RECEBIMENTO_DEFINITIVO_ASSINADO_PELO_FISCAL,
+            "Termo de Recebimento Definitivo assinado pelo Fiscal",
+        ),
+        (
+            TERMO_RECEBIMENTO_DEFINITIVO_ETAPA_FISCAIS_CONCLUIDA,
+            "Etapa de assinatura dos Fiscais do Termo de Recebimento Definitivo concluída",
+        ),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -373,7 +389,8 @@ class LogSolicitacoesUsuario(models.Model):
         FICHA_TECNICA_DO_PRODUTO,
         FORMULARIO_SUPERVISAO,
         FICHA_RECEBIMENTO,
-    ) = range(26)
+        TERMO_RECEBIMENTO_DEFINITIVO,
+    ) = range(27)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, "Solicitação de kit lanche avulsa"),
@@ -402,6 +419,7 @@ class LogSolicitacoesUsuario(models.Model):
         (FICHA_TECNICA_DO_PRODUTO, "Ficha técnica do produto"),
         (FORMULARIO_SUPERVISAO, "Formulário Supervisão"),
         (FICHA_RECEBIMENTO, "Ficha de Recebimento"),
+        (TERMO_RECEBIMENTO_DEFINITIVO, "Termo de Recebimento Definitivo"),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

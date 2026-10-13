@@ -10,7 +10,10 @@ from src.terceirizada.api.serializers.serializers import (
     TerceirizadaSimplesSerializer,
 )
 
-from ...models import CronogramaTermoRecebimentoDefinitivo, TermoRecebimentoDefinitivo
+from ...models import (
+    CronogramaTermoRecebimentoDefinitivo,
+    TermoRecebimentoDefinitivo,
+)
 
 
 class CronogramaTermoRecebimentoDefinitivoSerializer(serializers.ModelSerializer):
@@ -154,6 +157,14 @@ class TermoRecebimentoDefinitivoSerializer(serializers.ModelSerializer):
     fiscal_1 = UsuarioSimplesSerializer(read_only=True)
     fiscal_2 = UsuarioSimplesSerializer(read_only=True)
     fiscal_3 = UsuarioSimplesSerializer(read_only=True)
+    pode_assinar = serializers.SerializerMethodField()
+
+    def get_pode_assinar(self, obj):
+        """O usuário logado pode assinar o termo agora?"""
+        request = self.context.get("request")
+        if not request:
+            return False
+        return obj.pode_assinar(request.user)
 
     class Meta:
         model = TermoRecebimentoDefinitivo
@@ -168,6 +179,7 @@ class TermoRecebimentoDefinitivoSerializer(serializers.ModelSerializer):
             "valor_contrato",
             "texto_termo",
             "status",
+            "pode_assinar",
             "criado_em",
             "alterado_em",
         )
