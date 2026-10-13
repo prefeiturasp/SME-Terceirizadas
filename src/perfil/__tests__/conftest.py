@@ -21,6 +21,7 @@ from ...dados_comuns.constants import (
     EmailsParaTeste,
     NomesParaTesteDiretoriaRegional,
     StringsCaminhoModelos,
+    StringsInformacoesPessoais,
 )
 from .. import models
 from ..api.serializers import UsuarioSerializer, UsuarioUpdateSerializer
@@ -903,7 +904,7 @@ def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
     baker.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
     perfil_diretor = baker.make("Perfil", nome="DIRETOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        nome="RONALDO DIRETOR",
+        nome=StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
         username=rf,
         password=password,
         email=email,
@@ -933,7 +934,7 @@ def client_autenticado_da_escola_email_invalido(
     baker.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
     perfil_diretor = baker.make("Perfil", nome="DIRETOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        nome="RONALDO DIRETOR",
+        nome=StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
         username=rf,
         password=password,
         email=email,
@@ -963,7 +964,7 @@ def client_autenticado_da_escola_sem_vinculo(
     baker.make("Perfil", nome="DIRETOR_UE", ativo=True)
     baker.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
     django_user_model.objects.create_user(
-        nome="RONALDO DIRETOR",
+        nome=StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
         username=rf,
         password=password,
         email=email,
@@ -982,7 +983,7 @@ def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_c
     baker.make("Perfil", nome="DIRETOR_UE", ativo=True)
     perfil_adm = baker.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        nome="RONALDO DIRETOR",
+        nome=StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
         username=rf,
         password=password,
         email=email,
@@ -1009,7 +1010,7 @@ def client_autenticado_da_dre(client, django_user_model, escola, escola_cei):
     password = DJANGO_ADMIN_PASSWORD
     perfil_dre = baker.make("Perfil", nome="COGESTOR_DRE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        nome="RONALDO COGESTOR",
+        nome=StringsInformacoesPessoais.NOME_RONALDO_COGESTOR.value,
         username=rf,
         password=password,
         email=email,
@@ -1166,7 +1167,7 @@ def setup_unificar_perfis():
 
 def mocked_response_autentica_coresso_adm_ue():
     return {
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
         "cpf": "93697506064",
         "email": EmailsParaTeste.ESCOLA.value,
         "login": "1234567",
@@ -1177,7 +1178,7 @@ def mocked_response_autentica_coresso_adm_ue():
 
 def mocked_response_autentica_coresso_diretor():
     return {
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
         "cpf": "93697506064",
         "email": EmailsParaTeste.ESCOLA.value,
         "login": "1234567",
@@ -1188,7 +1189,7 @@ def mocked_response_autentica_coresso_diretor():
 
 def mocked_response_autentica_coresso_cogestor():
     return {
-        "nome": "RONALDO COGESTOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_COGESTOR.value,
         "cpf": "93697506064",
         "email": EmailsParaTeste.ESCOLA.value,
         "login": "1234567",
@@ -1199,7 +1200,7 @@ def mocked_response_autentica_coresso_cogestor():
 
 def mocked_response_autentica_coresso_diretor_login_errado():
     return {
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
         "cpf": "93697506064",
         "email": EmailsParaTeste.ESCOLA.value,
         "login": "1234568",
@@ -1222,7 +1223,7 @@ def mocked_response_get_dados_usuario_coresso():
                 "codigoDre": "108600",
             }
         ],
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
     }
 
 
@@ -1240,7 +1241,7 @@ def mocked_response_get_dados_usuario_coresso_coordenador():
                 "codigoDre": "108600",
             }
         ],
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
     }
 
 
@@ -1258,7 +1259,7 @@ def mocked_response_get_dados_usuario_coresso_gestor():
                 "codigoDre": "108600",
             }
         ],
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
     }
 
 
@@ -1276,7 +1277,7 @@ def mocked_response_get_dados_usuario_coresso_sem_email():
                 "codigoDre": "108600",
             }
         ],
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
     }
 
 
@@ -1294,7 +1295,7 @@ def mocked_response_get_dados_usuario_coresso_cogestor():
                 "codigoDre": "108600",
             }
         ],
-        "nome": "RONALDO COGESTOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_COGESTOR.value,
     }
 
 
@@ -1312,7 +1313,7 @@ def mocked_response_get_dados_usuario_coresso_adm_escola():
                 "codigoDre": "108600",
             }
         ],
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
     }
 
 
@@ -1330,7 +1331,7 @@ def mocked_response_get_dados_usuario_coresso_sem_acesso_automatico():
                 "codigoDre": "108600",
             }
         ],
-        "nome": "RONALDO DIRETOR",
+        "nome": StringsInformacoesPessoais.NOME_RONALDO_DIRETOR.value,
     }
 
 

@@ -952,6 +952,8 @@ class StringsInformacoesPessoais(Enum):
     ENDERECO_UNIDADE = "Rua Alvaro de Azevedo Antunes"
     BAIRRO_UNIDADE = "VILA CAMPESINA"
     NOME_MOTORISTA = "José da Silva"
+    NOME_RONALDO_DIRETOR = "RONALDO DIRETOR"
+    NOME_RONALDO_COGESTOR = "RONALDO COGESTOR"
 
     @classmethod
     def choices(cls):
