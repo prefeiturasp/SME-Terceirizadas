@@ -1041,6 +1041,11 @@ class StringsValidationErrors(Enum):
     ARQUIVO_NAO_SUPORTADO = "Arquivo não suportado."
     EXTENSAO_ARQUIVO_NAO_SUPORTADA = "Extensão do arquivo não suportada."
     EOL_TIMEOUT = "EOL Timeout"
+    NAO_FOI_FEITO_O_UPLOAD_DA_PLANILHA = "Não foi feito o upload da planilha"
+    PLANILHA_PROCESSADA_COM_SUCESSO = "Planilha processada com sucesso."
+    ERROS_ENCONTRADOS_NO_PROCESSAMENTO_DA_PLANILHA = (
+        "Erros encontrados no processamento da planilha"
+    )
     PRECISA_IMPLEMENTAR = "Precisa implementar"
     RESTAM_DIAS_A_SEREM_LANCADOS = "Restam dias a serem lançados nas alimentações."
     RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS = "Restam dias a serem lançados nas dietas."
