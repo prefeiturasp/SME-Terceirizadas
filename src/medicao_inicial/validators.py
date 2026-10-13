@@ -776,6 +776,93 @@ def validate_lancamento_alimentacoes_inclusoes_emebs_dietas(
     return periodo_com_erro
 
 
+def _log_dieta_corresponde_sem_tipo(
+    log_, data, periodo_escolar_id, classificacao_id, idx
+):
+    if periodo_escolar_id is None:
+        return False
+    if log_[idx["data"]] != data:
+        return False
+    if log_[idx["periodo"]] != periodo_escolar_id:
+        return False
+    return log_[idx["classificacao"]] == classificacao_id
+
+
+def _valor_medicao_corresponde_sem_tipo(
+    valor_medicao_, nome_campo, categoria_id, dia_str, idx
+):
+    return (
+        valor_medicao_[idx["nome_campo"]] == nome_campo
+        and valor_medicao_[idx["categoria"]] == categoria_id
+        and valor_medicao_[idx["dia"]] == dia_str
+    )
+
+
+def _soma_quantidade_dietas_sem_tipo(
+    logs_, data, periodo_escolar_id, classificacoes, idx
+):
+    quantidade = 0
+    for classificacao in classificacoes:
+        log = next(
+            (
+                log_
+                for log_ in logs_
+                if _log_dieta_corresponde_sem_tipo(
+                    log_, data, periodo_escolar_id, classificacao.id, idx
+                )
+            ),
+            None,
+        )
+        if log:
+            quantidade += log[idx["quantidade"]]
+    return quantidade
+
+
+def _busca_valor_medicao_sem_tipo(
+    valores_medicao_, nome_campo, categoria_id, dia_str, idx
+):
+    return next(
+        (
+            valor_medicao_
+            for valor_medicao_ in valores_medicao_
+            if _valor_medicao_corresponde_sem_tipo(
+                valor_medicao_, nome_campo, categoria_id, dia_str, idx
+            )
+        ),
+        None,
+    )
+
+
+def _valida_campos_dietas_emef_emebs(
+    lista_erros,
+    medicao,
+    logs_,
+    data,
+    periodo_escolar_id,
+    classificacoes,
+    nomes_campos,
+    valores_medicao_,
+    categoria,
+    dia,
+    idx_log,
+    idx_valor,
+    periodo_com_erro,
+):
+    for nome_campo in nomes_campos:
+        if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+            continue
+        quantidade = _soma_quantidade_dietas_sem_tipo(
+            logs_, data, periodo_escolar_id, classificacoes, idx_log
+        )
+        if quantidade == 0:
+            continue
+        valor_medicao = _busca_valor_medicao_sem_tipo(
+            valores_medicao_, nome_campo, categoria.id, f"{dia:02d}", idx_valor
+        )
+        periodo_com_erro = checa_valor_medicao(valor_medicao, periodo_com_erro)
+    return periodo_com_erro
+
+
 def validate_lancamento_alimentacoes_medicao_emef_emebs_dietas(
     lista_erros,
     medicao,
@@ -791,20 +878,11 @@ def validate_lancamento_alimentacoes_medicao_emef_emebs_dietas(
     inclusoes=None,
     eh_emebs=False,
 ):
-    DATA_INDEX = 0
-    PERIODO_ESCOLAR_ID_INDEX = 1
-    QUANTIDADE_INDEX = 2
-    CLASSIFICACAO_ID_INDEX = 3
-
-    NOME_CAMPO_INDEX = 0
-    CATEGORIA_MEDICAO_ID_INDEX = 1
-    DIA_ID = 2
-
     nomes_campos = get_nomes_campos_emef_emebs_dietas(
         inclusoes, escola, categoria, medicao
     )
     if eh_emebs:
-        periodo_com_erro = validate_lancamento_alimentacoes_inclusoes_emebs_dietas(
+        return validate_lancamento_alimentacoes_inclusoes_emebs_dietas(
             nomes_campos,
             lista_erros,
             medicao,
@@ -818,47 +896,23 @@ def validate_lancamento_alimentacoes_medicao_emef_emebs_dietas(
             escola,
             periodo_com_erro,
         )
-    else:
-        for nome_campo in nomes_campos:
-            if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
-                continue
-            quantidade = 0
-            for classificacao in classificacoes:
-                log = next(
-                    (
-                        log_
-                        for log_ in logs_
-                        if (
-                            log_[DATA_INDEX]
-                            == datetime.date(int(ano), int(mes), int(dia))
-                            and (
-                                log_[PERIODO_ESCOLAR_ID_INDEX]
-                                == medicao.periodo_escolar.id
-                                if medicao.periodo_escolar
-                                else None
-                            )
-                            and log_[CLASSIFICACAO_ID_INDEX] == classificacao.id
-                        )
-                    ),
-                    None,
-                )
-                quantidade += log[QUANTIDADE_INDEX] if log else 0
-            if quantidade == 0:
-                continue
-            valor_medicao = next(
-                (
-                    valor_medicao_
-                    for valor_medicao_ in valores_medicao_
-                    if (
-                        valor_medicao_[NOME_CAMPO_INDEX] == nome_campo
-                        and valor_medicao_[CATEGORIA_MEDICAO_ID_INDEX] == categoria.id
-                        and valor_medicao_[DIA_ID] == f"{dia:02d}"
-                    )
-                ),
-                None,
-            )
-            periodo_com_erro = checa_valor_medicao(valor_medicao, periodo_com_erro)
-    return periodo_com_erro
+    idx_log = {"data": 0, "periodo": 1, "quantidade": 2, "classificacao": 3}
+    idx_valor = {"nome_campo": 0, "categoria": 1, "dia": 2}
+    return _valida_campos_dietas_emef_emebs(
+        lista_erros,
+        medicao,
+        logs_,
+        datetime.date(int(ano), int(mes), int(dia)),
+        medicao.periodo_escolar.id if medicao.periodo_escolar else None,
+        classificacoes,
+        nomes_campos,
+        valores_medicao_,
+        categoria,
+        dia,
+        idx_log,
+        idx_valor,
+        periodo_com_erro,
+    )
 
 
 def get_periodo_escolar_id(medicao):
