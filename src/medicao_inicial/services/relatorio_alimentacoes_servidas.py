@@ -13,18 +13,29 @@ Query string da exportação
     A chave sem colchetes também é aceita. Parâmetro ausente significa
     "sem restrição" dentro dos demais filtros.
 
-Meses de referência
-    ``meses`` é uma lista obrigatória (``meses[]=11_2023&meses[]=12_2023``),
-    cada item no formato ``MM_AAAA``. Duplicados são descartados e a lista
-    validada sai em ordem cronológica. Cada mês precisa estar entre os meses
-    permitidos para o usuário.
+Meses de referência e recreios
+    ``meses`` (``meses[]=11_2023&meses[]=12_2023``, cada item ``MM_AAAA``) traz
+    só meses regulares. ``recreios_nas_ferias`` (``recreios_nas_ferias[]=<uuid>``)
+    traz recreios. Pelo menos um dos dois é obrigatório; o front pode enviar
+    só um, ou os dois. Duplicados são descartados e ``meses`` sai em ordem
+    cronológica. O antigo parâmetro ``mes`` não é mais lido.
 
-Meses permitidos
-    Solicitações com status ``MEDICAO_APROVADA_PELA_CODAE``, no escopo do
-    usuário. Recreio nas férias entra na conta quando a solicitação está
-    aprovada. O front precisa chamar
-    ``GET /medicao-inicial/solicitacao-medicao-inicial/meses-anos/?eh_relatorio_alimentacoes_servidas=true``.
-    Sem esse parâmetro, ``status`` e ``eh_relatorio_adesao`` permanecem como estão.
+Meses e recreios permitidos
+    A regra é a do front: ``GET /medicao-inicial/solicitacao-medicao-inicial/
+    meses-anos/?status=MEDICAO_APROVADA_PELA_CODAE``. Ali, o item sem
+    ``recreio_nas_ferias`` é um mês regular e o item com ``recreio_nas_ferias``
+    é um recreio. Aqui:
+
+    - cada ``meses`` precisa ter solicitação regular (sem recreio) com status
+      ``MEDICAO_APROVADA_PELA_CODAE``;
+    - cada ``recreios_nas_ferias`` precisa ter solicitação com status
+      ``MEDICAO_APROVADA_PELA_CODAE``, e o mês/ano dele é o da solicitação.
+
+    Ambos no escopo do usuário (``solicitacoes_aprovadas_no_escopo``). Esse
+    recorte institucional já existia na exportação e foi mantido: o
+    ``meses-anos/`` não restringe a empresa terceirizada por lote, a exportação
+    restringe. Por isso, para esse perfil, a exportação pode recusar um item
+    que o ``meses-anos/`` mostra. Os endpoints de opções não foram alterados.
 
 Escopo
     DRE: somente a própria diretoria. Terceirizada (tipo de serviço
@@ -38,16 +49,20 @@ Escopo
 
 Período
     ``periodo_lancamento_de`` e ``periodo_lancamento_ate`` vão juntos ou ficam
-    ambos vazios. Cada data precisa cair em algum dos meses selecionados
-    (podem ser meses diferentes), com De anterior ou igual a Até.
+    ambos vazios. Cada data precisa cair no mês de algum item de ``meses`` ou
+    no mês/ano de algum recreio selecionado (podem ser meses diferentes), com
+    De anterior ou igual a Até.
 
-Faixa etária
-    Não existe vínculo de faixa com tipo de unidade. A faixa só é aceita quando
-    os tipos informados pertencem ao Grupo 1 ou ao Grupo 2.
+Tipos de unidade
+    ``tipos_unidades`` aceita tipos de grupos diferentes; cada UUID precisa
+    existir e ter grupo cadastrado. Nenhum grupo é completado: valem só os
+    tipos enviados.
 
 Tipo de alimentação
-    Obrigatoriamente vazio no Grupo 1. Nos demais grupos, quando há tipos de
-    unidade e vínculos ativos, o tipo precisa ser aplicável a esses tipos.
+    Recusado somente quando todos os tipos de unidade informados são do
+    Grupo 1. Com o Grupo 1 junto de outro grupo, é aceito e vale para as
+    unidades dos demais grupos. Quando há tipos de unidade e vínculos ativos,
+    o tipo precisa ser aplicável a esses tipos.
 """
 
 from datetime import datetime
@@ -79,7 +94,6 @@ from src.escola.models import (
     Codae,
     DiretoriaRegional,
     Escola,
-    FaixaEtaria,
     GrupoUnidadeEscolar,
     Lote,
     Subprefeitura,
@@ -132,8 +146,31 @@ def meses_anos_relatorio_alimentacoes_servidas(usuario):
 
 
 def meses_permitidos(usuario):
-    pares = set()
+    return _pares_mes_ano(solicitacoes_aprovadas_no_escopo(usuario))
+
+
+def meses_regulares_permitidos(usuario):
+    """Meses regulares aprovados no escopo: itens do ``meses-anos/`` sem recreio."""
     solicitacoes = solicitacoes_aprovadas_no_escopo(usuario)
+    return _pares_mes_ano(solicitacoes.filter(recreio_nas_ferias__isnull=True))
+
+
+def recreios_permitidos(usuario):
+    """UUID do recreio -> meses/anos das solicitações aprovadas no escopo."""
+    solicitacoes = solicitacoes_aprovadas_no_escopo(usuario).filter(
+        recreio_nas_ferias__isnull=False
+    )
+    recreios = {}
+    linhas = solicitacoes.values_list("recreio_nas_ferias__uuid", "mes", "ano")
+    for uuid, mes, ano in linhas.distinct():
+        par = par_mes_ano_inteiro(mes, ano)
+        if par:
+            recreios.setdefault(str(uuid), set()).add(par)
+    return recreios
+
+
+def _pares_mes_ano(solicitacoes):
+    pares = set()
     for mes, ano in solicitacoes.values_list("mes", "ano").distinct():
         par = par_mes_ano_inteiro(mes, ano)
         if par:
@@ -152,13 +189,13 @@ def validar_filtros_relatorio_alimentacoes_servidas(dados, usuario):
 
 CAMPOS_LISTA = (
     "meses",
+    "recreios_nas_ferias",
     "dres",
     "lotes",
     "subprefeituras",
     "tipos_unidades",
     "unidades_educacionais",
     "tipos_alimentacao",
-    "faixas_etarias",
 )
 CAMPOS_TEXTO = ("periodo_lancamento_de", "periodo_lancamento_ate")
 
@@ -248,17 +285,52 @@ def _validar_usuario(usuario):
     )
 
 
+def _validar_meses_e_recreios(dados, usuario):
+    """Devolve (meses, recreios, meses_do_periodo) já validados e sem duplicados."""
+    valores_meses = dados.get("meses") or []
+    valores_recreios = dados.get("recreios_nas_ferias") or []
+    if not valores_meses and not valores_recreios:
+        raise serializers.ValidationError({"meses": MENSAGEM_MESES_OBRIGATORIO})
+    meses = _validar_meses(valores_meses, usuario)
+    recreios, meses_dos_recreios = _validar_recreios(valores_recreios, usuario)
+    return meses, recreios, set(meses) | meses_dos_recreios
+
+
 def _validar_meses(valores, usuario):
     """Devolve os pares (mes, ano) sem duplicados, em ordem cronológica."""
     if not valores:
-        raise serializers.ValidationError({"meses": MENSAGEM_MESES_OBRIGATORIO})
+        return []
     pares = {_interpretar_mes(*_partir_mes(valor)) for valor in valores}
-    permitidos = meses_permitidos(usuario)
-    if not pares <= permitidos:
+    if not pares <= meses_regulares_permitidos(usuario):
         raise serializers.ValidationError(
             {"meses": "Mês de referência não permitido para consulta."}
         )
     return sorted(pares, key=lambda par: (par[1], par[0]))
+
+
+def _validar_recreios(valores, usuario):
+    """Devolve os UUIDs sem duplicados (em ordem cronológica) e seus meses/anos."""
+    if not valores:
+        return [], set()
+    uuids = {str(valor) for valor in valores}
+    permitidos = recreios_permitidos(usuario)
+    if not uuids <= set(permitidos):
+        raise serializers.ValidationError(
+            {
+                "recreios_nas_ferias": (
+                    "Recreio nas férias inexistente, fora do escopo do usuário "
+                    "ou sem medição aprovada pela CODAE."
+                )
+            }
+        )
+    ordenados = sorted(
+        uuids, key=lambda uuid: (min(permitidos[uuid], key=_chave_mes_ano), uuid)
+    )
+    return ordenados, set().union(*(permitidos[uuid] for uuid in uuids))
+
+
+def _chave_mes_ano(par):
+    return par[1], par[0]
 
 
 def _partir_mes(valor):
@@ -288,7 +360,7 @@ def _lista(dados, chave):
 
 def _validar_regras(dados, usuario):
     _validar_usuario(usuario)
-    meses = _validar_meses(dados.get("meses"), usuario)
+    meses, recreios, meses_do_periodo = _validar_meses_e_recreios(dados, usuario)
     dres = _lista(dados, "dres")
     lotes = _lista(dados, "lotes")
     subprefeituras = _lista(dados, "subprefeituras")
@@ -296,7 +368,7 @@ def _validar_regras(dados, usuario):
     _validar_dres(dres, usuario)
     _validar_lotes(lotes, dres, usuario)
     _validar_subprefeituras(subprefeituras, dres, lotes)
-    grupo = _validar_tipos_unidades(tipos_unidades)
+    grupos_dos_tipos = _validar_tipos_unidades(tipos_unidades)
     _validar_unidades(
         _lista(dados, "unidades_educacionais"),
         dres,
@@ -306,11 +378,10 @@ def _validar_regras(dados, usuario):
         usuario,
     )
     _validar_tipos_alimentacao(
-        _lista(dados, "tipos_alimentacao"), grupo, tipos_unidades
+        _lista(dados, "tipos_alimentacao"), grupos_dos_tipos, tipos_unidades
     )
-    _validar_faixas(_lista(dados, "faixas_etarias"), grupo)
-    _validar_periodo(dados, meses)
-    return meses
+    _validar_periodo(dados, meses_do_periodo)
+    return meses, recreios
 
 
 def _validar_dres(dres, usuario):
@@ -372,8 +443,12 @@ def _validar_subprefeituras(subprefeituras, dres, lotes):
 
 
 def _validar_tipos_unidades(uuids):
+    """Valida os tipos e devolve, para cada um, os nomes dos grupos a que pertence.
+
+    Tipos de grupos diferentes são aceitos; nenhum grupo é completado.
+    """
     if not uuids:
-        return None
+        return []
     tipos = list(
         TipoUnidadeEscolar.objects.filter(uuid__in=uuids).prefetch_related(
             "grupounidadeescolar_set"
@@ -383,34 +458,16 @@ def _validar_tipos_unidades(uuids):
         raise serializers.ValidationError(
             {"tipos_unidades": "Tipo de unidade inexistente."}
         )
-    return _grupo_unico(tipos)
+    return [_nomes_dos_grupos(tipo) for tipo in tipos]
 
 
-def _grupo_unico(tipos):
-    intersecao = _intersecao_de_grupos(tipos)
-    if not intersecao or len(intersecao) != 1:
+def _nomes_dos_grupos(tipo):
+    nomes = {grupo.nome for grupo in tipo.grupounidadeescolar_set.all()}
+    if not nomes:
         raise serializers.ValidationError(
-            {"tipos_unidades": "Os tipos de unidade devem pertencer ao mesmo grupo."}
+            {"tipos_unidades": "Tipo de unidade sem grupo cadastrado."}
         )
-    return next(iter(intersecao))
-
-
-def _intersecao_de_grupos(tipos):
-    intersecao = None
-    for tipo in tipos:
-        grupos = set(tipo.grupounidadeescolar_set.all())
-        if not grupos:
-            raise serializers.ValidationError(
-                {"tipos_unidades": "Tipo de unidade sem grupo cadastrado."}
-            )
-        intersecao = _atualizar_intersecao(intersecao, grupos)
-    return intersecao
-
-
-def _atualizar_intersecao(intersecao, grupos):
-    if intersecao is None:
-        return grupos
-    return intersecao & grupos
+    return nomes
 
 
 def _validar_unidades(uuids, dres, lotes, subprefeituras, tipos, usuario):
@@ -458,12 +515,14 @@ def _restringir_escolas(queryset, instituicao):
     return queryset
 
 
-def _eh_grupo_1(grupo):
-    return bool(grupo) and grupo.nome == GrupoUnidadeEscolar.GRUPO_1
+def _todos_no_grupo_1(grupos_dos_tipos):
+    return bool(grupos_dos_tipos) and all(
+        GrupoUnidadeEscolar.GRUPO_1 in nomes for nomes in grupos_dos_tipos
+    )
 
 
-def _validar_tipos_alimentacao(uuids, grupo, tipos_unidades):
-    if _eh_grupo_1(grupo):
+def _validar_tipos_alimentacao(uuids, grupos_dos_tipos, tipos_unidades):
+    if _todos_no_grupo_1(grupos_dos_tipos):
         _recusar_alimentacao_no_grupo_1(uuids)
         return
     if not uuids:
@@ -505,28 +564,6 @@ def _validar_tipos_alimentacao_aplicaveis(uuids, tipos_unidades):
                 )
             }
         )
-
-
-def _grupo_permite_faixa(grupo):
-    if not grupo:
-        return False
-    return grupo.nome in (GrupoUnidadeEscolar.GRUPO_1, GrupoUnidadeEscolar.GRUPO_2)
-
-
-def _validar_faixas(uuids, grupo):
-    if uuids and not _grupo_permite_faixa(grupo):
-        raise serializers.ValidationError(
-            {
-                "faixas_etarias": (
-                    "Faixa etária só é permitida para o Grupo 1 ou o Grupo 2."
-                )
-            }
-        )
-    if not uuids:
-        return
-    ativas = FaixaEtaria.objects.filter(uuid__in=uuids, ativo=True).distinct()
-    if ativas.count() != len(set(uuids)):
-        raise serializers.ValidationError({"faixas_etarias": "Faixa etária inválida."})
 
 
 def _validar_periodo(dados, meses):
@@ -608,20 +645,17 @@ class FiltrosRelatorioAlimentacoesServidasSerializer(serializers.Serializer):
 
     meses = serializers.ListField(
         child=serializers.CharField(),
-        allow_empty=False,
-        error_messages={
-            "required": MENSAGEM_MESES_OBRIGATORIO,
-            "empty": MENSAGEM_MESES_OBRIGATORIO,
-            "not_a_list": MENSAGEM_MESES_OBRIGATORIO,
-        },
+        required=False,
+        default=list,
+        error_messages={"not_a_list": MENSAGEM_MESES_OBRIGATORIO},
     )
+    recreios_nas_ferias = _campo_uuids()
     dres = _campo_uuids(obrigatorio=True)
     lotes = _campo_uuids()
     subprefeituras = _campo_uuids()
     tipos_unidades = _campo_uuids()
     unidades_educacionais = _campo_uuids()
     tipos_alimentacao = _campo_uuids()
-    faixas_etarias = _campo_uuids()
     periodo_lancamento_de = serializers.CharField(
         required=False, allow_blank=True, default=""
     )
@@ -630,6 +664,7 @@ class FiltrosRelatorioAlimentacoesServidasSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
-        meses = _validar_regras(attrs, self.context.get("usuario"))
+        meses, recreios = _validar_regras(attrs, self.context.get("usuario"))
         attrs["meses"] = [f"{mes:02d}_{ano}" for mes, ano in meses]
+        attrs["recreios_nas_ferias"] = recreios
         return attrs
