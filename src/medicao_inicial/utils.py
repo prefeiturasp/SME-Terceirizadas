@@ -2740,6 +2740,17 @@ def remover_duplicados(query_set):
     return sem_uuid_repetido
 
 
+def _get_numero_alunos_kit_lanche(kit_lanche, eh_cemei):
+    numero_alunos = kit_lanche.quantidade_alimentacoes
+    if isinstance(kit_lanche, SolicitacaoKitLancheUnificada):
+        return numero_alunos
+    if not eh_cemei:
+        return numero_alunos
+    if kit_lanche.tem_solicitacao_emei:
+        return kit_lanche.solicitacao_emei.quantidade_alimentacoes
+    return 0
+
+
 def get_kit_lanche(solicitacao):
     escola_uuid = solicitacao.escola.uuid
     mes = solicitacao.mes
@@ -2750,25 +2761,15 @@ def get_kit_lanche(solicitacao):
     query_set = query_set.filter(desc_doc__icontains="Kit Lanche")
     query_set = remover_duplicados(query_set)
 
+    eh_cemei = solicitacao.escola.eh_cemei_data(solicitacao.data_referencia)
     kits_lanches = []
     for kit_lanche in query_set:
         kit_lanche = kit_lanche.get_raw_model.objects.get(uuid=kit_lanche.uuid)
         solicitacao_kit_lanche = (
-            kit_lanche
-            if solicitacao.escola.eh_cemei_data(solicitacao.data_referencia)
-            else kit_lanche.solicitacao_kit_lanche
+            kit_lanche if eh_cemei else kit_lanche.solicitacao_kit_lanche
         )
         if kit_lanche:
-            numero_alunos = kit_lanche.quantidade_alimentacoes
-            if not isinstance(kit_lanche, SolicitacaoKitLancheUnificada):
-                if solicitacao.escola.eh_cemei_data(solicitacao.data_referencia):
-                    if kit_lanche.tem_solicitacao_emei:
-                        numero_alunos = (
-                            kit_lanche.solicitacao_emei.quantidade_alimentacoes
-                        )
-                    else:
-                        numero_alunos = 0
-
+            numero_alunos = _get_numero_alunos_kit_lanche(kit_lanche, eh_cemei)
             kits_lanches.append(
                 {
                     "dia": f"{solicitacao_kit_lanche.data.day:02d}",
