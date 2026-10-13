@@ -2272,20 +2272,39 @@ def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticad
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@pytest.mark.parametrize(
+    "nome_client,ve_card_de_reprovados",
+    [
+        ("client_autenticado_qualidade", True),
+        ("client_autenticado_codae_dilog", True),
+        ("client_autenticado_dilog_cronograma", True),
+        ("client_autenticado_dilog_diretoria", True),
+        ("client_autenticado_administrador_codae_gabinete", False),
+    ],
+)
 def test_url_dashboard_documentos_de_recebimento_status_retornados(
-    client_autenticado_codae_dilog, documento_de_recebimento_factory
+    request,
+    nome_client,
+    ve_card_de_reprovados,
+    documento_de_recebimento_factory,
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    """Cada perfil recebe os cards configurados para ele.
+
+    O card de Reprovados é exibido para DILOG_QUALIDADE, DILOG_CRONOGRAMA,
+    COORDENADOR_CODAE_DILOG_LOGISTICA e DILOG_DIRETORIA, mas não para o
+    ADMINISTRADOR_CODAE_GABINETE.
+    """
+    client = request.getfixturevalue(nome_client)
+    user_id = client.session["_auth_user_id"]
     user = get_user_model().objects.get(id=user_id)
     status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(
         user
     )
     for status_esperado in status_esperados:
         documento_de_recebimento_factory(status=status_esperado)
+    documento_de_recebimento_factory(status=DocumentoDeRecebimentoWorkflow.REPROVADO)
 
-    response = client_autenticado_codae_dilog.get(
-        "/documentos-de-recebimento/dashboard/"
-    )
+    response = client.get("/documentos-de-recebimento/dashboard/")
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -2293,6 +2312,10 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
 
     for status_recebido in status_recebidos:
         assert status_recebido in status_esperados
+
+    assert (
+        DocumentoDeRecebimentoWorkflow.REPROVADO in status_recebidos
+    ) is ve_card_de_reprovados
 
 
 @pytest.mark.parametrize(
