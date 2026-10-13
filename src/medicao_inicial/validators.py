@@ -622,6 +622,102 @@ def get_nomes_campos_emef_emebs_dietas(inclusoes, escola, categoria, medicao):
         return build_nomes_campos_dietas_emef(escola, categoria, medicao)
 
 
+def _log_dieta_corresponde(
+    log_, data, periodo_escolar_id, classificacao_id, tipo_aluno, idx
+):
+    if periodo_escolar_id is None:
+        return False
+    if log_[idx["data"]] != data:
+        return False
+    if log_[idx["periodo"]] != periodo_escolar_id:
+        return False
+    if log_[idx["classificacao"]] != classificacao_id:
+        return False
+    return log_[idx["infantil"]] == tipo_aluno
+
+
+def _valor_medicao_corresponde(
+    valor_medicao_, nome_campo, categoria_id, dia_str, tipo_aluno, idx
+):
+    return (
+        valor_medicao_[idx["nome_campo"]] == nome_campo
+        and valor_medicao_[idx["categoria"]] == categoria_id
+        and valor_medicao_[idx["dia"]] == dia_str
+        and valor_medicao_[idx["infantil"]] == tipo_aluno
+    )
+
+
+def _soma_quantidade_dietas(
+    logs_, data, periodo_escolar_id, classificacoes, tipo_aluno, idx
+):
+    quantidade = 0
+    for classificacao in classificacoes:
+        log = next(
+            (
+                log_
+                for log_ in logs_
+                if _log_dieta_corresponde(
+                    log_, data, periodo_escolar_id, classificacao.id, tipo_aluno, idx
+                )
+            ),
+            None,
+        )
+        if log:
+            quantidade += log[idx["quantidade"]]
+    return quantidade
+
+
+def _busca_valor_medicao(
+    valores_medicao_, nome_campo, categoria_id, dia_str, tipo_aluno, idx
+):
+    return next(
+        (
+            valor_medicao_
+            for valor_medicao_ in valores_medicao_
+            if _valor_medicao_corresponde(
+                valor_medicao_, nome_campo, categoria_id, dia_str, tipo_aluno, idx
+            )
+        ),
+        None,
+    )
+
+
+def _valida_campos_tipo_aluno(
+    tipo_aluno,
+    nomes_campos,
+    lista_erros,
+    medicao,
+    logs_,
+    data,
+    periodo_escolar_id,
+    classificacoes,
+    valores_medicao_,
+    categoria,
+    dia,
+    idx_log,
+    idx_valor,
+    periodo_com_erro,
+):
+    for nome_campo in nomes_campos:
+        if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+            continue
+        quantidade = _soma_quantidade_dietas(
+            logs_, data, periodo_escolar_id, classificacoes, tipo_aluno, idx_log
+        )
+        if quantidade == 0:
+            continue
+        valor_medicao = _busca_valor_medicao(
+            valores_medicao_,
+            nome_campo,
+            categoria.id,
+            f"{dia:02d}",
+            tipo_aluno,
+            idx_valor,
+        )
+        periodo_com_erro = checa_valor_medicao(valor_medicao, periodo_com_erro)
+    return periodo_com_erro
+
+
 def validate_lancamento_alimentacoes_inclusoes_emebs_dietas(
     nomes_campos,
     lista_erros,
@@ -636,71 +732,47 @@ def validate_lancamento_alimentacoes_inclusoes_emebs_dietas(
     escola,
     periodo_com_erro,
 ):
-    DATA_INDEX = 0
-    PERIODO_ESCOLAR_ID_INDEX = 1
-    QUANTIDADE_INDEX = 2
-    CLASSIFICACAO_ID_INDEX = 3
-    INFANTIL_OU_FUNDAMENTAL_INDEX = 4
+    idx_log = {
+        "data": 0,
+        "periodo": 1,
+        "quantidade": 2,
+        "classificacao": 3,
+        "infantil": 4,
+    }
+    idx_valor = {"nome_campo": 0, "categoria": 1, "dia": 2, "infantil": 3}
+    data = datetime.date(int(ano), int(mes), int(dia))
+    periodo_escolar_id = medicao.periodo_escolar.id if medicao.periodo_escolar else None
 
-    NOME_CAMPO_INDEX = 0
-    CATEGORIA_MEDICAO_ID_INDEX = 1
-    DIA_ID = 2
-    INFANTIL_OU_FUNDAMENTAL_VALOR_INDEX = 3
-
-    tipos_alunos = (
-        LogQuantidadeDietasAutorizadas.objects.filter(
-            escola=escola,
-            data__year=ano,
-            data__month=mes,
-            periodo_escolar=medicao.periodo_escolar,
-        )
-        .exclude(Q(quantidade=0) | Q(infantil_ou_fundamental="N/A"))
-        .values_list("infantil_ou_fundamental", flat=True)
-    )
-    tipos_alunos = list(set(tipos_alunos))
-    for tipo_aluno in tipos_alunos:
-        for nome_campo in nomes_campos:
-            if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
-                continue
-            quantidade = 0
-            for classificacao in classificacoes:
-                log = next(
-                    (
-                        log_
-                        for log_ in logs_
-                        if (
-                            log_[DATA_INDEX]
-                            == datetime.date(int(ano), int(mes), int(dia))
-                            and (
-                                log_[PERIODO_ESCOLAR_ID_INDEX]
-                                == medicao.periodo_escolar.id
-                                if medicao.periodo_escolar
-                                else None
-                            )
-                            and log_[CLASSIFICACAO_ID_INDEX] == classificacao.id
-                            and log_[INFANTIL_OU_FUNDAMENTAL_INDEX] == tipo_aluno
-                        )
-                    ),
-                    None,
-                )
-                quantidade += log[QUANTIDADE_INDEX] if log else 0
-            if quantidade == 0:
-                continue
-            valor_medicao = next(
-                (
-                    valor_medicao_
-                    for valor_medicao_ in valores_medicao_
-                    if (
-                        valor_medicao_[NOME_CAMPO_INDEX] == nome_campo
-                        and valor_medicao_[CATEGORIA_MEDICAO_ID_INDEX] == categoria.id
-                        and valor_medicao_[DIA_ID] == f"{dia:02d}"
-                        and valor_medicao_[INFANTIL_OU_FUNDAMENTAL_VALOR_INDEX]
-                        == tipo_aluno
-                    )
-                ),
-                None,
+    tipos_alunos = list(
+        set(
+            LogQuantidadeDietasAutorizadas.objects.filter(
+                escola=escola,
+                data__year=ano,
+                data__month=mes,
+                periodo_escolar=medicao.periodo_escolar,
             )
-            periodo_com_erro = checa_valor_medicao(valor_medicao, periodo_com_erro)
+            .exclude(Q(quantidade=0) | Q(infantil_ou_fundamental="N/A"))
+            .values_list("infantil_ou_fundamental", flat=True)
+        )
+    )
+
+    for tipo_aluno in tipos_alunos:
+        periodo_com_erro = _valida_campos_tipo_aluno(
+            tipo_aluno,
+            nomes_campos,
+            lista_erros,
+            medicao,
+            logs_,
+            data,
+            periodo_escolar_id,
+            classificacoes,
+            valores_medicao_,
+            categoria,
+            dia,
+            idx_log,
+            idx_valor,
+            periodo_com_erro,
+        )
     return periodo_com_erro
 
 
