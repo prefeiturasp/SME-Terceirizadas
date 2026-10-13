@@ -1,13 +1,16 @@
 from django.conf import settings
 from django.db import models
 
-from src.dados_comuns.behaviors import CriadoPor, ModeloBase
+from src.dados_comuns.behaviors import CriadoPor, Logs, ModeloBase
 from src.dados_comuns.constants import StringsVerboseNameModels
+from src.dados_comuns.fluxo_status import FluxoTermoRecebimentoDefinitivo
 from src.pre_recebimento.cronograma_entrega.models import Cronograma
 from src.terceirizada.models import Contrato, Terceirizada
 
 
-class TermoRecebimentoDefinitivo(ModeloBase, CriadoPor):
+class TermoRecebimentoDefinitivo(
+    ModeloBase, CriadoPor, Logs, FluxoTermoRecebimentoDefinitivo
+):
     """Termo de Recebimento Definitivo do módulo Pós-Recebimento.
 
     Registra a formalização do recebimento definitivo de produtos de uma
@@ -91,12 +94,6 @@ class TermoRecebimentoDefinitivo(ModeloBase, CriadoPor):
         blank=True,
     )
     texto_termo = models.TextField(StringsVerboseNameModels.TEXTO_DO_TERMO.value)
-    status = models.CharField(
-        StringsVerboseNameModels.STATUS.value,
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default=RASCUNHO,
-    )
     alterado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.DO_NOTHING,
@@ -110,6 +107,47 @@ class TermoRecebimentoDefinitivo(ModeloBase, CriadoPor):
         return (
             f"Termo de Recebimento Definitivo - "
             f"{self.empresa.nome_fantasia} - Contrato: {self.contrato.numero}"
+        )
+
+    @property
+    def etapa_fiscais_concluida(self):
+        """A etapa de assinatura dos Fiscais do Contrato está concluída?
+
+        Concluída quando todos os fiscais distintos já registraram a
+        assinatura ``FISCAL_CONTRATO``. O cadastro permite o mesmo usuário
+        em mais de um dos três papéis e cada usuário assina uma única vez,
+        então a assinatura do usuário repetido cobre todos os papéis dele.
+        """
+        fiscais = {self.fiscal_1_id, self.fiscal_2_id, self.fiscal_3_id}
+        assinantes = set(
+            self.assinaturas.filter(
+                etapa=AssinaturaTermoRecebimentoDefinitivo.FISCAL_CONTRATO
+            ).values_list("usuario_id", flat=True)
+        )
+        return fiscais <= assinantes
+
+    def eh_fiscal(self, usuario):
+        """O usuário é um dos três Fiscais do Contrato do termo?"""
+        return usuario in (self.fiscal_1, self.fiscal_2, self.fiscal_3)
+
+    def usuario_ja_assinou_fiscal(self, usuario):
+        """O usuário já registrou assinatura na etapa dos Fiscais?"""
+        return self.assinaturas.filter(
+            usuario=usuario,
+            etapa=AssinaturaTermoRecebimentoDefinitivo.FISCAL_CONTRATO,
+        ).exists()
+
+    def pode_assinar(self, usuario):
+        """O usuário pode assinar o termo como Fiscal do Contrato agora?
+
+        True apenas para um dos três fiscais, enquanto o termo estiver
+        aguardando a assinatura dos fiscais e o fiscal ainda não tiver
+        assinado.
+        """
+        return (
+            self.status == TermoRecebimentoDefinitivo.ENVIADO_FISCAIS
+            and self.eh_fiscal(usuario)
+            and not self.usuario_ja_assinou_fiscal(usuario)
         )
 
     class Meta:
@@ -147,3 +185,51 @@ class CronogramaTermoRecebimentoDefinitivo(models.Model):
         verbose_name = "Cronograma do Termo de Recebimento Definitivo"
         verbose_name_plural = "Cronogramas do Termo de Recebimento Definitivo"
         unique_together = [("termo", "cronograma")]
+
+
+class AssinaturaTermoRecebimentoDefinitivo(ModeloBase):
+    """Assinatura registrada em um Termo de Recebimento Definitivo.
+
+    Cada assinatura é individual (um usuário por etapa), permitindo que os
+    três Fiscais do Contrato assinem em qualquer ordem. As etapas seguintes
+    do fluxo (DILOG Diretoria, Coordenador CODAE e Empresa Fornecedora)
+    serão contempladas em histórias futuras.
+    """
+
+    FISCAL_CONTRATO = "FISCAL_CONTRATO"
+    DILOG_DIRETORIA = "DILOG_DIRETORIA"
+    COORDENADOR_CODAE = "COORDENADOR_CODAE"
+    EMPRESA_FORNECEDORA = "EMPRESA_FORNECEDORA"
+
+    ETAPA_CHOICES = (
+        (FISCAL_CONTRATO, "Fiscal do Contrato"),
+        (DILOG_DIRETORIA, "DILOG Diretoria"),
+        (COORDENADOR_CODAE, "Coordenador CODAE"),
+        (EMPRESA_FORNECEDORA, "Empresa Fornecedora"),
+    )
+
+    termo = models.ForeignKey(
+        TermoRecebimentoDefinitivo,
+        on_delete=models.CASCADE,
+        verbose_name=StringsVerboseNameModels.TERMO_DE_RECEBIMENTO_DEFINITIVO.value,
+        related_name="assinaturas",
+    )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        verbose_name=StringsVerboseNameModels.USUARIO.value,
+        related_name="assinaturas_termo_recebimento_definitivo",
+    )
+    etapa = models.CharField(
+        "Etapa do fluxo de assinaturas",
+        max_length=30,
+        choices=ETAPA_CHOICES,
+    )
+
+    def __str__(self):
+        return f"Assinatura de {self.usuario.nome} no Termo {self.termo.uuid}"
+
+    class Meta:
+        verbose_name = "Assinatura do Termo de Recebimento Definitivo"
+        verbose_name_plural = "Assinaturas dos Termos de Recebimento Definitivo"
+        unique_together = [("termo", "usuario", "etapa")]
