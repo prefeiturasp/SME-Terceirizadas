@@ -264,7 +264,7 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
 
     diretoria_regional = baker.make(
         "DiretoriaRegional",
-        nome="DIRETORIA REGIONAL IPIRANGA",
+        nome=NomesParaTesteDiretoriaRegional.DIRETORIA_REGIONAL_IPIRANGA.value,
         uuid="7da9acec-48e1-430c-8a5c-1f1efc666fad",
         codigo_eol=987656,
     )
@@ -351,7 +351,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
 
     diretoria_regional = baker.make(
         "DiretoriaRegional",
-        nome="DIRETORIA REGIONAL IPIRANGA",
+        nome=NomesParaTesteDiretoriaRegional.DIRETORIA_REGIONAL_IPIRANGA.value,
         iniciais="IP",
         uuid="7da9acec-48e1-430c-8a5c-1f1efc666fad",
         codigo_eol=987656,
@@ -721,7 +721,7 @@ def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
 
     diretoria_regional = baker.make(
         "DiretoriaRegional",
-        nome="DIRETORIA REGIONAL IPIRANGA",
+        nome=NomesParaTesteDiretoriaRegional.DIRETORIA_REGIONAL_IPIRANGA.value,
         iniciais="IP",
         uuid="7da9acec-48e1-430c-8a5c-1f1efc666fad",
         codigo_eol=987656,
