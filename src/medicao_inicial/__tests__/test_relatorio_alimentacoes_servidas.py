@@ -146,7 +146,6 @@ def _base(django_user_model):
         ativo=True,
     )
     vinculo.tipos_alimentacao.add(alimentacao)
-    faixa = baker.make("FaixaEtaria", inicio=0, fim=6, ativo=True)
     return {
         "gestao": gestao,
         "empresa": empresa,
@@ -162,7 +161,6 @@ def _base(django_user_model):
         "escola": escola,
         "usuario": usuario,
         "alimentacao": alimentacao,
-        "faixa": faixa,
     }
 
 
@@ -175,7 +173,6 @@ def _payload(base, **extras):
         "tipos_unidades": [str(base["tipo_a"].uuid)],
         "unidades_educacionais": [],
         "tipos_alimentacao": [],
-        "faixas_etarias": [],
         "periodo_lancamento_de": "01/12/2023",
         "periodo_lancamento_ate": "15/12/2023",
     }
@@ -197,7 +194,6 @@ def test_validacao_combinacao_valida(django_user_model):
         base,
         unidades_educacionais=[str(base["escola"].uuid)],
         tipos_alimentacao=[str(base["alimentacao"].uuid)],
-        faixas_etarias=[str(base["faixa"].uuid)],
     )
 
     validado = validar_filtros_relatorio_alimentacoes_servidas(dados, base["usuario"])
@@ -272,7 +268,7 @@ def test_validacao_dre_lote_e_subprefeitura(django_user_model):
 
 def test_validacao_tipos_de_grupos_diferentes_e_subconjunto(django_user_model):
     base = _base(django_user_model)
-    diferentes = _erros(
+    diferentes = validar_filtros_relatorio_alimentacoes_servidas(
         _payload(
             base,
             tipos_unidades=[
@@ -282,7 +278,10 @@ def test_validacao_tipos_de_grupos_diferentes_e_subconjunto(django_user_model):
         ),
         base["usuario"],
     )
-    assert "mesmo grupo" in str(diferentes["tipos_unidades"])
+    assert set(diferentes["tipos_unidades"]) == {
+        base["tipo_a"].uuid,
+        base["tipo_outro_grupo"].uuid,
+    }
 
     validado = validar_filtros_relatorio_alimentacoes_servidas(
         _payload(base, tipos_unidades=[str(base["tipo_b"].uuid)]),
@@ -304,7 +303,7 @@ def test_validacao_unidade_incompativel(django_user_model):
     assert "incompatível" in str(erros["unidades_educacionais"])
 
 
-def test_validacao_alimentacao_e_faixa_por_grupo(django_user_model):
+def test_validacao_alimentacao_por_grupo(django_user_model):
     base = _base(django_user_model)
     tipo_cei = _tipo("CEI")
     baker.make(
@@ -317,7 +316,6 @@ def test_validacao_alimentacao_e_faixa_por_grupo(django_user_model):
             base,
             tipos_unidades=[str(tipo_cei.uuid)],
             tipos_alimentacao=[str(base["alimentacao"].uuid)],
-            faixas_etarias=[str(base["faixa"].uuid)],
         ),
         base["usuario"],
     )
@@ -329,32 +327,6 @@ def test_validacao_alimentacao_e_faixa_por_grupo(django_user_model):
         base["usuario"],
     )
     assert "não aplicável" in str(erros_aplicavel["tipos_alimentacao"])
-
-    faixa_grupo_1 = validar_filtros_relatorio_alimentacoes_servidas(
-        _payload(
-            base,
-            tipos_unidades=[str(tipo_cei.uuid)],
-            faixas_etarias=[str(base["faixa"].uuid)],
-        ),
-        base["usuario"],
-    )
-    assert faixa_grupo_1["faixas_etarias"] == [base["faixa"].uuid]
-
-    faixa_grupo_2 = validar_filtros_relatorio_alimentacoes_servidas(
-        _payload(base, faixas_etarias=[str(base["faixa"].uuid)]),
-        base["usuario"],
-    )
-    assert faixa_grupo_2["faixas_etarias"] == [base["faixa"].uuid]
-
-    faixa_grupo_3 = _erros(
-        _payload(
-            base,
-            tipos_unidades=[str(base["tipo_outro_grupo"].uuid)],
-            faixas_etarias=[str(base["faixa"].uuid)],
-        ),
-        base["usuario"],
-    )
-    assert "Grupo 1 ou o Grupo 2" in str(faixa_grupo_3["faixas_etarias"])
 
 
 def test_validacao_periodo(django_user_model):
@@ -386,6 +358,149 @@ def test_validacao_periodo(django_user_model):
         base["usuario"],
     )
     assert "juntos" in str(so_de["periodo_lancamento_de"])
+
+
+SEM_PERIODO = {"periodo_lancamento_de": "", "periodo_lancamento_ate": ""}
+
+
+def _recreio(escola, mes="01", ano="2024", status_medicao=None):
+    recreio = baker.make(
+        "RecreioNasFerias",
+        titulo=f"Recreio {mes}/{ano}",
+        data_inicio=datetime.date(int(ano), int(mes), 1),
+        data_fim=datetime.date(int(ano), int(mes), 28),
+    )
+    baker.make(
+        "SolicitacaoMedicaoInicial",
+        escola=escola,
+        mes=mes,
+        ano=ano,
+        status=status_medicao or "MEDICAO_APROVADA_PELA_CODAE",
+        recreio_nas_ferias=recreio,
+    )
+    return recreio
+
+
+def test_validacao_exige_mes_ou_recreio_e_aceita_so_recreio(django_user_model):
+    base = _base(django_user_model)
+    recreio = _recreio(base["escola"])
+
+    nenhum = _erros(_payload(base, meses=[], **SEM_PERIODO), base["usuario"])
+    assert nenhum["meses"] == ["Selecione ao menos um mês de referência."]
+
+    so_recreio = validar_filtros_relatorio_alimentacoes_servidas(
+        _payload(
+            base, meses=[], recreios_nas_ferias=[str(recreio.uuid)], **SEM_PERIODO
+        ),
+        base["usuario"],
+    )
+    assert so_recreio["meses"] == []
+    assert so_recreio["recreios_nas_ferias"] == [str(recreio.uuid)]
+
+    ambos = validar_filtros_relatorio_alimentacoes_servidas(
+        _payload(base, recreios_nas_ferias=[str(recreio.uuid)], **SEM_PERIODO),
+        base["usuario"],
+    )
+    assert ambos["meses"] == ["12_2023"]
+    assert ambos["recreios_nas_ferias"] == [str(recreio.uuid)]
+
+
+def test_validacao_mes_regular_exclui_mes_que_so_tem_recreio(django_user_model):
+    base = _base(django_user_model)
+    _recreio(base["escola"], mes="02", ano="2024")
+
+    erros = _erros(_payload(base, meses=["02_2024"], **SEM_PERIODO), base["usuario"])
+
+    assert "não permitido" in str(erros["meses"])
+
+
+def test_validacao_um_mes_invalido_derruba_a_lista_toda(django_user_model):
+    base = _base(django_user_model)
+
+    erros = _erros(
+        _payload(base, meses=["12_2023", "01_2020"], **SEM_PERIODO), base["usuario"]
+    )
+
+    assert "não permitido" in str(erros["meses"])
+
+
+def test_validacao_recreio_inexistente_sem_escopo_ou_sem_aprovacao(django_user_model):
+    base = _base(django_user_model)
+    escola_alheia = _escola(
+        base["outra_dre"], base["lote_alheio"], base["tipo_a"], base["gestao"]
+    )
+    usuario_dre = _usuario(django_user_model, base["dre"], "COGESTOR_DRE")
+    recreio_alheio = _recreio(escola_alheia)
+    recreio_em_analise = _recreio(
+        base["escola"], mes="03", ano="2024", status_medicao="MEDICAO_ENVIADA_PELA_UE"
+    )
+    recreio_valido = _recreio(base["escola"], mes="04", ano="2024")
+
+    for uuids, usuario in (
+        (["nao-e-uuid"], base["usuario"]),
+        ([str(uuid4())], base["usuario"]),
+        ([str(recreio_em_analise.uuid)], base["usuario"]),
+        ([str(recreio_alheio.uuid)], usuario_dre),
+        ([str(recreio_valido.uuid), str(recreio_alheio.uuid)], usuario_dre),
+    ):
+        erros = _erros(
+            _payload(base, recreios_nas_ferias=uuids, **SEM_PERIODO), usuario
+        )
+        assert "recreios_nas_ferias" in erros, uuids
+        assert "meses" not in erros
+
+
+def test_validacao_remove_duplicados_de_meses_e_recreios(django_user_model):
+    base = _base(django_user_model)
+    recreio = _recreio(base["escola"])
+    uuid_recreio = str(recreio.uuid)
+
+    validado = validar_filtros_relatorio_alimentacoes_servidas(
+        _payload(
+            base,
+            meses=["12_2023", "12_2023"],
+            recreios_nas_ferias=[uuid_recreio, uuid_recreio],
+            **SEM_PERIODO,
+        ),
+        base["usuario"],
+    )
+
+    assert validado["meses"] == ["12_2023"]
+    assert validado["recreios_nas_ferias"] == [uuid_recreio]
+
+
+def test_validacao_periodo_entre_meses_e_recreios(django_user_model):
+    base = _base(django_user_model)
+    _solicitacao(base["escola"], "10", "2023")
+    recreio = _recreio(base["escola"])
+    payload = _payload(
+        base,
+        meses=["10_2023", "12_2023"],
+        recreios_nas_ferias=[str(recreio.uuid)],
+    )
+
+    entre_meses = {
+        "periodo_lancamento_de": "10/10/2023",
+        "periodo_lancamento_ate": "20/12/2023",
+    }
+    validar_filtros_relatorio_alimentacoes_servidas(
+        {**payload, **entre_meses}, base["usuario"]
+    )
+    no_recreio = {
+        "periodo_lancamento_de": "20/12/2023",
+        "periodo_lancamento_ate": "05/01/2024",
+    }
+    validar_filtros_relatorio_alimentacoes_servidas(
+        {**payload, **no_recreio}, base["usuario"]
+    )
+
+    for campo, valor in (
+        ("periodo_lancamento_de", "10/11/2023"),
+        ("periodo_lancamento_ate", "10/02/2024"),
+    ):
+        dados = {**payload, **entre_meses, campo: valor}
+        erros = _erros(dados, base["usuario"])
+        assert "dentro de um mês de referência selecionado" in str(erros[campo])
 
 
 def test_meses_anos_escopo_e_parametros_antigos(client, django_user_model):
