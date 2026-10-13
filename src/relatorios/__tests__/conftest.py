@@ -180,7 +180,7 @@ def grupo_suspensao_alimentacao_cancelamento_total(escola):
 
 @pytest.fixture
 def usuario_escola(escola):
-    email = "escola@admin.com"
+    email = EmailsParaTeste.ESCOLA_ADMIN.value
     password = DJANGO_ADMIN_PASSWORD
     rf = "1545933"
     user = Usuario.objects.create_user(

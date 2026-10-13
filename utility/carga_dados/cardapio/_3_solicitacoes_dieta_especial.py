@@ -8,6 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
 from faker import Faker
 
+from src.dados_comuns.constants import EmailsParaTeste
 from src.dieta_especial.protocolo_padrao.models import (
     Alimento,
     SubstituicaoAlimento,
@@ -126,7 +127,7 @@ def _get_random_alimento():
 
 @transaction.atomic
 def cria_solicitacoes_dieta_especial(qtd=50):
-    user = Usuario.objects.get(email="escola@admin.com")
+    user = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
     codigos_eol = [100000 + i for i in range(qtd)]
     alunos = []
     for cod_eol in codigos_eol:

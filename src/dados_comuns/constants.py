@@ -883,6 +883,7 @@ class EmailsParaTeste(Enum):
     ADMIN_COM_BR = "admin@admin.com.br"
     TERCEIRIZADA_ADMIN = "terceirizada@admin.com"
     ESCOLA = "user@escola.com"
+    ESCOLA_ADMIN = "escola@admin.com"
 
     @classmethod
     def choices(cls):

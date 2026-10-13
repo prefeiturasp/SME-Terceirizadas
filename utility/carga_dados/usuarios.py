@@ -24,7 +24,7 @@ USUARIOS = [
         "cargo": "Fornecedor",
     },
     {
-        "email": "escola@admin.com",
+        "email": EmailsParaTeste.ESCOLA_ADMIN.value,
         "password": DJANGO_ADMIN_PASSWORD,
         "cpf": "11111111101",
         "registro_funcional": "0000001",

@@ -118,7 +118,7 @@ def cria_vinculos():
     }
 
     usuario = {
-        "usuario_escola": Usuario.objects.get(email="escola@admin.com"),
+        "usuario_escola": Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value),
         "usuario_escola_cei": Usuario.objects.get(email="escolacei@admin.com"),
         "usuario_escola_cei_ceu": Usuario.objects.get(email="escolaceiceu@admin.com"),
         "usuario_escola_cci": Usuario.objects.get(email="escolacci@admin.com"),
