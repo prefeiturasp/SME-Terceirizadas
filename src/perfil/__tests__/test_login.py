@@ -9,6 +9,7 @@ from src.dados_comuns.constants import (
     ADMINISTRADOR_UE,
     DIRETOR_UE,
     DJANGO_ADMIN_PASSWORD,
+    DJANGO_ADMIN_TREINAMENTO_PASSWORD,
     StringsValidationErrors,
 )
 from src.eol_servico.utils import EOLServicoSGP
@@ -743,7 +744,7 @@ def test_login_coresso_coordenador_polo_tem_vinculo_diretor_ue(
 def test_login_usuario_nao_autentica_retorna_credenciais_invalidas(
     client_autenticado_da_escola, monkeypatch
 ):
-    data = {"login": "1234567", "password": "senha_incorreta"}
+    data = {"login": "1234567", "password": DJANGO_ADMIN_TREINAMENTO_PASSWORD}
 
     monkeypatch.setattr(
         AutenticacaoService, "autentica", lambda p1, p2: mocked_response({}, 401)
@@ -770,7 +771,7 @@ def test_login_usuario_nao_autentica_retorna_credenciais_invalidas(
 def test_login_novosgp_erro_retorna_usuario_ou_senha_invalidos(
     client_autenticado_da_escola, monkeypatch
 ):
-    data = {"login": "1234567", "password": "senha_incorreta"}
+    data = {"login": "1234567", "password": DJANGO_ADMIN_TREINAMENTO_PASSWORD}
 
     def _erro_novosgp(self):
         raise NovoSGPServicoLogadoException(
