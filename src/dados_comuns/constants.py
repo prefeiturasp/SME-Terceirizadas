@@ -1032,6 +1032,7 @@ class StringsValidationErrors(Enum):
         "Entre em contato com o administrador do SIGPAE."
     )
     NAO_FOI_POSSIVEL_LOGAR = "Não foi possível logar no sistema"
+    RESTAM_DIAS_A_SEREM_LANCADOS = "Restam dias a serem lançados nas alimentações."
 
     @classmethod
     def choices(cls):

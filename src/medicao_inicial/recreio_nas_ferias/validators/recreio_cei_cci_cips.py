@@ -7,6 +7,7 @@ from django.db.models import QuerySet
 from src.dados_comuns.constants import (
     DIETA_ESPECIAL_TIPO_A,
     DIETA_ESPECIAL_TIPO_B,
+    StringsValidationErrors,
 )
 from src.dieta_especial.solicitacao_dieta_especial.models import ClassificacaoDieta
 from src.escola.models import Escola, FaixaEtaria
@@ -439,7 +440,7 @@ def buscar_valores_lancamento_alimentacoes_faixa_etaria(
         lista_erros.append(
             {
                 "periodo_escolar": grupo,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros

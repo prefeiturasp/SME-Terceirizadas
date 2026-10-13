@@ -5,6 +5,7 @@ from model_bakery import baker
 
 from src.dados_comuns.constants import (
     TIPOS_ALIMENTACAO,
+    StringsValidationErrors,
 )
 from src.medicao_inicial.models import GrupoMedicao, ValorMedicao
 from src.medicao_inicial.recreio_nas_ferias.validators.recreio_cei_cci_cips import (
@@ -54,11 +55,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cei_dados_nao_lancados
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
     ]
@@ -236,11 +237,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cei_erro_quando_existe
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
     ]
@@ -274,11 +275,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cei_gera_erro_sem_obse
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
     ]

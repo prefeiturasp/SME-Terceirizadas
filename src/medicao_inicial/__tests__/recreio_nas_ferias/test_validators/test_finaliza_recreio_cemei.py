@@ -3,6 +3,7 @@ import pytest
 from src.dados_comuns.constants import (
     TIPOS_ALIMENTACAO,
     TIPOS_UNIDADE_ESCOLAR,
+    StringsValidationErrors,
 )
 from src.medicao_inicial.models import GrupoMedicao, ValorMedicao
 from src.medicao_inicial.recreio_nas_ferias.validators.recreio_cemei import (
@@ -51,11 +52,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cemei_dados_nao_lancad
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_COLABORADORES,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_EMEI,
         },
     ]
@@ -85,11 +86,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cemei_dados_nao_lancad
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_COLABORADORES,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_CEI,
         },
     ]
@@ -119,15 +120,15 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cemei_dados_nao_lancad
     assert len(lista_erros) == 3
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_COLABORADORES,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_CEI,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_EMEI,
         },
     ]

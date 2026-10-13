@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.db.models import QuerySet
 from rest_framework.serializers import ValidationError
 
-from src.dados_comuns.constants import TIPOS_ALIMENTACAO
+from src.dados_comuns.constants import TIPOS_ALIMENTACAO, StringsValidationErrors
 from src.medicao_inicial.models import (
     CategoriaMedicao,
     GrupoMedicao,
@@ -193,7 +193,7 @@ def buscar_valores_lancamento_alimentacoes_recreio(
         lista_erros.append(
             {
                 "periodo_escolar": grupo,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros

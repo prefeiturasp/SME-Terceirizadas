@@ -9,6 +9,7 @@ from workalendar.america import BrazilSaoPauloCity
 from src.dados_comuns.constants import (
     TIPOS_ALIMENTACAO,
     TIPOS_UNIDADE_ESCOLAR,
+    StringsValidationErrors,
 )
 from src.dados_comuns.utils import filtrar_dias_letivos, get_ultimo_dia_mes
 from src.dieta_especial.logs_models.models import (
@@ -230,7 +231,7 @@ def buscar_valores_lancamento_alimentacoes(
         lista_erros.append(
             {
                 "periodo_escolar": periodo_escolar.nome,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros
@@ -278,7 +279,7 @@ def buscar_valores_lancamento_alimentacoes_emei_cemei(
         lista_erros.append(
             {
                 "periodo_escolar": medicao.nome_periodo_grupo,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros
@@ -926,7 +927,7 @@ def valida_medicoes_inexistentes_cei(solicitacao, lista_erros):
             lista_erros.append(
                 {
                     "periodo_escolar": periodo_escolar.nome,
-                    "erro": "Restam dias a serem lançados nas alimentações.",
+                    "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
                 }
             )
     if (
@@ -936,7 +937,7 @@ def valida_medicoes_inexistentes_cei(solicitacao, lista_erros):
         lista_erros.append(
             {
                 "periodo_escolar": "PARCIAL",
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros
@@ -1002,7 +1003,7 @@ def validate_lancamento_alimentacoes_medicao_cei(solicitacao, lista_erros):
                 lista_erros.append(
                     {
                         "periodo_escolar": medicao.periodo_escolar.nome,
-                        "erro": "Restam dias a serem lançados nas alimentações.",
+                        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
                     }
                 )
     return lista_erros
@@ -1041,7 +1042,7 @@ def validate_lancamento_alimentacoes_medicao_cei_cemei(
             lista_erros.append(
                 {
                     "periodo_escolar": medicao.periodo_escolar.nome,
-                    "erro": "Restam dias a serem lançados nas alimentações.",
+                    "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
                 }
             )
     return lista_erros
@@ -1116,7 +1117,7 @@ def buscar_valores_lancamento_inclusoes(
         lista_erros.append(
             {
                 "periodo_escolar": inclusao["periodo_escolar"],
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros
@@ -1146,7 +1147,7 @@ def buscar_valores_lancamento_inclusoes_emei_cemei(
         lista_erros.append(
             {
                 "periodo_escolar": inclusao["medicao"].nome_periodo_grupo,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros
@@ -1524,7 +1525,7 @@ def get_lista_erros_inclusoes_cei(
                 lista_erros.append(
                     {
                         "periodo_escolar": medicao.periodo_escolar.nome,
-                        "erro": "Restam dias a serem lançados nas alimentações.",
+                        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
                     }
                 )
     return lista_erros
@@ -1586,7 +1587,7 @@ def get_lista_erros_inclusoes_cei_cemei(
             lista_erros.append(
                 {
                     "periodo_escolar": medicao.periodo_escolar.nome,
-                    "erro": "Restam dias a serem lançados nas alimentações.",
+                    "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
                 }
             )
     return lista_erros
@@ -3222,7 +3223,7 @@ def validate_solicitacoes_continuas(
         lista_erros.append(
             {
                 "periodo_escolar": nome_secao,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return erros_unicos(lista_erros)
@@ -3274,7 +3275,7 @@ def validate_solicitacoes_continuas_emei_cemei(
         lista_erros.append(
             {
                 "periodo_escolar": nome_secao,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return erros_unicos(lista_erros)
@@ -3365,7 +3366,7 @@ def validate_cemei_evento_especifico_programas(solicitacao, medicao, lista_erros
         lista_erros.append(
             {
                 "periodo_escolar": GrupoMedicao.PROGRAMAS_E_PROJETOS,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
 
@@ -3445,7 +3446,7 @@ def valida_medicoes_inexistentes_escola_sem_alunos_regulares(solicitacao, lista_
             lista_erros.append(
                 {
                     "periodo_escolar": periodo_escolar.nome,
-                    "erro": "Restam dias a serem lançados nas alimentações.",
+                    "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
                 }
             )
     lista_erros = (
@@ -3524,7 +3525,7 @@ def valida_medicao_programas_e_projetos_inexistente_escola_sem_alunos_regulares(
         lista_erros.append(
             {
                 "periodo_escolar": GrupoMedicao.PROGRAMAS_E_PROJETOS,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros
@@ -3586,7 +3587,7 @@ def valida_medicao_etec_inexistente_escola_sem_alunos_regulares(
         lista_erros.append(
             {
                 "periodo_escolar": "ETEC",
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros
@@ -3841,7 +3842,7 @@ def valida_medicoes_inexistentes_emebs(solicitacao, lista_erros):
             lista_erros.append(
                 {
                     "periodo_escolar": periodo_escolar.nome,
-                    "erro": "Restam dias a serem lançados nas alimentações.",
+                    "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
                 }
             )
     return lista_erros
@@ -3982,7 +3983,7 @@ def checa_periodo_com_erro(periodo_com_erro, lista_erros, periodo_escolar):
         lista_erros.append(
             {
                 "periodo_escolar": periodo_escolar.nome,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         )
     return lista_erros

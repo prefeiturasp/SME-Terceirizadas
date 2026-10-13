@@ -2197,7 +2197,7 @@ def test_finaliza_medicao_inicial_salva_logs_ceu_gestao(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "TARDE",
         }
     ]
@@ -4696,7 +4696,7 @@ def test_url_endpoint_finaliza_medicao_recreio_emef_falta_lancamento(
     assert len(json) == 3
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
@@ -4704,7 +4704,7 @@ def test_url_endpoint_finaliza_medicao_recreio_emef_falta_lancamento(
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
     ]
@@ -4783,7 +4783,7 @@ def test_url_endpoint_finaliza_medicao_recreio_cei_falta_lancamento(
     assert len(json) == 3
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
@@ -4791,7 +4791,7 @@ def test_url_endpoint_finaliza_medicao_recreio_cei_falta_lancamento(
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
     ]
@@ -4859,15 +4859,15 @@ def test_url_endpoint_finaliza_medicao_recreio_cemei_falta_lancamento(
     assert len(json) == 5
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS_0_A_3,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14,
         },
         {
