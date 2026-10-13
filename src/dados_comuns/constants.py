@@ -1039,6 +1039,8 @@ class StringsValidationErrors(Enum):
     )
     NAO_FOI_POSSIVEL_LOGAR = "Não foi possível logar no sistema"
     ARQUIVO_NAO_SUPORTADO = "Arquivo não suportado."
+    EXTENSAO_ARQUIVO_NAO_SUPORTADA = "Extensão do arquivo não suportada."
+    EOL_TIMEOUT = "EOL Timeout"
     PRECISA_IMPLEMENTAR = "Precisa implementar"
     RESTAM_DIAS_A_SEREM_LANCADOS = "Restam dias a serem lançados nas alimentações."
     RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS = "Restam dias a serem lançados nas dietas."
