@@ -659,6 +659,7 @@ class NomesParaTesteEscola(Enum):
     EMEF_TESTE = "EMEF TESTE"
     EMEI_TESTE = "EMEI TESTE"
     CEI_DIRET_TESTE = "CEI DIRET TESTE"
+    CEI_DIRET_JOSE_DE_MOURA_VER = "CEI DIRET - JOSE DE MOURA, VER."
     CEMEI_TESTE = "CEMEI TESTE"
 
     @classmethod

@@ -889,13 +889,15 @@ def planilha_usuario_servidor(arquivo_xls):
 @pytest.fixture
 def escola_cei():
     return baker.make(
-        "Escola", nome="CEI DIRET - JOSE DE MOURA, VER.", codigo_eol="400158"
+        "Escola",
+        nome=NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
+        codigo_eol="400158",
     )
 
 
 @pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
-    email = "user@escola.com"
+    email = EmailsParaTeste.ESCOLA.value
     rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
     baker.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
@@ -955,7 +957,7 @@ def client_autenticado_da_escola_email_invalido(
 def client_autenticado_da_escola_sem_vinculo(
     client, django_user_model, escola, escola_cei
 ):
-    email = "user@escola.com"
+    email = EmailsParaTeste.ESCOLA.value
     rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
     baker.make("Perfil", nome="DIRETOR_UE", ativo=True)
@@ -974,7 +976,7 @@ def client_autenticado_da_escola_sem_vinculo(
 
 @pytest.fixture
 def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_cei):
-    email = "user@escola.com"
+    email = EmailsParaTeste.ESCOLA.value
     rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
     baker.make("Perfil", nome="DIRETOR_UE", ativo=True)
@@ -1002,7 +1004,7 @@ def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_c
 
 @pytest.fixture
 def client_autenticado_da_dre(client, django_user_model, escola, escola_cei):
-    email = "user@escola.com"
+    email = EmailsParaTeste.ESCOLA.value
     rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
     perfil_dre = baker.make("Perfil", nome="COGESTOR_DRE", ativo=True)
@@ -1166,7 +1168,7 @@ def mocked_response_autentica_coresso_adm_ue():
     return {
         "nome": "RONALDO DIRETOR",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "login": "1234567",
         "visoes": ["ADMINISTRADOR_UE"],
         "perfis_por_sistema": [{"sistema": 1004, "perfis": ["ADMINISTRADOR_UE"]}],
@@ -1177,7 +1179,7 @@ def mocked_response_autentica_coresso_diretor():
     return {
         "nome": "RONALDO DIRETOR",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "login": "1234567",
         "visoes": ["DIRETOR_UE"],
         "perfis_por_sistema": [{"sistema": 1004, "perfis": ["DIRETOR_UE"]}],
@@ -1188,7 +1190,7 @@ def mocked_response_autentica_coresso_cogestor():
     return {
         "nome": "RONALDO COGESTOR",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "login": "1234567",
         "visoes": ["COGESTOR_DRE"],
         "perfis_por_sistema": [{"sistema": 1004, "perfis": ["COGESTOR_DRE"]}],
@@ -1199,7 +1201,7 @@ def mocked_response_autentica_coresso_diretor_login_errado():
     return {
         "nome": "RONALDO DIRETOR",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "login": "1234568",
         "visoes": ["DIRETOR_UE"],
         "perfis_por_sistema": [{"sistema": 1004, "perfis": ["DIRETOR_UE"]}],
@@ -1210,13 +1212,13 @@ def mocked_response_get_dados_usuario_coresso():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 3360,
                 "descricaoCargo": "DIRETOR DE ESCOLA                       ",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1228,13 +1230,13 @@ def mocked_response_get_dados_usuario_coresso_coordenador():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 43,
                 "descricaoCargo": "COORDENADOR GERAL                       ",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1246,13 +1248,13 @@ def mocked_response_get_dados_usuario_coresso_gestor():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 515,
                 "descricaoCargo": "GESTOR DE EQUIPAMENTO PÚBLICO II                       ",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1270,7 +1272,7 @@ def mocked_response_get_dados_usuario_coresso_sem_email():
                 "codigoCargo": 3360,
                 "descricaoCargo": "DIRETOR DE ESCOLA                       ",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1282,13 +1284,13 @@ def mocked_response_get_dados_usuario_coresso_cogestor():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 2,
                 "descricaoCargo": "COGESTOR                       ",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1300,13 +1302,13 @@ def mocked_response_get_dados_usuario_coresso_adm_escola():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 3379,
                 "descricaoCargo": "COORDENADOR PEDAGÓGICO                       ",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1318,13 +1320,13 @@ def mocked_response_get_dados_usuario_coresso_sem_acesso_automatico():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 1,
                 "descricaoCargo": "ATE                      ",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1336,13 +1338,13 @@ def mocked_response_get_dados_usuario_coresso_cieja_coordenador_geral():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 99,
                 "descricaoCargo": "CIEJA COORDENADOR GERAL",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1354,13 +1356,13 @@ def mocked_response_get_dados_usuario_coresso_cieja_assist_coord_geral():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 98,
                 "descricaoCargo": "CIEJA ASSIST COORD GERAL",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
@@ -1372,13 +1374,13 @@ def mocked_response_get_dados_usuario_coresso_coordenador_polo():
     return {
         "rf": "1234567",
         "cpf": "93697506064",
-        "email": "user@escola.com",
+        "email": EmailsParaTeste.ESCOLA.value,
         "cargos": [
             {
                 "codigoCargo": 97,
                 "descricaoCargo": "COORDENADOR POLO UAB",
                 "codigoUnidade": "400158",
-                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "descricaoUnidade": NomesParaTesteEscola.CEI_DIRET_JOSE_DE_MOURA_VER.value,
                 "codigoDre": "108600",
             }
         ],
