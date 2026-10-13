@@ -10,7 +10,7 @@ from faker import Faker
 from model_bakery import baker
 from openpyxl import Workbook
 
-from src.dados_comuns.constants import NomesParaTesteEscola
+from src.dados_comuns.constants import ContentTypesParaRequests, NomesParaTesteEscola
 
 from ...dados_comuns.constants import (
     ADMINISTRADOR_CONTRATOS,
@@ -864,7 +864,7 @@ def authenticated_client(client, fake_user):
 
 @pytest.fixture
 def arquivo_pdf():
-    type_pdf = "application/pdf"
+    type_pdf = ContentTypesParaRequests.PDF.value
     return SimpleUploadedFile(
         "arquivo-teste.pdf", str.encode("file_content"), content_type=type_pdf
     )

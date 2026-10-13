@@ -9,6 +9,7 @@ from model_bakery import baker
 from src.dados_comuns.constants import (
     FORMATO_DATA_BRASILEIRO,
     TIPOS_UNIDADE_ESCOLAR,
+    ContentTypesParaRequests,
 )
 from src.dados_comuns.models import LogSolicitacoesUsuario
 from src.medicao_inicial.models import GrupoMedicao
@@ -71,7 +72,7 @@ def test_relatorio_suspensao_de_alimentacao(grupo_suspensao_alimentacao):
     pdf_response = relatorio_suspensao_de_alimentacao(None, grupo_suspensao_alimentacao)
 
     assert pdf_response.status_code == 200
-    assert pdf_response.headers["Content-Type"] == "application/pdf"
+    assert pdf_response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         pdf_response.headers["Content-Disposition"]
         == f'filename="solicitacao_suspensao_{grupo_suspensao_alimentacao.id_externo}.pdf"'
@@ -101,7 +102,7 @@ def test_relatorio_suspensao_de_alimentacao_parcialmente_cancelado(
     )
 
     assert pdf_response.status_code == 200
-    assert pdf_response.headers["Content-Type"] == "application/pdf"
+    assert pdf_response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         pdf_response.headers["Content-Disposition"]
         == f'filename="solicitacao_suspensao_{grupo_suspensao_alimentacao_cancelamento_parcial.id_externo}.pdf"'
@@ -135,7 +136,7 @@ def test_relatorio_suspensao_de_alimentacao_totalmente_cancelado(
     )
 
     assert pdf_response.status_code == 200
-    assert pdf_response.headers["Content-Type"] == "application/pdf"
+    assert pdf_response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         pdf_response.headers["Content-Disposition"]
         == f'filename="solicitacao_suspensao_{grupo_suspensao_alimentacao_cancelamento_total.id_externo}.pdf"'
@@ -374,7 +375,7 @@ def test_get_pdf_ficha_tecnica(ficha_tecnica):
     nome_pdf = f"ficha_tecnica_{ficha_tecnica.numero}.pdf"
     texto = extrair_texto_de_pdf(response.content)
 
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert f'filename="{nome_pdf}"' in response["Content-Disposition"]
 
     assert ficha_tecnica.numero in texto
@@ -437,7 +438,7 @@ def test_get_pdf_ficha_tecnica_sem_envasador(ficha_tecnica_sem_envasador):
     nome_pdf = f"ficha_tecnica_{ficha_tecnica_sem_envasador.numero}.pdf"
     texto = extrair_texto_de_pdf(response.content)
 
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert f'filename="{nome_pdf}"' in response["Content-Disposition"]
 
     assert "Envasador/Distribuidor" not in texto
@@ -451,7 +452,7 @@ def test_get_pdf_ficha_tecnica_flv_ponto_a_ponto_sem_fabricante(
     )
     texto = extrair_texto_de_pdf(response.content)
 
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert "FABRICANTE E/OU ENVASADOR/DISTRIBUIDOR" not in texto
     assert "Nº do Registro do Rótulo" not in texto
     assert "DETALHES DO PRODUTO" in texto
@@ -465,7 +466,7 @@ def test_get_pdf_ficha_tecnica_flv_ponto_a_ponto_com_fabricante(
     response = get_pdf_ficha_tecnica(None, ficha)
     texto = extrair_texto_de_pdf(response.content)
 
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert "FABRICANTE E/OU ENVASADOR/DISTRIBUIDOR" in texto
     assert ficha.fabricante.fabricante.nome in texto
     assert "Nº do Registro do Rótulo" in texto
@@ -701,7 +702,7 @@ def test_relatorio_ficha_recebimento(
     pdf_response = get_pdf_ficha_recebimento(None, ficha_recebimento_com_ocorrencia)
 
     assert pdf_response.status_code == 200
-    assert pdf_response.headers["Content-Type"] == "application/pdf"
+    assert pdf_response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
 
     texto = extrair_texto_de_pdf(pdf_response.content)
 
@@ -743,7 +744,10 @@ def test_relatorio_ficha_recebimento(
     )
 
     assert pdf_response_reposicao.status_code == 200
-    assert pdf_response_reposicao.headers["Content-Type"] == "application/pdf"
+    assert (
+        pdf_response_reposicao.headers["Content-Type"]
+        == ContentTypesParaRequests.PDF.value
+    )
 
     texto_reposicao = extrair_texto_de_pdf(pdf_response_reposicao.content)
 
@@ -763,7 +767,10 @@ def test_relatorio_ficha_recebimento(
     )
 
     assert pdf_response_carta_credito.status_code == 200
-    assert pdf_response_carta_credito.headers["Content-Type"] == "application/pdf"
+    assert (
+        pdf_response_carta_credito.headers["Content-Type"]
+        == ContentTypesParaRequests.PDF.value
+    )
 
     texto_carta_credito = extrair_texto_de_pdf(pdf_response_carta_credito.content)
 
@@ -778,7 +785,10 @@ def test_relatorio_cronograma_entrega(cronograma):
     pdf_response_cronograma = get_pdf_cronograma(None, cronograma)
 
     assert pdf_response_cronograma.status_code == 200
-    assert pdf_response_cronograma.headers["Content-Type"] == "application/pdf"
+    assert (
+        pdf_response_cronograma.headers["Content-Type"]
+        == ContentTypesParaRequests.PDF.value
+    )
 
     texto_pdf = extrair_texto_de_pdf(pdf_response_cronograma.content)
 

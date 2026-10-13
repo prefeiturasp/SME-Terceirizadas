@@ -6,6 +6,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.permissions import (
     PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaVisualizarLayoutDeEmbalagem,
@@ -182,6 +183,8 @@ class LayoutDeEmbalagemModelViewSet(
 
         pdf_bytes = layout.arquivo_imagem_assinada(imagem)
 
-        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response = HttpResponse(
+            pdf_bytes, content_type=ContentTypesParaRequests.PDF.value
+        )
         response["Content-Disposition"] = f'inline; filename="{imagem.nome}"'
         return response

@@ -12,6 +12,7 @@ from src.cardapio.suspensao_alimentacao.models import (
 )
 from src.cardapio.utils import converter_data
 from src.dados_comuns import constants
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.fluxo_status import (
     InformativoPartindoDaEscolaWorkflow,
     PedidoAPartirDaEscolaWorkflow,
@@ -291,7 +292,7 @@ def test_url_endpoint_suspensoes_relatorio(
     )
     id_externo = grupo_suspensao_alimentacao_informado.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="solicitacao_suspensao_{id_externo}.pdf"'

@@ -1079,6 +1079,7 @@ class ColunasPlanilhaEscola(Enum):
 
 class ContentTypesParaRequests(Enum):
     XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    PDF = "application/pdf"
 
     @classmethod
     def choices(cls):
