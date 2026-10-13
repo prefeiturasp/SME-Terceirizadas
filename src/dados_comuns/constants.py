@@ -1053,6 +1053,14 @@ class StringsValidationErrors(Enum):
         return [(key.value, key.name) for key in cls]
 
 
+class ContentTypesParaRequests(Enum):
+    XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
+
+
 class PayloadVariaveis(Enum):
     LOTES = "lotes[]"
     EDITAIS = "editais[]"
