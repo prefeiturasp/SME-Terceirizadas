@@ -22,6 +22,7 @@ from src.pre_recebimento.ficha_tecnica.api.helpers import (
 from src.pre_recebimento.ficha_tecnica.models import FichaTecnicaDoProduto
 from src.pre_recebimento.tasks import gerar_relatorio_cronogramas_pdf_async
 from src.produto.models import Fabricante, HomologacaoProduto, Marca, Produto
+from src.recebimento.models import VeiculoFichaDeRecebimento
 from src.relatorios.utils import extrair_texto_de_pdf
 from src.terceirizada.models import Terceirizada
 
@@ -1349,3 +1350,107 @@ def test_get_pdf_relatorio_solicitacao_alteracao_cronograma_exibe_aprovado_dilog
     texto_normalizado = re.sub(r"\s+", "", extrair_texto_de_pdf(relatorio.content))
 
     assert "AprovadoDILOG" in texto_normalizado
+
+
+@pytest.mark.parametrize(
+    "categoria",
+    [
+        FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        FichaTecnicaDoProduto.CATEGORIA_NAO_PERECIVEIS,
+    ],
+    ids=["perecivel", "nao_perecivel"],
+)
+def test_relatorio_ficha_recebimento_placas_por_veiculo(
+    ficha_recebimento_com_ocorrencia, categoria
+):
+    ficha = ficha_recebimento_com_ocorrencia
+    ficha_tecnica = ficha.etapa.cronograma.ficha_tecnica
+    ficha_tecnica.categoria = categoria
+    ficha_tecnica.save(update_fields=["categoria"])
+
+    primeiro_veiculo = ficha.veiculos.get()
+    primeiro_veiculo.numero = "Veículo 1"
+    primeiro_veiculo.placa = "ABC1D23"
+    primeiro_veiculo.save(update_fields=["numero", "placa"])
+    baker.make(
+        VeiculoFichaDeRecebimento,
+        ficha_recebimento=ficha,
+        numero="Veículo 2",
+        placa="DEF4G56",
+        numero_nota_fiscal="654321",
+        quantidade_nota_fiscal=500,
+        embalagens_nota_fiscal=50,
+        quantidade_recebida=400,
+        embalagens_recebidas=40,
+        estado_higienico_adequado=False,
+        temperatura_recebimento="20°C",
+        temperatura_produto="3°C",
+        lacre="100002",
+        numero_sif_sisbi_sisp="5678",
+        termografo=False,
+    )
+
+    resposta = get_pdf_ficha_recebimento(None, ficha)
+    texto = re.sub(r"\s+", " ", extrair_texto_de_pdf(resposta.content))
+
+    assert resposta.status_code == 200
+    assert resposta.headers["Content-Type"] == "application/pdf"
+    assert texto.count("Placa do Veículo:") == 2
+    assert (
+        texto.index("Veículo 1")
+        < texto.index("ABC1D23")
+        < texto.index("Veículo 2")
+        < texto.index("DEF4G56")
+    )
+    for campo in [
+        "Nº Nota Fiscal",
+        "Quantidade da Nota Fiscal",
+        "Embalagens da Nota Fiscal",
+        "Quantidade Recebida",
+        "Embalagens Recebidas",
+        "Estado Higiênico-Sanitário",
+    ]:
+        assert texto.count(campo) == 2
+
+    for campo in [
+        "T °C(Área do Recebimento)",
+        "T °C(Produto)",
+        "Lacre:",
+        "Nº SIF, SISBI ou SISP",
+        "Termógrafo:",
+    ]:
+        if categoria == FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS:
+            assert texto.count(campo) == 2
+        else:
+            assert campo not in texto
+
+
+@pytest.mark.parametrize(
+    "categoria",
+    [
+        FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        FichaTecnicaDoProduto.CATEGORIA_NAO_PERECIVEIS,
+    ],
+    ids=["perecivel", "nao_perecivel"],
+)
+@pytest.mark.parametrize("placa", [None, ""], ids=["placa_nula", "placa_vazia"])
+def test_relatorio_ficha_recebimento_placa_nao_informada(
+    ficha_recebimento_com_ocorrencia, categoria, placa
+):
+    ficha = ficha_recebimento_com_ocorrencia
+    ficha_tecnica = ficha.etapa.cronograma.ficha_tecnica
+    ficha_tecnica.categoria = categoria
+    ficha_tecnica.save(update_fields=["categoria"])
+    veiculo = ficha.veiculos.get()
+    veiculo.placa = placa
+    veiculo.save(update_fields=["placa"])
+
+    resposta = get_pdf_ficha_recebimento(None, ficha)
+    texto = re.sub(r"\s+", " ", extrair_texto_de_pdf(resposta.content))
+
+    assert resposta.status_code == 200
+    assert resposta.headers["Content-Type"] == "application/pdf"
+    assert texto.count("Placa do Veículo:") == 1
+    assert veiculo.numero in texto
+    assert "Placa do Veículo: None" not in texto
+    assert "Placa do Veículo: null" not in texto
