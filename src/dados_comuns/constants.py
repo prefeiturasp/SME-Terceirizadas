@@ -1033,6 +1033,7 @@ class StringsValidationErrors(Enum):
         "Entre em contato com o administrador do SIGPAE."
     )
     NAO_FOI_POSSIVEL_LOGAR = "Não foi possível logar no sistema"
+    PRECISA_IMPLEMENTAR = "Precisa implementar"
     RESTAM_DIAS_A_SEREM_LANCADOS = "Restam dias a serem lançados nas alimentações."
     RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS = "Restam dias a serem lançados nas dietas."
     RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS = (
