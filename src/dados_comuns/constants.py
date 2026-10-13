@@ -677,6 +677,15 @@ class NumerosDeEditais(Enum):
         return [(key.value, key.name) for key in cls]
 
 
+class NumerosParaCronogramas(Enum):
+    NUMERO_002_2022A = "002/2022A"
+    NUMERO_00222_2022 = "00222/2022"
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
+
+
 class StringsCabecalhoXLSXGuiaDaRemessa(Enum):
     AGRUP = "Agrup"
     AGRUPAMENTO = "Agrupamento"
