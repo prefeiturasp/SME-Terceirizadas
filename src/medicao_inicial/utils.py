@@ -2274,6 +2274,22 @@ def get_valor_total_emei_cemei(
     return valores_dia
 
 
+def _get_len_faixas(tabela):
+    if "faixas_etarias" not in tabela:
+        return 0
+    faixas_etarias = tabela["faixas_etarias"]
+    return (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
+
+
+def _get_valor_campo_em_tabela(campos, valores, tabela, nome_campo, indice_periodo):
+    indexes_campo = [i for i, campo in enumerate(campos) if campo == nome_campo]
+    index_campo = get_indice(indexes_campo, indice_periodo)
+    len_faixas = _get_len_faixas(tabela)
+    if nome_campo not in campos:
+        return 0
+    return valores[index_campo + len_faixas]
+
+
 def get_valor_campo(
     campos,
     campos_tabela_anterior,
@@ -2284,39 +2300,21 @@ def get_valor_campo(
     valores_tabela_anterior,
     nome_campo,
 ):
-    if nome_campo not in campos and nome_campo in campos_tabela_anterior:
-        indexes_campo = [
-            i for i, campo in enumerate(campos_tabela_anterior) if campo == nome_campo
-        ]
-        index_campo = get_indice(indexes_campo, indice_periodo)
-        len_faixas = 0
-
-        if "faixas_etarias" in tabela_anterior:
-            faixas_etarias = tabela_anterior["faixas_etarias"]
-            len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
-
-        valor_campo = (
-            valores_tabela_anterior[index_campo + len_faixas]
-            if nome_campo in campos_tabela_anterior
-            and len(tabela_anterior["valores_campos"])
-            else 0
+    if nome_campo in campos:
+        return _get_valor_campo_em_tabela(
+            campos, valores_dia, tabela, nome_campo, indice_periodo
         )
-    elif nome_campo in campos:
-        indexes_campo = [i for i, campo in enumerate(campos) if campo == nome_campo]
-        index_campo = get_indice(indexes_campo, indice_periodo)
-        len_faixas = 0
-
-        if "faixas_etarias" in tabela:
-            faixas_etarias = tabela["faixas_etarias"]
-            len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
-
-        valor_campo = (
-            valores_dia[index_campo + len_faixas] if nome_campo in campos else 0
-        )
-
-    else:
-        valor_campo = 0
-    return valor_campo
+    if nome_campo not in campos_tabela_anterior:
+        return 0
+    if not len(tabela_anterior["valores_campos"]):
+        return 0
+    return _get_valor_campo_em_tabela(
+        campos_tabela_anterior,
+        valores_tabela_anterior,
+        tabela_anterior,
+        nome_campo,
+        indice_periodo,
+    )
 
 
 def popula_campo_total_sobremesas_pagamento(
