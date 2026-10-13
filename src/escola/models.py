@@ -54,6 +54,7 @@ from ..dados_comuns.constants import (
     CRIADO_EM,
     DIRETOR_UE,
     FORMATO_DATA_BRASILEIRO,
+    SOLICITACOES_DE_ALIMENTACAO,
     TIPO_UNIDADE_CEI_DIRET,
     TIPOS_ALIMENTACAO,
     TIPOS_GESTAO,
@@ -1230,7 +1231,7 @@ class Escola(
         self, mes: int, ano: int, lista_medicoes: list
     ) -> list:
         if (
-            "Solicitações de Alimentação" in lista_medicoes
+            SOLICITACOES_DE_ALIMENTACAO in lista_medicoes
             or self.eh_cei
             or self.eh_cemei
         ):
@@ -1240,13 +1241,13 @@ class Escola(
             solicitacao_kit_lanche__data__month=mes,
             solicitacao_kit_lanche__data__year=ano,
         ).exists():
-            lista_medicoes.append("Solicitações de Alimentação")
+            lista_medicoes.append(SOLICITACOES_DE_ALIMENTACAO)
         return lista_medicoes
 
     def get_lista_medicoes_kit_lanche_unificado_autorizado_no_mes(
         self, mes: int, ano: int, lista_medicoes: list
     ) -> list:
-        if "Solicitações de Alimentação" in lista_medicoes:
+        if SOLICITACOES_DE_ALIMENTACAO in lista_medicoes:
             return lista_medicoes
         if self.escolaquantidade_set.filter(
             solicitacao_unificada__status="CODAE_AUTORIZADO",
@@ -1254,31 +1255,31 @@ class Escola(
             solicitacao_unificada__solicitacao_kit_lanche__data__month=mes,
             solicitacao_unificada__solicitacao_kit_lanche__data__year=ano,
         ).exists():
-            lista_medicoes.append("Solicitações de Alimentação")
+            lista_medicoes.append(SOLICITACOES_DE_ALIMENTACAO)
         return lista_medicoes
 
     def get_lista_medicoes_kit_lanche_cei_autorizado_no_mes(
         self, mes: int, ano: int, lista_medicoes
     ) -> list:
-        if "Solicitações de Alimentação" in lista_medicoes or not self.eh_cei:
+        if SOLICITACOES_DE_ALIMENTACAO in lista_medicoes or not self.eh_cei:
             return lista_medicoes
         if self.solicitacoes_kit_lanche_cei_avulsa.filter(
             status="CODAE_AUTORIZADO",
             solicitacao_kit_lanche__data__month=mes,
             solicitacao_kit_lanche__data__year=ano,
         ).exists():
-            lista_medicoes.append("Solicitações de Alimentação")
+            lista_medicoes.append(SOLICITACOES_DE_ALIMENTACAO)
         return lista_medicoes
 
     def get_lista_medicoes_kit_lanche_cemei_autorizado_no_mes(
         self, mes: int, ano: int, lista_medicoes: list
     ) -> list:
-        if "Solicitações de Alimentação" in lista_medicoes or not self.eh_cemei:
+        if SOLICITACOES_DE_ALIMENTACAO in lista_medicoes or not self.eh_cemei:
             return lista_medicoes
         if self.solicitacoes_kit_lanche_cemei.filter(
             status="CODAE_AUTORIZADO", data__month=mes, data__year=ano
         ).exists():
-            lista_medicoes.append("Solicitações de Alimentação")
+            lista_medicoes.append(SOLICITACOES_DE_ALIMENTACAO)
         return lista_medicoes
 
     def get_lista_medicoes_qualquer_kit_lanche_autorizado_no_mes(
@@ -1302,7 +1303,7 @@ class Escola(
         self, mes: int, ano: int, lista_medicoes: list
     ) -> list:
         if (
-            "Solicitações de Alimentação" in lista_medicoes
+            SOLICITACOES_DE_ALIMENTACAO in lista_medicoes
             or self.eh_cei
             or self.eh_cemei
         ):
@@ -1314,7 +1315,7 @@ class Escola(
             datas_intervalo__cancelado=False,
             motivo__nome=TIPOS_ALIMENTACAO.LANCHE_EMERGENCIAL.value,
         ).exists():
-            lista_medicoes.append("Solicitações de Alimentação")
+            lista_medicoes.append(SOLICITACOES_DE_ALIMENTACAO)
         return lista_medicoes
 
     def get_lista_medicoes_alteracao_generica_rpl_lpr_autorizada_no_mes(
@@ -1359,7 +1360,7 @@ class Escola(
     def get_lista_medicoes_alteracao_cemei_lanche_emergencial_autorizada_no_mes(
         self, mes: int, ano: int, lista_medicoes: list
     ) -> list:
-        if "Solicitações de Alimentação" in lista_medicoes or not self.eh_cemei:
+        if SOLICITACOES_DE_ALIMENTACAO in lista_medicoes or not self.eh_cemei:
             return lista_medicoes
         queryset = self.alteracaocardapiocemei_set.filter(
             status="CODAE_AUTORIZADO",
@@ -1369,7 +1370,7 @@ class Escola(
             motivo__nome=TIPOS_ALIMENTACAO.LANCHE_EMERGENCIAL.value,
         )
         if queryset.exists():
-            lista_medicoes.append("Solicitações de Alimentação")
+            lista_medicoes.append(SOLICITACOES_DE_ALIMENTACAO)
         return lista_medicoes
 
     def get_lista_medicoes_alteracao_cemei_rpl_lpr_autorizada_no_mes(
