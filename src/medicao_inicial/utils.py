@@ -4320,33 +4320,34 @@ def get_somatorio_colaboradores(
     return somatorio_colaboradores
 
 
-def build_tabela_somatorio_header(
-    medicao, primeira_tabela_header, segunda_tabela_header=[], categoria=None
-):
-    nome_periodo = (
-        medicao.periodo_escolar.nome
-        if not medicao.grupo
-        else (
-            f"{medicao.grupo.nome} - {medicao.periodo_escolar.nome}"
-            if medicao.periodo_escolar
-            else medicao.grupo.nome
-        )
-    )
+def _get_nome_periodo(medicao):
+    if not medicao.grupo:
+        return medicao.periodo_escolar.nome
+    if medicao.periodo_escolar:
+        return f"{medicao.grupo.nome} - {medicao.periodo_escolar.nome}"
+    return medicao.grupo.nome
+
+
+def _get_header_somatorio(nome_periodo, categoria):
+    nome_upper = nome_periodo.upper()
     if categoria == "DIETA":
-        if nome_periodo.upper() in [
-            "ETEC",
-            CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO,
-        ]:
-            pass
-        elif nome_periodo.upper() == "NOITE":
-            segunda_tabela_header.append(nome_periodo)
-        else:
-            primeira_tabela_header.append(nome_periodo)
-    else:
-        if nome_periodo.upper() in ["NOITE", "ETEC"]:
-            segunda_tabela_header.append(nome_periodo)
-        else:
-            primeira_tabela_header.append(nome_periodo)
+        if nome_upper in ["ETEC", CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO]:
+            return None
+        return "segunda" if nome_upper == "NOITE" else "primeira"
+    return "segunda" if nome_upper in ["NOITE", "ETEC"] else "primeira"
+
+
+def build_tabela_somatorio_header(
+    medicao, primeira_tabela_header, segunda_tabela_header=None, categoria=None
+):
+    if segunda_tabela_header is None:
+        segunda_tabela_header = []
+    nome_periodo = _get_nome_periodo(medicao)
+    destino = _get_header_somatorio(nome_periodo, categoria)
+    if destino == "primeira":
+        primeira_tabela_header.append(nome_periodo)
+    elif destino == "segunda":
+        segunda_tabela_header.append(nome_periodo)
 
     return primeira_tabela_header, segunda_tabela_header
 
