@@ -1058,6 +1058,11 @@ class StringsValidationErrors(Enum):
         return [(key.value, key.name) for key in cls]
 
 
+MSG_SOLICITACAO_APROVADO_PELA_DRE = "Solicitação aprovado pela DRE"
+MSG_SOLICITACAO_APROVADO_PELA_CODAE = "Solicitação aprovado pela CODAE"
+JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE = "Sem observações por parte da CODAE"
+
+
 class ContentTypesParaRequests(Enum):
     XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
