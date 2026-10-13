@@ -6880,6 +6880,54 @@ def relatorio_financeiro_cemei(
     )
 
 
+def _cria_tabela_parametrizacao(nome, periodo, parametrizacao_financeira):
+    return baker.make(
+        "ParametrizacaoFinanceiraTabela",
+        nome=nome,
+        periodo_escolar=periodo,
+        parametrizacao_financeira=parametrizacao_financeira,
+    )
+
+
+def _cria_valores_tabela_por_faixa(tabela, faixas_etarias, tipos, tipos_valor):
+    for faixa in faixas_etarias:
+        for tipo in tipos:
+            baker.make(
+                "ParametrizacaoFinanceiraTabelaValor",
+                tabela=tabela,
+                faixa_etaria=faixa,
+                nome_campo=str(faixa).lower().replace(" ", "_"),
+                tipo_valor=tipos_valor[tipo],
+                valor="1.00",
+            )
+
+
+def _cria_tabelas_com_valores_por_faixa(
+    tabelas_config, faixas_etarias, parametrizacao_financeira, tipos_valor
+):
+    for nome_tabela, periodos, tipos in tabelas_config:
+        for periodo in periodos:
+            tabela = _cria_tabela_parametrizacao(
+                nome_tabela, periodo, parametrizacao_financeira
+            )
+            _cria_valores_tabela_por_faixa(tabela, faixas_etarias, tipos, tipos_valor)
+
+
+def _cria_valores_tabela_por_tipo(valores_config, tipos_valor):
+    for tabela, tipos, valores in valores_config:
+        for tipo in tipos:
+            for nome_campo, tipo_alimentacao, valor in valores:
+                baker.make(
+                    "ParametrizacaoFinanceiraTabelaValor",
+                    tabela=tabela,
+                    nome_campo=nome_campo,
+                    faixa_etaria=None,
+                    tipo_alimentacao=tipo_alimentacao,
+                    tipo_valor=tipos_valor[tipo],
+                    valor=valor,
+                )
+
+
 @pytest.fixture
 def parametrizacao_financeira_cemei(
     edital,
@@ -6945,25 +6993,9 @@ def parametrizacao_financeira_cemei(
         ),
     ]
 
-    for nome_tabela, periodos, tipos in tabelas_config:
-        for periodo in periodos:
-            tabela = baker.make(
-                "ParametrizacaoFinanceiraTabela",
-                nome=nome_tabela,
-                periodo_escolar=periodo,
-                parametrizacao_financeira=parametrizacao_financeira,
-            )
-
-            for faixa in faixas_etarias_ativas:
-                for tipo in tipos:
-                    baker.make(
-                        "ParametrizacaoFinanceiraTabelaValor",
-                        tabela=tabela,
-                        faixa_etaria=faixa,
-                        nome_campo=str(faixa).lower().replace(" ", "_"),
-                        tipo_valor=tipos_valor[tipo],
-                        valor="1.00",
-                    )
+    _cria_tabelas_com_valores_por_faixa(
+        tabelas_config, faixas_etarias_ativas, parametrizacao_financeira, tipos_valor
+    )
 
     valores_config = [
         (
@@ -6992,18 +7024,7 @@ def parametrizacao_financeira_cemei(
         ),
     ]
 
-    for tabela, tipos, valores in valores_config:
-        for tipo in tipos:
-            for nome_campo, tipo_alimentacao, valor in valores:
-                baker.make(
-                    "ParametrizacaoFinanceiraTabelaValor",
-                    tabela=tabela,
-                    nome_campo=nome_campo,
-                    faixa_etaria=None,
-                    tipo_alimentacao=tipo_alimentacao,
-                    tipo_valor=tipos_valor[tipo],
-                    valor=valor,
-                )
+    _cria_valores_tabela_por_tipo(valores_config, tipos_valor)
 
     return parametrizacao_financeira
 
