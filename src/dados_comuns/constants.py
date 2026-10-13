@@ -273,6 +273,18 @@ TIPOS_TURMAS_EMEBS = ["INFANTIL", "FUNDAMENTAL"]
 DIETA_ESPECIAL_TIPO_A = "DIETA ESPECIAL - TIPO A"
 DIETA_ESPECIAL_TIPO_B = "DIETA ESPECIAL - TIPO B"
 
+INFANTIL_INTEGRAL = "Infantil INTEGRAL"
+INFANTIL_MANHA = "Infantil MANHA"
+INFANTIL_TARDE = "Infantil TARDE"
+PROGRAMAS_E_PROJETOS = "Programas e Projetos"
+RECREIO_NAS_FERIAS = "Recreio nas Férias"
+RECREIO_NAS_FERIAS_0_A_3 = "Recreio nas Férias - de 0 a 3 anos e 11 meses"
+RECREIO_NAS_FERIAS_4_A_14 = "Recreio nas Férias - 4 a 14 anos"
+SOLICITACOES_DE_ALIMENTACAO = "Solicitações de Alimentação"
+SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS = (
+    "Solicitações de Alimentação Extraordinárias"
+)
+
 ORDEM_PERIODOS_GRUPOS_EMEBS = {
     "MANHA - INFANTIL": 1,
     "MANHA - FUNDAMENTAL": 2,
@@ -290,26 +302,26 @@ ORDEM_PERIODOS_GRUPOS_EMEBS = {
     "Programas e Projetos - FUNDAMENTAL": 14,
     "Solicitações de Alimentação - INFANTIL": 15,
     "Solicitações de Alimentação - FUNDAMENTAL": 16,
-    "Solicitações de Alimentação Extraordinárias": 17,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 17,
 }
 
 ORDEM_PERIODOS_GRUPOS = {
     "MANHA": 1,
-    "Infantil MANHA": 1,
+    INFANTIL_MANHA: 1,
     "TARDE": 2,
-    "Infantil TARDE": 2,
+    INFANTIL_TARDE: 2,
     "INTEGRAL": 3,
-    "Infantil INTEGRAL": 3,
+    INFANTIL_INTEGRAL: 3,
     "NOITE": 4,
     "Infantil NOITE": 4,
     "INTERMEDIARIO": 5,
     "VESPERTINO": 6,
-    "Programas e Projetos": 7,
-    "Solicitações de Alimentação": 8,
+    PROGRAMAS_E_PROJETOS: 7,
+    SOLICITACOES_DE_ALIMENTACAO: 8,
     "ETEC": 9,
-    "Recreio nas Férias": 10,
+    RECREIO_NAS_FERIAS: 10,
     "Colaboradores": 11,
-    "Solicitações de Alimentação Extraordinárias": 12,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 12,
 }
 
 ORDEM_PERIODOS_GRUPOS_CEI = {
@@ -317,33 +329,33 @@ ORDEM_PERIODOS_GRUPOS_CEI = {
     "PARCIAL": 2,
     "MANHA": 3,
     "TARDE": 4,
-    "Recreio nas Férias": 5,
+    RECREIO_NAS_FERIAS: 5,
     "Colaboradores": 6,
-    "Solicitações de Alimentação Extraordinárias": 7,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 7,
 }
 
 ORDEM_PERIODOS_GRUPOS_CEMEI = {
     "INTEGRAL": 1,
     "PARCIAL": 2,
-    "Infantil INTEGRAL": 3,
-    "Infantil MANHA": 4,
-    "Infantil TARDE": 5,
-    "Programas e Projetos": 6,
-    "Recreio nas Férias": 7,
-    "Recreio nas Férias - de 0 a 3 anos e 11 meses": 8,
-    "Recreio nas Férias - 4 a 14 anos": 9,
-    "Solicitações de Alimentação": 10,
+    INFANTIL_INTEGRAL: 3,
+    INFANTIL_MANHA: 4,
+    INFANTIL_TARDE: 5,
+    PROGRAMAS_E_PROJETOS: 6,
+    RECREIO_NAS_FERIAS: 7,
+    RECREIO_NAS_FERIAS_0_A_3: 8,
+    RECREIO_NAS_FERIAS_4_A_14: 9,
+    SOLICITACOES_DE_ALIMENTACAO: 10,
     "Colaboradores": 11,
-    "Solicitações de Alimentação Extraordinárias": 12,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 12,
 }
 
 ORDEM_PERIODOS_GRUPOS_RECREIO_NAS_FERIAS = {
-    "Recreio nas Férias": 1,
-    "Recreio nas Férias - de 0 a 3 anos e 11 meses": 2,
-    "Recreio nas Férias - 4 a 14 anos": 3,
+    RECREIO_NAS_FERIAS: 1,
+    RECREIO_NAS_FERIAS_0_A_3: 2,
+    RECREIO_NAS_FERIAS_4_A_14: 3,
     "Colaboradores": 4,
-    "Solicitações de Alimentação": 5,
-    "Solicitações de Alimentação Extraordinárias": 6,
+    SOLICITACOES_DE_ALIMENTACAO: 5,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 6,
 }
 
 MAX_COLUNAS = 15
@@ -440,21 +452,21 @@ ORDEM_UNIDADES_GRUPO_CIEJA_CMCT = {"CIEJA": 1, "CMCT": 2}
 
 
 ORDEM_HEADERS_EMEI_EMEF = {
-    "Solicitações de Alimentação": 1,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
     "MANHA": 2,
     "TARDE": 3,
     "INTEGRAL": 4,
     "NOITE": 5,
     "INTERMEDIARIO": 6,
     "VESPERTINO": 7,
-    "Programas e Projetos": 8,
+    PROGRAMAS_E_PROJETOS: 8,
     "ETEC": 9,
     DIETA_ESPECIAL_TIPO_A: 10,
     DIETA_ESPECIAL_TIPO_B: 11,
 }
 
 ORDEM_HEADERS_CEI = {
-    "Solicitações de Alimentação": 1,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
     "INTEGRAL": 2,
     "DIETA ESPECIAL - TIPO A - INTEGRAL": 3,
     "DIETA ESPECIAL - TIPO B - INTEGRAL": 4,
@@ -468,45 +480,45 @@ ORDEM_HEADERS_CEI = {
 }
 
 ORDEM_HEADERS_CEMEI = {
-    "Solicitações de Alimentação": 1,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
     "INTEGRAL": 2,
     "DIETA ESPECIAL - TIPO A - INTEGRAL": 3,
     "DIETA ESPECIAL - TIPO B - INTEGRAL": 4,
     "PARCIAL": 5,
     "DIETA ESPECIAL - TIPO A - PARCIAL": 6,
     "DIETA ESPECIAL - TIPO B - PARCIAL": 7,
-    "Infantil INTEGRAL": 8,
-    "Infantil MANHA": 9,
-    "Infantil TARDE": 10,
+    INFANTIL_INTEGRAL: 8,
+    INFANTIL_MANHA: 9,
+    INFANTIL_TARDE: 10,
     "DIETA ESPECIAL - TIPO A - INFANTIL": 11,
     "DIETA ESPECIAL - TIPO B - INFANTIL": 12,
-    "Programas e Projetos": 13,
+    PROGRAMAS_E_PROJETOS: 13,
     "DIETA ESPECIAL - TIPO A - PROGRAMAS E PROJETOS": 14,
     "DIETA ESPECIAL - TIPO B - PROGRAMAS E PROJETOS": 15,
 }
 
 ORDEM_HEADERS_EMEBS = {
-    "Solicitações de Alimentação": 1,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
     "MANHA": 2,
     "TARDE": 3,
     "INTEGRAL": 4,
     "NOITE": 5,
     "INTERMEDIARIO": 6,
     "VESPERTINO": 7,
-    "Programas e Projetos": 8,
+    PROGRAMAS_E_PROJETOS: 8,
     DIETA_ESPECIAL_TIPO_A: 9,
     DIETA_ESPECIAL_TIPO_B: 10,
 }
 
 ORDEM_HEADERS_CIEJA_CMCT = {
-    "Solicitações de Alimentação": 1,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
     "MANHA": 2,
     "TARDE": 3,
     "INTEGRAL": 4,
     "NOITE": 5,
     "INTERMEDIARIO": 6,
     "VESPERTINO": 7,
-    "Programas e Projetos": 8,
+    PROGRAMAS_E_PROJETOS: 8,
     "ETEC": 9,
     DIETA_ESPECIAL_TIPO_A: 10,
     DIETA_ESPECIAL_TIPO_B: 11,
@@ -543,27 +555,27 @@ ORDEM_CAMPOS_RECREIO = [
 ]
 
 ORDEM_HEADERS_RECREIO_EMEI_EMEF = {
-    "Solicitações de Alimentação": 1,
-    "Recreio nas Férias": 2,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
+    RECREIO_NAS_FERIAS: 2,
     DIETA_ESPECIAL_TIPO_A: 3,
     DIETA_ESPECIAL_TIPO_B: 4,
     "Colaboradores": 5,
 }
 
 ORDEM_HEADERS_RECREIO_CEI = {
-    "Solicitações de Alimentação": 1,
-    "Recreio nas Férias": 2,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
+    RECREIO_NAS_FERIAS: 2,
     DIETA_ESPECIAL_TIPO_A: 3,
     DIETA_ESPECIAL_TIPO_B: 4,
     "Colaboradores": 5,
 }
 
 ORDEM_HEADERS_RECREIO_CEMEI = {
-    "Solicitações de Alimentação": 1,
-    "Recreio nas Férias - de 0 a 3 anos e 11 meses": 2,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
+    RECREIO_NAS_FERIAS_0_A_3: 2,
     "DIETA ESPECIAL - TIPO A - RECREIO NAS FÉRIAS - DE 0 A 3 ANOS E 11 MESES": 3,
     "DIETA ESPECIAL - TIPO B - RECREIO NAS FÉRIAS - DE 0 A 3 ANOS E 11 MESES": 4,
-    "Recreio nas Férias - 4 a 14 anos": 5,
+    RECREIO_NAS_FERIAS_4_A_14: 5,
     "DIETA ESPECIAL - TIPO A - RECREIO NAS FÉRIAS - 4 A 14 ANOS": 6,
     "DIETA ESPECIAL - TIPO B - RECREIO NAS FÉRIAS - 4 A 14 ANOS": 7,
     "Colaboradores": 8,
