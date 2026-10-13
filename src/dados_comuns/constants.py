@@ -667,6 +667,16 @@ class NomesParaTesteEscola(Enum):
         return [(key.value, key.name) for key in cls]
 
 
+class NumerosDeEditais(Enum):
+    EDITAL_41_2017 = "Edital de Pregão nº 41/sme/2017"
+    EDITAL_78_2016 = "Edital de Pregão nº 78/sme/2016"
+    EDITAL_78_2022 = "Edital de Pregão nº 78/sme/2022"
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
+
+
 class StringsCabecalhoXLSXGuiaDaRemessa(Enum):
     AGRUP = "Agrup"
     AGRUPAMENTO = "Agrupamento"

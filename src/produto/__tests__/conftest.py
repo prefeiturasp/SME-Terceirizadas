@@ -8,7 +8,11 @@ from django.http import QueryDict
 from faker import Faker
 from model_bakery import baker
 
-from src.dados_comuns.constants import ADMINISTRADOR_EMPRESA, StringsCaminhoModelos
+from src.dados_comuns.constants import (
+    ADMINISTRADOR_EMPRESA,
+    NumerosDeEditais,
+    StringsCaminhoModelos,
+)
 from src.produto.api.serializers.serializers import (
     HomologacaoProdutoPainelGerencialSerializer,
     ProdutoReclamacaoSerializer,
@@ -110,17 +114,17 @@ def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, 
 def produtos_edital_41(escola):
     edital = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 41/sme/2017",
+        numero=NumerosDeEditais.EDITAL_41_2017.value,
         uuid="12288b47-9d27-4089-8c2e-48a6061d83ea",
     )
     baker.make(
         "Edital",
-        numero="Edital de Pregão nº 78/sme/2016",
+        numero=NumerosDeEditais.EDITAL_78_2016.value,
         uuid="b30a2102-2ae0-404d-8a56-8e5ecd73f868",
     )
     edital_3 = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 78/sme/2022",
+        numero=NumerosDeEditais.EDITAL_78_2022.value,
         uuid="131f4000-3e31-44f1-9ba5-e7df001a8426",
     )
     marca_1 = baker.make("Marca", nome="NAMORADOS")
@@ -373,17 +377,17 @@ def produto(user, protocolo1, protocolo2, marca1, fabricante):
 def produto_com_editais(produto, escola):
     edital = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 41/sme/2017",
+        numero=NumerosDeEditais.EDITAL_41_2017.value,
         uuid="12288b47-9d27-4089-8c2e-48a6061d83ea",
     )
     edital_2 = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 78/sme/2016",
+        numero=NumerosDeEditais.EDITAL_78_2016.value,
         uuid="b30a2102-2ae0-404d-8a56-8e5ecd73f868",
     )
     edital_3 = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 78/sme/2022",
+        numero=NumerosDeEditais.EDITAL_78_2022.value,
         uuid="131f4000-3e31-44f1-9ba5-e7df001a8426",
     )
     pe1 = baker.make(
@@ -1189,9 +1193,9 @@ def numero_editais():
     query_params.setlist(
         constants.PayloadVariaveis.EDITAIS.value,
         [
-            "Edital de Pregão nº 78/sme/2022",
-            "Edital de Pregão nº 78/sme/2016",
-            "Edital de Pregão nº 41/sme/2017",
+            NumerosDeEditais.EDITAL_78_2022.value,
+            NumerosDeEditais.EDITAL_78_2016.value,
+            NumerosDeEditais.EDITAL_41_2017.value,
         ],
     )
     return query_params
