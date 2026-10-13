@@ -4541,6 +4541,37 @@ def _get_total_dieta_por_tipo(
     return sum(int(v.valor) for v in values)
 
 
+def _get_total_solicitacoes(medicao_solicitacoes, campo):
+    if not (medicao_solicitacoes and campo in ("kit_lanche", "lanche_emergencial")):
+        return 0
+    values = medicao_solicitacoes.valores_medicao.filter(
+        categoria_medicao__nome=CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO,
+        nome_campo=campo,
+    )
+    return sum(int(v.valor) for v in values)
+
+
+def _tem_valor_positivo(valores):
+    return any(v > 0 for v in valores)
+
+
+def _build_linha_participantes(
+    campo, total_alim, total_solicitacoes, totais_dietas, medicao_solicitacoes
+):
+    if not medicao_solicitacoes:
+        total_alim += total_solicitacoes
+        if _tem_valor_positivo([total_alim] + totais_dietas):
+            return [get_nome_campo(campo), total_alim, *totais_dietas]
+        return None
+    if campo in ("kit_lanche", "lanche_emergencial"):
+        total_alim_col, total_sol_col = 0, total_solicitacoes
+    else:
+        total_alim_col, total_sol_col = total_alim, 0
+    if _tem_valor_positivo([total_alim_col, total_sol_col] + totais_dietas):
+        return [get_nome_campo(campo), total_alim_col, total_sol_col] + totais_dietas
+    return None
+
+
 def _build_body_tabela_participantes(
     medicao_recreio,
     campos_alimentacao: list,
@@ -4559,39 +4590,18 @@ def _build_body_tabela_participantes(
             if medicao_recreio
             else 0
         )
-        total_solicitacoes = 0
-        if medicao_solicitacoes and campo in ("kit_lanche", "lanche_emergencial"):
-            values = medicao_solicitacoes.valores_medicao.filter(
-                categoria_medicao__nome=CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                nome_campo=campo,
-            )
-            total_solicitacoes = sum(int(v.valor) for v in values)
-
+        total_solicitacoes = _get_total_solicitacoes(medicao_solicitacoes, campo)
         totais_dietas = [
             _get_total_dieta_por_tipo(
                 medicao_recreio, tipo_dieta, nome_categoria, campo
             )
             for tipo_dieta, nome_categoria in dietas_ativas.items()
         ]
-
-        if medicao_solicitacoes:
-            total_alim_col = (
-                0 if campo in ("kit_lanche", "lanche_emergencial") else total_alim
-            )
-            total_sol_col = (
-                total_solicitacoes
-                if campo in ("kit_lanche", "lanche_emergencial")
-                else 0
-            )
-            if any(v > 0 for v in [total_alim_col, total_sol_col] + totais_dietas):
-                body.append(
-                    [get_nome_campo(campo), total_alim_col, total_sol_col]
-                    + totais_dietas
-                )
-        else:
-            total_alim += total_solicitacoes
-            if any(v > 0 for v in [total_alim] + totais_dietas):
-                body.append([get_nome_campo(campo), total_alim, *totais_dietas])
+        linha = _build_linha_participantes(
+            campo, total_alim, total_solicitacoes, totais_dietas, medicao_solicitacoes
+        )
+        if linha is not None:
+            body.append(linha)
 
     return body
 
