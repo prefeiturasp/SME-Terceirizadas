@@ -451,77 +451,107 @@ ORDEM_UNIDADES_GRUPO_EMEBS = {
 ORDEM_UNIDADES_GRUPO_CIEJA_CMCT = {"CIEJA": 1, "CMCT": 2}
 
 
+class HeadersExcelConsolidado(Enum):
+    DIETA_ESPECIAL_TIPO_A = DIETA_ESPECIAL_TIPO_A
+    DIETA_ESPECIAL_TIPO_A_INFANTIL = "DIETA ESPECIAL - TIPO A - INFANTIL"
+    DIETA_ESPECIAL_TIPO_A_INTEGRAL = "DIETA ESPECIAL - TIPO A - INTEGRAL"
+    DIETA_ESPECIAL_TIPO_A_PARCIAL = "DIETA ESPECIAL - TIPO A - PARCIAL"
+    DIETA_ESPECIAL_TIPO_A_PROGRAMAS_E_PROJETOS = (
+        "DIETA ESPECIAL - TIPO A - PROGRAMAS E PROJETOS"
+    )
+    DIETA_ESPECIAL_TIPO_B = DIETA_ESPECIAL_TIPO_B
+    DIETA_ESPECIAL_TIPO_B_INFANTIL = "DIETA ESPECIAL - TIPO B - INFANTIL"
+    DIETA_ESPECIAL_TIPO_B_INTEGRAL = "DIETA ESPECIAL - TIPO B - INTEGRAL"
+    DIETA_ESPECIAL_TIPO_B_PARCIAL = "DIETA ESPECIAL - TIPO B - PARCIAL"
+    DIETA_ESPECIAL_TIPO_B_PROGRAMAS_E_PROJETOS = (
+        "DIETA ESPECIAL - TIPO B - PROGRAMAS E PROJETOS"
+    )
+    ETEC = "ETEC"
+    INFANTIL_INTEGRAL = INFANTIL_INTEGRAL
+    INFANTIL_MANHA = INFANTIL_MANHA
+    INFANTIL_TARDE = INFANTIL_TARDE
+    INTEGRAL = "INTEGRAL"
+    INTERMEDIARIO = "INTERMEDIARIO"
+    MANHA = "MANHA"
+    NOITE = "NOITE"
+    PARCIAL = "PARCIAL"
+    PROGRAMAS_E_PROJETOS = PROGRAMAS_E_PROJETOS
+    SOLICITACOES_DE_ALIMENTACAO = SOLICITACOES_DE_ALIMENTACAO
+    TARDE = "TARDE"
+    VESPERTINO = "VESPERTINO"
+
+
 ORDEM_HEADERS_EMEI_EMEF = {
-    SOLICITACOES_DE_ALIMENTACAO: 1,
-    "MANHA": 2,
-    "TARDE": 3,
-    "INTEGRAL": 4,
-    "NOITE": 5,
-    "INTERMEDIARIO": 6,
-    "VESPERTINO": 7,
-    PROGRAMAS_E_PROJETOS: 8,
-    "ETEC": 9,
-    DIETA_ESPECIAL_TIPO_A: 10,
-    DIETA_ESPECIAL_TIPO_B: 11,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.MANHA.value: 2,
+    HeadersExcelConsolidado.TARDE.value: 3,
+    HeadersExcelConsolidado.INTEGRAL.value: 4,
+    HeadersExcelConsolidado.NOITE.value: 5,
+    HeadersExcelConsolidado.INTERMEDIARIO.value: 6,
+    HeadersExcelConsolidado.VESPERTINO.value: 7,
+    HeadersExcelConsolidado.PROGRAMAS_E_PROJETOS.value: 8,
+    HeadersExcelConsolidado.ETEC.value: 9,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A.value: 10,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B.value: 11,
 }
 
 ORDEM_HEADERS_CEI = {
-    SOLICITACOES_DE_ALIMENTACAO: 1,
-    "INTEGRAL": 2,
-    "DIETA ESPECIAL - TIPO A - INTEGRAL": 3,
-    "DIETA ESPECIAL - TIPO B - INTEGRAL": 4,
-    "PARCIAL": 5,
-    "DIETA ESPECIAL - TIPO A - PARCIAL": 6,
-    "DIETA ESPECIAL - TIPO B - PARCIAL": 7,
-    "MANHA": 8,
-    "TARDE": 9,
-    DIETA_ESPECIAL_TIPO_A: 10,
-    DIETA_ESPECIAL_TIPO_B: 11,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.INTEGRAL.value: 2,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INTEGRAL.value: 3,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INTEGRAL.value: 4,
+    HeadersExcelConsolidado.PARCIAL.value: 5,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PARCIAL.value: 6,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PARCIAL.value: 7,
+    HeadersExcelConsolidado.MANHA.value: 8,
+    HeadersExcelConsolidado.TARDE.value: 9,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A.value: 10,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B.value: 11,
 }
 
 ORDEM_HEADERS_CEMEI = {
-    SOLICITACOES_DE_ALIMENTACAO: 1,
-    "INTEGRAL": 2,
-    "DIETA ESPECIAL - TIPO A - INTEGRAL": 3,
-    "DIETA ESPECIAL - TIPO B - INTEGRAL": 4,
-    "PARCIAL": 5,
-    "DIETA ESPECIAL - TIPO A - PARCIAL": 6,
-    "DIETA ESPECIAL - TIPO B - PARCIAL": 7,
-    INFANTIL_INTEGRAL: 8,
-    INFANTIL_MANHA: 9,
-    INFANTIL_TARDE: 10,
-    "DIETA ESPECIAL - TIPO A - INFANTIL": 11,
-    "DIETA ESPECIAL - TIPO B - INFANTIL": 12,
-    PROGRAMAS_E_PROJETOS: 13,
-    "DIETA ESPECIAL - TIPO A - PROGRAMAS E PROJETOS": 14,
-    "DIETA ESPECIAL - TIPO B - PROGRAMAS E PROJETOS": 15,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.INTEGRAL.value: 2,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INTEGRAL.value: 3,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INTEGRAL.value: 4,
+    HeadersExcelConsolidado.PARCIAL.value: 5,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PARCIAL.value: 6,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PARCIAL.value: 7,
+    HeadersExcelConsolidado.INFANTIL_INTEGRAL.value: 8,
+    HeadersExcelConsolidado.INFANTIL_MANHA.value: 9,
+    HeadersExcelConsolidado.INFANTIL_TARDE.value: 10,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INFANTIL.value: 11,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INFANTIL.value: 12,
+    HeadersExcelConsolidado.PROGRAMAS_E_PROJETOS.value: 13,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PROGRAMAS_E_PROJETOS.value: 14,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PROGRAMAS_E_PROJETOS.value: 15,
 }
 
 ORDEM_HEADERS_EMEBS = {
-    SOLICITACOES_DE_ALIMENTACAO: 1,
-    "MANHA": 2,
-    "TARDE": 3,
-    "INTEGRAL": 4,
-    "NOITE": 5,
-    "INTERMEDIARIO": 6,
-    "VESPERTINO": 7,
-    PROGRAMAS_E_PROJETOS: 8,
-    DIETA_ESPECIAL_TIPO_A: 9,
-    DIETA_ESPECIAL_TIPO_B: 10,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.MANHA.value: 2,
+    HeadersExcelConsolidado.TARDE.value: 3,
+    HeadersExcelConsolidado.INTEGRAL.value: 4,
+    HeadersExcelConsolidado.NOITE.value: 5,
+    HeadersExcelConsolidado.INTERMEDIARIO.value: 6,
+    HeadersExcelConsolidado.VESPERTINO.value: 7,
+    HeadersExcelConsolidado.PROGRAMAS_E_PROJETOS.value: 8,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A.value: 9,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B.value: 10,
 }
 
 ORDEM_HEADERS_CIEJA_CMCT = {
-    SOLICITACOES_DE_ALIMENTACAO: 1,
-    "MANHA": 2,
-    "TARDE": 3,
-    "INTEGRAL": 4,
-    "NOITE": 5,
-    "INTERMEDIARIO": 6,
-    "VESPERTINO": 7,
-    PROGRAMAS_E_PROJETOS: 8,
-    "ETEC": 9,
-    DIETA_ESPECIAL_TIPO_A: 10,
-    DIETA_ESPECIAL_TIPO_B: 11,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.MANHA.value: 2,
+    HeadersExcelConsolidado.TARDE.value: 3,
+    HeadersExcelConsolidado.INTEGRAL.value: 4,
+    HeadersExcelConsolidado.NOITE.value: 5,
+    HeadersExcelConsolidado.INTERMEDIARIO.value: 6,
+    HeadersExcelConsolidado.VESPERTINO.value: 7,
+    HeadersExcelConsolidado.PROGRAMAS_E_PROJETOS.value: 8,
+    HeadersExcelConsolidado.ETEC.value: 9,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A.value: 10,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B.value: 11,
 }
 
 # Para o recreio nas Férias

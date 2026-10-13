@@ -16,6 +16,7 @@ from src.dados_comuns.constants import (
     DIETA_ESPECIAL_TIPO_A,
     DIETA_ESPECIAL_TIPO_B,
     DJANGO_ADMIN_PASSWORD,
+    HeadersExcelConsolidado,
     StringsCaminhoModelos,
     StringsParametrizacaoFinanceiraTabela,
 )
@@ -3805,19 +3806,31 @@ def mock_colunas_cei(faixas_etarias_ativas):
     faixas = [faixa.id for faixa in faixas_etarias_ativas]
     colunas = []
 
-    colunas.extend(("INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO A - INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO B - INTEGRAL", faixa) for faixa in faixas)
+    colunas.extend((HeadersExcelConsolidado.INTEGRAL.value, faixa) for faixa in faixas)
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INTEGRAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INTEGRAL.value, faixa)
+        for faixa in faixas
+    )
 
-    colunas.extend(("PARCIAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO A - PARCIAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO B - PARCIAL", faixa) for faixa in faixas)
+    colunas.extend((HeadersExcelConsolidado.PARCIAL.value, faixa) for faixa in faixas)
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PARCIAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PARCIAL.value, faixa)
+        for faixa in faixas
+    )
 
-    colunas.append(("MANHA", faixas_etarias_ativas[2].id))
-    colunas.append(("MANHA", faixas_etarias_ativas[4].id))
+    colunas.append((HeadersExcelConsolidado.MANHA.value, faixas_etarias_ativas[2].id))
+    colunas.append((HeadersExcelConsolidado.MANHA.value, faixas_etarias_ativas[4].id))
 
-    colunas.append(("TARDE", faixas_etarias_ativas[3].id))
-    colunas.append(("TARDE", faixas_etarias_ativas[6].id))
+    colunas.append((HeadersExcelConsolidado.TARDE.value, faixas_etarias_ativas[3].id))
+    colunas.append((HeadersExcelConsolidado.TARDE.value, faixas_etarias_ativas[6].id))
 
     colunas.append((DIETA_ESPECIAL_TIPO_A, faixas_etarias_ativas[2].id))
     colunas.append((DIETA_ESPECIAL_TIPO_B, faixas_etarias_ativas[3].id))
@@ -4179,12 +4192,24 @@ def mock_colunas_cemei(faixas_etarias_ativas):
     ]
     faixas = [faixa.id for faixa in faixas_etarias_ativas]
 
-    colunas.extend(("INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO A - INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO B - INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("PARCIAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO A - PARCIAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO B - PARCIAL", faixa) for faixa in faixas)
+    colunas.extend((HeadersExcelConsolidado.INTEGRAL.value, faixa) for faixa in faixas)
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INTEGRAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INTEGRAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend((HeadersExcelConsolidado.PARCIAL.value, faixa) for faixa in faixas)
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PARCIAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PARCIAL.value, faixa)
+        for faixa in faixas
+    )
 
     for periodo in [
         GrupoMedicao.INFANTIL_INTEGRAL,
@@ -4201,11 +4226,21 @@ def mock_colunas_cemei(faixas_etarias_ativas):
         ]:
             colunas.append((periodo, campo))
 
-    colunas.append(("DIETA ESPECIAL - TIPO A - INFANTIL", "lanche"))
-    colunas.append(("DIETA ESPECIAL - TIPO A - INFANTIL", "lanche_4h"))
-    colunas.append(("DIETA ESPECIAL - TIPO A - INFANTIL", "refeicao"))
-    colunas.append(("DIETA ESPECIAL - TIPO B - INFANTIL", "lanche"))
-    colunas.append(("DIETA ESPECIAL - TIPO B - INFANTIL", "lanche_4h"))
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INFANTIL.value, "lanche")
+    )
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INFANTIL.value, "lanche_4h")
+    )
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INFANTIL.value, "refeicao")
+    )
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INFANTIL.value, "lanche")
+    )
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INFANTIL.value, "lanche_4h")
+    )
 
     return colunas
 
