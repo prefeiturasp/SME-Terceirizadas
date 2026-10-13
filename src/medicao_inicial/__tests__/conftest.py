@@ -17,6 +17,7 @@ from src.dados_comuns.constants import (
     DIETA_ESPECIAL_TIPO_B,
     DJANGO_ADMIN_PASSWORD,
     StringsCaminhoModelos,
+    StringsParametrizacaoFinanceiraTabela,
 )
 from src.dados_comuns.fluxo_status import SolicitacaoMedicaoInicialWorkflow
 from src.dados_comuns.models import LogSolicitacoesUsuario
@@ -65,10 +66,6 @@ from src.medicao_inicial.services.relatorio_consolidado_recreio_emei_emef import
 
 MODEL_MEDICAO_RESPONSAVEL = "medicao_inicial.Responsavel"
 PROGRAMAS_E_PROOJETOS = "PROGRAMAS E PROJETOS"
-
-TABELA_ALIMENTACOES = "Preço das Alimentações"
-TABELA_DIETA_A = "Dietas Tipo A e Tipo A Enteral/Restrição de Aminoácidos"
-TABELA_DIETA_B = "Dietas Tipo B"
 
 
 @pytest.fixture
@@ -2241,14 +2238,14 @@ def parametrizacao_financeira_emef(
 
     tabela_precos = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_ALIMENTACOES,
+        nome=StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
 
     tabela_dieta_a = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_DIETA_A,
+        nome=StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
@@ -5151,7 +5148,7 @@ def payload_create_parametrizacao_financeira_cei(
         "data_final": "2025-10-30",
         "tabelas": [
             {
-                "nome": TABELA_ALIMENTACOES,
+                "nome": StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5165,7 +5162,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_integral.nome,
             },
             {
-                "nome": TABELA_ALIMENTACOES,
+                "nome": StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5179,7 +5176,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_parcial.nome,
             },
             {
-                "nome": "Dietas Tipo A e Tipo A Enteral/Restrição de Aminoácidos",
+                "nome": StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5193,7 +5190,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_integral.nome,
             },
             {
-                "nome": "Dietas Tipo A e Tipo A Enteral/Restrição de Aminoácidos",
+                "nome": StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5207,7 +5204,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_parcial.nome,
             },
             {
-                "nome": "Dietas Tipo B",
+                "nome": StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5221,7 +5218,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_integral.nome,
             },
             {
-                "nome": "Dietas Tipo B",
+                "nome": StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -6444,27 +6441,35 @@ def parametrizacao_financeira_cei(
 
     tabelas_config = [
         (
-            TABELA_ALIMENTACOES,
+            StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             periodo_escolar_integral,
             [tipo_unitario, tipo_reajuste],
         ),
         (
-            TABELA_ALIMENTACOES,
+            StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             periodo_escolar_parcial,
             [tipo_unitario, tipo_reajuste],
         ),
         (
-            TABELA_DIETA_A,
+            StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             periodo_escolar_integral,
             [tipo_unitario, tipo_acrescimo],
         ),
         (
-            TABELA_DIETA_A,
+            StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             periodo_escolar_parcial,
             [tipo_unitario, tipo_acrescimo],
         ),
-        ("Dietas Tipo B", periodo_escolar_integral, [tipo_unitario, tipo_acrescimo]),
-        ("Dietas Tipo B", periodo_escolar_parcial, [tipo_unitario, tipo_acrescimo]),
+        (
+            StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
+            periodo_escolar_integral,
+            [tipo_unitario, tipo_acrescimo],
+        ),
+        (
+            StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
+            periodo_escolar_parcial,
+            [tipo_unitario, tipo_acrescimo],
+        ),
     ]
 
     for nome_tabela, periodo, tipos_valor in tabelas_config:
@@ -6573,21 +6578,21 @@ def parametrizacao_financeira_emei(
 
     tabela_alimentacoes = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_ALIMENTACOES,
+        nome=StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
 
     tabela_dieta_a = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_DIETA_A,
+        nome=StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
 
     tabela_dieta_b = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_DIETA_B,
+        nome=StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
@@ -6734,21 +6739,21 @@ def parametrizacao_financeira_cieja(
     )
 
     tabelas = {
-        TABELA_ALIMENTACOES: baker.make(
+        StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_ALIMENTACOES,
+            nome=StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
-        TABELA_DIETA_A: baker.make(
+        StringsParametrizacaoFinanceiraTabela.DIETA_A.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_DIETA_A,
+            nome=StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
-        TABELA_DIETA_B: baker.make(
+        StringsParametrizacaoFinanceiraTabela.DIETA_B.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_DIETA_B,
+            nome=StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
@@ -6761,7 +6766,7 @@ def parametrizacao_financeira_cieja(
 
     valores_config = [
         (
-            tabelas[TABELA_ALIMENTACOES],
+            tabelas[StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value],
             ["UNITARIO", "REAJUSTE"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "10.00"),
@@ -6770,7 +6775,7 @@ def parametrizacao_financeira_cieja(
             ],
         ),
         (
-            tabelas[TABELA_DIETA_A],
+            tabelas[StringsParametrizacaoFinanceiraTabela.DIETA_A.value],
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "11.22"),
@@ -6778,7 +6783,7 @@ def parametrizacao_financeira_cieja(
             ],
         ),
         (
-            tabelas[TABELA_DIETA_B],
+            tabelas[StringsParametrizacaoFinanceiraTabela.DIETA_B.value],
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("lanche_4h", tipo_alimentacao_lanche_4h, "8.00"),
@@ -6862,21 +6867,21 @@ def parametrizacao_financeira_cemei(
     )
 
     tabelas = {
-        TABELA_ALIMENTACOES: baker.make(
+        StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_ALIMENTACOES,
+            nome=StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
-        TABELA_DIETA_A: baker.make(
+        StringsParametrizacaoFinanceiraTabela.DIETA_A.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_DIETA_A,
+            nome=StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
-        TABELA_DIETA_B: baker.make(
+        StringsParametrizacaoFinanceiraTabela.DIETA_B.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_DIETA_B,
+            nome=StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
@@ -6889,17 +6894,17 @@ def parametrizacao_financeira_cemei(
 
     tabelas_config = [
         (
-            TABELA_ALIMENTACOES,
+            StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             [periodo_escolar_integral, periodo_escolar_parcial],
             ["UNITARIO", "REAJUSTE"],
         ),
         (
-            TABELA_DIETA_A,
+            StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             [periodo_escolar_integral, periodo_escolar_parcial],
             ["UNITARIO", "ACRESCIMO"],
         ),
         (
-            TABELA_DIETA_B,
+            StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
             [periodo_escolar_integral, periodo_escolar_parcial],
             ["UNITARIO", "ACRESCIMO"],
         ),
@@ -6927,7 +6932,7 @@ def parametrizacao_financeira_cemei(
 
     valores_config = [
         (
-            tabelas[TABELA_ALIMENTACOES],
+            tabelas[StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value],
             ["UNITARIO", "REAJUSTE"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "10.00"),
@@ -6936,7 +6941,7 @@ def parametrizacao_financeira_cemei(
             ],
         ),
         (
-            tabelas[TABELA_DIETA_A],
+            tabelas[StringsParametrizacaoFinanceiraTabela.DIETA_A.value],
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "11.22"),
@@ -6944,7 +6949,7 @@ def parametrizacao_financeira_cemei(
             ],
         ),
         (
-            tabelas[TABELA_DIETA_B],
+            tabelas[StringsParametrizacaoFinanceiraTabela.DIETA_B.value],
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("lanche_4h", tipo_alimentacao_lanche_4h, "8.00"),
@@ -7241,7 +7246,7 @@ def parametrizacao_financeira_emebs(
 
     valores_config = [
         (
-            TABELA_ALIMENTACOES,
+            StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             ["UNITARIO", "REAJUSTE"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "10.00"),
@@ -7251,7 +7256,7 @@ def parametrizacao_financeira_emebs(
             ],
         ),
         (
-            TABELA_DIETA_A,
+            StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "11.22"),
@@ -7260,7 +7265,7 @@ def parametrizacao_financeira_emebs(
             ],
         ),
         (
-            TABELA_DIETA_B,
+            StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("lanche", tipo_alimentacao_lanche, "10.00"),

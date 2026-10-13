@@ -1554,6 +1554,12 @@ class StringsVerboseNameModels(Enum):
         return [(key.value, key.name) for key in cls]
 
 
+class StringsParametrizacaoFinanceiraTabela(Enum):
+    ALIMENTACOES = "Preço das Alimentações"
+    DIETA_A = "Dietas Tipo A e Tipo A Enteral/Restrição de Aminoácidos"
+    DIETA_B = "Dietas Tipo B"
+
+
 class TIPOS_UNIDADE_ESCOLAR(Enum):
     EMEF = "EMEF"
     CEU_EMEF = "CEU EMEF"
