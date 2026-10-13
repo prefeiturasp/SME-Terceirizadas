@@ -91,7 +91,7 @@ def test_validate_lancamento_dietas_medicao_recreio_cei_dados_nao_lancados(
     assert len(lista_erros) == 1
     assert lista_erros == [
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         }
     ]

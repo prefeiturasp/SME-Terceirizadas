@@ -1186,7 +1186,7 @@ def buscar_valores_lancamento_dietas_inclusoes(
         lista_erros.append(
             {
                 "periodo_escolar": inclusao["periodo_escolar"],
-                "erro": "Restam dias a serem lançados nas dietas.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             }
         )
     return lista_erros
@@ -1657,7 +1657,7 @@ def get_lista_erros_inclusoes_dietas_emef_emebs(
                 lista_erros.append(
                     {
                         "periodo_escolar": medicao.periodo_escolar.nome,
-                        "erro": "Restam dias a serem lançados nas dietas.",
+                        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                     }
                 )
     return lista_erros
@@ -1709,7 +1709,7 @@ def get_lista_erros_inclusoes_dietas_emei_cemei(
             lista_erros.append(
                 {
                     "periodo_escolar": medicao.nome_periodo_grupo,
-                    "erro": "Restam dias a serem lançados nas dietas.",
+                    "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                 }
             )
     return lista_erros
@@ -1775,7 +1775,7 @@ def get_lista_erros_inclusoes_dietas_cei(
                 lista_erros.append(
                     {
                         "periodo_escolar": medicao.periodo_escolar.nome,
-                        "erro": "Restam dias a serem lançados nas dietas.",
+                        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                     }
                 )
     return lista_erros
@@ -1842,7 +1842,7 @@ def get_lista_erros_inclusoes_dietas_cei_cemei(
             lista_erros.append(
                 {
                     "periodo_escolar": medicao.periodo_escolar.nome,
-                    "erro": "Restam dias a serem lançados nas dietas.",
+                    "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                 }
             )
     return lista_erros
@@ -2104,7 +2104,7 @@ def _validar_lancamento_dietas_dia(
         lista_erros.append(
             {
                 "periodo_escolar": medicao.periodo_escolar.nome,
-                "erro": "Restam dias a serem lançados nas dietas.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             }
         )
 
@@ -2194,7 +2194,7 @@ def validate_lancamento_dietas_emei_cemei(
                 lista_erros.append(
                     {
                         "periodo_escolar": medicao.nome_periodo_grupo,
-                        "erro": "Restam dias a serem lançados nas dietas.",
+                        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                     }
                 )
     return lista_erros
@@ -2274,7 +2274,7 @@ def validate_lancamento_dietas_cei(solicitacao, lista_erros):
                     lista_erros.append(
                         {
                             "periodo_escolar": medicao.periodo_escolar.nome,
-                            "erro": "Restam dias a serem lançados nas dietas.",
+                            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                         }
                     )
     return lista_erros
@@ -2318,7 +2318,7 @@ def validate_lancamento_dietas_cei_cemei(
                 lista_erros.append(
                     {
                         "periodo_escolar": medicao.periodo_escolar.nome,
-                        "erro": "Restam dias a serem lançados nas dietas.",
+                        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                     }
                 )
     return lista_erros
@@ -2628,7 +2628,7 @@ def validate_lanche_emergencial(solicitacao, lista_erros):
         lista_erros.append(
             {
                 "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         )
     return erros_unicos(lista_erros)
@@ -3215,7 +3215,7 @@ def validate_solicitacoes_continuas(
         lista_erros.append(
             {
                 "periodo_escolar": nome_secao,
-                "erro": "Restam dias a serem lançados nas dietas.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             }
         )
 
@@ -3267,7 +3267,7 @@ def validate_solicitacoes_continuas_emei_cemei(
         lista_erros.append(
             {
                 "periodo_escolar": nome_secao,
-                "erro": "Restam dias a serem lançados nas dietas.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             }
         )
 
@@ -4038,7 +4038,7 @@ def _validar_lancamento_dietas_emebs_dia(
         lista_erros.append(
             {
                 "periodo_escolar": medicao.periodo_escolar.nome,
-                "erro": "Restam dias a serem lançados nas dietas.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             }
         )
 
@@ -4192,7 +4192,7 @@ def validate_lanches_emergenciais_diarios(
         lista_erros.append(
             {
                 "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         )
         return lista_erros
@@ -4209,7 +4209,7 @@ def validate_lanches_emergenciais_diarios(
         lista_erros.append(
             {
                 "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         )
     return lista_erros

@@ -531,7 +531,7 @@ def validate_lancamento_dietas_medicao_recreio_cei(
                     lista_erros.append(
                         {
                             "periodo_escolar": medicao_recreio.grupo.nome,
-                            "erro": "Restam dias a serem lançados nas dietas.",
+                            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                         }
                     )
                     return erros_unicos(

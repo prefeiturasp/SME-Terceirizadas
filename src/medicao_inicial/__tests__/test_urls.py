@@ -4700,7 +4700,7 @@ def test_url_endpoint_finaliza_medicao_recreio_emef_falta_lancamento(
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
         {
@@ -4787,7 +4787,7 @@ def test_url_endpoint_finaliza_medicao_recreio_cei_falta_lancamento(
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
         {
@@ -4871,11 +4871,11 @@ def test_url_endpoint_finaliza_medicao_recreio_cemei_falta_lancamento(
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14,
         },
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14,
         },
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS_0_A_3,
         },
     ]

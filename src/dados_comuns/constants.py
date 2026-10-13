@@ -1033,6 +1033,10 @@ class StringsValidationErrors(Enum):
     )
     NAO_FOI_POSSIVEL_LOGAR = "Não foi possível logar no sistema"
     RESTAM_DIAS_A_SEREM_LANCADOS = "Restam dias a serem lançados nas alimentações."
+    RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS = "Restam dias a serem lançados nas dietas."
+    RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS = (
+        "Restam dias a serem lançados nos Lanches Emergenciais."
+    )
 
     @classmethod
     def choices(cls):

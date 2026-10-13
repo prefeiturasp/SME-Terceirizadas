@@ -252,7 +252,7 @@ class TestUseCaseFinalizaMedicaoEscolaSemAlunosRegulares:
         )
         assert lista_erros == [
             {
-                "erro": "Restam dias a serem lançados nas dietas.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                 "periodo_escolar": "MANHA",
             }
         ]
