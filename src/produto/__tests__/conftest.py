@@ -268,7 +268,7 @@ def client_autenticado_vinculo_terceirizada_homologacao(
         produto=produto,
         rastro_terceirizada=escola.lote.terceirizada,
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
         uuid="774ad907-d871-4bfd-b1aa-d4e0ecb6c01f",
     )
     homologacao_produto.status = (
@@ -457,7 +457,7 @@ def hom_produto_com_editais(escola, user, produto_com_editais):
         produto=produto_com_editais,
         rastro_terceirizada=escola.lote.terceirizada,
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
     )
     baker.make(
         "LogSolicitacoesUsuario",
@@ -901,7 +901,7 @@ def homologacao_produto(escola, user, produto, edital):
         produto=produto,
         rastro_terceirizada=escola.lote.terceirizada,
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
     )
     baker.make("ProdutoEdital", edital=edital, produto=produto, suspenso=False)
     return homologacao_produto
@@ -946,7 +946,7 @@ def reclamacao(homologacao_produto_escola_ou_nutri_reclamou, escola, user):
         reclamante_cargo="Cargo",
         reclamante_nome="Anderson",
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
     )
     return reclamacao
 
@@ -984,7 +984,7 @@ def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
         reclamante_cargo="Cargo",
         reclamante_nome="Arthur",
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
         status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE,
     )
     return reclamacao
@@ -1002,7 +1002,7 @@ def reclamacao_nutrisupervisor(
         reclamante_cargo="Cargo",
         reclamante_nome="Arthur",
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
         status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_NUTRISUPERVISOR,
     )
     return reclamacao
