@@ -143,35 +143,56 @@ def _obter_observacoes(observacoes_html):
     return observacoes
 
 
+def _adiciona_linhas_inc_continua(
+    df, index, model_obj, solicitacao, novas_linhas, lista_uuids
+):
+    observacoes = _obter_observacoes(model_obj.observacoes)
+    for idx, qt_periodo in enumerate(model_obj.quantidades_periodo.all()):
+        obs_periodo = observacoes[idx] if len(observacoes) > idx else ""
+        nova_linha = cria_nova_linha(df, index, model_obj, qt_periodo, obs_periodo)
+        novas_linhas.append(nova_linha)
+        lista_uuids.append(solicitacao)
+
+
+def _usa_total_kit_lanche(solicitacao, instituicao):
+    return solicitacao.tipo_doc == "KIT_LANCHE_UNIFICADA" and isinstance(
+        instituicao, Escola
+    )
+
+
+def _adiciona_linha_kit_lanche(
+    df, index, model_obj, solicitacao, instituicao, novas_linhas, lista_uuids
+):
+    nova_linha = df.iloc[index].copy()
+    nova_linha["quantidade_alimentacoes"] = str(model_obj.quantidade_alimentacoes)
+    if _usa_total_kit_lanche(solicitacao, instituicao):
+        nova_linha["quantidade_alimentacoes"] = str(
+            model_obj.total_kit_lanche_escola(instituicao.uuid)
+        )
+    novas_linhas.append(nova_linha)
+    lista_uuids.append(solicitacao)
+
+
 def novas_linhas_inc_continua_e_kit_lanche(df, queryset, instituicao):
     novas_linhas, lista_uuids = [], []
     for index, solicitacao in enumerate(queryset):
         model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
         if solicitacao.tipo_doc == "INC_ALIMENTA_CONTINUA":
-            observacoes = _obter_observacoes(model_obj.observacoes)
-            for idx, qt_periodo in enumerate(model_obj.quantidades_periodo.all()):
-                obs_periodo = observacoes[idx] if len(observacoes) > idx else ""
-                nova_linha = cria_nova_linha(
-                    df, index, model_obj, qt_periodo, obs_periodo
-                )
-                novas_linhas.append(nova_linha)
-                lista_uuids.append(solicitacao)
-        elif "KIT_LANCHE" in solicitacao.tipo_doc:
-            nova_linha = df.iloc[index].copy()
-            nova_linha["quantidade_alimentacoes"] = str(
-                model_obj.quantidade_alimentacoes
+            _adiciona_linhas_inc_continua(
+                df, index, model_obj, solicitacao, novas_linhas, lista_uuids
             )
-            if solicitacao.tipo_doc == "KIT_LANCHE_UNIFICADA" and isinstance(
-                instituicao, Escola
-            ):
-                nova_linha["quantidade_alimentacoes"] = str(
-                    model_obj.total_kit_lanche_escola(instituicao.uuid)
-                )
-            novas_linhas.append(nova_linha)
-            lista_uuids.append(solicitacao)
+        elif "KIT_LANCHE" in solicitacao.tipo_doc:
+            _adiciona_linha_kit_lanche(
+                df,
+                index,
+                model_obj,
+                solicitacao,
+                instituicao,
+                novas_linhas,
+                lista_uuids,
+            )
         else:
-            linha = df.iloc[index].copy()
-            novas_linhas.append(linha)
+            novas_linhas.append(df.iloc[index].copy())
             lista_uuids.append(solicitacao)
     return novas_linhas, lista_uuids
 
