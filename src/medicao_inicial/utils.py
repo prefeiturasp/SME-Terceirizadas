@@ -3518,15 +3518,16 @@ def _popula_faixas_dias_total(
         indice_periodo,
         categoria_corrente,
     )
-    if recreio:
-        if categoria_corrente == CategoriaMedicao.ALIMENTACAO:
-            if primeira_faixa:
-                valores_dia += ["-"]
-            valores_dia += [str(total if total else 0)]
-        else:
-            valores_dia += ["-", str(total if total else 0)]
-    else:
-        valores_dia += ["-", str(total if total else 0)]
+    valor_total = str(total or 0)
+    if not recreio:
+        valores_dia += ["-", valor_total]
+        return
+    if categoria_corrente == CategoriaMedicao.ALIMENTACAO:
+        if primeira_faixa:
+            valores_dia += ["-"]
+        valores_dia += [valor_total]
+        return
+    valores_dia += ["-", valor_total]
 
 
 def _popula_faixas_dias_recreio(
