@@ -4,7 +4,7 @@ import environ
 from django.db.models import Q
 
 from src.cardapio.base.models import TipoAlimentacao
-from src.dados_comuns.constants import COLUNA_TIPO_DE_UE
+from src.dados_comuns.constants import ColunasPlanilhaEscola
 from src.dados_comuns.models import Contato
 from src.escola.data.diretorias_regionais import (  # noqa
     data_diretorias_regionais,
@@ -140,7 +140,7 @@ def cria_tipos_gestao():
 
 def cria_tipo_unidade_escolar(arquivo):
     # Pega somente a coluna 'TIPO DE U.E'
-    iniciais = COLUNA_TIPO_DE_UE
+    iniciais = ColunasPlanilhaEscola.TIPO_DE_UE.value
     arquivo = f"{ROOT_DIR}/{arquivo}"
     items = csv_to_list(arquivo)
     items_iniciais = [item[iniciais] for item in items]
@@ -185,16 +185,16 @@ def padroniza_dados(items):  # noqa_ C901
     # Tudo Maiusculo + strip
     campos_maiusculos = (
         "EOL",
-        COLUNA_TIPO_DE_UE,
+        ColunasPlanilhaEscola.TIPO_DE_UE.value,
         "NOME",
         "DRE",
-        "SIGLA/LOTE",
-        "ENDEREÇO",
+        ColunasPlanilhaEscola.SIGLA_LOTE.value,
+        ColunasPlanilhaEscola.ENDERECO.value,
         "Nº",
         "BAIRRO",
         "CEP",
         "EMPRESA",
-        "COD. CODAE",
+        ColunasPlanilhaEscola.COD_CODAE.value,
     )
     for item in items:
         for campo in campos_maiusculos:
@@ -208,9 +208,9 @@ def padroniza_dados(items):  # noqa_ C901
 
     # Normaliza nome.
     campos_normaliza_nomes = (
-        COLUNA_TIPO_DE_UE,
+        ColunasPlanilhaEscola.TIPO_DE_UE.value,
         "DRE",
-        "ENDEREÇO",
+        ColunasPlanilhaEscola.ENDERECO.value,
         "BAIRRO",
     )
     for item in items:
@@ -249,8 +249,8 @@ def cria_escola(arquivo, legenda):
         for item in progressbar(escolas_faltantes, legenda):  # noqa
             # Corrige o nome da DRE
             dre_nome = f"DIRETORIA REGIONAL DE EDUCACAO {item.get('DRE')}"
-            tipo_ue_iniciais = item.get(COLUNA_TIPO_DE_UE)
-            lote_sigla = item.get("SIGLA/LOTE")
+            tipo_ue_iniciais = item.get(ColunasPlanilhaEscola.TIPO_DE_UE.value)
+            lote_sigla = item.get(ColunasPlanilhaEscola.SIGLA_LOTE.value)
             email = item.get("E-MAIL").strip().lower() or ""
             telefone1 = somente_digitos(item.get("TELEFONE"))
             telefone2 = somente_digitos(item.get("TELEFONE2"))
@@ -268,7 +268,7 @@ def cria_escola(arquivo, legenda):
                     Q(telefone=telefone1) | Q(telefone2=telefone2) | Q(email=email)
                 ).first()
 
-            tipo_ue = item.get(COLUNA_TIPO_DE_UE)
+            tipo_ue = item.get(ColunasPlanilhaEscola.TIPO_DE_UE.value)
             nome = item.get("NOME")
             # Instancia o objeto Escola.
             data = dict(
