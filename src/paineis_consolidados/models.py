@@ -31,6 +31,7 @@ from ..dados_comuns.constants import (
     DAQUI_A_SETE_DIAS,
     DAQUI_A_TRINTA_DIAS,
     StringsModelosGestaoAlimentacao,
+    StringsValidationErrors,
 )
 from ..dados_comuns.fluxo_status import (
     DietaEspecialWorkflow,
@@ -221,6 +222,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     STATUS_CANCELADOS = "CANCELADOS"
     STATUS_PENDENTES = "RECEBIDAS"
 
+    DESC_DOC_CONTEM_ALTERACAO = "Alteração"
+
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
     data_evento_2 = models.DateField()
@@ -333,7 +336,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             | Q(data_evento_2=data_evento)
             | (
                 Q(data_evento_fim__isnull=False)
-                & ~Q(desc_doc__icontains="Alteração")
+                & ~Q(desc_doc__icontains=cls.DESC_DOC_CONTEM_ALTERACAO)
                 & Q(data_evento__lte=data_evento)
                 & Q(data_evento_fim__gte=data_evento)
             )
@@ -351,7 +354,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                 | Q(data_evento_2__gte=data_evento)
                 | (
                     Q(data_evento_fim__isnull=False)
-                    & ~Q(desc_doc__icontains="Alteração")
+                    & ~Q(desc_doc__icontains=cls.DESC_DOC_CONTEM_ALTERACAO)
                     & Q(data_evento__gte=data_evento)
                 )
             )
@@ -362,7 +365,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                 | Q(data_evento_2__lte=data_evento_fim)
                 | (
                     Q(data_evento_fim__isnull=False)
-                    & ~Q(desc_doc__icontains="Alteração")
+                    & ~Q(desc_doc__icontains=cls.DESC_DOC_CONTEM_ALTERACAO)
                     & Q(data_evento_fim__lte=data_evento_fim)
                 )
             )
@@ -512,19 +515,19 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
-        raise NotImplementedError("Precisa implementar")
+        raise NotImplementedError(StringsValidationErrors.PRECISA_IMPLEMENTAR.value)
 
     @classmethod
     def get_autorizados(cls, **kwargs):
-        raise NotImplementedError("Precisa implementar")
+        raise NotImplementedError(StringsValidationErrors.PRECISA_IMPLEMENTAR.value)
 
     @classmethod
     def get_negados(cls, **kwargs):
-        raise NotImplementedError("Precisa implementar")
+        raise NotImplementedError(StringsValidationErrors.PRECISA_IMPLEMENTAR.value)
 
     @classmethod
     def get_cancelados(cls, **kwargs):
-        raise NotImplementedError("Precisa implementar")
+        raise NotImplementedError(StringsValidationErrors.PRECISA_IMPLEMENTAR.value)
 
     @property
     def data(self):

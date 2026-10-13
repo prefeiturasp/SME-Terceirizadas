@@ -216,7 +216,7 @@ def payload_autorizar(
 
 @pytest.fixture
 def solicitacao_dieta_especial_a_autorizar(client, escola):
-    email = "escola@admin.com"
+    email = constants.EmailsParaTeste.ESCOLA_ADMIN.value
     password = constants.DJANGO_ADMIN_PASSWORD
     rf = "1545933"
     user = Usuario.objects.create_user(

@@ -5,6 +5,7 @@ from model_bakery import baker
 
 from src.dados_comuns.constants import (
     TIPOS_ALIMENTACAO,
+    StringsValidationErrors,
 )
 from src.medicao_inicial.models import GrupoMedicao, ValorMedicao
 from src.medicao_inicial.recreio_nas_ferias.validators.recreio_common import (
@@ -53,11 +54,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_dados_nao_lancados(
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
     ]
@@ -89,7 +90,7 @@ def test_validate_lancamento_dietas_medicao_recreio_dados_nao_lancados(
     assert len(lista_erros) == 1
     assert lista_erros == [
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         }
     ]
@@ -255,11 +256,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_erro_quando_existe_obs
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
     ]
@@ -293,11 +294,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_gera_erro_sem_observac
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": "Colaboradores",
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GrupoMedicao.RECREIO_NAS_FERIAS,
         },
     ]

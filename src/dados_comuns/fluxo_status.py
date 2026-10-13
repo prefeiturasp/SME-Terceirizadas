@@ -14,6 +14,7 @@ from django_xworkflows import models as xwf_models
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from src.dados_comuns import constants
+from src.dados_comuns.constants import ContentTypesParaRequests
 
 from ..escola import models as m
 from ..perfil.models import Usuario
@@ -3314,7 +3315,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         anexo = {
             "arquivo": html_to_pdf_email_anexo(html_string_relatorio),
             "nome": f"dieta_especial_{self.id_externo}.pdf",
-            "mimetypes": "application/pdf",
+            "mimetypes": ContentTypesParaRequests.PDF.value,
         }
 
         for email in partes_interessadas:

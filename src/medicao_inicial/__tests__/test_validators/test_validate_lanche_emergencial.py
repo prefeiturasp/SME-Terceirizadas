@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from model_bakery import baker
 
+from src.dados_comuns.constants import StringsValidationErrors
 from src.medicao_inicial.models import CategoriaMedicao, GrupoMedicao
 from src.medicao_inicial.validators import validate_lanche_emergencial
 
@@ -75,7 +76,7 @@ class TestValidateLancheEmergencial:
         assert retorno == [
             {
                 "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         ]
 
@@ -132,7 +133,7 @@ class TestValidateLancheEmergencial:
         assert retorno == [
             {
                 "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         ]
 
@@ -149,7 +150,7 @@ class TestValidateLancheEmergencial:
         assert retorno == [
             {
                 "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         ]
 

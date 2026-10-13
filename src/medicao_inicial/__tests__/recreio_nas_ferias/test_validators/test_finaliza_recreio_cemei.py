@@ -3,6 +3,7 @@ import pytest
 from src.dados_comuns.constants import (
     TIPOS_ALIMENTACAO,
     TIPOS_UNIDADE_ESCOLAR,
+    StringsValidationErrors,
 )
 from src.medicao_inicial.models import GrupoMedicao, ValorMedicao
 from src.medicao_inicial.recreio_nas_ferias.validators.recreio_cemei import (
@@ -51,11 +52,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cemei_dados_nao_lancad
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_COLABORADORES,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_EMEI,
         },
     ]
@@ -85,11 +86,11 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cemei_dados_nao_lancad
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_COLABORADORES,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_CEI,
         },
     ]
@@ -119,15 +120,15 @@ def test_validate_lancamento_alimentacoes_medicao_recreio_cemei_dados_nao_lancad
     assert len(lista_erros) == 3
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_COLABORADORES,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_CEI,
         },
         {
-            "erro": "Restam dias a serem lançados nas alimentações.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             "periodo_escolar": GRUPO_EMEI,
         },
     ]
@@ -163,7 +164,7 @@ def test_validate_lancamento_dietas_medicao_recreio_cemei_dados_nao_lancados_eme
     assert len(lista_erros) == 1
     assert lista_erros == [
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GRUPO_EMEI,
         }
     ]
@@ -188,7 +189,7 @@ def test_validate_lancamento_dietas_medicao_recreio_cemei_dados_nao_lancados_cei
     assert len(lista_erros) == 1
     assert lista_erros == [
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GRUPO_CEI,
         }
     ]
@@ -218,11 +219,11 @@ def test_validate_lancamento_dietas_medicao_recreio_cemei_dados_nao_lancados_ger
     assert len(lista_erros) == 2
     erros_esperados = [
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GRUPO_EMEI,
         },
         {
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
             "periodo_escolar": GRUPO_CEI,
         },
     ]
@@ -585,7 +586,7 @@ def test_buscar_erro_por_periodo_deve_encontrar_erro_pelo_tipo_erro(
     lista_erros = [
         {
             "periodo_escolar": GRUPO_CEI,
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
         }
     ]
 
@@ -596,7 +597,7 @@ def test_buscar_erro_por_periodo_deve_encontrar_erro_pelo_tipo_erro(
     )
 
     assert resultado == {
-        "erro": "Restam dias a serem lançados nas dietas.",
+        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
         "periodo_escolar": GRUPO_CEI,
     }
 
@@ -607,7 +608,7 @@ def test_buscar_erro_por_periodo_deve_usar_grupo(solicitacao_recreio_cemei):
     lista_erros = [
         {
             "periodo_escolar": GRUPO_EMEI,
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
         }
     ]
 
@@ -628,7 +629,7 @@ def test_buscar_erro_por_periodo_deve_retornar_none_quando_nao_existir_periodo_c
     lista_erros = [
         {
             "periodo_escolar": GRUPO_COLABORADORES,
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
         }
     ]
 
@@ -649,7 +650,7 @@ def test_buscar_erro_por_periodo_deve_retornar_none_quando_tipo_erro_nao_corresp
     lista_erros = [
         {
             "periodo_escolar": GRUPO_EMEI,
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
         }
     ]
 
@@ -669,12 +670,12 @@ def test_buscar_erro_por_periodo_deve_retornar_apenas_primeiro_erro_encontrado(
 
     primeiro = {
         "periodo_escolar": GRUPO_EMEI,
-        "erro": "Restam dias a serem lançados nas dietas.",
+        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
     }
 
     segundo = {
         "periodo_escolar": GRUPO_EMEI,
-        "erro": "Restam dias a serem lançados nas dietas.",
+        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
     }
 
     resultado = buscar_erro_por_periodo(

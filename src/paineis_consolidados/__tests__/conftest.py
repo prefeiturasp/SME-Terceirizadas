@@ -18,6 +18,7 @@ from src.cardapio.suspensao_alimentacao.models import (
 from src.dados_comuns.constants import (
     EMAIL_TESTE,
     TIPOS_UNIDADE_ESCOLAR,
+    EmailsParaTeste,
     NomesParaTesteDiretoriaRegional,
     StringsCaminhoModelos,
 )
@@ -573,9 +574,9 @@ def solicitacoes_ano_dre(
         cpf="12oiu3123",
     )
     user_escola = django_user_model.objects.create_user(
-        username="user@escola.com",
+        username=EmailsParaTeste.ESCOLA.value,
         password=constants.DJANGO_ADMIN_PASSWORD,
-        email="user@escola.com",
+        email=EmailsParaTeste.ESCOLA.value,
         registro_funcional="123123",
         cpf="12312312332",
     )
@@ -720,7 +721,7 @@ def client_autenticado_dre_paineis_consolidados(
     alteracoes_cardapio_dre_atual,
 ):
     email = EMAIL_TESTE
-    email2 = "user@escola.com"
+    email2 = EmailsParaTeste.ESCOLA.value
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(
         username=email, password=password, email=email, registro_funcional="8888888"

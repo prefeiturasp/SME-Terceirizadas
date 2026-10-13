@@ -6,7 +6,7 @@ from model_bakery import baker
 from pypdf import PdfReader
 from rest_framework import status
 
-from src.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
+from src.dados_comuns.constants import DJANGO_ADMIN_PASSWORD, ContentTypesParaRequests
 from src.dados_comuns.models import LogSolicitacoesUsuario
 from src.pre_recebimento.cronograma_semanal.models import CronogramaSemanal
 
@@ -918,7 +918,7 @@ class TestCronogramaSemanalViewSet:
             f"/cronogramas-semanais/{cronograma_semanal_fornecedor_ciente.uuid}/gerar-pdf-cronograma/"
         )
         assert response.status_code == status.HTTP_200_OK
-        assert response.headers["Content-Type"] == "application/pdf"
+        assert response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
 
         pdf_reader = PdfReader(BytesIO(response.content))
         pdf_text = "\n".join(page.extract_text() for page in pdf_reader.pages)
@@ -972,9 +972,7 @@ class TestPermissoesDilogQualidade:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["uuid"] == str(
-            cronograma_semanal_fornecedor_ciente.uuid
-        )
+        assert response.json()["uuid"] == str(cronograma_semanal_fornecedor_ciente.uuid)
 
     def test_lista_cronogramas_mensal_assinados(
         self, client_autenticado_qualidade, cronograma_ponto_a_ponto_assinado

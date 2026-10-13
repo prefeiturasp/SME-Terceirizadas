@@ -8,6 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
 from faker import Faker
 
+from src.dados_comuns.constants import EmailsParaTeste
 from src.dieta_especial.protocolo_padrao.models import (
     Alimento,
     SubstituicaoAlimento,
@@ -37,40 +38,50 @@ FIXED_NUM_ANEXOS = 3  # Número fixo de anexos
 FIXED_NUM_SOLICITACOES = 3  # Número fixo de solicitações por aluno
 
 
-def fluxo_escola_felix_dieta_especial(obj, user, index):  # noqa: C901
+def _nega_dieta(obj, user):
+    obj.motivo_negacao = _get_random_motivo_negacao()
+    obj.justificativa_negacao = f.text()[:50]
+    obj.codae_nega(user=user, notificar=True)
+
+
+def _cria_substituicoes_dieta(obj):
+    for _ in range(FIXED_NUM_SUBSTITUICOES):
+        subst = SubstituicaoAlimento.objects.create(
+            solicitacao_dieta_especial=obj,
+            alimento=_get_random_alimento(),
+            tipo="I" if FIXED_TIPO_SUBSTITUICAO == 1 else "S",
+        )
+        for __ in range(FIXED_NUM_SUBSTITUTOS):
+            subst.substitutos.add(_get_random_alimento())
+
+
+def _autoriza_dieta(obj, user, jogada_de_dado):
+    obj.codae_autoriza(user=user, notificar=True)
+    obj.nome_protocolo = f.text()[:25]
+    obj.informacoes_adicionais = f.text()[:100]
+    obj.classificacao = _get_random_classificacao_de_dieta()
+    obj.ativo = FIXED_ATIVO == 1
+    for _ in range(FIXED_NUM_ALERGIAS):
+        obj.alergias_intolerancias.add(_get_random_alergia())
+    _cria_substituicoes_dieta(obj)
+    if jogada_de_dado == 5:
+        obj.terceirizada_toma_ciencia(user=user, notificar=True)
+    obj.save()
+
+
+def fluxo_escola_felix_dieta_especial(obj, user, index):
     obj.inicia_fluxo(user=user, notificar=True)
     jogada_de_dado = FIXED_JOGADA_DADO
     if jogada_de_dado == 1:
-        pass  # Mantém a solicitação em status "aguardando autorização"
-    elif jogada_de_dado == 2:
+        return  # Mantém a solicitação em status "aguardando autorização"
+    if jogada_de_dado == 2:
         obj.cancelar_pedido(user=user, justificativa="")
-    else:
-        obj.registro_funcional_nutricionista = (
-            f"Elaborado por {f.name()} - CRN {FIXED_CRN}"
-        )
-        if jogada_de_dado == 3:
-            obj.motivo_negacao = _get_random_motivo_negacao()
-            obj.justificativa_negacao = f.text()[:50]
-            obj.codae_nega(user=user, notificar=True)
-        else:
-            obj.codae_autoriza(user=user, notificar=True)
-            obj.nome_protocolo = f.text()[:25]
-            obj.informacoes_adicionais = f.text()[:100]
-            obj.classificacao = _get_random_classificacao_de_dieta()
-            obj.ativo = FIXED_ATIVO == 1
-            for _ in range(FIXED_NUM_ALERGIAS):
-                obj.alergias_intolerancias.add(_get_random_alergia())
-            for _ in range(FIXED_NUM_SUBSTITUICOES):
-                subst = SubstituicaoAlimento.objects.create(
-                    solicitacao_dieta_especial=obj,
-                    alimento=_get_random_alimento(),
-                    tipo="I" if FIXED_TIPO_SUBSTITUICAO == 1 else "S",
-                )
-                for __ in range(FIXED_NUM_SUBSTITUTOS):
-                    subst.substitutos.add(_get_random_alimento())
-            if jogada_de_dado == 5:
-                obj.terceirizada_toma_ciencia(user=user, notificar=True)
-            obj.save()
+        return
+    obj.registro_funcional_nutricionista = f"Elaborado por {f.name()} - CRN {FIXED_CRN}"
+    if jogada_de_dado == 3:
+        _nega_dieta(obj, user)
+        return
+    _autoriza_dieta(obj, user, jogada_de_dado)
 
 
 def _get_deterministic_from_queryset(qs):
@@ -116,7 +127,7 @@ def _get_random_alimento():
 
 @transaction.atomic
 def cria_solicitacoes_dieta_especial(qtd=50):
-    user = Usuario.objects.get(email="escola@admin.com")
+    user = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
     codigos_eol = [100000 + i for i in range(qtd)]
     alunos = []
     for cod_eol in codigos_eol:

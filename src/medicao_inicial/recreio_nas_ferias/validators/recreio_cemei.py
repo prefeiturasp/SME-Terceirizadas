@@ -3,6 +3,7 @@ from src.dados_comuns.constants import (
     DIETA_ESPECIAL_TIPO_A,
     DIETA_ESPECIAL_TIPO_B,
     TIPOS_UNIDADE_ESCOLAR,
+    StringsValidationErrors,
 )
 from src.escola.models import FaixaEtaria
 from src.medicao_inicial.models import (
@@ -405,7 +406,7 @@ def valida_dietas_emei_da_cemei(
                 lista_erros.append(
                     {
                         "periodo_escolar": medicao_recreio_emei.grupo.nome,
-                        "erro": "Restam dias a serem lançados nas dietas.",
+                        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                     }
                 )
                 return erros_unicos(
@@ -493,7 +494,7 @@ def valida_dietas_cei_da_cemei(
                 lista_erros.append(
                     {
                         "periodo_escolar": medicao_recreio_cei.grupo.nome,
-                        "erro": "Restam dias a serem lançados nas dietas.",
+                        "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
                     }
                 )
                 return erros_unicos(lista_erros)

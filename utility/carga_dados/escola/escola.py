@@ -111,7 +111,7 @@ def obtem_objetos(planilha):
 def cria_e_busca_objeto_gestao(tipo_gestao):
     try:
         gestao = TipoGestao.objects.get(nome=tipo_gestao)
-    except:  # noqa: E722
+    except TipoGestao.DoesNotExist:
         tp_gestao = TipoGestao(nome=tipo_gestao)
         gestao = tp_gestao.save()
     return gestao

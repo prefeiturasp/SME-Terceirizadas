@@ -4,6 +4,7 @@ import pytest
 from faker import Faker
 
 from src.dados_comuns import constants
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.fluxo_status import (
     DocumentoDeRecebimentoWorkflow,
     FichaTecnicaDoProdutoWorkflow,
@@ -441,7 +442,7 @@ def arquivo_ficha_recebimento(ficha_recebimento):
     from src.recebimento.models import ArquivoFichaRecebimento
 
     arquivo_mock = SimpleUploadedFile(
-        "test.pdf", b"file_content", content_type="application/pdf"
+        "test.pdf", b"file_content", content_type=ContentTypesParaRequests.PDF.value
     )
 
     return ArquivoFichaRecebimento.objects.create(

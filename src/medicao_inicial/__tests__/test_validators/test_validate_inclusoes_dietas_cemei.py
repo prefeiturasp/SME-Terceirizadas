@@ -3,6 +3,7 @@ import datetime
 import pytest
 from model_bakery import baker
 
+from src.dados_comuns.constants import StringsValidationErrors
 from src.dieta_especial.logs_models.models import LogQuantidadeDietasAutorizadas
 from src.dieta_especial.solicitacao_dieta_especial.models import ClassificacaoDieta
 from src.inclusao_alimentacao.models import InclusaoDeAlimentacaoCEMEI
@@ -86,7 +87,7 @@ def _erro_dietas(cenario):
     return [
         {
             "periodo_escolar": cenario["medicao"].nome_periodo_grupo,
-            "erro": "Restam dias a serem lançados nas dietas.",
+            "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS.value,
         }
     ]
 

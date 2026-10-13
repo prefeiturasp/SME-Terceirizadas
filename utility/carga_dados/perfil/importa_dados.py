@@ -13,6 +13,7 @@ from rest_framework import status
 from src.dados_comuns.constants import (
     DJANGO_ADMIN_TREINAMENTO_PASSWORD,
     EmailsParaTeste,
+    StringsValidationErrors,
 )
 from src.dados_comuns.models import Contato
 from src.eol_servico.utils import EOLException, EOLServicoSGP
@@ -117,7 +118,7 @@ def cria_vinculos():
     }
 
     usuario = {
-        "usuario_escola": Usuario.objects.get(email="escola@admin.com"),
+        "usuario_escola": Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value),
         "usuario_escola_cei": Usuario.objects.get(email="escolacei@admin.com"),
         "usuario_escola_cei_ceu": Usuario.objects.get(email="escolaceiceu@admin.com"),
         "usuario_escola_cci": Usuario.objects.get(email="escolacci@admin.com"),
@@ -462,7 +463,9 @@ class ProcessadorPlanilhaUsuarioPerfilEscola:
 
     def existe_conteudo(self) -> bool:
         if not self.arquivo.conteudo:
-            self.arquivo.log = "Não foi feito o upload da planilha"
+            self.arquivo.log = (
+                StringsValidationErrors.NAO_FOI_FEITO_O_UPLOAD_DA_PLANILHA.value
+            )
             self.arquivo.erro_no_processamento()
             return False
         return True
@@ -550,7 +553,9 @@ class ProcessadorPlanilhaUsuarioPerfilEscola:
             self.cria_planilha_de_erros()
             logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
         else:
-            self.arquivo.log = "Planilha processada com sucesso."
+            self.arquivo.log = (
+                StringsValidationErrors.PLANILHA_PROCESSADA_COM_SUCESSO.value
+            )
             self.arquivo.processamento_com_sucesso()
             logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
 
@@ -559,7 +564,9 @@ class ProcessadorPlanilhaUsuarioPerfilEscola:
         ws = workbook.active
         ws.title = "Erros"
         cabecalho = ws.cell(
-            row=1, column=1, value="Erros encontrados no processamento da planilha"
+            row=1,
+            column=1,
+            value=StringsValidationErrors.ERROS_ENCONTRADOS_NO_PROCESSAMENTO_DA_PLANILHA.value,
         )
         cabecalho.fill = styles.PatternFill("solid", fgColor="808080")
         for index, erro in enumerate(self.erros, 2):
@@ -632,7 +639,9 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
 
     def existe_conteudo(self) -> bool:
         if not self.arquivo.conteudo:
-            self.arquivo.log = "Não foi feito o upload da planilha"
+            self.arquivo.log = (
+                StringsValidationErrors.NAO_FOI_FEITO_O_UPLOAD_DA_PLANILHA.value
+            )
             self.arquivo.erro_no_processamento()
             return False
         return True
@@ -769,7 +778,9 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
             self.cria_planilha_de_erros()
             logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
         else:
-            self.arquivo.log = "Planilha processada com sucesso."
+            self.arquivo.log = (
+                StringsValidationErrors.PLANILHA_PROCESSADA_COM_SUCESSO.value
+            )
             self.arquivo.processamento_com_sucesso()
             logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
 
@@ -778,7 +789,9 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
         ws = workbook.active
         ws.title = "Erros"
         cabecalho = ws.cell(
-            row=1, column=1, value="Erros encontrados no processamento da planilha"
+            row=1,
+            column=1,
+            value=StringsValidationErrors.ERROS_ENCONTRADOS_NO_PROCESSAMENTO_DA_PLANILHA.value,
         )
         cabecalho.fill = styles.PatternFill("solid", fgColor="808080")
         for index, erro in enumerate(self.erros, 2):
@@ -851,7 +864,9 @@ class ProcessadorPlanilhaUsuarioPerfilDre:
 
     def existe_conteudo(self) -> bool:
         if not self.arquivo.conteudo:
-            self.arquivo.log = "Não foi feito o upload da planilha"
+            self.arquivo.log = (
+                StringsValidationErrors.NAO_FOI_FEITO_O_UPLOAD_DA_PLANILHA.value
+            )
             self.arquivo.erro_no_processamento()
             return False
         return True
@@ -935,7 +950,9 @@ class ProcessadorPlanilhaUsuarioPerfilDre:
             self.cria_planilha_de_erros()
             logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
         else:
-            self.arquivo.log = "Planilha processada com sucesso."
+            self.arquivo.log = (
+                StringsValidationErrors.PLANILHA_PROCESSADA_COM_SUCESSO.value
+            )
             self.arquivo.processamento_com_sucesso()
             logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
 
@@ -944,7 +961,9 @@ class ProcessadorPlanilhaUsuarioPerfilDre:
         ws = workbook.active
         ws.title = "Erros"
         cabecalho = ws.cell(
-            row=1, column=1, value="Erros encontrados no processamento da planilha"
+            row=1,
+            column=1,
+            value=StringsValidationErrors.ERROS_ENCONTRADOS_NO_PROCESSAMENTO_DA_PLANILHA.value,
         )
         cabecalho.fill = styles.PatternFill("solid", fgColor="808080")
         for index, erro in enumerate(self.erros, 2):
@@ -1074,7 +1093,9 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
 
     def existe_conteudo(self) -> bool:
         if not self.arquivo.conteudo:
-            self.arquivo.log = "Não foi feito o upload da planilha"
+            self.arquivo.log = (
+                StringsValidationErrors.NAO_FOI_FEITO_O_UPLOAD_DA_PLANILHA.value
+            )
             self.arquivo.erro_no_processamento()
             return False
         return True
@@ -1131,7 +1152,9 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
             self.cria_planilha_de_erros()
             logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
         else:
-            self.arquivo.log = "Planilha processada com sucesso."
+            self.arquivo.log = (
+                StringsValidationErrors.PLANILHA_PROCESSADA_COM_SUCESSO.value
+            )
             self.arquivo.processamento_com_sucesso()
             logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
 
@@ -1140,7 +1163,9 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
         ws = workbook.active
         ws.title = "Erros"
         cabecalho = ws.cell(
-            row=1, column=1, value="Erros encontrados no processamento da planilha"
+            row=1,
+            column=1,
+            value=StringsValidationErrors.ERROS_ENCONTRADOS_NO_PROCESSAMENTO_DA_PLANILHA.value,
         )
         cabecalho.fill = styles.PatternFill("solid", fgColor="808080")
         for index, erro in enumerate(self.erros, 2):
@@ -1269,7 +1294,9 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
 
     def existe_conteudo(self) -> bool:
         if not self.arquivo.conteudo:
-            self.arquivo.log = "Não foi feito o upload da planilha"
+            self.arquivo.log = (
+                StringsValidationErrors.NAO_FOI_FEITO_O_UPLOAD_DA_PLANILHA.value
+            )
             self.arquivo.erro_no_processamento()
             return False
         return True
@@ -1310,7 +1337,9 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
             self.cria_planilha_de_erros()
             logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
         else:
-            self.arquivo.log = "Planilha processada com sucesso."
+            self.arquivo.log = (
+                StringsValidationErrors.PLANILHA_PROCESSADA_COM_SUCESSO.value
+            )
             self.arquivo.processamento_com_sucesso()
             logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
 
@@ -1319,7 +1348,9 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
         ws = workbook.active
         ws.title = "Erros"
         cabecalho = ws.cell(
-            row=1, column=1, value="Erros encontrados no processamento da planilha"
+            row=1,
+            column=1,
+            value=StringsValidationErrors.ERROS_ENCONTRADOS_NO_PROCESSAMENTO_DA_PLANILHA.value,
         )
         cabecalho.fill = styles.PatternFill("solid", fgColor="808080")
         for index, erro in enumerate(self.erros, 2):

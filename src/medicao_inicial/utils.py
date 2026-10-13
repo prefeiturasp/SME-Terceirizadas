@@ -2274,6 +2274,22 @@ def get_valor_total_emei_cemei(
     return valores_dia
 
 
+def _get_len_faixas(tabela):
+    if "faixas_etarias" not in tabela:
+        return 0
+    faixas_etarias = tabela["faixas_etarias"]
+    return (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
+
+
+def _get_valor_campo_em_tabela(campos, valores, tabela, nome_campo, indice_periodo):
+    indexes_campo = [i for i, campo in enumerate(campos) if campo == nome_campo]
+    index_campo = get_indice(indexes_campo, indice_periodo)
+    len_faixas = _get_len_faixas(tabela)
+    if nome_campo not in campos:
+        return 0
+    return valores[index_campo + len_faixas]
+
+
 def get_valor_campo(
     campos,
     campos_tabela_anterior,
@@ -2284,39 +2300,21 @@ def get_valor_campo(
     valores_tabela_anterior,
     nome_campo,
 ):
-    if nome_campo not in campos and nome_campo in campos_tabela_anterior:
-        indexes_campo = [
-            i for i, campo in enumerate(campos_tabela_anterior) if campo == nome_campo
-        ]
-        index_campo = get_indice(indexes_campo, indice_periodo)
-        len_faixas = 0
-
-        if "faixas_etarias" in tabela_anterior:
-            faixas_etarias = tabela_anterior["faixas_etarias"]
-            len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
-
-        valor_campo = (
-            valores_tabela_anterior[index_campo + len_faixas]
-            if nome_campo in campos_tabela_anterior
-            and len(tabela_anterior["valores_campos"])
-            else 0
+    if nome_campo in campos:
+        return _get_valor_campo_em_tabela(
+            campos, valores_dia, tabela, nome_campo, indice_periodo
         )
-    elif nome_campo in campos:
-        indexes_campo = [i for i, campo in enumerate(campos) if campo == nome_campo]
-        index_campo = get_indice(indexes_campo, indice_periodo)
-        len_faixas = 0
-
-        if "faixas_etarias" in tabela:
-            faixas_etarias = tabela["faixas_etarias"]
-            len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
-
-        valor_campo = (
-            valores_dia[index_campo + len_faixas] if nome_campo in campos else 0
-        )
-
-    else:
-        valor_campo = 0
-    return valor_campo
+    if nome_campo not in campos_tabela_anterior:
+        return 0
+    if not len(tabela_anterior["valores_campos"]):
+        return 0
+    return _get_valor_campo_em_tabela(
+        campos_tabela_anterior,
+        valores_tabela_anterior,
+        tabela_anterior,
+        nome_campo,
+        indice_periodo,
+    )
 
 
 def popula_campo_total_sobremesas_pagamento(
@@ -2742,6 +2740,17 @@ def remover_duplicados(query_set):
     return sem_uuid_repetido
 
 
+def _get_numero_alunos_kit_lanche(kit_lanche, eh_cemei):
+    numero_alunos = kit_lanche.quantidade_alimentacoes
+    if isinstance(kit_lanche, SolicitacaoKitLancheUnificada):
+        return numero_alunos
+    if not eh_cemei:
+        return numero_alunos
+    if kit_lanche.tem_solicitacao_emei:
+        return kit_lanche.solicitacao_emei.quantidade_alimentacoes
+    return 0
+
+
 def get_kit_lanche(solicitacao):
     escola_uuid = solicitacao.escola.uuid
     mes = solicitacao.mes
@@ -2752,25 +2761,15 @@ def get_kit_lanche(solicitacao):
     query_set = query_set.filter(desc_doc__icontains="Kit Lanche")
     query_set = remover_duplicados(query_set)
 
+    eh_cemei = solicitacao.escola.eh_cemei_data(solicitacao.data_referencia)
     kits_lanches = []
     for kit_lanche in query_set:
         kit_lanche = kit_lanche.get_raw_model.objects.get(uuid=kit_lanche.uuid)
         solicitacao_kit_lanche = (
-            kit_lanche
-            if solicitacao.escola.eh_cemei_data(solicitacao.data_referencia)
-            else kit_lanche.solicitacao_kit_lanche
+            kit_lanche if eh_cemei else kit_lanche.solicitacao_kit_lanche
         )
         if kit_lanche:
-            numero_alunos = kit_lanche.quantidade_alimentacoes
-            if not isinstance(kit_lanche, SolicitacaoKitLancheUnificada):
-                if solicitacao.escola.eh_cemei_data(solicitacao.data_referencia):
-                    if kit_lanche.tem_solicitacao_emei:
-                        numero_alunos = (
-                            kit_lanche.solicitacao_emei.quantidade_alimentacoes
-                        )
-                    else:
-                        numero_alunos = 0
-
+            numero_alunos = _get_numero_alunos_kit_lanche(kit_lanche, eh_cemei)
             kits_lanches.append(
                 {
                     "dia": f"{solicitacao_kit_lanche.data.day:02d}",
@@ -3519,15 +3518,16 @@ def _popula_faixas_dias_total(
         indice_periodo,
         categoria_corrente,
     )
-    if recreio:
-        if categoria_corrente == CategoriaMedicao.ALIMENTACAO:
-            if primeira_faixa:
-                valores_dia += ["-"]
-            valores_dia += [str(total if total else 0)]
-        else:
-            valores_dia += ["-", str(total if total else 0)]
-    else:
-        valores_dia += ["-", str(total if total else 0)]
+    valor_total = str(total or 0)
+    if not recreio:
+        valores_dia += ["-", valor_total]
+        return
+    if categoria_corrente == CategoriaMedicao.ALIMENTACAO:
+        if primeira_faixa:
+            valores_dia += ["-"]
+        valores_dia += [valor_total]
+        return
+    valores_dia += ["-", valor_total]
 
 
 def _popula_faixas_dias_recreio(
@@ -4320,33 +4320,34 @@ def get_somatorio_colaboradores(
     return somatorio_colaboradores
 
 
-def build_tabela_somatorio_header(
-    medicao, primeira_tabela_header, segunda_tabela_header=[], categoria=None
-):
-    nome_periodo = (
-        medicao.periodo_escolar.nome
-        if not medicao.grupo
-        else (
-            f"{medicao.grupo.nome} - {medicao.periodo_escolar.nome}"
-            if medicao.periodo_escolar
-            else medicao.grupo.nome
-        )
-    )
+def _get_nome_periodo(medicao):
+    if not medicao.grupo:
+        return medicao.periodo_escolar.nome
+    if medicao.periodo_escolar:
+        return f"{medicao.grupo.nome} - {medicao.periodo_escolar.nome}"
+    return medicao.grupo.nome
+
+
+def _get_header_somatorio(nome_periodo, categoria):
+    nome_upper = nome_periodo.upper()
     if categoria == "DIETA":
-        if nome_periodo.upper() in [
-            "ETEC",
-            CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO,
-        ]:
-            pass
-        elif nome_periodo.upper() == "NOITE":
-            segunda_tabela_header.append(nome_periodo)
-        else:
-            primeira_tabela_header.append(nome_periodo)
-    else:
-        if nome_periodo.upper() in ["NOITE", "ETEC"]:
-            segunda_tabela_header.append(nome_periodo)
-        else:
-            primeira_tabela_header.append(nome_periodo)
+        if nome_upper in ["ETEC", CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO]:
+            return None
+        return "segunda" if nome_upper == "NOITE" else "primeira"
+    return "segunda" if nome_upper in ["NOITE", "ETEC"] else "primeira"
+
+
+def build_tabela_somatorio_header(
+    medicao, primeira_tabela_header, segunda_tabela_header=None, categoria=None
+):
+    if segunda_tabela_header is None:
+        segunda_tabela_header = []
+    nome_periodo = _get_nome_periodo(medicao)
+    destino = _get_header_somatorio(nome_periodo, categoria)
+    if destino == "primeira":
+        primeira_tabela_header.append(nome_periodo)
+    elif destino == "segunda":
+        segunda_tabela_header.append(nome_periodo)
 
     return primeira_tabela_header, segunda_tabela_header
 
@@ -4540,6 +4541,37 @@ def _get_total_dieta_por_tipo(
     return sum(int(v.valor) for v in values)
 
 
+def _get_total_solicitacoes(medicao_solicitacoes, campo):
+    if not (medicao_solicitacoes and campo in ("kit_lanche", "lanche_emergencial")):
+        return 0
+    values = medicao_solicitacoes.valores_medicao.filter(
+        categoria_medicao__nome=CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO,
+        nome_campo=campo,
+    )
+    return sum(int(v.valor) for v in values)
+
+
+def _tem_valor_positivo(valores):
+    return any(v > 0 for v in valores)
+
+
+def _build_linha_participantes(
+    campo, total_alim, total_solicitacoes, totais_dietas, medicao_solicitacoes
+):
+    if not medicao_solicitacoes:
+        total_alim += total_solicitacoes
+        if _tem_valor_positivo([total_alim] + totais_dietas):
+            return [get_nome_campo(campo), total_alim, *totais_dietas]
+        return None
+    if campo in ("kit_lanche", "lanche_emergencial"):
+        total_alim_col, total_sol_col = 0, total_solicitacoes
+    else:
+        total_alim_col, total_sol_col = total_alim, 0
+    if _tem_valor_positivo([total_alim_col, total_sol_col] + totais_dietas):
+        return [get_nome_campo(campo), total_alim_col, total_sol_col] + totais_dietas
+    return None
+
+
 def _build_body_tabela_participantes(
     medicao_recreio,
     campos_alimentacao: list,
@@ -4558,39 +4590,18 @@ def _build_body_tabela_participantes(
             if medicao_recreio
             else 0
         )
-        total_solicitacoes = 0
-        if medicao_solicitacoes and campo in ("kit_lanche", "lanche_emergencial"):
-            values = medicao_solicitacoes.valores_medicao.filter(
-                categoria_medicao__nome=CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                nome_campo=campo,
-            )
-            total_solicitacoes = sum(int(v.valor) for v in values)
-
+        total_solicitacoes = _get_total_solicitacoes(medicao_solicitacoes, campo)
         totais_dietas = [
             _get_total_dieta_por_tipo(
                 medicao_recreio, tipo_dieta, nome_categoria, campo
             )
             for tipo_dieta, nome_categoria in dietas_ativas.items()
         ]
-
-        if medicao_solicitacoes:
-            total_alim_col = (
-                0 if campo in ("kit_lanche", "lanche_emergencial") else total_alim
-            )
-            total_sol_col = (
-                total_solicitacoes
-                if campo in ("kit_lanche", "lanche_emergencial")
-                else 0
-            )
-            if any(v > 0 for v in [total_alim_col, total_sol_col] + totais_dietas):
-                body.append(
-                    [get_nome_campo(campo), total_alim_col, total_sol_col]
-                    + totais_dietas
-                )
-        else:
-            total_alim += total_solicitacoes
-            if any(v > 0 for v in [total_alim] + totais_dietas):
-                body.append([get_nome_campo(campo), total_alim, *totais_dietas])
+        linha = _build_linha_participantes(
+            campo, total_alim, total_solicitacoes, totais_dietas, medicao_solicitacoes
+        )
+        if linha is not None:
+            body.append(linha)
 
     return body
 

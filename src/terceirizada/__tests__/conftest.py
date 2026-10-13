@@ -11,6 +11,7 @@ from src.dados_comuns.constants import (
     MODULO_DIETA_ESPECIAL,
     NomesParaTesteDiretoriaRegional,
     NomesParaTesteEscola,
+    StringsCaminhoModelos,
 )
 
 from ...perfil.models import Perfil, Usuario
@@ -48,13 +49,15 @@ def client():
 @pytest.fixture
 def client_autenticado_terceiro_com_filtros(client_autenticado):
     terceirizada = baker.make(
-        Terceirizada, contatos=[baker.make("dados_comuns.Contato")], make_m2m=True
+        Terceirizada,
+        contatos=[baker.make(StringsCaminhoModelos.MODEL_CONTATO.value)],
+        make_m2m=True,
     )
 
     baker.make(
         Nutricionista,
         terceirizada=terceirizada,
-        contatos=[baker.make("dados_comuns.Contato")],
+        contatos=[baker.make(StringsCaminhoModelos.MODEL_CONTATO.value)],
     )
 
     edital_ativo = baker.make(Edital, numero="EDITAL-001")
@@ -90,13 +93,15 @@ def client_autenticado_terceiro_com_filtros(client_autenticado):
 @pytest.fixture
 def client_autenticado_terceiro(client_autenticado):
     terceirizada = baker.make(
-        Terceirizada, contatos=[baker.make("dados_comuns.Contato")], make_m2m=True
+        Terceirizada,
+        contatos=[baker.make(StringsCaminhoModelos.MODEL_CONTATO.value)],
+        make_m2m=True,
     )
 
     baker.make(
         Nutricionista,
         terceirizada=terceirizada,
-        contatos=[baker.make("dados_comuns.Contato")],
+        contatos=[baker.make(StringsCaminhoModelos.MODEL_CONTATO.value)],
     )
     baker.make(
         Contrato,
@@ -329,7 +334,7 @@ def modalidade_serializer():
 def terceirizada():
     return baker.make(
         Terceirizada,
-        contatos=[baker.make("dados_comuns.Contato")],
+        contatos=[baker.make(StringsCaminhoModelos.MODEL_CONTATO.value)],
         make_m2m=True,
         nome_fantasia="Alimentos SA",
     )

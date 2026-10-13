@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 
+from src.dados_comuns.constants import StringsValidationErrors
 from src.medicao_inicial.models import GrupoMedicao
 from src.medicao_inicial.validators import (
     validate_lanches_emergenciais_diarios,
@@ -75,7 +76,7 @@ class TestValidateLanchesEmergenciaisDiarios:
         assert retorno == [
             {
                 "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         ]
 
@@ -117,7 +118,7 @@ class TestValidateLanchesEmergenciaisDiarios:
         assert retorno == [
             {
                 "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         ]
 

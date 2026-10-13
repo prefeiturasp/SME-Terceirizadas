@@ -8,6 +8,7 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED,
 )
 
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.fluxo_status import (
     DocumentoDeRecebimentoWorkflow,
 )
@@ -23,6 +24,9 @@ from src.pre_recebimento.cronograma_entrega.models import Cronograma
 from src.pre_recebimento.documento_recebimento.api.filters import (
     CronogramaRelatorioDocumentosFilter,
     DocumentoDeRecebimentoFilter,
+)
+from src.pre_recebimento.documento_recebimento.api.relatorio_documentos_recebimento_excel import (
+    gera_relatorio_documentos_recebimento_xlsx,
 )
 from src.pre_recebimento.documento_recebimento.api.serializers.serializer_create import (
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
@@ -41,9 +45,6 @@ from src.pre_recebimento.documento_recebimento.api.serializers.serializers impor
 )
 from src.pre_recebimento.documento_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
-)
-from src.pre_recebimento.documento_recebimento.api.relatorio_documentos_recebimento_excel import (
-    gera_relatorio_documentos_recebimento_xlsx,
 )
 from src.pre_recebimento.documento_recebimento.models import (
     DocumentoDeRecebimento,
@@ -218,7 +219,7 @@ class DocumentoDeRecebimentoModelViewSet(
 
         return HttpResponse(
             doc_recebimento.arquivo_laudo_assinado,
-            content_type="application/pdf",
+            content_type=ContentTypesParaRequests.PDF.value,
         )
 
     def _calcular_totalizadores(self, docs_qs):

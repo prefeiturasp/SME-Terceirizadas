@@ -22,6 +22,7 @@ from src.dados_comuns.constants import (
     DILOG_QUALIDADE,
     DIRETOR_UE,
     USUARIO_EMPRESA,
+    ContentTypesParaRequests,
 )
 from src.dados_comuns.permissions import (
     PermissaoParaCriarUsuarioComCoresso,
@@ -369,9 +370,7 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    response = HttpResponse(content_type=ContentTypesParaRequests.XLSX.value)
     response["Content-Disposition"] = (
         "attachment; filename=planilha_importacao_usuarios_perfil_CODAE.xlsx"
     )
@@ -418,9 +417,7 @@ def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
 
 
 def exportar_planilha_importacao_usuarios_perfil_escola(request, **kwargs):
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    response = HttpResponse(content_type=ContentTypesParaRequests.XLSX.value)
     response["Content-Disposition"] = (
         "attachment; filename=planilha_importacao_usuarios_perfil_ESCOLA.xlsx"
     )
@@ -460,9 +457,7 @@ def exportar_planilha_importacao_usuarios_perfil_escola(request, **kwargs):
 
 
 def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    response = HttpResponse(content_type=ContentTypesParaRequests.XLSX.value)
     response["Content-Disposition"] = (
         "attachment; filename=planilha_importacao_usuarios_perfil_DRE.xlsx"
     )
@@ -502,9 +497,7 @@ def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
 
 
 def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    response = HttpResponse(content_type=ContentTypesParaRequests.XLSX.value)
     response["Content-Disposition"] = (
         "attachment; filename=planilha_importacao_usuarios_perfil_servidor_coresso.xlsx"
     )
@@ -566,9 +559,7 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
 
 
 def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    response = HttpResponse(content_type=ContentTypesParaRequests.XLSX.value)
     response["Content-Disposition"] = (
         "attachment; filename=planilha_importacao_usuarios_perfil_servidor_coresso.xlsx"
     )
@@ -605,9 +596,7 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
 
 
 def exportar_planilha_importacao_usuarios_ue_parceira_coresso(request, **kwargs):
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    response = HttpResponse(content_type=ContentTypesParaRequests.XLSX.value)
     response["Content-Disposition"] = (
         "attachment; filename=planilha_importacao_usuarios_perfil_ue_parceira_coresso.xlsx"
     )
