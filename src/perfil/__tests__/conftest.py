@@ -276,7 +276,7 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
     )
     escola = baker.make(
         "Escola",
-        nome="EMEI NOE AZEVEDO, PROF",
+        nome=NomesParaTesteEscola.EMEI_NOE_AZEVEDO_PROF.value,
         uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd",
         diretoria_regional=diretoria_regional,
         codigo_eol="256341",
@@ -364,7 +364,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
     )
     escola = baker.make(
         "Escola",
-        nome="EMEI NOE AZEVEDO, PROF",
+        nome=NomesParaTesteEscola.EMEI_NOE_AZEVEDO_PROF.value,
         uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd",
         diretoria_regional=diretoria_regional,
         codigo_eol="256341",
@@ -734,7 +734,7 @@ def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
     )
     escola = baker.make(
         "Escola",
-        nome="EMEI NOE AZEVEDO, PROF",
+        nome=NomesParaTesteEscola.EMEI_NOE_AZEVEDO_PROF.value,
         uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd",
         diretoria_regional=diretoria_regional,
         codigo_eol="256341",

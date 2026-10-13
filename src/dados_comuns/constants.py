@@ -655,6 +655,7 @@ class NomesParaTesteDiretoriaRegional(Enum):
 
 class NomesParaTesteEscola(Enum):
     EMEI_ALUISIO_DE_ALMEIDA = "EMEI ALUISIO DE ALMEIDA"
+    EMEI_NOE_AZEVEDO_PROF = "EMEI NOE AZEVEDO, PROF"
     EMEF_TESTE = "EMEF TESTE"
     EMEI_TESTE = "EMEI TESTE"
     CEI_DIRET_TESTE = "CEI DIRET TESTE"
