@@ -2,6 +2,7 @@ import environ
 import numpy as np
 import pandas as pd
 
+from src.dados_comuns.constants import ColunasPlanilhaEscola
 from src.escola.models import Codae
 from src.perfil.models import Perfil, Usuario
 from utility.carga_dados.escola.helper import (
@@ -17,7 +18,12 @@ ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_excel(
     f"{ROOT_DIR}/planilhas_de_carga/CODAE_RF_CPF2020.xlsx",
-    converters={"Nome": str, "RF": str, "CPF": str, "Núcleo da CODAE": str},
+    converters={
+        "Nome": str,
+        "RF": str,
+        "CPF": str,
+        ColunasPlanilhaEscola.NUCLEO_DA_CODAE.value: str,
+    },
     sheet_name="codae",
 )
 
@@ -28,7 +34,9 @@ df = df.replace(np.nan, "", regex=True)
 df["Nome"] = df["Nome"].str.strip().str.upper()
 df["CPF"] = df["CPF"].str.strip().str.upper()
 df["RF"] = df["RF"].str.strip().str.upper()
-df["Núcleo da CODAE"] = df["Núcleo da CODAE"].str.strip().str.upper()
+df[ColunasPlanilhaEscola.NUCLEO_DA_CODAE.value] = (
+    df[ColunasPlanilhaEscola.NUCLEO_DA_CODAE.value].str.strip().str.upper()
+)
 
 
 def retorna_apenas_numeros_registro_funcional(registro_funcional):
@@ -76,7 +84,7 @@ def percorre_data_frame():
                 row["RF"], row["Nome"], row["CPF"]
             )
         )
-        if row["Núcleo da CODAE"] == "DIETA ESPECIAL":
+        if row[ColunasPlanilhaEscola.NUCLEO_DA_CODAE.value] == "DIETA ESPECIAL":
             perfil = dieta_especial
         # elif row['Núcleo da CODAE'] == 'GTIC':
         #     perfil = gestao_tecnologia_informacao

@@ -1069,6 +1069,7 @@ class ColunasPlanilhaEscola(Enum):
     TIPO_DE_UE = "TIPO DE U.E"
     SIGLA_LOTE = "SIGLA/LOTE"
     ENDERECO = "ENDEREÇO"
+    NUCLEO_DA_CODAE = "Núcleo da CODAE"
 
     @classmethod
     def choices(cls):
