@@ -35,6 +35,7 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+            DocumentoDeRecebimentoWorkflow.REPROVADO,
         ],
         DILOG_DIRETORIA: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
