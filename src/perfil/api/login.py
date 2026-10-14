@@ -67,6 +67,8 @@ class LoginView(TokenObtainPairView):
         last_login = user.last_login
         user.name = user_dict["nome"]
         user.email = user_dict["email"]
+        if user.last_login is not None:
+            user.last_login = datetime.datetime.now()
         user.set_password(senha)
         user.save()
         return user, last_login
