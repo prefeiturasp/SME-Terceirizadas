@@ -28,6 +28,7 @@ from src.medicao_inicial.services.pendencias_acao_dre import (
     anotar_pendencia_acao_dre,
 )
 from src.medicao_inicial.services.relatorio_adesao import (
+    existe_resultado_disponivel,
     obtem_dias_com_dados,
     obtem_escolas_ordenadas,
     obtem_nome_arquivo_relatorio_adesao,
@@ -39,6 +40,14 @@ from src.medicao_inicial.services.relatorio_adesao import (
     obtem_resultados_por_escola,
     valida_parametros_periodo_lancamento,
     valida_parametros_resultado_individual_por_data,
+)
+from src.medicao_inicial.services.relatorio_alimentacoes_servidas import (
+    filtros_exportacao_relatorio_alimentacoes_servidas,
+    meses_anos_relatorio_alimentacoes_servidas,
+)
+from src.medicao_inicial.services.relatorio_alimentacoes_servidas_dados import (
+    obtem_nome_arquivo_relatorio_alimentacoes_servidas,
+    recreios_dos_filtros,
 )
 from src.medicao_inicial.utils import process_anexos_from_request
 
@@ -56,6 +65,7 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEGabinete,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioCODAENutriManifestacao,
+    UsuarioCODAERelatorios,
     UsuarioDinutreDiretoria,
     UsuarioDiretorEscolaTercTotal,
     UsuarioDiretoriaRegional,
@@ -88,6 +98,7 @@ from ..models import (
     DescontoFinanceiro,
     DiaParaCorrigir,
     DiaSobremesaDoce,
+    GrupoMedicao,
     LancheEmergencialDiario,
     Medicao,
     OcorrenciaMedicaoInicial,
@@ -104,6 +115,7 @@ from ..models import (
 from ..tasks import (
     exporta_relatorio_adesao_para_pdf,
     exporta_relatorio_adesao_para_xlsx,
+    exporta_relatorio_alimentacoes_servidas_para_xlsx,
     exporta_relatorio_consolidado_xlsx,
     exporta_relatorio_historico_correcoes_pdf,
     gera_pdf_historico_ocorrencias_medicao_inicial_async,
@@ -446,18 +458,16 @@ class SolicitacaoMedicaoInicialViewSet(
             qs = qs.filter(**kwargs)
             total_pendentes_acao_dre = 0
             if workflow == status_corrigido_para_codae:
-                total_pendentes_acao_dre = anotar_pendencia_acao_dre(qs).filter(
-                    pendente_acao_dre=True
-                ).count()
+                total_pendentes_acao_dre = (
+                    anotar_pendencia_acao_dre(qs).filter(pendente_acao_dre=True).count()
+                )
             sumario.append(
                 {
                     "status": workflow,
                     "label": self._get_label(workflow),
                     "total": len(qs),
                     "total_pendentes_acao_dre": total_pendentes_acao_dre,
-                    "possui_pendencias_acao_dre": (
-                        total_pendentes_acao_dre > 0
-                    ),
+                    "possui_pendencias_acao_dre": (total_pendentes_acao_dre > 0),
                 }
             )
         return sumario
@@ -472,8 +482,7 @@ class SolicitacaoMedicaoInicialViewSet(
         qs = qs.filter(**kwargs)
         qs = anotar_pendencia_acao_dre(qs)
         somente_pendentes_acao_dre = (
-            request.query_params.get("somente_pendentes_acao_dre", "").lower()
-            == "true"
+            request.query_params.get("somente_pendentes_acao_dre", "").lower() == "true"
         )
         if somente_pendentes_acao_dre:
             qs = qs.filter(pendente_acao_dre=True)
@@ -605,12 +614,30 @@ class SolicitacaoMedicaoInicialViewSet(
             | UsuarioCODAEGestaoAlimentacao
             | UsuarioCODAENutriManifestacao
             | UsuarioCODAEGabinete
+            | UsuarioCODAERelatorios
             | UsuarioDinutreDiretoria
             | UsuarioEmpresaTerceirizada
             | UsuarioSupervisaoNutricao
         ],
     )
     def meses_anos(self, request):
+        """
+        Meses e anos com solicitação de medição.
+
+        ``eh_relatorio_alimentacoes_servidas=true`` devolve apenas meses com
+        medição aprovada pela CODAE no escopo do usuário (DRE ou empresa).
+        ``status`` e ``eh_relatorio_adesao`` não mudam quando esse parâmetro
+        está ausente.
+        """
+        if request.query_params.get("eh_relatorio_alimentacoes_servidas"):
+            return Response(
+                {
+                    "results": meses_anos_relatorio_alimentacoes_servidas(
+                        request.user
+                    )
+                },
+                status=status.HTTP_200_OK,
+            )
         qs_solicitacao_medicao = self._montar_queryset_meses_anos(request)
 
         meses_anos = qs_solicitacao_medicao.values_list(
@@ -1254,6 +1281,56 @@ class SolicitacaoMedicaoInicialViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    def get_medicao_lanche_emergencial_extraordinario(self, solicitacao):
+        medicao = solicitacao.get_or_create_medicao_por_periodo_e_ou_grupo(
+            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS
+        )
+        if (
+            medicao.status
+            == SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+        ):
+            medicao.status = (
+                SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+            )
+            medicao.save()
+        return medicao
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        url_path="codae-solicita-correcao-lanche-emergencial-extraordinario",
+        permission_classes=[UsuarioCODAEGestaoAlimentacao],
+    )
+    def codae_solicita_correcao_lanche_emergencial_extraordinario(
+        self, request, uuid=None
+    ):
+        solicitacao_medicao_inicial = self.get_object()
+        if not solicitacao_medicao_inicial.lanche_emergencial_extraordinario:
+            return Response(
+                dict(
+                    detail="Solicitação não possui lanche emergencial extraordinário."
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        justificativa = request.data.get("justificativa", "")
+        dias_para_corrigir = request.data.get("dias_para_corrigir", [])
+        try:
+            medicao = self.get_medicao_lanche_emergencial_extraordinario(
+                solicitacao_medicao_inicial
+            )
+            DiaParaCorrigir.cria_dias_para_corrigir(
+                medicao, request.user, dias_para_corrigir
+            )
+            medicao.codae_pede_correcao_periodo(
+                user=request.user, justificativa=justificativa
+            )
+            return Response(MedicaoSerializer(medicao).data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(
+                dict(detail=f"Erro de transição de estado: {e}"),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     @action(
         detail=True,
         methods=["PATCH"],
@@ -1774,6 +1851,35 @@ class MedicaoViewSet(
                 medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
             )
 
+    def get_lookup_valor_medicao(self, medicao, valor_medicao):
+        dia = valor_medicao.get("dia", "")
+        mes = int(medicao.solicitacao_medicao_inicial.mes)
+        ano = int(medicao.solicitacao_medicao_inicial.ano)
+        return {
+            "medicao": medicao,
+            "dia": dia,
+            "semana": ValorMedicao.get_week_of_month(ano, mes, int(dia)),
+            "nome_campo": valor_medicao.get("nome_campo", ""),
+            "categoria_medicao": CategoriaMedicao.objects.filter(
+                id=valor_medicao.get("categoria_medicao", None)
+            ).first(),
+            "tipo_alimentacao": self.get_tipo_alimentacao(valor_medicao),
+            "faixa_etaria": self.get_faixa_etaria(valor_medicao),
+            "infantil_ou_fundamental": valor_medicao.get(
+                "infantil_ou_fundamental", "N/A"
+            ),
+        }
+
+    def prepara_valores_medicao_para_log(self, medicao, data):
+        """Garante o valor anterior (vazio) para que a correção inicial seja logada."""
+        for valor_medicao in data:
+            if not valor_medicao:
+                continue
+            ValorMedicao.objects.get_or_create(
+                **self.get_lookup_valor_medicao(medicao, valor_medicao),
+                defaults={"valor": "", "habilitado_correcao": True},
+            )
+
     @action(
         detail=True,
         methods=["PATCH"],
@@ -1798,6 +1904,7 @@ class MedicaoViewSet(
         ]
         try:
             acao = self.get_nome_acao(medicao, status_codae)
+            self.prepara_valores_medicao_para_log(medicao, request.data)
             log_alteracoes_escola_corrige_periodo(
                 request.user, medicao, acao, request.data
             )
@@ -2305,23 +2412,42 @@ class RelatoriosViewSet(ViewSet):
             return self._relatorio_adesao_por_data(request, query_params)
         if query_params.getlist(PayloadVariaveis.ESCOLA_UUID.value):
             return self._relatorio_adesao_por_escola(request, query_params)
-        return Response(data=obtem_resultados(query_params), status=status.HTTP_200_OK)
+        return Response(
+            data={
+                "resultados": obtem_resultados(query_params),
+                "possui_resultados": existe_resultado_disponivel(query_params),
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def _relatorio_adesao_por_escola(self, request: Request, query_params) -> Response:
         escolas_uuid = query_params.getlist(PayloadVariaveis.ESCOLA_UUID.value)
         escolas = obtem_escolas_ordenadas(escolas_uuid)
         return self._pagina_resultados(
-            request, query_params, escolas, obtem_resultados_para_escola
+            request,
+            query_params,
+            escolas,
+            obtem_resultados_para_escola,
+            existe_resultado_disponivel(query_params),
         )
 
     def _relatorio_adesao_por_data(self, request: Request, query_params) -> Response:
         dias = obtem_dias_com_dados(query_params)
         return self._pagina_resultados(
-            request, query_params, dias, obtem_resultados_para_dia
+            request,
+            query_params,
+            dias,
+            obtem_resultados_para_dia,
+            len(dias) > 0,
         )
 
     def _pagina_resultados(
-        self, request: Request, query_params, itens: list, obter_resultado
+        self,
+        request: Request,
+        query_params,
+        itens: list,
+        obter_resultado,
+        existe_resultado_disponivel: bool,
     ) -> Response:
         paginator = Paginator(itens, 1)
         page_number = query_params.get("page") or request.query_params.get("page", 1)
@@ -2354,6 +2480,7 @@ class RelatoriosViewSet(ViewSet):
                 "previous": previous_page,
                 "count": paginator.count,
                 "page_size": 1,
+                "possui_resultados": existe_resultado_disponivel,
                 "results": resultados,
             }
         )
@@ -2451,6 +2578,53 @@ class RelatoriosViewSet(ViewSet):
                 data={"detail": MSG_ERROR_VERIFIQUE_PARAMETROS},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @action(
+        detail=False,
+        url_name="relatorio-alimentacoes-servidas_exportar-xlsx",
+        url_path="relatorio-alimentacoes-servidas/exportar-xlsx",
+        permission_classes=[
+            UsuarioDiretoriaRegional
+            | UsuarioCODAEGestaoAlimentacao
+            | UsuarioMedicao
+            | UsuarioCODAENutriManifestacao
+            | UsuarioCODAEGabinete
+            | UsuarioCODAERelatorios
+            | UsuarioDinutreDiretoria
+            | UsuarioEmpresaTerceirizada
+            | UsuarioSupervisaoNutricao
+        ],
+    )
+    def relatorio_alimentacoes_servidas_exportar_xlsx(self, request: Request):
+        """
+        Solicita o Excel do Relatório de Alimentações Servidas.
+
+        Parâmetros: ``dres[]`` obrigatório e, ao menos um entre ``meses[]``
+        (MM_AAAA, só meses regulares) e ``recreios_nas_ferias[]`` (UUIDs).
+        Opcionais: ``lotes[]``, ``subprefeituras[]``, ``tipos_unidades[]``
+        (podem ser de grupos diferentes), ``unidades_educacionais[]``,
+        ``tipos_alimentacao[]``, ``periodo_lancamento_de`` e
+        ``periodo_lancamento_ate`` (DD/MM/AAAA). Parâmetro ausente não
+        restringe a consulta.
+
+        Responde 200 assim que a solicitação é registrada; o arquivo é gerado
+        de forma assíncrona e entregue na Central de Downloads. Erros de
+        validação voltam com 400 no formato ``{"campo": ["mensagem"]}``.
+        """
+        filtros = filtros_exportacao_relatorio_alimentacoes_servidas(
+            request.query_params, request.user
+        )
+        exporta_relatorio_alimentacoes_servidas_para_xlsx.delay(
+            user=request.user.get_username(),
+            nome_arquivo=obtem_nome_arquivo_relatorio_alimentacoes_servidas(
+                filtros["meses"], recreios_dos_filtros(filtros, request.user)
+            ),
+            filtros=filtros,
+        )
+        return Response(
+            data={"detail": MENSAGEM_SOLICITACAO_GERACAO_ARQUIVO},
+            status=status.HTTP_200_OK,
+        )
 
 
 class ClausulaDeDescontoViewSet(ModelViewSet):

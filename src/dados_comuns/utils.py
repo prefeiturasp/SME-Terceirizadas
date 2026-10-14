@@ -36,6 +36,7 @@ from rest_framework.exceptions import ValidationError
 from workalendar.america import BrazilSaoPauloCity
 
 from config.settings.base import URL_CONFIGS
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.docs import (
     DOCS_FLUXO_PARTINDO_ESCOLA_GESTAO_ALIMENTACAO_DJANGO_WORKFLOW,
 )
@@ -288,7 +289,7 @@ def atualiza_central_download(
     arquivo,
     content_type=None,
 ):
-    type_pdf = "application/pdf"
+    type_pdf = ContentTypesParaRequests.PDF.value
     type_xlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
     if content_type is None:

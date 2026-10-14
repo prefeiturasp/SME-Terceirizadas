@@ -79,8 +79,6 @@ from ...dados_comuns.constants import (
     DIETA_ESPECIAL_TIPO_A,
     DIETA_ESPECIAL_TIPO_B,
     DIRETOR_UE,
-    GRUPO_PROGRAMAS_E_PROJETOS,
-    GRUPO_SOLICITACOES_ALIMENTACAO,
     TIPOS_ALIMENTACAO,
     TIPOS_UNIDADE_ESCOLAR,
     PayloadVariaveis,
@@ -116,7 +114,9 @@ from ..validators import (
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
     validate_lanches_emergenciais_diarios,
-    validate_medicao_cemei,
+    validate_medicao_cemei_cei,
+    validate_medicao_cemei_emei,
+    validate_medicao_cemei_programas_e_projetos,
     validate_solicitacoes_etec,
     validate_solicitacoes_etec_escola_sem_alunos_regulares,
     validate_solicitacoes_programas_e_projetos,
@@ -377,17 +377,22 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if lista_erros:
             raise serializers.ValidationError(lista_erros)
 
-    # TODO: adicionar testes unitarios
     def valida_finalizar_medicao_cemei(
         self, instance: SolicitacaoMedicaoInicial
-    ) -> None:  # pragma: no cover
+    ) -> None:
         if (
             not instance.escola.eh_cemei
             or instance.status
             != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
         ):
             return
-        lista_erros = validate_medicao_cemei(instance)
+
+        lista_erros = []
+        lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
+        lista_erros = validate_lanche_emergencial(instance, lista_erros)
+        lista_erros = validate_medicao_cemei_cei(instance, lista_erros)
+        lista_erros = validate_medicao_cemei_programas_e_projetos(instance, lista_erros)
+        lista_erros = validate_medicao_cemei_emei(instance, lista_erros)
         lista_erros = validate_lanches_emergenciais_diarios(instance, lista_erros)
         if lista_erros:
             raise serializers.ValidationError(lista_erros)
@@ -464,6 +469,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_lancamento_alimentacoes_medicao_emebs(
             instance, lista_erros
         )
+        lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
         lista_erros = validate_lancamento_inclusoes(instance, lista_erros, True)
         lista_erros = validate_lancamento_dietas_emebs(instance, lista_erros)
         lista_erros = validate_lancamento_inclusoes_dietas_emef_emebs(
@@ -966,7 +972,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             inclusoes_continuas,
             quantidade_dias_mes,
             "Programas/Projetos",
-            GRUPO_PROGRAMAS_E_PROJETOS,
+            GrupoMedicao.PROGRAMAS_E_PROJETOS,
         )
         self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
             instance, inclusoes_continuas, quantidade_dias_mes, "ETEC", "ETEC"
@@ -984,7 +990,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
     ):
         valores_medicao_a_criar = []
         medicao = self.retorna_medicao_por_nome_grupo(
-            instance, GRUPO_SOLICITACOES_ALIMENTACAO
+            instance, GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO
         )
         categoria = CategoriaMedicao.objects.get(
             nome=CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO
@@ -1300,7 +1306,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             medicao = instance.get_or_create_medicao_por_periodo_e_ou_grupo(
                 medicao_nome
             )
-            if medicao_nome in [GRUPO_PROGRAMAS_E_PROJETOS, "ETEC"]:
+            if medicao_nome in [GrupoMedicao.PROGRAMAS_E_PROJETOS, "ETEC"]:
                 if not medicao.possui_ao_menos_uma_observacao():
                     lista_erros.append(
                         {

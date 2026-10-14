@@ -11,6 +11,7 @@ from src.dados_comuns.constants import (
     PEDIDOS_CODAE,
     PEDIDOS_DRE,
     SEM_FILTRO,
+    ContentTypesParaRequests,
 )
 from src.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 
@@ -93,7 +94,7 @@ def test_url_endpoint_solicitacoes_inversao_relatorio(
     )
     id_externo = inversao_dia_cardapio.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="solicitacao_inversao_{id_externo}.pdf"'

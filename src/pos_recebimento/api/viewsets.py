@@ -1,15 +1,23 @@
-from django.db.models import Prefetch, Q
+from django.db import IntegrityError, transaction
+from django.db.models import Exists, OuterRef, Prefetch, Q
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from src.dados_comuns.api.paginations import DefaultPagination
+from src.dados_comuns.constants import DILOG_DIRETORIA
+from src.dados_comuns.models import LogSolicitacoesUsuario
 from src.pre_recebimento.cronograma_entrega.models import Cronograma
 
-from ..models import CronogramaTermoRecebimentoDefinitivo, TermoRecebimentoDefinitivo
+from ..models import (
+    AssinaturaTermoRecebimentoDefinitivo,
+    CronogramaTermoRecebimentoDefinitivo,
+    TermoRecebimentoDefinitivo,
+)
 from .filters import TermoRecebimentoDefinitivoFilter
 from .permissions import (
+    PermissaoParaAssinarTermoRecebimentoDefinitivo,
     PermissaoParaCadastrarTermoRecebimentoDefinitivo,
     PermissaoParaVisualizarTermoRecebimentoDefinitivo,
     usuario_vinculado_a_empresa_fornecedor,
@@ -35,8 +43,10 @@ class TermoRecebimentoDefinitivoViewSet(
     - ``GET /`` — Lista os termos (paginado, com filtros por produto,
       empresa, número de cronograma, status e período de cadastro).
     - ``GET /<uuid>/`` — Detalhe do termo.
-    - ``GET /pendentes-assinatura/`` — Painel do fiscal: termos a assinar.
-    - ``GET /assinados/`` — Painel do fiscal: termos já assinados.
+    - ``GET /pendentes-assinatura/`` — Painel: termos aguardando assinatura.
+    - ``GET /assinados/`` — Painel: termos já assinados.
+    - ``PATCH /<uuid>/fiscal-assina-termo/`` — Registra a assinatura de um
+      dos três Fiscais do Contrato (assinatura eletrônica com senha).
     """
 
     lookup_field = "uuid"
@@ -85,6 +95,8 @@ class TermoRecebimentoDefinitivoViewSet(
         """Visualização é liberada para mais perfis do que o cadastro."""
         if self.action in ("list", "retrieve", *self.ACTIONS_PAINEL_ASSINATURA):
             return [PermissaoParaVisualizarTermoRecebimentoDefinitivo()]
+        if self.action == "fiscal_assina_termo":
+            return [PermissaoParaAssinarTermoRecebimentoDefinitivo()]
 
         return [PermissaoParaCadastrarTermoRecebimentoDefinitivo()]
 
@@ -115,23 +127,21 @@ class TermoRecebimentoDefinitivoViewSet(
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def _termos_do_fiscal(self, request, status_termo):
-        """Resposta paginada do painel de assinaturas do fiscal.
-
-        Termos no status informado em que o usuário da requisição é um dos
-        três fiscais, já com os filtros do painel (``numero_contrato``,
-        ``nome_produto`` e ``nome_empresa``) aplicados.
+    def _termos_do_fiscal(self, request):
+        """Termos em que o usuário da requisição é um dos três fiscais,
+        já com os filtros do painel (``numero_contrato``, ``nome_produto``
+        e ``nome_empresa``) aplicados.
         """
         usuario = request.user
-
-        queryset = (
+        return (
             self.filter_queryset(self.get_queryset())
-            .filter(status=status_termo)
             .filter(Q(fiscal_1=usuario) | Q(fiscal_2=usuario) | Q(fiscal_3=usuario))
             .order_by("-criado_em")
             .distinct()
         )
 
+    def _resposta_paginada(self, queryset):
+        """Resposta paginada com o serializer da ação corrente."""
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -147,12 +157,44 @@ class TermoRecebimentoDefinitivoViewSet(
         url_name="pendentes_assinatura",
     )
     def pendentes_assinatura(self, request):
-        """Termos aguardando a assinatura do fiscal logado.
+        """Termos aguardando assinatura.
+
+        Fiscais: termos com assinatura pendente do fiscal logado (que ainda
+        não assinou). DILOG Diretoria: termos com a etapa dos fiscais
+        concluída, aguardando a assinatura da diretoria.
 
         Endpoint: ``GET /pos-recebimento/termos/pendentes-assinatura/``
         """
-        return self._termos_do_fiscal(
-            request, TermoRecebimentoDefinitivo.ENVIADO_FISCAIS
+        if request.user.vinculo_atual.perfil.nome == DILOG_DIRETORIA:
+            queryset = (
+                self.filter_queryset(self.get_queryset())
+                .filter(status=TermoRecebimentoDefinitivo.ENVIADO_DILOG)
+                .order_by("-criado_em")
+                .distinct()
+            )
+            return self._resposta_paginada(queryset)
+
+        queryset = self._termos_do_fiscal(request).filter(
+            status=TermoRecebimentoDefinitivo.ENVIADO_FISCAIS
+        )
+        queryset = queryset.exclude(
+            assinaturas__usuario=request.user,
+            assinaturas__etapa=AssinaturaTermoRecebimentoDefinitivo.FISCAL_CONTRATO,
+        )
+        return self._resposta_paginada(queryset)
+
+    def _assinatura_do_fiscal(self, campo_fiscal):
+        """Exists da assinatura de Fiscal registrada pelo usuário do campo.
+
+        Cada papel de fiscal é verificado individualmente, o que trata
+        naturalmente o mesmo usuário repetido em mais de um papel.
+        """
+        return Exists(
+            AssinaturaTermoRecebimentoDefinitivo.objects.filter(
+                termo=OuterRef("pk"),
+                usuario=OuterRef(campo_fiscal),
+                etapa=AssinaturaTermoRecebimentoDefinitivo.FISCAL_CONTRATO,
+            )
         )
 
     @action(
@@ -162,24 +204,35 @@ class TermoRecebimentoDefinitivoViewSet(
         url_name="assinados",
     )
     def assinados(self, request):
-        """Termos já assinados pelo fornecedor, dos quais o usuário logado
-        é fiscal.
+        """Termos dos quais o usuário logado é fiscal, com a etapa dos
+        fiscais concluída (todos os fiscais distintos assinaram) ou já
+        assinados pelo fornecedor.
 
         Endpoint: ``GET /pos-recebimento/termos/assinados/``
         """
-        return self._termos_do_fiscal(
-            request, TermoRecebimentoDefinitivo.ASSINADO_FORNECEDOR
+        queryset = self._termos_do_fiscal(request)
+        for campo_fiscal in ("fiscal_1", "fiscal_2", "fiscal_3"):
+            queryset = queryset.annotate(
+                **{
+                    f"assinou_{campo_fiscal}": self._assinatura_do_fiscal(
+                        campo_fiscal
+                    )
+                }
+            )
+        queryset = queryset.filter(
+            Q(assinou_fiscal_1=True, assinou_fiscal_2=True, assinou_fiscal_3=True)
+            | Q(status=TermoRecebimentoDefinitivo.ASSINADO_FORNECEDOR)
         )
+        return self._resposta_paginada(queryset)
 
     def perform_create(self, serializer):
-        """Persiste o termo com status ``ENVIADO_FISCAIS`` e cria as linhas do
-        modelo intermediário (cronograma + quantidade total recebida) para
-        cada cronograma do payload."""
+        """Persiste o termo, cria as linhas do modelo intermediário
+        (cronograma + quantidade total recebida) para cada cronograma do
+        payload e inicia o fluxo de assinaturas (``ENVIADO_FISCAIS``)."""
         cronogramas = serializer.validated_data.pop("cronogramas")
         instance = serializer.save(
             criado_por=self.request.user,
             alterado_por=self.request.user,
-            status=TermoRecebimentoDefinitivo.ENVIADO_FISCAIS,
         )
         for item in cronogramas:
             CronogramaTermoRecebimentoDefinitivo.objects.create(
@@ -187,6 +240,94 @@ class TermoRecebimentoDefinitivoViewSet(
                 cronograma=item["cronograma"],
                 quantidade_total_recebida=item["quantidade_total_recebida"],
             )
+        instance.inicia_fluxo(user=self.request.user)
+
+    def _valida_assinatura_fiscal(self, termo, usuario):
+        """Valida se o usuário pode assinar o termo como Fiscal do Contrato.
+
+        Retorna a ``Response`` de erro quando a assinatura não é permitida
+        ou ``None`` quando a assinatura pode prosseguir.
+        """
+        if not termo.eh_fiscal(usuario):
+            return Response(
+                dict(detail="Apenas os Fiscais do Contrato podem assinar o termo."),
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if termo.status != TermoRecebimentoDefinitivo.ENVIADO_FISCAIS:
+            return Response(
+                dict(
+                    detail="O termo não está pendente de assinatura dos Fiscais do Contrato."
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if termo.usuario_ja_assinou_fiscal(usuario):
+            return Response(
+                dict(detail="O fiscal já assinou este termo."),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return None
+
+    def _registra_assinatura_fiscal(self, termo, usuario):
+        """Cria a assinatura do fiscal e conclui a etapa dos fiscais
+        quando o último fiscal distinto assina."""
+        AssinaturaTermoRecebimentoDefinitivo.objects.create(
+            termo=termo,
+            usuario=usuario,
+            etapa=AssinaturaTermoRecebimentoDefinitivo.FISCAL_CONTRATO,
+        )
+        termo.salvar_log_transicao(
+            status_evento=(
+                LogSolicitacoesUsuario.TERMO_RECEBIMENTO_DEFINITIVO_ASSINADO_PELO_FISCAL
+            ),
+            usuario=usuario,
+        )
+        if termo.etapa_fiscais_concluida:
+            termo.fiscais_assinam(user=usuario)
+
+    @transaction.atomic
+    @action(
+        detail=True,
+        methods=["patch"],
+        permission_classes=(PermissaoParaAssinarTermoRecebimentoDefinitivo,),
+        url_path="fiscal-assina-termo",
+        url_name="fiscal_assina_termo",
+    )
+    def fiscal_assina_termo(self, request, uuid=None):
+        """Registra a assinatura de um dos três Fiscais do Contrato.
+
+        A senha do usuário é validada (assinatura eletrônica) e a etapa dos
+        fiscais é concluída quando a terceira assinatura é registrada,
+        encaminhando o termo para a DILOG Diretoria.
+
+        Endpoint: ``PATCH /pos-recebimento/termos/<uuid>/fiscal-assina-termo/``
+        """
+        usuario = request.user
+        if not usuario.verificar_autenticidade(request.data.get("password")):
+            return Response(
+                dict(
+                    detail="Assinatura do termo não foi validada. Verifique sua senha."
+                ),
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        termo = self.get_object()
+        erro = self._valida_assinatura_fiscal(termo, usuario)
+        if erro:
+            return erro
+
+        try:
+            with transaction.atomic():
+                self._registra_assinatura_fiscal(termo, usuario)
+        except IntegrityError:
+            return Response(
+                dict(detail="O fiscal já assinou este termo."),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = TermoRecebimentoDefinitivoSerializer(
+            termo, context={"request": request}
+        )
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         """Cria o termo (valida, persiste e retorna 201 com o serializador

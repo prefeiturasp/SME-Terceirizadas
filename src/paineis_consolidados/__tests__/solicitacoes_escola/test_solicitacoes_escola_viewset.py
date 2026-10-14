@@ -1697,6 +1697,65 @@ def test_busca_filtro_tipo_solicitacao_kit_lanche_isolado(monkeypatch, escola):
     assert {item.tipo_doc for item in resultado_lista} == tipos_validos
 
 
+_OPERACOES_DATA_EVENTO = {
+    "data_evento__lt": lambda data, valor: data < valor,
+    "data_evento__gt": lambda data, valor: data > valor,
+    "data_evento__lte": lambda data, valor: data <= valor,
+    "data_evento__gte": lambda data, valor: data >= valor,
+}
+
+
+def _compara_data_evento(item, lookup, value):
+    operacao = _OPERACOES_DATA_EVENTO.get(lookup)
+    if operacao is None:
+        raise AssertionError(f"Lookup não suportado no teste: {lookup}")
+    return operacao(item.data_evento, value)
+
+
+def _predicado_data_evento(lookup, value):
+    if lookup == "data_evento__month":
+        return lambda data: data.month == int(value)
+    if lookup == "data_evento__year":
+        return lambda data: data.year == int(value)
+    operacao = _OPERACOES_DATA_EVENTO.get(lookup)
+    if operacao is None:
+        return None
+    return lambda data: operacao(data, value)
+
+
+def _filtra_por_data_evento(itens, lookup, value):
+    predicado = _predicado_data_evento(lookup, value)
+    if predicado is None:
+        return itens
+    return [x for x in itens if predicado(x.data_evento)]
+
+
+class _FakeQSDataEvento:
+    def __init__(self, items):
+        self.items = list(items)
+
+    def _matches_q(self, item, q_object):
+        resultados = []
+        for filho in q_object.children:
+            if isinstance(filho, Q):
+                resultados.append(self._matches_q(item, filho))
+            else:
+                resultados.append(_compara_data_evento(item, *filho))
+        matched = all(resultados) if q_object.connector == "AND" else any(resultados)
+        return not matched if q_object.negated else matched
+
+    def filter(self, *args, **kwargs):
+        filtrados = self.items
+        for q_object in args:
+            filtrados = [x for x in filtrados if self._matches_q(x, q_object)]
+        for lookup, value in kwargs.items():
+            filtrados = _filtra_por_data_evento(filtrados, lookup, value)
+        return _FakeQSDataEvento(filtrados)
+
+    def __iter__(self):
+        return iter(self.items)
+
+
 @freeze_time("2026-03-20")
 def test_kit_lanches_autorizadas_recreio_sem_unidade_participante(
     client_autenticado_escola_paineis_consolidados,
@@ -1809,64 +1868,7 @@ def test_kit_lanches_autorizadas_recreio_filtra_periodo_para_todos_tipos(
         ),
     ]
 
-    class FakeQS:
-        def __init__(self, items):
-            self.items = list(items)
-
-        def _matches_q(self, item, q_object):
-            resultados = []
-            for filho in q_object.children:
-                if isinstance(filho, Q):
-                    resultados.append(self._matches_q(item, filho))
-                    continue
-
-                lookup, value = filho
-                if lookup == "data_evento__lt":
-                    resultados.append(item.data_evento < value)
-                elif lookup == "data_evento__gt":
-                    resultados.append(item.data_evento > value)
-                elif lookup == "data_evento__lte":
-                    resultados.append(item.data_evento <= value)
-                elif lookup == "data_evento__gte":
-                    resultados.append(item.data_evento >= value)
-                else:
-                    raise AssertionError(f"Lookup não suportado no teste: {lookup}")
-
-            if q_object.connector == "AND":
-                matched = all(resultados)
-            else:
-                matched = any(resultados)
-
-            return not matched if q_object.negated else matched
-
-        def filter(self, *args, **kwargs):
-            filtrados = self.items
-            for q_object in args:
-                filtrados = [x for x in filtrados if self._matches_q(x, q_object)]
-
-            for lookup, value in kwargs.items():
-                if lookup == "data_evento__month":
-                    filtrados = [
-                        x for x in filtrados if x.data_evento.month == int(value)
-                    ]
-                elif lookup == "data_evento__year":
-                    filtrados = [
-                        x for x in filtrados if x.data_evento.year == int(value)
-                    ]
-                elif lookup == "data_evento__lt":
-                    filtrados = [x for x in filtrados if x.data_evento < value]
-                elif lookup == "data_evento__gt":
-                    filtrados = [x for x in filtrados if x.data_evento > value]
-                elif lookup == "data_evento__gte":
-                    filtrados = [x for x in filtrados if x.data_evento >= value]
-                elif lookup == "data_evento__lte":
-                    filtrados = [x for x in filtrados if x.data_evento <= value]
-            return FakeQS(filtrados)
-
-        def __iter__(self):
-            return iter(self.items)
-
-    fake_qs = FakeQS(linhas)
+    fake_qs = _FakeQSDataEvento(linhas)
 
     monkeypatch.setattr(
         SolicitacoesEscola,
@@ -1976,65 +1978,7 @@ def test_kit_lanches_autorizadas_sem_recreio_exclui_periodo_de_recreio_para_todo
         ),
     ]
 
-    class FakeQS:
-        def __init__(self, items):
-            self.items = list(items)
-
-        def _matches_q(self, item, q_object):
-            resultados = []
-            for filho in q_object.children:
-                if isinstance(filho, Q):
-                    resultados.append(self._matches_q(item, filho))
-                    continue
-
-                lookup, value = filho
-                if lookup == "data_evento__lt":
-                    resultados.append(item.data_evento < value)
-                elif lookup == "data_evento__gt":
-                    resultados.append(item.data_evento > value)
-                elif lookup == "data_evento__lte":
-                    resultados.append(item.data_evento <= value)
-                elif lookup == "data_evento__gte":
-                    resultados.append(item.data_evento >= value)
-                else:
-                    raise AssertionError(f"Lookup não suportado no teste: {lookup}")
-
-            if q_object.connector == "AND":
-                matched = all(resultados)
-            else:
-                matched = any(resultados)
-
-            return not matched if q_object.negated else matched
-
-        def filter(self, *args, **kwargs):
-            filtrados = self.items
-            for q_object in args:
-                filtrados = [x for x in filtrados if self._matches_q(x, q_object)]
-
-            for lookup, value in kwargs.items():
-                if lookup == "data_evento__month":
-                    filtrados = [
-                        x for x in filtrados if x.data_evento.month == int(value)
-                    ]
-                elif lookup == "data_evento__year":
-                    filtrados = [
-                        x for x in filtrados if x.data_evento.year == int(value)
-                    ]
-                elif lookup == "data_evento__lt":
-                    filtrados = [x for x in filtrados if x.data_evento < value]
-                elif lookup == "data_evento__gt":
-                    filtrados = [x for x in filtrados if x.data_evento > value]
-                elif lookup == "data_evento__gte":
-                    filtrados = [x for x in filtrados if x.data_evento >= value]
-                elif lookup == "data_evento__lte":
-                    filtrados = [x for x in filtrados if x.data_evento <= value]
-
-            return FakeQS(filtrados)
-
-        def __iter__(self):
-            return iter(self.items)
-
-    fake_qs = FakeQS(linhas)
+    fake_qs = _FakeQSDataEvento(linhas)
 
     monkeypatch.setattr(
         SolicitacoesEscola,

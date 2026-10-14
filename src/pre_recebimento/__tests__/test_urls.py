@@ -17,7 +17,7 @@ from rest_framework.test import APIClient
 
 from src.dados_comuns import constants
 from src.dados_comuns.api.paginations import DefaultPagination
-from src.dados_comuns.constants import FORMATO_DATA_BRASILEIRO
+from src.dados_comuns.constants import FORMATO_DATA_BRASILEIRO, ContentTypesParaRequests
 from src.dados_comuns.fluxo_status import (
     CronogramaWorkflow,
     DocumentoDeRecebimentoWorkflow,
@@ -1036,6 +1036,86 @@ def test_url_dashboard_painel_usuario_dilog_abastecimento(
             assert len(resultado["dados"]) == 1
 
 
+@pytest.mark.parametrize(
+    "caminho, filtros",
+    [
+        ("/cronogramas/dashboard/", {}),
+        (
+            "/cronogramas/dashboard-com-filtro/",
+            {"numero_cronograma": "/2026A"},
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    "status_cronograma",
+    [
+        CronogramaWorkflow.ASSINADO_E_ENVIADO_AO_FORNECEDOR,
+        CronogramaWorkflow.ASSINADO_FORNECEDOR,
+        CronogramaWorkflow.ASSINADO_DILOG_ABASTECIMENTO,
+        CronogramaWorkflow.ASSINADO_CODAE,
+    ],
+)
+def test_url_dashboard_cronogramas_com_e_sem_logs(
+    client_autenticado_dilog_abastecimento,
+    cronograma_factory,
+    caminho,
+    filtros,
+    status_cronograma,
+):
+    data_base = timezone.now() - datetime.timedelta(days=30)
+    cronograma_log_recente = cronograma_factory(
+        numero="001/2026A", status=status_cronograma
+    )
+    cronograma_log_antigo = cronograma_factory(
+        numero="002/2026A", status=status_cronograma
+    )
+    cronograma_sem_log = cronograma_factory(
+        numero="003/2026A", status=status_cronograma
+    )
+
+    for cronograma, dias in [
+        (cronograma_log_recente, 1),
+        (cronograma_log_antigo, 2),
+        (cronograma_sem_log, 15),
+    ]:
+        Cronograma.objects.filter(pk=cronograma.pk).update(
+            criado_em=data_base + datetime.timedelta(days=dias)
+        )
+
+    for cronograma, dias in [
+        (cronograma_log_recente, 20),
+        (cronograma_log_antigo, 10),
+    ]:
+        log = baker.make(
+            LogSolicitacoesUsuario,
+            uuid_original=cronograma.uuid,
+            status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO,
+            solicitacao_tipo=LogSolicitacoesUsuario.CRONOGRAMA,
+        )
+        LogSolicitacoesUsuario.objects.filter(pk=log.pk).update(
+            criado_em=data_base + datetime.timedelta(days=dias)
+        )
+
+    assert not cronograma_sem_log.logs.exists()
+
+    resposta = client_autenticado_dilog_abastecimento.get(caminho, filtros)
+
+    assert resposta.status_code == status.HTTP_200_OK
+    dados = next(
+        resultado["dados"]
+        for resultado in resposta.json()["results"]
+        if resultado["status"] == status_cronograma
+    )
+    assert [cronograma["uuid"] for cronograma in dados] == [
+        str(cronograma_log_recente.uuid),
+        str(cronograma_sem_log.uuid),
+        str(cronograma_log_antigo.uuid),
+    ]
+    assert dados[1]["log_mais_recente"] == (
+        data_base + datetime.timedelta(days=15)
+    ).strftime(FORMATO_DATA_BRASILEIRO)
+
+
 def test_url_dashboard_painel_usuario_dilog_abastecimento_com_paginacao(
     client_autenticado_dilog_abastecimento, cronogramas_multiplos_status_com_log
 ):
@@ -1145,7 +1225,7 @@ def test_url_relatorio_cronograma_ponto_a_ponto_flv_conteudo(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["Content-Type"] == "application/pdf"
+    assert response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
 
     pdf_reader = PdfReader(BytesIO(response.content))
     pdf_text = "\n".join(page.extract_text() for page in pdf_reader.pages)
@@ -2272,10 +2352,23 @@ def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticad
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@pytest.mark.parametrize(
+    "nome_client",
+    [
+        "client_autenticado_qualidade",
+        "client_autenticado_codae_dilog",
+        "client_autenticado_dilog_cronograma",
+        "client_autenticado_dilog_diretoria",
+        "client_autenticado_administrador_codae_gabinete",
+    ],
+)
 def test_url_dashboard_documentos_de_recebimento_status_retornados(
-    client_autenticado_codae_dilog, documento_de_recebimento_factory
+    request, nome_client, documento_de_recebimento_factory
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    """Todo perfil com acesso ao painel recebe os seus cards, entre eles o
+    de Reprovados."""
+    client = request.getfixturevalue(nome_client)
+    user_id = client.session["_auth_user_id"]
     user = get_user_model().objects.get(id=user_id)
     status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(
         user
@@ -2283,9 +2376,7 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
     for status_esperado in status_esperados:
         documento_de_recebimento_factory(status=status_esperado)
 
-    response = client_autenticado_codae_dilog.get(
-        "/documentos-de-recebimento/dashboard/"
-    )
+    response = client.get("/documentos-de-recebimento/dashboard/")
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -2293,6 +2384,8 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
 
     for status_recebido in status_recebidos:
         assert status_recebido in status_esperados
+
+    assert DocumentoDeRecebimentoWorkflow.REPROVADO in status_recebidos
 
 
 @pytest.mark.parametrize(
@@ -2592,6 +2685,91 @@ def test_url_documentos_de_recebimento_analisar_documento(
     assert (
         documento.correcao_solicitada
         == "Documentos corrompidos, sem possibilidade de análise."
+    )
+
+
+def test_url_documentos_de_recebimento_reprovar_documento(
+    documento_de_recebimento_factory,
+    client_autenticado_qualidade,
+):
+    """Testa a reprovação do documento com justificativa obrigatória."""
+    documento = documento_de_recebimento_factory.create(
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    )
+    justificativa = "Documento não está de acordo com as informações esperadas."
+
+    response_sem_campo = client_autenticado_qualidade.patch(
+        f"/documentos-de-recebimento/{documento.uuid}/reprovar-documentos/",
+        content_type="application/json",
+        data=json.dumps({}),
+    )
+    assert response_sem_campo.status_code == status.HTTP_400_BAD_REQUEST
+
+    response_justificativa_vazia = client_autenticado_qualidade.patch(
+        f"/documentos-de-recebimento/{documento.uuid}/reprovar-documentos/",
+        content_type="application/json",
+        data=json.dumps({"justificativa_reprovacao": ""}),
+    )
+    assert response_justificativa_vazia.status_code == status.HTTP_400_BAD_REQUEST
+
+    response_reprovado = client_autenticado_qualidade.patch(
+        f"/documentos-de-recebimento/{documento.uuid}/reprovar-documentos/",
+        content_type="application/json",
+        data=json.dumps({"justificativa_reprovacao": justificativa}),
+    )
+
+    documento.refresh_from_db()
+    assert response_reprovado.status_code == status.HTTP_200_OK
+    assert documento.status == DocumentoDeRecebimento.workflow_class.REPROVADO
+    assert documento.justificativa_reprovacao == justificativa
+    assert documento.logs.filter(
+        status_evento=LogSolicitacoesUsuario.DOCUMENTO_REPROVADO,
+        justificativa=justificativa,
+    ).exists()
+
+
+def test_url_documentos_de_recebimento_reprovar_documento_status_invalido(
+    documento_de_recebimento_factory,
+    client_autenticado_qualidade,
+):
+    """Reprovação só é permitida para documentos em análise."""
+    documento = documento_de_recebimento_factory.create(
+        status=DocumentoDeRecebimento.workflow_class.APROVADO
+    )
+
+    response = client_autenticado_qualidade.patch(
+        f"/documentos-de-recebimento/{documento.uuid}/reprovar-documentos/",
+        content_type="application/json",
+        data=json.dumps({"justificativa_reprovacao": "Fora do esperado."}),
+    )
+
+    documento.refresh_from_db()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert documento.status == DocumentoDeRecebimento.workflow_class.APROVADO
+    assert not documento.logs.filter(
+        status_evento=LogSolicitacoesUsuario.DOCUMENTO_REPROVADO
+    ).exists()
+
+
+def test_url_documentos_de_recebimento_reprovar_documento_sem_permissao(
+    documento_de_recebimento_factory,
+    client_autenticado_fornecedor,
+):
+    """Apenas o perfil DILOG_QUALIDADE pode reprovar o documento."""
+    documento = documento_de_recebimento_factory.create(
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    )
+
+    response = client_autenticado_fornecedor.patch(
+        f"/documentos-de-recebimento/{documento.uuid}/reprovar-documentos/",
+        content_type="application/json",
+        data=json.dumps({"justificativa_reprovacao": "Fora do esperado."}),
+    )
+
+    documento.refresh_from_db()
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert (
+        documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
     )
 
 
@@ -3294,6 +3472,22 @@ def test_ficha_tecnica_retrieve_ok(
     assert response.data == FichaTecnicaDetalharSerializer(ficha_tecnica).data
 
 
+def test_url_dashboard_ficha_tecnica_perfil_dilog_visualizacao(
+    client_autenticado_dilog_visualizacao, ficha_tecnica_factory
+):
+    """DILOG_VISUALIZACAO acessa o dashboard e tem seus status mapeados.
+
+    O perfil precisa estar em ``PERFIS_PERMITIDOS`` e em
+    ``STATUS_POR_PERFIL``.
+    """
+    ficha_tecnica_factory(status=FichaTecnicaDoProdutoWorkflow.APROVADA)
+
+    response = client_autenticado_dilog_visualizacao.get("/ficha-tecnica/dashboard/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert "results" in response.json()
+
+
 def test_url_dashboard_ficha_tecnica_status_retornados(
     client_autenticado_codae_dilog, ficha_tecnica_factory, django_user_model
 ):
@@ -3555,6 +3749,23 @@ def test_url_ficha_tecnica_rascunho_analise_create(
     assert (
         analises.first().ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
     )
+
+
+def test_url_ficha_tecnica_detalhar_com_analise_perfil_dilog_visualizacao(
+    client_autenticado_dilog_visualizacao,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    analise_ficha_tecnica_factory,
+):
+    """DILOG_VISUALIZACAO pode visualizar o Detalhar da ficha técnica"""
+    ficha_tecnica = ficha_tecnica_perecivel_enviada_para_analise
+    analise_ficha_tecnica_factory.create(ficha_tecnica=ficha_tecnica)
+
+    response = client_autenticado_dilog_visualizacao.get(
+        f"/ficha-tecnica/{ficha_tecnica.uuid}/detalhar-com-analise/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["uuid"] == str(ficha_tecnica.uuid)
 
 
 def test_url_ficha_tecnica_detalhar_com_analise_ok(
@@ -3892,7 +4103,7 @@ def test_url_pdf_ficha_tecnica(
     )
     assert response.status_code == status.HTTP_200_OK
     headers = response.headers
-    assert headers["Content-Type"] == "application/pdf"
+    assert headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         headers["Content-Disposition"]
         == f'filename="ficha_tecnica_{ficha_tecnica_perecivel_enviada_para_analise.numero}.pdf"'
@@ -3926,7 +4137,7 @@ def test_url_pdf_ficha_tecnica_nao_perecivel(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["Content-Type"] == "application/pdf"
+    assert response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["Content-Disposition"]
         == f'filename="ficha_tecnica_{ficha_tecnica.numero}.pdf"'
@@ -4191,7 +4402,7 @@ def test_url_layout_embalagem_download_ok(
     response = client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
 
     # Verifica que o PDF gerado é válido
     pdf_reader = PdfReader(BytesIO(response.content))

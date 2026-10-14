@@ -6,6 +6,8 @@ from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 
+from src.dados_comuns.constants import ContentTypesParaRequests
+
 from ...dados_comuns import constants
 from ...dados_comuns.constants import (
     CODAE_AUTORIZA_PEDIDO,
@@ -15,7 +17,6 @@ from ...dados_comuns.constants import (
     DRE_NAO_VALIDA_PEDIDO,
     DRE_VALIDA_PEDIDO,
     ESCOLA_CANCELA,
-    GRUPO_PROGRAMAS_E_PROJETOS,
     SOLICITACOES_DO_USUARIO,
     TERCEIRIZADA_RESPONDE_QUESTIONAMENTO,
     TERCEIRIZADA_TOMOU_CIENCIA,
@@ -316,7 +317,7 @@ def test_url_endpoint_inclusao_normal_relatorio(
     )
     id_externo = grupo_inclusao_alimentacao_normal_codae_autorizado.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="inclusao_alimentacao_{id_externo}.pdf"'
@@ -901,7 +902,7 @@ def _cria_solicitacao_com_medicao_programas_e_projetos(escola, mes, ano, dias=No
     )
 
     grupo_programas, _ = GrupoMedicao.objects.get_or_create(
-        nome=GRUPO_PROGRAMAS_E_PROJETOS
+        nome=GrupoMedicao.PROGRAMAS_E_PROJETOS
     )
     categoria, _ = CategoriaMedicao.objects.get_or_create(
         nome=CategoriaMedicao.ALIMENTACAO
@@ -1318,7 +1319,7 @@ def test_url_endpoint_inclusao_continua_relatorio(
     )
     id_externo = inclusao_alimentacao_continua_codae_autorizado.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="inclusao_alimentacao_continua_{id_externo}.pdf"'
@@ -1343,7 +1344,7 @@ def test_url_endpoint_inclusao_cei_relatorio(
     )
     id_externo = inclusao_alimentacao.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="inclusao_alimentacao_{id_externo}.pdf"'
@@ -1548,7 +1549,7 @@ def test_url_endpoint_inclusao_cemei_relatorio(
     )
     id_externo = inclusao_alimentacao_cemei.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="inclusao_alimentacao_cemei_{id_externo}.pdf"'

@@ -4,6 +4,8 @@ from datetime import date, timedelta
 
 from rest_framework import status
 
+from src.dados_comuns.constants import ContentTypesParaRequests
+
 from ...dados_comuns import constants
 from ...dados_comuns.constants import FORMATO_DATA_BRASILEIRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
@@ -775,7 +777,7 @@ def test_gerar_protocolo_dieta_especial_protocolo(
         f"/solicitacoes-dieta-especial/{solicitacao_dieta_especial_autorizada.uuid}/{constants.PROTOCOLO}/"
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"'
@@ -791,7 +793,7 @@ def test_gerar_protocolo_dieta_especial_relatorio(
         f"/solicitacoes-dieta-especial/{solicitacao_dieta_especial_autorizada.uuid}/{constants.RELATORIO}/"
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"'

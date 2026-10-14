@@ -16,15 +16,9 @@ from src.dados_comuns.constants import (
     DIETA_ESPECIAL_TIPO_A,
     DIETA_ESPECIAL_TIPO_B,
     DJANGO_ADMIN_PASSWORD,
-    GRUPO_INFANTIL_INTEGRAL,
-    GRUPO_INFANTIL_MANHA,
-    GRUPO_INFANTIL_TARDE,
-    GRUPO_PROGRAMAS_E_PROJETOS,
-    GRUPO_RECREIO_NAS_FERIAS,
-    GRUPO_RECREIO_NAS_FERIAS_0_A_3,
-    GRUPO_RECREIO_NAS_FERIAS_4_A_14,
-    GRUPO_SOLICITACOES_ALIMENTACAO,
+    HeadersExcelConsolidado,
     StringsCaminhoModelos,
+    StringsParametrizacaoFinanceiraTabela,
 )
 from src.dados_comuns.fluxo_status import SolicitacaoMedicaoInicialWorkflow
 from src.dados_comuns.models import LogSolicitacoesUsuario
@@ -40,6 +34,7 @@ from src.escola.models import (
 from src.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    GrupoMedicao,
     Medicao,
     PermissaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
@@ -73,10 +68,6 @@ from src.medicao_inicial.services.relatorio_consolidado_recreio_emei_emef import
 MODEL_MEDICAO_RESPONSAVEL = "medicao_inicial.Responsavel"
 PROGRAMAS_E_PROOJETOS = "PROGRAMAS E PROJETOS"
 
-TABELA_ALIMENTACOES = "Preço das Alimentações"
-TABELA_DIETA_A = "Dietas Tipo A e Tipo A Enteral/Restrição de Aminoácidos"
-TABELA_DIETA_B = "Dietas Tipo B"
-
 
 @pytest.fixture
 def kit_lanche_1():
@@ -90,7 +81,7 @@ def kit_lanche_2():
 
 @pytest.fixture
 def grupo_programas_e_projetos():
-    return baker.make("GrupoMedicao", nome=GRUPO_PROGRAMAS_E_PROJETOS)
+    return baker.make("GrupoMedicao", nome=GrupoMedicao.PROGRAMAS_E_PROJETOS)
 
 
 @pytest.fixture
@@ -100,27 +91,27 @@ def grupo_etec():
 
 @pytest.fixture
 def grupo_solicitacoes_alimentacao():
-    return baker.make("GrupoMedicao", nome=GRUPO_SOLICITACOES_ALIMENTACAO)
+    return baker.make("GrupoMedicao", nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO)
 
 
 @pytest.fixture
 def grupo_infantil_integral():
-    return baker.make("GrupoMedicao", nome=GRUPO_INFANTIL_INTEGRAL)
+    return baker.make("GrupoMedicao", nome=GrupoMedicao.INFANTIL_INTEGRAL)
 
 
 @pytest.fixture
 def grupo_infantil_manha():
-    return baker.make("GrupoMedicao", nome=GRUPO_INFANTIL_MANHA)
+    return baker.make("GrupoMedicao", nome=GrupoMedicao.INFANTIL_MANHA)
 
 
 @pytest.fixture
 def grupo_infantil_tarde():
-    return baker.make("GrupoMedicao", nome=GRUPO_INFANTIL_TARDE)
+    return baker.make("GrupoMedicao", nome=GrupoMedicao.INFANTIL_TARDE)
 
 
 @pytest.fixture
 def grupo_recreio_nas_ferias():
-    return baker.make("GrupoMedicao", nome=GRUPO_RECREIO_NAS_FERIAS)
+    return baker.make("GrupoMedicao", nome=GrupoMedicao.RECREIO_NAS_FERIAS)
 
 
 @pytest.fixture
@@ -130,12 +121,12 @@ def grupo_colaboradores():
 
 @pytest.fixture
 def grupo_recreio_nas_ferias_0_a_3_anos_e_11_meses():
-    return baker.make("GrupoMedicao", nome=GRUPO_RECREIO_NAS_FERIAS_0_A_3)
+    return baker.make("GrupoMedicao", nome=GrupoMedicao.RECREIO_NAS_FERIAS_0_A_3)
 
 
 @pytest.fixture
 def grupo_recreio_nas_ferias_4_a_14_anos():
-    return baker.make("GrupoMedicao", nome=GRUPO_RECREIO_NAS_FERIAS_4_A_14)
+    return baker.make("GrupoMedicao", nome=GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14)
 
 
 @pytest.fixture
@@ -980,6 +971,23 @@ def solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok(
 
 
 @pytest.fixture
+def solicitacao_medicao_inicial_lanche_emergencial_extraordinario(
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok,
+):
+    GrupoMedicao.objects.get_or_create(
+        nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS,
+        defaults={"ativo": True},
+    )
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.lanche_emergencial_extraordinario = (
+        True
+    )
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.save(
+        update_fields=["lanche_emergencial_extraordinario"]
+    )
+    return solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial_medicao_aprovada_pela_dre_nok(
     solicitacao_medicao_inicial,
 ):
@@ -1264,7 +1272,9 @@ def solicitacao_medicao_inicial_varios_valores_escola_cei(
 
 
 def medicao_infantil_manha(solicitacao_medicao, categoria_medicao):
-    periodo_infantil_manha = baker.make("PeriodoEscolar", nome=GRUPO_INFANTIL_MANHA)
+    periodo_infantil_manha = baker.make(
+        "PeriodoEscolar", nome=GrupoMedicao.INFANTIL_MANHA
+    )
     medicao_infantil_manha = baker.make(
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
@@ -1336,10 +1346,10 @@ def solicitacao_medicao_inicial_com_valores_repeticao(escola, categoria_medicao)
     periodo_integral = baker.make("PeriodoEscolar", nome="INTEGRAL")
     periodo_noite = baker.make("PeriodoEscolar", nome="NOITE")
     grupo_solicitacoes_alimentacao = baker.make(
-        "GrupoMedicao", nome=GRUPO_SOLICITACOES_ALIMENTACAO
+        "GrupoMedicao", nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO
     )
     grupo_programas_e_projetos = baker.make(
-        "GrupoMedicao", nome=GRUPO_PROGRAMAS_E_PROJETOS
+        "GrupoMedicao", nome=GrupoMedicao.PROGRAMAS_E_PROJETOS
     )
     grupo_etec = baker.make("GrupoMedicao", nome="ETEC")
     solicitacao_medicao = baker.make(
@@ -1420,7 +1430,7 @@ def solicitacao_medicao_inicial_dietas(
     periodo_integral = baker.make("PeriodoEscolar", nome="INTEGRAL")
     periodo_noite = baker.make("PeriodoEscolar", nome="NOITE")
     grupo_programas_e_projetos = baker.make(
-        "GrupoMedicao", nome=GRUPO_PROGRAMAS_E_PROJETOS
+        "GrupoMedicao", nome=GrupoMedicao.PROGRAMAS_E_PROJETOS
     )
     solicitacao_medicao = baker.make(
         "SolicitacaoMedicaoInicial", mes=4, ano=2023, escola=escola
@@ -1491,7 +1501,7 @@ def medicao_solicitacoes_alimentacao(escola):
     categoria = baker.make(
         "CategoriaMedicao", nome=CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO
     )
-    grupo = baker.make("GrupoMedicao", nome=GRUPO_SOLICITACOES_ALIMENTACAO)
+    grupo = baker.make("GrupoMedicao", nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO)
     solicitacao_medicao = baker.make(
         "SolicitacaoMedicaoInicial", mes=6, ano=2023, escola=escola
     )
@@ -1974,7 +1984,7 @@ def solicitacao_medicao_inicial_teste_salvar_logs_cei(
 def solicitacao_medicao_inicial_com_grupo(escola, categoria_medicao_dieta_a):
     tipo_contagem = baker.make("TipoContagemAlimentacao", nome="Fichas")
     periodo_manha = baker.make("PeriodoEscolar", nome="MANHA")
-    grupo = baker.make("GrupoMedicao", nome=GRUPO_PROGRAMAS_E_PROJETOS)
+    grupo = baker.make("GrupoMedicao", nome=GrupoMedicao.PROGRAMAS_E_PROJETOS)
     solicitacao_medicao = baker.make(
         "SolicitacaoMedicaoInicial",
         uuid="bed4d779-2d57-4c5f-bf9c-9b93ddac54d9",
@@ -2229,14 +2239,14 @@ def parametrizacao_financeira_emef(
 
     tabela_precos = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_ALIMENTACOES,
+        nome=StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
 
     tabela_dieta_a = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_DIETA_A,
+        nome=StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
@@ -3479,8 +3489,8 @@ def mock_query_params_excel_emei(solicitacao_relatorio_consolidado_grupo_emei):
 @pytest.fixture
 def mock_colunas():
     return [
-        (GRUPO_SOLICITACOES_ALIMENTACAO, "kit_lanche"),
-        (GRUPO_SOLICITACOES_ALIMENTACAO, "lanche_emergencial"),
+        (GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO, "kit_lanche"),
+        (GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO, "lanche_emergencial"),
         ("MANHA", "lanche"),
         ("MANHA", "lanche_4h"),
         ("MANHA", "refeicao"),
@@ -3796,19 +3806,31 @@ def mock_colunas_cei(faixas_etarias_ativas):
     faixas = [faixa.id for faixa in faixas_etarias_ativas]
     colunas = []
 
-    colunas.extend(("INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO A - INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO B - INTEGRAL", faixa) for faixa in faixas)
+    colunas.extend((HeadersExcelConsolidado.INTEGRAL.value, faixa) for faixa in faixas)
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INTEGRAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INTEGRAL.value, faixa)
+        for faixa in faixas
+    )
 
-    colunas.extend(("PARCIAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO A - PARCIAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO B - PARCIAL", faixa) for faixa in faixas)
+    colunas.extend((HeadersExcelConsolidado.PARCIAL.value, faixa) for faixa in faixas)
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PARCIAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PARCIAL.value, faixa)
+        for faixa in faixas
+    )
 
-    colunas.append(("MANHA", faixas_etarias_ativas[2].id))
-    colunas.append(("MANHA", faixas_etarias_ativas[4].id))
+    colunas.append((HeadersExcelConsolidado.MANHA.value, faixas_etarias_ativas[2].id))
+    colunas.append((HeadersExcelConsolidado.MANHA.value, faixas_etarias_ativas[4].id))
 
-    colunas.append(("TARDE", faixas_etarias_ativas[3].id))
-    colunas.append(("TARDE", faixas_etarias_ativas[6].id))
+    colunas.append((HeadersExcelConsolidado.TARDE.value, faixas_etarias_ativas[3].id))
+    colunas.append((HeadersExcelConsolidado.TARDE.value, faixas_etarias_ativas[6].id))
 
     colunas.append((DIETA_ESPECIAL_TIPO_A, faixas_etarias_ativas[2].id))
     colunas.append((DIETA_ESPECIAL_TIPO_B, faixas_etarias_ativas[3].id))
@@ -4165,22 +4187,34 @@ def mock_query_params_excel_cemei(solicitacao_relatorio_consolidado_grupo_cemei)
 @pytest.fixture
 def mock_colunas_cemei(faixas_etarias_ativas):
     colunas = [
-        (GRUPO_SOLICITACOES_ALIMENTACAO, "kit_lanche"),
-        (GRUPO_SOLICITACOES_ALIMENTACAO, "lanche_emergencial"),
+        (GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO, "kit_lanche"),
+        (GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO, "lanche_emergencial"),
     ]
     faixas = [faixa.id for faixa in faixas_etarias_ativas]
 
-    colunas.extend(("INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO A - INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO B - INTEGRAL", faixa) for faixa in faixas)
-    colunas.extend(("PARCIAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO A - PARCIAL", faixa) for faixa in faixas)
-    colunas.extend(("DIETA ESPECIAL - TIPO B - PARCIAL", faixa) for faixa in faixas)
+    colunas.extend((HeadersExcelConsolidado.INTEGRAL.value, faixa) for faixa in faixas)
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INTEGRAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INTEGRAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend((HeadersExcelConsolidado.PARCIAL.value, faixa) for faixa in faixas)
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PARCIAL.value, faixa)
+        for faixa in faixas
+    )
+    colunas.extend(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PARCIAL.value, faixa)
+        for faixa in faixas
+    )
 
     for periodo in [
-        GRUPO_INFANTIL_INTEGRAL,
-        GRUPO_INFANTIL_MANHA,
-        GRUPO_INFANTIL_TARDE,
+        GrupoMedicao.INFANTIL_INTEGRAL,
+        GrupoMedicao.INFANTIL_MANHA,
+        GrupoMedicao.INFANTIL_TARDE,
     ]:
         for campo in [
             "lanche",
@@ -4192,11 +4226,21 @@ def mock_colunas_cemei(faixas_etarias_ativas):
         ]:
             colunas.append((periodo, campo))
 
-    colunas.append(("DIETA ESPECIAL - TIPO A - INFANTIL", "lanche"))
-    colunas.append(("DIETA ESPECIAL - TIPO A - INFANTIL", "lanche_4h"))
-    colunas.append(("DIETA ESPECIAL - TIPO A - INFANTIL", "refeicao"))
-    colunas.append(("DIETA ESPECIAL - TIPO B - INFANTIL", "lanche"))
-    colunas.append(("DIETA ESPECIAL - TIPO B - INFANTIL", "lanche_4h"))
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INFANTIL.value, "lanche")
+    )
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INFANTIL.value, "lanche_4h")
+    )
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INFANTIL.value, "refeicao")
+    )
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INFANTIL.value, "lanche")
+    )
+    colunas.append(
+        (HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INFANTIL.value, "lanche_4h")
+    )
 
     return colunas
 
@@ -4566,8 +4610,8 @@ def mock_query_params_excel_emebs(solicitacao_relatorio_consolidado_grupo_emebs)
 @pytest.fixture
 def mock_colunas_emebs():
     colunas = [
-        ("", GRUPO_SOLICITACOES_ALIMENTACAO, "lanche_emergencial"),
-        ("", GRUPO_SOLICITACOES_ALIMENTACAO, "kit_lanche"),
+        ("", GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO, "lanche_emergencial"),
+        ("", GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO, "kit_lanche"),
     ]
 
     for turma in ["INFANTIL", "FUNDAMENTAL"]:
@@ -4576,7 +4620,7 @@ def mock_colunas_emebs():
             "TARDE",
             "INTEGRAL",
             "NOITE",
-            GRUPO_PROGRAMAS_E_PROJETOS,
+            GrupoMedicao.PROGRAMAS_E_PROJETOS,
         ]:
             if turma == "INFANTIL" and periodo == "NOITE":
                 continue
@@ -4589,7 +4633,10 @@ def mock_colunas_emebs():
                 "sobremesa",
                 "total_sobremesas_pagamento",
             ]:
-                if periodo == GRUPO_PROGRAMAS_E_PROJETOS and campo == "sobremesa":
+                if (
+                    periodo == GrupoMedicao.PROGRAMAS_E_PROJETOS
+                    and campo == "sobremesa"
+                ):
                     continue
                 colunas.append((turma, periodo, campo))
 
@@ -5025,8 +5072,8 @@ def mock_query_params_excel_cieja_cmct(solicitacao_relatorio_consolidado_escola_
 def mock_colunas_cieja():
 
     colunas = [
-        (GRUPO_SOLICITACOES_ALIMENTACAO, "kit_lanche"),
-        (GRUPO_SOLICITACOES_ALIMENTACAO, "lanche_emergencial"),
+        (GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO, "kit_lanche"),
+        (GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO, "lanche_emergencial"),
     ]
     for periodo in [
         "MANHA",
@@ -5136,7 +5183,7 @@ def payload_create_parametrizacao_financeira_cei(
         "data_final": "2025-10-30",
         "tabelas": [
             {
-                "nome": TABELA_ALIMENTACOES,
+                "nome": StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5150,7 +5197,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_integral.nome,
             },
             {
-                "nome": TABELA_ALIMENTACOES,
+                "nome": StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5164,7 +5211,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_parcial.nome,
             },
             {
-                "nome": "Dietas Tipo A e Tipo A Enteral/Restrição de Aminoácidos",
+                "nome": StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5178,7 +5225,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_integral.nome,
             },
             {
-                "nome": "Dietas Tipo A e Tipo A Enteral/Restrição de Aminoácidos",
+                "nome": StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5192,7 +5239,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_parcial.nome,
             },
             {
-                "nome": "Dietas Tipo B",
+                "nome": StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5206,7 +5253,7 @@ def payload_create_parametrizacao_financeira_cei(
                 "periodo_escolar": periodo_escolar_integral.nome,
             },
             {
-                "nome": "Dietas Tipo B",
+                "nome": StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
                 "valores": [
                     {
                         "faixa_etaria": faixa.uuid,
@@ -5987,7 +6034,7 @@ def apply_dieta(
         valor = medicao.valores_medicao.get(**filtros)
 
         if is_cemei:
-            is_programa = medicao.grupo.nome == GRUPO_PROGRAMAS_E_PROJETOS
+            is_programa = medicao.grupo.nome == GrupoMedicao.PROGRAMAS_E_PROJETOS
         else:
             is_programa = bool(medicao.grupo)
 
@@ -6429,27 +6476,35 @@ def parametrizacao_financeira_cei(
 
     tabelas_config = [
         (
-            TABELA_ALIMENTACOES,
+            StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             periodo_escolar_integral,
             [tipo_unitario, tipo_reajuste],
         ),
         (
-            TABELA_ALIMENTACOES,
+            StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             periodo_escolar_parcial,
             [tipo_unitario, tipo_reajuste],
         ),
         (
-            TABELA_DIETA_A,
+            StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             periodo_escolar_integral,
             [tipo_unitario, tipo_acrescimo],
         ),
         (
-            TABELA_DIETA_A,
+            StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             periodo_escolar_parcial,
             [tipo_unitario, tipo_acrescimo],
         ),
-        ("Dietas Tipo B", periodo_escolar_integral, [tipo_unitario, tipo_acrescimo]),
-        ("Dietas Tipo B", periodo_escolar_parcial, [tipo_unitario, tipo_acrescimo]),
+        (
+            StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
+            periodo_escolar_integral,
+            [tipo_unitario, tipo_acrescimo],
+        ),
+        (
+            StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
+            periodo_escolar_parcial,
+            [tipo_unitario, tipo_acrescimo],
+        ),
     ]
 
     for nome_tabela, periodo, tipos_valor in tabelas_config:
@@ -6558,21 +6613,21 @@ def parametrizacao_financeira_emei(
 
     tabela_alimentacoes = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_ALIMENTACOES,
+        nome=StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
 
     tabela_dieta_a = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_DIETA_A,
+        nome=StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
 
     tabela_dieta_b = baker.make(
         "ParametrizacaoFinanceiraTabela",
-        nome=TABELA_DIETA_B,
+        nome=StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
         periodo_escolar=None,
         parametrizacao_financeira=parametrizacao_financeira,
     )
@@ -6719,21 +6774,21 @@ def parametrizacao_financeira_cieja(
     )
 
     tabelas = {
-        TABELA_ALIMENTACOES: baker.make(
+        StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_ALIMENTACOES,
+            nome=StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
-        TABELA_DIETA_A: baker.make(
+        StringsParametrizacaoFinanceiraTabela.DIETA_A.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_DIETA_A,
+            nome=StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
-        TABELA_DIETA_B: baker.make(
+        StringsParametrizacaoFinanceiraTabela.DIETA_B.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_DIETA_B,
+            nome=StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
@@ -6746,7 +6801,7 @@ def parametrizacao_financeira_cieja(
 
     valores_config = [
         (
-            tabelas[TABELA_ALIMENTACOES],
+            tabelas[StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value],
             ["UNITARIO", "REAJUSTE"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "10.00"),
@@ -6755,7 +6810,7 @@ def parametrizacao_financeira_cieja(
             ],
         ),
         (
-            tabelas[TABELA_DIETA_A],
+            tabelas[StringsParametrizacaoFinanceiraTabela.DIETA_A.value],
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "11.22"),
@@ -6763,7 +6818,7 @@ def parametrizacao_financeira_cieja(
             ],
         ),
         (
-            tabelas[TABELA_DIETA_B],
+            tabelas[StringsParametrizacaoFinanceiraTabela.DIETA_B.value],
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("lanche_4h", tipo_alimentacao_lanche_4h, "8.00"),
@@ -6825,6 +6880,54 @@ def relatorio_financeiro_cemei(
     )
 
 
+def _cria_tabela_parametrizacao(nome, periodo, parametrizacao_financeira):
+    return baker.make(
+        "ParametrizacaoFinanceiraTabela",
+        nome=nome,
+        periodo_escolar=periodo,
+        parametrizacao_financeira=parametrizacao_financeira,
+    )
+
+
+def _cria_valores_tabela_por_faixa(tabela, faixas_etarias, tipos, tipos_valor):
+    for faixa in faixas_etarias:
+        for tipo in tipos:
+            baker.make(
+                "ParametrizacaoFinanceiraTabelaValor",
+                tabela=tabela,
+                faixa_etaria=faixa,
+                nome_campo=str(faixa).lower().replace(" ", "_"),
+                tipo_valor=tipos_valor[tipo],
+                valor="1.00",
+            )
+
+
+def _cria_tabelas_com_valores_por_faixa(
+    tabelas_config, faixas_etarias, parametrizacao_financeira, tipos_valor
+):
+    for nome_tabela, periodos, tipos in tabelas_config:
+        for periodo in periodos:
+            tabela = _cria_tabela_parametrizacao(
+                nome_tabela, periodo, parametrizacao_financeira
+            )
+            _cria_valores_tabela_por_faixa(tabela, faixas_etarias, tipos, tipos_valor)
+
+
+def _cria_valores_tabela_por_tipo(valores_config, tipos_valor):
+    for tabela, tipos, valores in valores_config:
+        for tipo in tipos:
+            for nome_campo, tipo_alimentacao, valor in valores:
+                baker.make(
+                    "ParametrizacaoFinanceiraTabelaValor",
+                    tabela=tabela,
+                    nome_campo=nome_campo,
+                    faixa_etaria=None,
+                    tipo_alimentacao=tipo_alimentacao,
+                    tipo_valor=tipos_valor[tipo],
+                    valor=valor,
+                )
+
+
 @pytest.fixture
 def parametrizacao_financeira_cemei(
     edital,
@@ -6847,21 +6950,21 @@ def parametrizacao_financeira_cemei(
     )
 
     tabelas = {
-        TABELA_ALIMENTACOES: baker.make(
+        StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_ALIMENTACOES,
+            nome=StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
-        TABELA_DIETA_A: baker.make(
+        StringsParametrizacaoFinanceiraTabela.DIETA_A.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_DIETA_A,
+            nome=StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
-        TABELA_DIETA_B: baker.make(
+        StringsParametrizacaoFinanceiraTabela.DIETA_B.value: baker.make(
             "ParametrizacaoFinanceiraTabela",
-            nome=TABELA_DIETA_B,
+            nome=StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
             periodo_escolar=None,
             parametrizacao_financeira=parametrizacao_financeira,
         ),
@@ -6874,45 +6977,29 @@ def parametrizacao_financeira_cemei(
 
     tabelas_config = [
         (
-            TABELA_ALIMENTACOES,
+            StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             [periodo_escolar_integral, periodo_escolar_parcial],
             ["UNITARIO", "REAJUSTE"],
         ),
         (
-            TABELA_DIETA_A,
+            StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             [periodo_escolar_integral, periodo_escolar_parcial],
             ["UNITARIO", "ACRESCIMO"],
         ),
         (
-            TABELA_DIETA_B,
+            StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
             [periodo_escolar_integral, periodo_escolar_parcial],
             ["UNITARIO", "ACRESCIMO"],
         ),
     ]
 
-    for nome_tabela, periodos, tipos in tabelas_config:
-        for periodo in periodos:
-            tabela = baker.make(
-                "ParametrizacaoFinanceiraTabela",
-                nome=nome_tabela,
-                periodo_escolar=periodo,
-                parametrizacao_financeira=parametrizacao_financeira,
-            )
-
-            for faixa in faixas_etarias_ativas:
-                for tipo in tipos:
-                    baker.make(
-                        "ParametrizacaoFinanceiraTabelaValor",
-                        tabela=tabela,
-                        faixa_etaria=faixa,
-                        nome_campo=str(faixa).lower().replace(" ", "_"),
-                        tipo_valor=tipos_valor[tipo],
-                        valor="1.00",
-                    )
+    _cria_tabelas_com_valores_por_faixa(
+        tabelas_config, faixas_etarias_ativas, parametrizacao_financeira, tipos_valor
+    )
 
     valores_config = [
         (
-            tabelas[TABELA_ALIMENTACOES],
+            tabelas[StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value],
             ["UNITARIO", "REAJUSTE"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "10.00"),
@@ -6921,7 +7008,7 @@ def parametrizacao_financeira_cemei(
             ],
         ),
         (
-            tabelas[TABELA_DIETA_A],
+            tabelas[StringsParametrizacaoFinanceiraTabela.DIETA_A.value],
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "11.22"),
@@ -6929,7 +7016,7 @@ def parametrizacao_financeira_cemei(
             ],
         ),
         (
-            tabelas[TABELA_DIETA_B],
+            tabelas[StringsParametrizacaoFinanceiraTabela.DIETA_B.value],
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("lanche_4h", tipo_alimentacao_lanche_4h, "8.00"),
@@ -6937,18 +7024,7 @@ def parametrizacao_financeira_cemei(
         ),
     ]
 
-    for tabela, tipos, valores in valores_config:
-        for tipo in tipos:
-            for nome_campo, tipo_alimentacao, valor in valores:
-                baker.make(
-                    "ParametrizacaoFinanceiraTabelaValor",
-                    tabela=tabela,
-                    nome_campo=nome_campo,
-                    faixa_etaria=None,
-                    tipo_alimentacao=tipo_alimentacao,
-                    tipo_valor=tipos_valor[tipo],
-                    valor=valor,
-                )
+    _cria_valores_tabela_por_tipo(valores_config, tipos_valor)
 
     return parametrizacao_financeira
 
@@ -7226,7 +7302,7 @@ def parametrizacao_financeira_emebs(
 
     valores_config = [
         (
-            TABELA_ALIMENTACOES,
+            StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value,
             ["UNITARIO", "REAJUSTE"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "10.00"),
@@ -7236,7 +7312,7 @@ def parametrizacao_financeira_emebs(
             ],
         ),
         (
-            TABELA_DIETA_A,
+            StringsParametrizacaoFinanceiraTabela.DIETA_A.value,
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("refeicao", tipo_alimentacao_refeicao, "11.22"),
@@ -7245,7 +7321,7 @@ def parametrizacao_financeira_emebs(
             ],
         ),
         (
-            TABELA_DIETA_B,
+            StringsParametrizacaoFinanceiraTabela.DIETA_B.value,
             ["UNITARIO", "ACRESCIMO"],
             [
                 ("lanche", tipo_alimentacao_lanche, "10.00"),
@@ -7462,6 +7538,181 @@ def solicitacao_recreio_cei(
     return solicitacao_recreio_nas_ferias
 
 
+DIAS_NAO_LETIVOS_RECREIO = ["13", "14", "20", "21", "25", "27", "28"]
+
+
+def _cria_valores_campos_recreio_cemei(
+    dia,
+    medicao_4_a_14,
+    medicao_colaboradores,
+    categoria_medicao,
+    categoria_dieta_aminoacidos,
+):
+    for campo in [
+        "frequencia",
+        "refeicao",
+        "repeticao_refeicao",
+        "sobremesa",
+        "repeticao_sobremesa",
+    ]:
+        baker.make(
+            "ValorMedicao",
+            medicao=medicao_4_a_14,
+            categoria_medicao=categoria_medicao,
+            nome_campo=campo,
+            dia=dia,
+            valor="90",
+        )
+        baker.make(
+            "ValorMedicao",
+            medicao=medicao_colaboradores,
+            categoria_medicao=categoria_medicao,
+            nome_campo=campo,
+            dia=dia,
+            valor="15",
+        )
+        if campo in ["frequencia", "refeicao"]:
+            baker.make(
+                "ValorMedicao",
+                medicao=medicao_4_a_14,
+                categoria_medicao=categoria_dieta_aminoacidos,
+                nome_campo=campo,
+                dia=dia,
+                valor=1,
+            )
+
+
+def _cria_valores_faixas_recreio_cemei(
+    dia,
+    data,
+    medicao_0_a_3,
+    categoria_medicao,
+    categoria_dieta_a,
+    escola,
+    classificacao_dieta,
+    quantidade_dieta_autorizada,
+    frequencia_por_faixa,
+    faixas_etarias_ativas,
+):
+    for faixa in faixas_etarias_ativas:
+        dieta = baker.make(
+            "LogQuantidadeDietasAutorizadasRecreioNasFeriasCEI",
+            escola=escola,
+            data=data,
+            classificacao=classificacao_dieta,
+            quantidade=quantidade_dieta_autorizada,
+            faixa_etaria=faixa,
+        )
+        baker.make(
+            "ValorMedicao",
+            medicao=medicao_0_a_3,
+            categoria_medicao=categoria_dieta_a,
+            nome_campo="dietas_autorizadas",
+            dia=dia,
+            valor=dieta.quantidade,
+            faixa_etaria=faixa,
+        )
+        baker.make(
+            "ValorMedicao",
+            medicao=medicao_0_a_3,
+            categoria_medicao=categoria_medicao,
+            nome_campo="frequencia",
+            dia=dia,
+            valor=str(frequencia_por_faixa),
+            faixa_etaria=faixa,
+        )
+        baker.make(
+            "ValorMedicao",
+            medicao=medicao_0_a_3,
+            categoria_medicao=categoria_dieta_a,
+            nome_campo="frequencia",
+            dia=dia,
+            valor=dieta.quantidade - 1,
+            faixa_etaria=faixa,
+        )
+
+
+def _cria_valores_recreio_cemei_por_dia(
+    dia,
+    data,
+    medicao_4_a_14,
+    medicao_0_a_3,
+    medicao_colaboradores,
+    categoria_medicao,
+    categoria_dieta_a,
+    categoria_dieta_aminoacidos,
+    classificacao_dieta,
+    solicitacao_recreio_nas_ferias,
+    participante_cei,
+    participante_emei,
+    quantidade_dieta_autorizada,
+    frequencia_por_faixa,
+    faixas_etarias_ativas,
+):
+    baker.make(
+        "ValorMedicao",
+        medicao=medicao_4_a_14,
+        categoria_medicao=categoria_medicao,
+        nome_campo="participantes",
+        dia=dia,
+        valor=str(participante_emei.num_inscritos),
+    )
+    baker.make(
+        "ValorMedicao",
+        medicao=medicao_0_a_3,
+        categoria_medicao=categoria_medicao,
+        nome_campo="participantes",
+        dia=dia,
+        valor=str(participante_cei.num_inscritos - quantidade_dieta_autorizada),
+    )
+    baker.make(
+        "ValorMedicao",
+        medicao=medicao_colaboradores,
+        categoria_medicao=categoria_medicao,
+        nome_campo="participantes",
+        dia=dia,
+        valor=str(
+            participante_emei.num_colaboradores + participante_cei.num_colaboradores
+        ),
+    )
+    dieta = baker.make(
+        "LogQuantidadeDietasAutorizadasRecreioNasFerias",
+        escola=solicitacao_recreio_nas_ferias.escola,
+        data=data,
+        classificacao=classificacao_dieta,
+        quantidade=3,
+    )
+    if dia in DIAS_NAO_LETIVOS_RECREIO:
+        return
+    baker.make(
+        "ValorMedicao",
+        medicao=medicao_4_a_14,
+        categoria_medicao=categoria_dieta_aminoacidos,
+        nome_campo="dietas_autorizadas",
+        dia=dia,
+        valor=dieta.quantidade,
+    )
+    _cria_valores_campos_recreio_cemei(
+        dia,
+        medicao_4_a_14,
+        medicao_colaboradores,
+        categoria_medicao,
+        categoria_dieta_aminoacidos,
+    )
+    _cria_valores_faixas_recreio_cemei(
+        dia,
+        data,
+        medicao_0_a_3,
+        categoria_medicao,
+        categoria_dieta_a,
+        solicitacao_recreio_nas_ferias.escola,
+        classificacao_dieta,
+        quantidade_dieta_autorizada,
+        frequencia_por_faixa,
+        faixas_etarias_ativas,
+    )
+
+
 @pytest.fixture
 def solicitacao_recreio_cemei(
     escola_cemei,
@@ -7568,126 +7819,23 @@ def solicitacao_recreio_cemei(
     ):
         data = recreio_nas_ferias.data_inicio + datetime.timedelta(days=offset)
         dia = f"{data.day:02d}"
-        baker.make(
-            "ValorMedicao",
-            medicao=medicao_recreio_nas_ferias_4_a_14_anos,
-            categoria_medicao=categoria_medicao,
-            nome_campo="participantes",
+        _cria_valores_recreio_cemei_por_dia(
             dia=dia,
-            valor=str(participante_emei.num_inscritos),
-        )
-        baker.make(
-            "ValorMedicao",
-            medicao=medicao_recreio_nas_ferias_0_a_3_anos,
-            categoria_medicao=categoria_medicao,
-            nome_campo="participantes",
-            dia=dia,
-            valor=str(participante_cei.num_inscritos - quantidade_dieta_autorizada),
-        )
-        baker.make(
-            "ValorMedicao",
-            medicao=medicao_colaboradores,
-            categoria_medicao=categoria_medicao,
-            nome_campo="participantes",
-            dia=dia,
-            valor=str(
-                participante_emei.num_colaboradores + participante_cei.num_colaboradores
-            ),
-        )
-        dieta = baker.make(
-            "LogQuantidadeDietasAutorizadasRecreioNasFerias",
-            escola=solicitacao_recreio_nas_ferias.escola,
             data=data,
-            classificacao=classificacao_dieta_tipo_a_enteral,
-            quantidade=3,
+            medicao_4_a_14=medicao_recreio_nas_ferias_4_a_14_anos,
+            medicao_0_a_3=medicao_recreio_nas_ferias_0_a_3_anos,
+            medicao_colaboradores=medicao_colaboradores,
+            categoria_medicao=categoria_medicao,
+            categoria_dieta_a=categoria_medicao_dieta_a,
+            categoria_dieta_aminoacidos=categoria_medicao_dieta_a_enteral_aminoacidos,
+            classificacao_dieta=classificacao_dieta_tipo_a_enteral,
+            solicitacao_recreio_nas_ferias=solicitacao_recreio_nas_ferias,
+            participante_cei=participante_cei,
+            participante_emei=participante_emei,
+            quantidade_dieta_autorizada=quantidade_dieta_autorizada,
+            frequencia_por_faixa=frequencia_por_faixa,
+            faixas_etarias_ativas=faixas_etarias_ativas,
         )
-        if dia not in [
-            "13",
-            "14",
-            "20",
-            "21",
-            "25",
-            "27",
-            "28",
-        ]:  # Sabado, Domingo e Feriado
-            baker.make(
-                "ValorMedicao",
-                medicao=medicao_recreio_nas_ferias_4_a_14_anos,
-                categoria_medicao=categoria_medicao_dieta_a_enteral_aminoacidos,
-                nome_campo="dietas_autorizadas",
-                dia=dia,
-                valor=dieta.quantidade,
-            )
-            for campo in [
-                "frequencia",
-                "refeicao",
-                "repeticao_refeicao",
-                "sobremesa",
-                "repeticao_sobremesa",
-            ]:
-                baker.make(
-                    "ValorMedicao",
-                    medicao=medicao_recreio_nas_ferias_4_a_14_anos,
-                    categoria_medicao=categoria_medicao,
-                    nome_campo=campo,
-                    dia=dia,
-                    valor="90",
-                )
-                baker.make(
-                    "ValorMedicao",
-                    medicao=medicao_colaboradores,
-                    categoria_medicao=categoria_medicao,
-                    nome_campo=campo,
-                    dia=dia,
-                    valor="15",
-                )
-                if campo in ["frequencia", "refeicao"]:
-                    baker.make(
-                        "ValorMedicao",
-                        medicao=medicao_recreio_nas_ferias_4_a_14_anos,
-                        categoria_medicao=categoria_medicao_dieta_a_enteral_aminoacidos,
-                        nome_campo=campo,
-                        dia=dia,
-                        valor=1,
-                    )
-
-            for faixa in faixas_etarias_ativas:
-                dieta = baker.make(
-                    "LogQuantidadeDietasAutorizadasRecreioNasFeriasCEI",
-                    escola=solicitacao_recreio_nas_ferias.escola,
-                    data=data,
-                    classificacao=classificacao_dieta_tipo_a_enteral,
-                    quantidade=quantidade_dieta_autorizada,
-                    faixa_etaria=faixa,
-                )
-                baker.make(
-                    "ValorMedicao",
-                    medicao=medicao_recreio_nas_ferias_0_a_3_anos,
-                    categoria_medicao=categoria_medicao_dieta_a,
-                    nome_campo="dietas_autorizadas",
-                    dia=dia,
-                    valor=dieta.quantidade,
-                    faixa_etaria=faixa,
-                )
-
-                baker.make(
-                    "ValorMedicao",
-                    medicao=medicao_recreio_nas_ferias_0_a_3_anos,
-                    categoria_medicao=categoria_medicao,
-                    nome_campo="frequencia",
-                    dia=dia,
-                    valor=str(frequencia_por_faixa),
-                    faixa_etaria=faixa,
-                )
-                baker.make(
-                    "ValorMedicao",
-                    medicao=medicao_recreio_nas_ferias_0_a_3_anos,
-                    categoria_medicao=categoria_medicao_dieta_a,
-                    nome_campo="frequencia",
-                    dia=dia,
-                    valor=dieta.quantidade - 1,
-                    faixa_etaria=faixa,
-                )
 
     return solicitacao_recreio_nas_ferias
 
@@ -7704,12 +7852,12 @@ def solicitacao_recreio_emei(
 @pytest.fixture
 def mock_colunas_recreio_emei():
     return [
-        (GRUPO_RECREIO_NAS_FERIAS, "refeicao"),
-        (GRUPO_RECREIO_NAS_FERIAS, "repeticao_refeicao"),
-        (GRUPO_RECREIO_NAS_FERIAS, "total_refeicoes_pagamento"),
-        (GRUPO_RECREIO_NAS_FERIAS, "sobremesa"),
-        (GRUPO_RECREIO_NAS_FERIAS, "repeticao_sobremesa"),
-        (GRUPO_RECREIO_NAS_FERIAS, "total_sobremesas_pagamento"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "refeicao"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "repeticao_refeicao"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "total_refeicoes_pagamento"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "sobremesa"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "repeticao_sobremesa"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "total_sobremesas_pagamento"),
         (DIETA_ESPECIAL_TIPO_A, "refeicao"),
         ("Colaboradores", "refeicao"),
         ("Colaboradores", "repeticao_refeicao"),
@@ -7801,7 +7949,7 @@ def mock_colunas_recreio_cei(faixas_etarias_ativas):
 
     faixas = [faixa.id for faixa in faixas_etarias_ativas]
     colunas = []
-    colunas.extend((GRUPO_RECREIO_NAS_FERIAS, faixa) for faixa in faixas)
+    colunas.extend((GrupoMedicao.RECREIO_NAS_FERIAS, faixa) for faixa in faixas)
     colunas.extend((DIETA_ESPECIAL_TIPO_A, faixa) for faixa in faixas)
     for campo in [
         "refeicao",
@@ -7910,12 +8058,12 @@ def mock_query_params_excel_recreio_cei(solicitacao_recreio_cei):
 @pytest.fixture
 def mock_colunas_recreio_emef():
     return [
-        (GRUPO_RECREIO_NAS_FERIAS, "refeicao"),
-        (GRUPO_RECREIO_NAS_FERIAS, "repeticao_refeicao"),
-        (GRUPO_RECREIO_NAS_FERIAS, "total_refeicoes_pagamento"),
-        (GRUPO_RECREIO_NAS_FERIAS, "sobremesa"),
-        (GRUPO_RECREIO_NAS_FERIAS, "repeticao_sobremesa"),
-        (GRUPO_RECREIO_NAS_FERIAS, "total_sobremesas_pagamento"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "refeicao"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "repeticao_refeicao"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "total_refeicoes_pagamento"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "sobremesa"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "repeticao_sobremesa"),
+        (GrupoMedicao.RECREIO_NAS_FERIAS, "total_sobremesas_pagamento"),
         (DIETA_ESPECIAL_TIPO_A, "refeicao"),
         ("Colaboradores", "refeicao"),
         ("Colaboradores", "repeticao_refeicao"),
@@ -7968,7 +8116,7 @@ def mock_colunas_recreio_cemei(faixas_etarias_ativas):
     return (
         [
             (
-                GRUPO_RECREIO_NAS_FERIAS_0_A_3,
+                GrupoMedicao.RECREIO_NAS_FERIAS_0_A_3,
                 faixa.id,
             )
             for faixa in faixas_etarias_ativas
@@ -7982,19 +8130,19 @@ def mock_colunas_recreio_cemei(faixas_etarias_ativas):
         ]
         + [
             (
-                GRUPO_RECREIO_NAS_FERIAS_4_A_14,
+                GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14,
                 "refeicao",
             ),
             (
-                GRUPO_RECREIO_NAS_FERIAS_4_A_14,
+                GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14,
                 "sobremesa",
             ),
             (
-                GRUPO_RECREIO_NAS_FERIAS_4_A_14,
+                GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14,
                 "total_refeicoes_pagamento",
             ),
             (
-                GRUPO_RECREIO_NAS_FERIAS_4_A_14,
+                GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14,
                 "total_sobremesas_pagamento",
             ),
             (

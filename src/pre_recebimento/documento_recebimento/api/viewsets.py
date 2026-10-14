@@ -8,6 +8,7 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED,
 )
 
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.fluxo_status import (
     DocumentoDeRecebimentoWorkflow,
 )
@@ -24,12 +25,16 @@ from src.pre_recebimento.documento_recebimento.api.filters import (
     CronogramaRelatorioDocumentosFilter,
     DocumentoDeRecebimentoFilter,
 )
+from src.pre_recebimento.documento_recebimento.api.relatorio_documentos_recebimento_excel import (
+    gera_relatorio_documentos_recebimento_xlsx,
+)
 from src.pre_recebimento.documento_recebimento.api.serializers.serializer_create import (
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoAtualizacaoSerializer,
     DocumentoDeRecebimentoCorrecaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
+    DocumentoDeRecebimentoReprovarSerializer,
 )
 from src.pre_recebimento.documento_recebimento.api.serializers.serializers import (
     CronogramaRelatorioDocumentosSerializer,
@@ -40,9 +45,6 @@ from src.pre_recebimento.documento_recebimento.api.serializers.serializers impor
 )
 from src.pre_recebimento.documento_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
-)
-from src.pre_recebimento.documento_recebimento.api.relatorio_documentos_recebimento_excel import (
-    gera_relatorio_documentos_recebimento_xlsx,
 )
 from src.pre_recebimento.documento_recebimento.models import (
     DocumentoDeRecebimento,
@@ -153,6 +155,23 @@ class DocumentoDeRecebimentoModelViewSet(
     @action(
         detail=True,
         methods=["PATCH"],
+        url_path="reprovar-documentos",
+        permission_classes=(UsuarioEhDilogQualidade,),
+    )
+    def codae_reprova_documentos(self, request, uuid):
+        serializer = DocumentoDeRecebimentoReprovarSerializer(
+            instance=self.get_object(), data=request.data, context={"request": request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documento_reprovado = serializer.save()
+            return Response(
+                DocRecebimentoDetalharCodaeSerializer(documento_reprovado).data
+            )
+
+    @action(
+        detail=True,
+        methods=["PATCH"],
         url_path="corrigir-documentos",
         permission_classes=(UsuarioEhFornecedor,),
     )
@@ -200,7 +219,7 @@ class DocumentoDeRecebimentoModelViewSet(
 
         return HttpResponse(
             doc_recebimento.arquivo_laudo_assinado,
-            content_type="application/pdf",
+            content_type=ContentTypesParaRequests.PDF.value,
         )
 
     def _calcular_totalizadores(self, docs_qs):

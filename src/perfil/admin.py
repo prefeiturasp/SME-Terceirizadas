@@ -295,7 +295,11 @@ class ImportacaoPlanilhaUsuarioPerfilEscolaAdmin(admin.ModelAdmin):
             )
             return
         if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
-            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            self.message_user(
+                request,
+                StringsValidationErrors.ARQUIVO_NAO_SUPORTADO.value,
+                messages.ERROR,
+            )
             return
 
         importa_usuarios_perfil_escola(request.user, arquivo)
@@ -342,7 +346,11 @@ class ImportacaoPlanilhaUsuarioPerfilCodaeAdmin(admin.ModelAdmin):
             )
             return
         if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
-            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            self.message_user(
+                request,
+                StringsValidationErrors.ARQUIVO_NAO_SUPORTADO.value,
+                messages.ERROR,
+            )
             return
 
         importa_usuarios_perfil_codae(request.user, arquivo)
@@ -389,7 +397,11 @@ class ImportacaoPlanilhaUsuarioPerfilDreAdmin(admin.ModelAdmin):
             )
             return
         if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
-            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            self.message_user(
+                request,
+                StringsValidationErrors.ARQUIVO_NAO_SUPORTADO.value,
+                messages.ERROR,
+            )
             return
 
         importa_usuarios_perfil_dre(request.user, arquivo)
@@ -436,7 +448,11 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOAdmin(admin.ModelAdmin):
             )
             return
         if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
-            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            self.message_user(
+                request,
+                StringsValidationErrors.ARQUIVO_NAO_SUPORTADO.value,
+                messages.ERROR,
+            )
             return
 
         importa_usuarios_servidores_coresso(request.user, arquivo)
@@ -483,7 +499,11 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOAdmin(admin.ModelAdmin):
             )
             return
         if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
-            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            self.message_user(
+                request,
+                StringsValidationErrors.ARQUIVO_NAO_SUPORTADO.value,
+                messages.ERROR,
+            )
             return
 
         importa_usuarios_externos_coresso(request.user, arquivo)
@@ -530,7 +550,11 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOAdmin(admin.ModelAdmin):
             )
             return
         if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
-            self.message_user(request, "Arquivo não suportado.", messages.ERROR)
+            self.message_user(
+                request,
+                StringsValidationErrors.ARQUIVO_NAO_SUPORTADO.value,
+                messages.ERROR,
+            )
             return
 
         importa_usuarios_ues_parceiras_coresso(request.user, arquivo)

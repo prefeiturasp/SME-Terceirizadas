@@ -267,19 +267,23 @@ TIPO_SOLICITACAO_DIETA = {
 TIPOS_TURMAS_EMEBS = ["INFANTIL", "FUNDAMENTAL"]
 
 #
-# NOMES DE GRUPOS DE MEDICAÇÃO E DIETAS (reutilizados no módulo medicao_inicial)
+# NOMES DE DIETAS (reutilizados no módulo medicao_inicial)
 #
 
-GRUPO_INFANTIL_MANHA = "Infantil MANHA"
-GRUPO_INFANTIL_TARDE = "Infantil TARDE"
-GRUPO_INFANTIL_INTEGRAL = "Infantil INTEGRAL"
-GRUPO_PROGRAMAS_E_PROJETOS = "Programas e Projetos"
-GRUPO_SOLICITACOES_ALIMENTACAO = "Solicitações de Alimentação"
-GRUPO_RECREIO_NAS_FERIAS = "Recreio nas Férias"
-GRUPO_RECREIO_NAS_FERIAS_0_A_3 = "Recreio nas Férias - de 0 a 3 anos e 11 meses"
-GRUPO_RECREIO_NAS_FERIAS_4_A_14 = "Recreio nas Férias - 4 a 14 anos"
 DIETA_ESPECIAL_TIPO_A = "DIETA ESPECIAL - TIPO A"
 DIETA_ESPECIAL_TIPO_B = "DIETA ESPECIAL - TIPO B"
+
+INFANTIL_INTEGRAL = "Infantil INTEGRAL"
+INFANTIL_MANHA = "Infantil MANHA"
+INFANTIL_TARDE = "Infantil TARDE"
+PROGRAMAS_E_PROJETOS = "Programas e Projetos"
+RECREIO_NAS_FERIAS = "Recreio nas Férias"
+RECREIO_NAS_FERIAS_0_A_3 = "Recreio nas Férias - de 0 a 3 anos e 11 meses"
+RECREIO_NAS_FERIAS_4_A_14 = "Recreio nas Férias - 4 a 14 anos"
+SOLICITACOES_DE_ALIMENTACAO = "Solicitações de Alimentação"
+SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS = (
+    "Solicitações de Alimentação Extraordinárias"
+)
 
 ORDEM_PERIODOS_GRUPOS_EMEBS = {
     "MANHA - INFANTIL": 1,
@@ -298,24 +302,26 @@ ORDEM_PERIODOS_GRUPOS_EMEBS = {
     "Programas e Projetos - FUNDAMENTAL": 14,
     "Solicitações de Alimentação - INFANTIL": 15,
     "Solicitações de Alimentação - FUNDAMENTAL": 16,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 17,
 }
 
 ORDEM_PERIODOS_GRUPOS = {
     "MANHA": 1,
-    GRUPO_INFANTIL_MANHA: 1,
+    INFANTIL_MANHA: 1,
     "TARDE": 2,
-    GRUPO_INFANTIL_TARDE: 2,
+    INFANTIL_TARDE: 2,
     "INTEGRAL": 3,
-    GRUPO_INFANTIL_INTEGRAL: 3,
+    INFANTIL_INTEGRAL: 3,
     "NOITE": 4,
     "Infantil NOITE": 4,
     "INTERMEDIARIO": 5,
     "VESPERTINO": 6,
-    GRUPO_PROGRAMAS_E_PROJETOS: 7,
-    GRUPO_SOLICITACOES_ALIMENTACAO: 8,
+    PROGRAMAS_E_PROJETOS: 7,
+    SOLICITACOES_DE_ALIMENTACAO: 8,
     "ETEC": 9,
-    GRUPO_RECREIO_NAS_FERIAS: 10,
+    RECREIO_NAS_FERIAS: 10,
     "Colaboradores": 11,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 12,
 }
 
 ORDEM_PERIODOS_GRUPOS_CEI = {
@@ -323,30 +329,33 @@ ORDEM_PERIODOS_GRUPOS_CEI = {
     "PARCIAL": 2,
     "MANHA": 3,
     "TARDE": 4,
-    GRUPO_RECREIO_NAS_FERIAS: 5,
+    RECREIO_NAS_FERIAS: 5,
     "Colaboradores": 6,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 7,
 }
 
 ORDEM_PERIODOS_GRUPOS_CEMEI = {
     "INTEGRAL": 1,
     "PARCIAL": 2,
-    GRUPO_INFANTIL_INTEGRAL: 3,
-    GRUPO_INFANTIL_MANHA: 4,
-    GRUPO_INFANTIL_TARDE: 5,
-    GRUPO_PROGRAMAS_E_PROJETOS: 6,
-    GRUPO_RECREIO_NAS_FERIAS: 7,
-    GRUPO_RECREIO_NAS_FERIAS_0_A_3: 8,
-    GRUPO_RECREIO_NAS_FERIAS_4_A_14: 9,
-    GRUPO_SOLICITACOES_ALIMENTACAO: 10,
+    INFANTIL_INTEGRAL: 3,
+    INFANTIL_MANHA: 4,
+    INFANTIL_TARDE: 5,
+    PROGRAMAS_E_PROJETOS: 6,
+    RECREIO_NAS_FERIAS: 7,
+    RECREIO_NAS_FERIAS_0_A_3: 8,
+    RECREIO_NAS_FERIAS_4_A_14: 9,
+    SOLICITACOES_DE_ALIMENTACAO: 10,
     "Colaboradores": 11,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 12,
 }
 
 ORDEM_PERIODOS_GRUPOS_RECREIO_NAS_FERIAS = {
-    GRUPO_RECREIO_NAS_FERIAS: 1,
-    GRUPO_RECREIO_NAS_FERIAS_0_A_3: 2,
-    GRUPO_RECREIO_NAS_FERIAS_4_A_14: 3,
+    RECREIO_NAS_FERIAS: 1,
+    RECREIO_NAS_FERIAS_0_A_3: 2,
+    RECREIO_NAS_FERIAS_4_A_14: 3,
     "Colaboradores": 4,
-    GRUPO_SOLICITACOES_ALIMENTACAO: 5,
+    SOLICITACOES_DE_ALIMENTACAO: 5,
+    SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: 6,
 }
 
 MAX_COLUNAS = 15
@@ -442,77 +451,107 @@ ORDEM_UNIDADES_GRUPO_EMEBS = {
 ORDEM_UNIDADES_GRUPO_CIEJA_CMCT = {"CIEJA": 1, "CMCT": 2}
 
 
+class HeadersExcelConsolidado(Enum):
+    DIETA_ESPECIAL_TIPO_A = DIETA_ESPECIAL_TIPO_A
+    DIETA_ESPECIAL_TIPO_A_INFANTIL = "DIETA ESPECIAL - TIPO A - INFANTIL"
+    DIETA_ESPECIAL_TIPO_A_INTEGRAL = "DIETA ESPECIAL - TIPO A - INTEGRAL"
+    DIETA_ESPECIAL_TIPO_A_PARCIAL = "DIETA ESPECIAL - TIPO A - PARCIAL"
+    DIETA_ESPECIAL_TIPO_A_PROGRAMAS_E_PROJETOS = (
+        "DIETA ESPECIAL - TIPO A - PROGRAMAS E PROJETOS"
+    )
+    DIETA_ESPECIAL_TIPO_B = DIETA_ESPECIAL_TIPO_B
+    DIETA_ESPECIAL_TIPO_B_INFANTIL = "DIETA ESPECIAL - TIPO B - INFANTIL"
+    DIETA_ESPECIAL_TIPO_B_INTEGRAL = "DIETA ESPECIAL - TIPO B - INTEGRAL"
+    DIETA_ESPECIAL_TIPO_B_PARCIAL = "DIETA ESPECIAL - TIPO B - PARCIAL"
+    DIETA_ESPECIAL_TIPO_B_PROGRAMAS_E_PROJETOS = (
+        "DIETA ESPECIAL - TIPO B - PROGRAMAS E PROJETOS"
+    )
+    ETEC = "ETEC"
+    INFANTIL_INTEGRAL = INFANTIL_INTEGRAL
+    INFANTIL_MANHA = INFANTIL_MANHA
+    INFANTIL_TARDE = INFANTIL_TARDE
+    INTEGRAL = "INTEGRAL"
+    INTERMEDIARIO = "INTERMEDIARIO"
+    MANHA = "MANHA"
+    NOITE = "NOITE"
+    PARCIAL = "PARCIAL"
+    PROGRAMAS_E_PROJETOS = PROGRAMAS_E_PROJETOS
+    SOLICITACOES_DE_ALIMENTACAO = SOLICITACOES_DE_ALIMENTACAO
+    TARDE = "TARDE"
+    VESPERTINO = "VESPERTINO"
+
+
 ORDEM_HEADERS_EMEI_EMEF = {
-    GRUPO_SOLICITACOES_ALIMENTACAO: 1,
-    "MANHA": 2,
-    "TARDE": 3,
-    "INTEGRAL": 4,
-    "NOITE": 5,
-    "INTERMEDIARIO": 6,
-    "VESPERTINO": 7,
-    GRUPO_PROGRAMAS_E_PROJETOS: 8,
-    "ETEC": 9,
-    DIETA_ESPECIAL_TIPO_A: 10,
-    DIETA_ESPECIAL_TIPO_B: 11,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.MANHA.value: 2,
+    HeadersExcelConsolidado.TARDE.value: 3,
+    HeadersExcelConsolidado.INTEGRAL.value: 4,
+    HeadersExcelConsolidado.NOITE.value: 5,
+    HeadersExcelConsolidado.INTERMEDIARIO.value: 6,
+    HeadersExcelConsolidado.VESPERTINO.value: 7,
+    HeadersExcelConsolidado.PROGRAMAS_E_PROJETOS.value: 8,
+    HeadersExcelConsolidado.ETEC.value: 9,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A.value: 10,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B.value: 11,
 }
 
 ORDEM_HEADERS_CEI = {
-    GRUPO_SOLICITACOES_ALIMENTACAO: 1,
-    "INTEGRAL": 2,
-    "DIETA ESPECIAL - TIPO A - INTEGRAL": 3,
-    "DIETA ESPECIAL - TIPO B - INTEGRAL": 4,
-    "PARCIAL": 5,
-    "DIETA ESPECIAL - TIPO A - PARCIAL": 6,
-    "DIETA ESPECIAL - TIPO B - PARCIAL": 7,
-    "MANHA": 8,
-    "TARDE": 9,
-    DIETA_ESPECIAL_TIPO_A: 10,
-    DIETA_ESPECIAL_TIPO_B: 11,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.INTEGRAL.value: 2,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INTEGRAL.value: 3,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INTEGRAL.value: 4,
+    HeadersExcelConsolidado.PARCIAL.value: 5,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PARCIAL.value: 6,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PARCIAL.value: 7,
+    HeadersExcelConsolidado.MANHA.value: 8,
+    HeadersExcelConsolidado.TARDE.value: 9,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A.value: 10,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B.value: 11,
 }
 
 ORDEM_HEADERS_CEMEI = {
-    GRUPO_SOLICITACOES_ALIMENTACAO: 1,
-    "INTEGRAL": 2,
-    "DIETA ESPECIAL - TIPO A - INTEGRAL": 3,
-    "DIETA ESPECIAL - TIPO B - INTEGRAL": 4,
-    "PARCIAL": 5,
-    "DIETA ESPECIAL - TIPO A - PARCIAL": 6,
-    "DIETA ESPECIAL - TIPO B - PARCIAL": 7,
-    GRUPO_INFANTIL_INTEGRAL: 8,
-    GRUPO_INFANTIL_MANHA: 9,
-    GRUPO_INFANTIL_TARDE: 10,
-    "DIETA ESPECIAL - TIPO A - INFANTIL": 11,
-    "DIETA ESPECIAL - TIPO B - INFANTIL": 12,
-    GRUPO_PROGRAMAS_E_PROJETOS: 13,
-    "DIETA ESPECIAL - TIPO A - PROGRAMAS E PROJETOS": 14,
-    "DIETA ESPECIAL - TIPO B - PROGRAMAS E PROJETOS": 15,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.INTEGRAL.value: 2,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INTEGRAL.value: 3,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INTEGRAL.value: 4,
+    HeadersExcelConsolidado.PARCIAL.value: 5,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PARCIAL.value: 6,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PARCIAL.value: 7,
+    HeadersExcelConsolidado.INFANTIL_INTEGRAL.value: 8,
+    HeadersExcelConsolidado.INFANTIL_MANHA.value: 9,
+    HeadersExcelConsolidado.INFANTIL_TARDE.value: 10,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_INFANTIL.value: 11,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_INFANTIL.value: 12,
+    HeadersExcelConsolidado.PROGRAMAS_E_PROJETOS.value: 13,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A_PROGRAMAS_E_PROJETOS.value: 14,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B_PROGRAMAS_E_PROJETOS.value: 15,
 }
 
 ORDEM_HEADERS_EMEBS = {
-    GRUPO_SOLICITACOES_ALIMENTACAO: 1,
-    "MANHA": 2,
-    "TARDE": 3,
-    "INTEGRAL": 4,
-    "NOITE": 5,
-    "INTERMEDIARIO": 6,
-    "VESPERTINO": 7,
-    GRUPO_PROGRAMAS_E_PROJETOS: 8,
-    DIETA_ESPECIAL_TIPO_A: 9,
-    DIETA_ESPECIAL_TIPO_B: 10,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.MANHA.value: 2,
+    HeadersExcelConsolidado.TARDE.value: 3,
+    HeadersExcelConsolidado.INTEGRAL.value: 4,
+    HeadersExcelConsolidado.NOITE.value: 5,
+    HeadersExcelConsolidado.INTERMEDIARIO.value: 6,
+    HeadersExcelConsolidado.VESPERTINO.value: 7,
+    HeadersExcelConsolidado.PROGRAMAS_E_PROJETOS.value: 8,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A.value: 9,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B.value: 10,
 }
 
 ORDEM_HEADERS_CIEJA_CMCT = {
-    GRUPO_SOLICITACOES_ALIMENTACAO: 1,
-    "MANHA": 2,
-    "TARDE": 3,
-    "INTEGRAL": 4,
-    "NOITE": 5,
-    "INTERMEDIARIO": 6,
-    "VESPERTINO": 7,
-    GRUPO_PROGRAMAS_E_PROJETOS: 8,
-    "ETEC": 9,
-    DIETA_ESPECIAL_TIPO_A: 10,
-    DIETA_ESPECIAL_TIPO_B: 11,
+    HeadersExcelConsolidado.SOLICITACOES_DE_ALIMENTACAO.value: 1,
+    HeadersExcelConsolidado.MANHA.value: 2,
+    HeadersExcelConsolidado.TARDE.value: 3,
+    HeadersExcelConsolidado.INTEGRAL.value: 4,
+    HeadersExcelConsolidado.NOITE.value: 5,
+    HeadersExcelConsolidado.INTERMEDIARIO.value: 6,
+    HeadersExcelConsolidado.VESPERTINO.value: 7,
+    HeadersExcelConsolidado.PROGRAMAS_E_PROJETOS.value: 8,
+    HeadersExcelConsolidado.ETEC.value: 9,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_A.value: 10,
+    HeadersExcelConsolidado.DIETA_ESPECIAL_TIPO_B.value: 11,
 }
 
 # Para o recreio nas Férias
@@ -546,27 +585,27 @@ ORDEM_CAMPOS_RECREIO = [
 ]
 
 ORDEM_HEADERS_RECREIO_EMEI_EMEF = {
-    GRUPO_SOLICITACOES_ALIMENTACAO: 1,
-    GRUPO_RECREIO_NAS_FERIAS: 2,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
+    RECREIO_NAS_FERIAS: 2,
     DIETA_ESPECIAL_TIPO_A: 3,
     DIETA_ESPECIAL_TIPO_B: 4,
     "Colaboradores": 5,
 }
 
 ORDEM_HEADERS_RECREIO_CEI = {
-    GRUPO_SOLICITACOES_ALIMENTACAO: 1,
-    GRUPO_RECREIO_NAS_FERIAS: 2,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
+    RECREIO_NAS_FERIAS: 2,
     DIETA_ESPECIAL_TIPO_A: 3,
     DIETA_ESPECIAL_TIPO_B: 4,
     "Colaboradores": 5,
 }
 
 ORDEM_HEADERS_RECREIO_CEMEI = {
-    GRUPO_SOLICITACOES_ALIMENTACAO: 1,
-    GRUPO_RECREIO_NAS_FERIAS_0_A_3: 2,
+    SOLICITACOES_DE_ALIMENTACAO: 1,
+    RECREIO_NAS_FERIAS_0_A_3: 2,
     "DIETA ESPECIAL - TIPO A - RECREIO NAS FÉRIAS - DE 0 A 3 ANOS E 11 MESES": 3,
     "DIETA ESPECIAL - TIPO B - RECREIO NAS FÉRIAS - DE 0 A 3 ANOS E 11 MESES": 4,
-    GRUPO_RECREIO_NAS_FERIAS_4_A_14: 5,
+    RECREIO_NAS_FERIAS_4_A_14: 5,
     "DIETA ESPECIAL - TIPO A - RECREIO NAS FÉRIAS - 4 A 14 ANOS": 6,
     "DIETA ESPECIAL - TIPO B - RECREIO NAS FÉRIAS - 4 A 14 ANOS": 7,
     "Colaboradores": 8,
@@ -607,6 +646,7 @@ class ClassificacoesDietasDeprecadas(Enum):
 class NomesParaTesteDiretoriaRegional(Enum):
     DIRETORIA_REGIONAL_TESTE = "DIRETORIA REGIONAL TESTE"
     DIRETORIA_REGIONAL_GUAIANASES = "DIRETORIA REGIONAL GUAIANASES"
+    DIRETORIA_REGIONAL_IPIRANGA = "DIRETORIA REGIONAL IPIRANGA"
 
     @classmethod
     def choices(cls):
@@ -615,10 +655,31 @@ class NomesParaTesteDiretoriaRegional(Enum):
 
 class NomesParaTesteEscola(Enum):
     EMEI_ALUISIO_DE_ALMEIDA = "EMEI ALUISIO DE ALMEIDA"
+    EMEI_NOE_AZEVEDO_PROF = "EMEI NOE AZEVEDO, PROF"
     EMEF_TESTE = "EMEF TESTE"
     EMEI_TESTE = "EMEI TESTE"
     CEI_DIRET_TESTE = "CEI DIRET TESTE"
+    CEI_DIRET_JOSE_DE_MOURA_VER = "CEI DIRET - JOSE DE MOURA, VER."
     CEMEI_TESTE = "CEMEI TESTE"
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
+
+
+class NumerosDeEditais(Enum):
+    EDITAL_41_2017 = "Edital de Pregão nº 41/sme/2017"
+    EDITAL_78_2016 = "Edital de Pregão nº 78/sme/2016"
+    EDITAL_78_2022 = "Edital de Pregão nº 78/sme/2022"
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
+
+
+class NumerosParaCronogramas(Enum):
+    NUMERO_002_2022A = "002/2022A"
+    NUMERO_00222_2022 = "00222/2022"
 
     @classmethod
     def choices(cls):
@@ -840,6 +901,8 @@ class EmailsParaTeste(Enum):
     ADMIN = "admin@admin.com"
     ADMIN_COM_BR = "admin@admin.com.br"
     TERCEIRIZADA_ADMIN = "terceirizada@admin.com"
+    ESCOLA = "user@escola.com"
+    ESCOLA_ADMIN = "escola@admin.com"
 
     @classmethod
     def choices(cls):
@@ -909,6 +972,8 @@ class StringsInformacoesPessoais(Enum):
     ENDERECO_UNIDADE = "Rua Alvaro de Azevedo Antunes"
     BAIRRO_UNIDADE = "VILA CAMPESINA"
     NOME_MOTORISTA = "José da Silva"
+    NOME_RONALDO_DIRETOR = "RONALDO DIRETOR"
+    NOME_RONALDO_COGESTOR = "RONALDO COGESTOR"
 
     @classmethod
     def choices(cls):
@@ -973,6 +1038,67 @@ class StringsValidationErrors(Enum):
         "É necessario informar o número da requisição ao qual a(s) guia(s) pertece(m)."
     )
     CAMPO_OBRIGATORIO_PARA_O_GRUPO = "Campo obrigatório para o grupo."
+    DATA_FORA_DA_COMPETENCIA_DA_MEDICAO = (
+        "A data da ocorrência deve pertencer ao mês e ano da solicitação de "
+        "medição inicial."
+    )
+    DATA_EM_FORMATO_INVALIDO = "Data em formato inválido. Utilize o formato DD/MM/AAAA."
+    DATA_DE_OCORRENCIA_FUTURA = (
+        "Não é permitido registrar ocorrência para a data de hoje ou para "
+        "datas futuras."
+    )
+    DATA_DE_OCORRENCIA_DUPLICADA = (
+        "Já existe uma ocorrência registrada para esta data com a mesma "
+        "categoria e tipo de ocorrência."
+    )
+    USUARIO_OU_SENHA_INVALIDOS = "Usuário ou senha inválidos"
+    USUARIO_NAO_ENCONTRADO = "Usuário não encontrado"
+    SEM_AUTORIZACAO_ACESSO = (
+        "Você está sem autorização de acesso à aplicação no momento. "
+        "Entre em contato com o administrador do SIGPAE."
+    )
+    NAO_FOI_POSSIVEL_LOGAR = "Não foi possível logar no sistema"
+    ARQUIVO_NAO_SUPORTADO = "Arquivo não suportado."
+    EXTENSAO_ARQUIVO_NAO_SUPORTADA = "Extensão do arquivo não suportada."
+    EOL_TIMEOUT = "EOL Timeout"
+    NAO_FOI_FEITO_O_UPLOAD_DA_PLANILHA = "Não foi feito o upload da planilha"
+    PLANILHA_PROCESSADA_COM_SUCESSO = "Planilha processada com sucesso."
+    ERROS_ENCONTRADOS_NO_PROCESSAMENTO_DA_PLANILHA = (
+        "Erros encontrados no processamento da planilha"
+    )
+    PRECISA_IMPLEMENTAR = "Precisa implementar"
+    RESTAM_DIAS_A_SEREM_LANCADOS = "Restam dias a serem lançados nas alimentações."
+    RESTAM_DIAS_A_SEREM_LANCADOS_NAS_DIETAS = "Restam dias a serem lançados nas dietas."
+    RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS = (
+        "Restam dias a serem lançados nos Lanches Emergenciais."
+    )
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
+
+
+MSG_SOLICITACAO_APROVADO_PELA_DRE = "Solicitação aprovado pela DRE"
+MSG_SOLICITACAO_APROVADO_PELA_CODAE = "Solicitação aprovado pela CODAE"
+JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE = "Sem observações por parte da CODAE"
+MSG_SCRIPT_CANCELADO = "================== SCRIPT CANCELADO =================="
+
+
+class ColunasPlanilhaEscola(Enum):
+    COD_CODAE = "COD. CODAE"
+    TIPO_DE_UE = "TIPO DE U.E"
+    SIGLA_LOTE = "SIGLA/LOTE"
+    ENDERECO = "ENDEREÇO"
+    NUCLEO_DA_CODAE = "Núcleo da CODAE"
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
+
+
+class ContentTypesParaRequests(Enum):
+    XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    PDF = "application/pdf"
 
     @classmethod
     def choices(cls):
@@ -1006,6 +1132,8 @@ class PayloadVariaveis(Enum):
     TIPO_CALENDARIO = "tipo_calendario[]"
     SOLICITACOES = "solicitacoes[]"
     MOTIVO = "motivo[]"
+    DIRETORIA_REGIONAL_UUID = "diretoria_regional__uuid[]"
+    SUBPREFEITURA_UUID = "subprefeitura__uuid[]"
 
     @classmethod
     def choices(cls):
@@ -1106,6 +1234,10 @@ class StringsSearchHelpText(Enum):
     )
     PESQUISE_POR_TITULO = "Pesquise por: título"
     PESQUISE_POR_INICIAIS_OU_NOME_DO_TIPO_DE_UNIDADE_NUMERO_DO_EDITAL_TIPO_DE_SOBREMESA = "Pesquise por: iniciais ou nome do tipo de unidade, número do edital, tipo de sobremesa"
+    PESQUISE_POR_NOME_DO_USUARIO = "Pesquise por: nome do usuário"
+    PESQUISE_POR_NOME_DA_ESCOLA_CODIGO_EOL_DA_ESCOLA_OU_NOME_DO_LOTE = (
+        "Pesquise por: nome da escola, código eol da escola ou nome do lote"
+    )
 
     @classmethod
     def choices(cls):
@@ -1327,6 +1459,7 @@ class StringsVerboseNameModels(Enum):
     JUSTIFICATIVA_DE_SOLICITACAO_PELO_FORNECEDOR = (
         "Justificativa de solicitação pelo fornecedor"
     )
+    JUSTIFICATIVA_REPROVACAO = "Justificativa da Reprovação"
     LINK = "Link"
     LOGRADOURO = "Logradouro"
     LOGS_DE_MATRICULADOS_DIETAS_AUTORIZADAS_ETC_FORAM_SALVOS = (
@@ -1522,6 +1655,12 @@ class StringsVerboseNameModels(Enum):
     @classmethod
     def choices(cls):
         return [(key.value, key.name) for key in cls]
+
+
+class StringsParametrizacaoFinanceiraTabela(Enum):
+    ALIMENTACOES = "Preço das Alimentações"
+    DIETA_A = "Dietas Tipo A e Tipo A Enteral/Restrição de Aminoácidos"
+    DIETA_B = "Dietas Tipo B"
 
 
 class TIPOS_UNIDADE_ESCOLAR(Enum):

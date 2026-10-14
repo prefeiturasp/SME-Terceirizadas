@@ -8,7 +8,7 @@ data_atual = datetime.date.today()
 
 # DEV
 
-usuario_escola = Usuario.objects.get(email="escola@admin.com")
+usuario_escola = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
 usuario_escola.registro_funcional = "0000001"
 usuario_escola.nome = "SUPER USUARIO ESCOLA"
 usuario_escola.cargo = "Diretor"
