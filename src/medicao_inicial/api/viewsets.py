@@ -42,7 +42,12 @@ from src.medicao_inicial.services.relatorio_adesao import (
     valida_parametros_resultado_individual_por_data,
 )
 from src.medicao_inicial.services.relatorio_alimentacoes_servidas import (
+    filtros_exportacao_relatorio_alimentacoes_servidas,
     meses_anos_relatorio_alimentacoes_servidas,
+)
+from src.medicao_inicial.services.relatorio_alimentacoes_servidas_dados import (
+    obtem_nome_arquivo_relatorio_alimentacoes_servidas,
+    recreios_dos_filtros,
 )
 from src.medicao_inicial.utils import process_anexos_from_request
 
@@ -110,6 +115,7 @@ from ..models import (
 from ..tasks import (
     exporta_relatorio_adesao_para_pdf,
     exporta_relatorio_adesao_para_xlsx,
+    exporta_relatorio_alimentacoes_servidas_para_xlsx,
     exporta_relatorio_consolidado_xlsx,
     exporta_relatorio_historico_correcoes_pdf,
     gera_pdf_historico_ocorrencias_medicao_inicial_async,
@@ -2572,6 +2578,53 @@ class RelatoriosViewSet(ViewSet):
                 data={"detail": MSG_ERROR_VERIFIQUE_PARAMETROS},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @action(
+        detail=False,
+        url_name="relatorio-alimentacoes-servidas_exportar-xlsx",
+        url_path="relatorio-alimentacoes-servidas/exportar-xlsx",
+        permission_classes=[
+            UsuarioDiretoriaRegional
+            | UsuarioCODAEGestaoAlimentacao
+            | UsuarioMedicao
+            | UsuarioCODAENutriManifestacao
+            | UsuarioCODAEGabinete
+            | UsuarioCODAERelatorios
+            | UsuarioDinutreDiretoria
+            | UsuarioEmpresaTerceirizada
+            | UsuarioSupervisaoNutricao
+        ],
+    )
+    def relatorio_alimentacoes_servidas_exportar_xlsx(self, request: Request):
+        """
+        Solicita o Excel do Relatório de Alimentações Servidas.
+
+        Parâmetros: ``dres[]`` obrigatório e, ao menos um entre ``meses[]``
+        (MM_AAAA, só meses regulares) e ``recreios_nas_ferias[]`` (UUIDs).
+        Opcionais: ``lotes[]``, ``subprefeituras[]``, ``tipos_unidades[]``
+        (podem ser de grupos diferentes), ``unidades_educacionais[]``,
+        ``tipos_alimentacao[]``, ``periodo_lancamento_de`` e
+        ``periodo_lancamento_ate`` (DD/MM/AAAA). Parâmetro ausente não
+        restringe a consulta.
+
+        Responde 200 assim que a solicitação é registrada; o arquivo é gerado
+        de forma assíncrona e entregue na Central de Downloads. Erros de
+        validação voltam com 400 no formato ``{"campo": ["mensagem"]}``.
+        """
+        filtros = filtros_exportacao_relatorio_alimentacoes_servidas(
+            request.query_params, request.user
+        )
+        exporta_relatorio_alimentacoes_servidas_para_xlsx.delay(
+            user=request.user.get_username(),
+            nome_arquivo=obtem_nome_arquivo_relatorio_alimentacoes_servidas(
+                filtros["meses"], recreios_dos_filtros(filtros, request.user)
+            ),
+            filtros=filtros,
+        )
+        return Response(
+            data={"detail": MENSAGEM_SOLICITACAO_GERACAO_ARQUIVO},
+            status=status.HTTP_200_OK,
+        )
 
 
 class ClausulaDeDescontoViewSet(ModelViewSet):

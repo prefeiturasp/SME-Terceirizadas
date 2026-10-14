@@ -18,6 +18,12 @@ from src.medicao_inicial.services.relatorio_adesao_excel import (
 from src.medicao_inicial.services.relatorio_adesao_pdf import (
     gera_relatorio_adesao_pdf,
 )
+from src.medicao_inicial.services.relatorio_alimentacoes_servidas_dados import (
+    monta_relatorio_alimentacoes_servidas,
+)
+from src.medicao_inicial.services.relatorio_alimentacoes_servidas_excel import (
+    gera_relatorio_alimentacoes_servidas_xlsx,
+)
 from src.medicao_inicial.services.relatorio_consolidado_excel import (
     gera_relatorio_consolidado_xlsx,
 )
@@ -449,6 +455,30 @@ def exporta_relatorio_adesao_para_pdf(user, nome_arquivo, resultados, query_para
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def exporta_relatorio_alimentacoes_servidas_para_xlsx(user, nome_arquivo, filtros):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        usuario = Usuario.objects.get(username=user)
+        relatorio = monta_relatorio_alimentacoes_servidas(filtros, usuario)
+        arquivo = gera_relatorio_alimentacoes_servidas_xlsx(relatorio)
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+        logger.error(f"Erro ao gerar relatório de alimentações servidas: {e}")
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
 
