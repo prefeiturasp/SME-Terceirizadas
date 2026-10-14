@@ -306,9 +306,15 @@ sass_tags %} {% load humanize %}
         <div class="content">
           {% for veiculo in veiculos %}
           <div class="row pb-3">
-            <div class="col-12">
+            <div class="col-6">
               Nº do Veículo:
               <span class="font-weight-bold"> {{veiculo.numero}} </span>
+            </div>
+            <div class="col-6">
+              Placa do Veículo:
+              <span class="font-weight-bold">
+                {{veiculo.placa|default_if_none:""}}
+              </span>
             </div>
           </div>
           {% if ficha_tecnica.categoria == 'PERECIVEIS' %}
