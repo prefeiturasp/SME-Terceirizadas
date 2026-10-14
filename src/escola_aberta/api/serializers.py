@@ -3,17 +3,12 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from src.cardapio.base.models import TipoAlimentacao
-from src.dados_comuns.utils import parse_date  # ajuste o import (DD/MM/YYYY)
+from src.dados_comuns.utils import parse_date
 from src.escola.models import Escola, Lote
 
 from ..models import (
     EscolaAberta,
     EscolaAbertaUnidadeParticipante,
-)
-
-MSG_DUPLICIDADE = (
-    "Já existe um cadastro com esta combinação de UE, "
-    "período de realização e dia da semana"
 )
 
 
@@ -76,7 +71,7 @@ class EscolaAbertaCreateSerializer(serializers.Serializer):
             escola_aberta__dias_semana__overlap=rec["dias_semana"],
         ).exists()
         if existe:
-            raise ValidationError({"non_field_errors": [MSG_DUPLICIDADE]})
+            raise ValidationError({"non_field_errors": ["Já existe um cadastro com esta combinação de UE, período de realização e dia da semana"]})
         return attrs
 
     def create(self, validated_data):
