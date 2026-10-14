@@ -1036,6 +1036,86 @@ def test_url_dashboard_painel_usuario_dilog_abastecimento(
             assert len(resultado["dados"]) == 1
 
 
+@pytest.mark.parametrize(
+    "caminho, filtros",
+    [
+        ("/cronogramas/dashboard/", {}),
+        (
+            "/cronogramas/dashboard-com-filtro/",
+            {"numero_cronograma": "/2026A"},
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    "status_cronograma",
+    [
+        CronogramaWorkflow.ASSINADO_E_ENVIADO_AO_FORNECEDOR,
+        CronogramaWorkflow.ASSINADO_FORNECEDOR,
+        CronogramaWorkflow.ASSINADO_DILOG_ABASTECIMENTO,
+        CronogramaWorkflow.ASSINADO_CODAE,
+    ],
+)
+def test_url_dashboard_cronogramas_com_e_sem_logs(
+    client_autenticado_dilog_abastecimento,
+    cronograma_factory,
+    caminho,
+    filtros,
+    status_cronograma,
+):
+    data_base = timezone.now() - datetime.timedelta(days=30)
+    cronograma_log_recente = cronograma_factory(
+        numero="001/2026A", status=status_cronograma
+    )
+    cronograma_log_antigo = cronograma_factory(
+        numero="002/2026A", status=status_cronograma
+    )
+    cronograma_sem_log = cronograma_factory(
+        numero="003/2026A", status=status_cronograma
+    )
+
+    for cronograma, dias in [
+        (cronograma_log_recente, 1),
+        (cronograma_log_antigo, 2),
+        (cronograma_sem_log, 15),
+    ]:
+        Cronograma.objects.filter(pk=cronograma.pk).update(
+            criado_em=data_base + datetime.timedelta(days=dias)
+        )
+
+    for cronograma, dias in [
+        (cronograma_log_recente, 20),
+        (cronograma_log_antigo, 10),
+    ]:
+        log = baker.make(
+            LogSolicitacoesUsuario,
+            uuid_original=cronograma.uuid,
+            status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO,
+            solicitacao_tipo=LogSolicitacoesUsuario.CRONOGRAMA,
+        )
+        LogSolicitacoesUsuario.objects.filter(pk=log.pk).update(
+            criado_em=data_base + datetime.timedelta(days=dias)
+        )
+
+    assert not cronograma_sem_log.logs.exists()
+
+    resposta = client_autenticado_dilog_abastecimento.get(caminho, filtros)
+
+    assert resposta.status_code == status.HTTP_200_OK
+    dados = next(
+        resultado["dados"]
+        for resultado in resposta.json()["results"]
+        if resultado["status"] == status_cronograma
+    )
+    assert [cronograma["uuid"] for cronograma in dados] == [
+        str(cronograma_log_recente.uuid),
+        str(cronograma_sem_log.uuid),
+        str(cronograma_log_antigo.uuid),
+    ]
+    assert dados[1]["log_mais_recente"] == (
+        data_base + datetime.timedelta(days=15)
+    ).strftime(FORMATO_DATA_BRASILEIRO)
+
+
 def test_url_dashboard_painel_usuario_dilog_abastecimento_com_paginacao(
     client_autenticado_dilog_abastecimento, cronogramas_multiplos_status_com_log
 ):
