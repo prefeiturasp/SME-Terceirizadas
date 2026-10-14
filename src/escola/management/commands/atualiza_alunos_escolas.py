@@ -252,7 +252,7 @@ class Command(BaseCommand):
         todos_os_registros = self._coleta_dados_sequencial(escolas, proximo_ano)
         todos_os_registros.sort(
             key=lambda x: (
-                x["codigoAluno"],
+                -int(x["codigoAluno"]),
                 x.get("anoLetivo"),
                 x.get("dataSituacao"),
                 x.get("codigoEolEscola"),
