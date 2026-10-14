@@ -144,16 +144,22 @@ class LoginView(TokenObtainPairView):
             or self.eh_cargo_coordenador_polo(dados_usuario)
         )
 
-    def checa_se_cria_usuario(self, dados_usuario):
+    def valida_acesso_automatico(self, dados_usuario):
         if not self.usuario_com_cargo_de_acesso_automatico(dados_usuario):
             raise NovoSGPServicoLogadoException(
                 "Usuário não possui permissão de acesso ao SIGPAE"
             )
+
+    def checa_se_cria_usuario(self, dados_usuario):
+        self.valida_acesso_automatico(dados_usuario)
         if self.usuario_com_cargo_diretor(dados_usuario):
             self.cria_usuario_no_django_e_no_coresso(dados_usuario, DIRETOR_UE)
 
     def eh_perfil_escola(self, vinculo_atual):
         return vinculo_atual.perfil.nome in [ADMINISTRADOR_UE, DIRETOR_UE]
+
+    def _codigo_eol_normalizado(self, codigo_eol):
+        return str(codigo_eol).zfill(6)
 
     def cria_vinculo(self, user, hoje, dados_usuario, perfil):
         novo_vinculo = Vinculo(
@@ -161,17 +167,22 @@ class LoginView(TokenObtainPairView):
             ativo=True,
             data_inicial=hoje,
             instituicao=Escola.objects.get(
-                codigo_eol=dados_usuario["cargos"][0]["codigoUnidade"]
+                codigo_eol=self._codigo_eol_normalizado(
+                    dados_usuario["cargos"][0]["codigoUnidade"]
+                )
             ),
             perfil=perfil,
         )
         novo_vinculo.save()
 
     def checa_se_trocou_de_unidade(self, user, hoje, vinculo_atual, dados_usuario):
-        unidade_atual = dados_usuario["cargos"][0]["codigoUnidade"]
+        unidade_atual = self._codigo_eol_normalizado(
+            dados_usuario["cargos"][0]["codigoUnidade"]
+        )
         if (
             vinculo_atual.ativo
-            and vinculo_atual.instituicao.codigo_eol != unidade_atual
+            and self._codigo_eol_normalizado(vinculo_atual.instituicao.codigo_eol)
+            != unidade_atual
         ):
             vinculo_atual.finalizar_vinculo()
             self.cria_vinculo(user, hoje, dados_usuario, vinculo_atual.perfil)
@@ -191,10 +202,9 @@ class LoginView(TokenObtainPairView):
             vinculo_atual.finalizar_vinculo()
             perfil = Perfil.objects.get(nome=DIRETOR_UE)
             self.cria_vinculo(user, hoje, dados_usuario, perfil)
-        elif (
+        elif self._codigo_eol_normalizado(
             dados_usuario["cargos"][0]["codigoUnidade"]
-            != vinculo_atual.instituicao.codigo_eol
-        ):
+        ) != self._codigo_eol_normalizado(vinculo_atual.instituicao.codigo_eol):
             vinculo_atual.finalizar_vinculo()
 
     def checa_vinculo_se_servidor(self, login):
@@ -313,7 +323,8 @@ class LoginView(TokenObtainPairView):
             dados_usuario["email"] = self.validar_email_usuario_coresso(
                 dados_usuario["email"], login
             )
-            self.checa_se_cria_usuario(dados_usuario)
+            self.valida_acesso_automatico(dados_usuario)
+            self.get_or_create_user(dados_usuario)
             user_dict = {"login": login, **dados_usuario}
         return user_dict
 
