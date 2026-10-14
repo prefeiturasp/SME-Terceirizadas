@@ -1132,6 +1132,8 @@ class PayloadVariaveis(Enum):
     TIPO_CALENDARIO = "tipo_calendario[]"
     SOLICITACOES = "solicitacoes[]"
     MOTIVO = "motivo[]"
+    DIRETORIA_REGIONAL_UUID = "diretoria_regional__uuid[]"
+    SUBPREFEITURA_UUID = "subprefeitura__uuid[]"
 
     @classmethod
     def choices(cls):
