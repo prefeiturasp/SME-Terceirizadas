@@ -16,7 +16,7 @@ from src.medicao_inicial.validators import (
     validate_lancamento_alimentacoes_medicao,
     validate_lancamento_dietas_cei,
     validate_lancamento_inclusoes,
-    validate_medicao_cemei,
+    validate_medicao_cemei_cei,
     validate_solicitacoes_etec,
     validate_solicitacoes_programas_e_projetos,
 )
@@ -260,7 +260,7 @@ def test_valida_finalizar_medicao_cemei_desconsidera_dia_suspensao(
     )
     _criar_dia_suspensao(escola_cemei, DIA_SUSPENSO)
 
-    lista_erros = validate_medicao_cemei(solicitacao)
+    lista_erros = validate_medicao_cemei_cei(solicitacao, [])
 
     assert lista_erros == []
 

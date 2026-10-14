@@ -27,7 +27,7 @@ from src.medicao_inicial.validators import (
     validate_lancamento_dietas_inclusoes_escola_sem_alunos_regulares,
     validate_lancamento_inclusoes_cei,
     validate_lancamento_inclusoes_dietas_emef_emebs,
-    validate_medicao_cemei,
+    validate_medicao_cemei_cei,
     validate_solicitacoes_etec,
     validate_solicitacoes_programas_e_projetos,
     validate_solicitacoes_programas_e_projetos_emebs,
@@ -247,7 +247,9 @@ def test_validate_medicao_cei_cemei_periodo_integral_dia_letivo_preenchido(
     )
     make_valor_medicao_faixa_etaria(medicao, "1", dia)
 
-    lista_erros = validate_medicao_cemei(solicitacao_medicao_inicial_cemei_simples)
+    lista_erros = validate_medicao_cemei_cei(
+        solicitacao_medicao_inicial_cemei_simples, []
+    )
 
     assert len(lista_erros) == 0
 
@@ -274,7 +276,9 @@ def test_validate_medicao_cei_cemei_periodo_integral_dia_letivo_nao_preenchido(
         dia, escola_cemei, solicitacao_medicao_inicial_cemei_simples, periodo_integral
     )
 
-    lista_erros = validate_medicao_cemei(solicitacao_medicao_inicial_cemei_simples)
+    lista_erros = validate_medicao_cemei_cei(
+        solicitacao_medicao_inicial_cemei_simples, []
+    )
     assert len(lista_erros) == 1
 
 
