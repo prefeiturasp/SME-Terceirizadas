@@ -3878,11 +3878,10 @@ def _validate_medicao_emei_cemei(
     return lista_erros
 
 
-# TODO: adicionar testes unitarios
-def validate_medicao_cemei(solicitacao):
-    ano = solicitacao.ano
-    mes = solicitacao.mes
+def _get_contexto_validacao_cemei(solicitacao):
     escola = solicitacao.escola
+    mes = solicitacao.mes
+    ano = solicitacao.ano
     categoria_alimentacao = CategoriaMedicao.objects.get(
         nome=CategoriaMedicao.ALIMENTACAO
     )
@@ -3916,50 +3915,87 @@ def validate_medicao_cemei(solicitacao):
         dias_motivos_da_inclusao_cemei__data__year=ano,
         dias_motivos_da_inclusao_cemei__cancelado=False,
     ).order_by("dias_motivos_da_inclusao_cemei__data")
-    lista_erros = []
-    lista_erros = validate_lancamento_kit_lanche(solicitacao, lista_erros)
-    lista_erros = validate_lanche_emergencial(solicitacao, lista_erros)
+    return {
+        "escola": escola,
+        "mes": mes,
+        "ano": ano,
+        "categoria_alimentacao": categoria_alimentacao,
+        "dias_letivos_uteis": dias_letivos_uteis,
+        "dias_nao_letivos": dias_nao_letivos,
+        "inclusoes": inclusoes,
+    }
+
+
+def _inclusoes_cemei_cei(inclusoes):
+    return inclusoes.filter(
+        quantidade_alunos_cei_da_inclusao_cemei__isnull=False
+    ).exclude(
+        dias_motivos_da_inclusao_cemei__motivo__nome=MotivoInclusaoNormal.EVENTO_ESPECIFICO
+    )
+
+
+def _inclusoes_cemei_emei(inclusoes):
+    return inclusoes.filter(
+        quantidade_alunos_emei_da_inclusao_cemei__isnull=False
+    ).exclude(
+        dias_motivos_da_inclusao_cemei__motivo__nome=MotivoInclusaoNormal.EVENTO_ESPECIFICO
+    )
+
+
+def validate_medicao_cemei_cei(solicitacao, lista_erros):
+    contexto = _get_contexto_validacao_cemei(solicitacao)
+    inclusoes_cei = _inclusoes_cemei_cei(contexto["inclusoes"])
     for medicao in solicitacao.medicoes.all():
-        tipo_medicao = medicao.nome_periodo_grupo.upper()
-        if tipo_medicao in ["INTEGRAL", "PARCIAL"]:
-            lista_erros = _validate_medicao_cei_cemei(
-                lista_erros,
-                medicao,
-                escola,
-                mes,
-                ano,
-                dias_letivos_uteis,
-                categoria_alimentacao,
-                dias_nao_letivos,
-                inclusoes.filter(
-                    quantidade_alunos_cei_da_inclusao_cemei__isnull=False
-                ).exclude(
-                    dias_motivos_da_inclusao_cemei__motivo__nome=MotivoInclusaoNormal.EVENTO_ESPECIFICO
-                ),
-            )
-        elif tipo_medicao == "PROGRAMAS E PROJETOS":
-            lista_erros = _validate_solicitacoes_programas_e_projetos_emei_cemei(
-                solicitacao, lista_erros, medicao
-            )
-        elif tipo_medicao == CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO:
+        if medicao.nome_periodo_grupo.upper() not in ["INTEGRAL", "PARCIAL"]:
             continue
-        else:
-            lista_erros = _validate_medicao_emei_cemei(
-                lista_erros,
-                solicitacao,
-                escola,
-                categoria_alimentacao,
-                dias_letivos_uteis,
-                inclusoes.filter(
-                    quantidade_alunos_emei_da_inclusao_cemei__isnull=False
-                ).exclude(
-                    dias_motivos_da_inclusao_cemei__motivo__nome=MotivoInclusaoNormal.EVENTO_ESPECIFICO
-                ),
-                medicao,
-                mes,
-                ano,
-                dias_nao_letivos,
-            )
+        lista_erros = _validate_medicao_cei_cemei(
+            lista_erros,
+            medicao,
+            contexto["escola"],
+            contexto["mes"],
+            contexto["ano"],
+            contexto["dias_letivos_uteis"],
+            contexto["categoria_alimentacao"],
+            contexto["dias_nao_letivos"],
+            inclusoes_cei,
+        )
+    return lista_erros
+
+
+def validate_medicao_cemei_programas_e_projetos(solicitacao, lista_erros):
+    for medicao in solicitacao.medicoes.all():
+        if medicao.nome_periodo_grupo.upper() != "PROGRAMAS E PROJETOS":
+            continue
+        lista_erros = _validate_solicitacoes_programas_e_projetos_emei_cemei(
+            solicitacao, lista_erros, medicao
+        )
+    return lista_erros
+
+
+def validate_medicao_cemei_emei(solicitacao, lista_erros):
+    contexto = _get_contexto_validacao_cemei(solicitacao)
+    inclusoes_emei = _inclusoes_cemei_emei(contexto["inclusoes"])
+    tipos_ignorados = [
+        "INTEGRAL",
+        "PARCIAL",
+        "PROGRAMAS E PROJETOS",
+        CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO,
+    ]
+    for medicao in solicitacao.medicoes.all():
+        if medicao.nome_periodo_grupo.upper() in tipos_ignorados:
+            continue
+        lista_erros = _validate_medicao_emei_cemei(
+            lista_erros,
+            solicitacao,
+            contexto["escola"],
+            contexto["categoria_alimentacao"],
+            contexto["dias_letivos_uteis"],
+            inclusoes_emei,
+            medicao,
+            contexto["mes"],
+            contexto["ano"],
+            contexto["dias_nao_letivos"],
+        )
     return lista_erros
 
 
