@@ -2272,10 +2272,23 @@ def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticad
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@pytest.mark.parametrize(
+    "nome_client",
+    [
+        "client_autenticado_qualidade",
+        "client_autenticado_codae_dilog",
+        "client_autenticado_dilog_cronograma",
+        "client_autenticado_dilog_diretoria",
+        "client_autenticado_administrador_codae_gabinete",
+    ],
+)
 def test_url_dashboard_documentos_de_recebimento_status_retornados(
-    client_autenticado_codae_dilog, documento_de_recebimento_factory
+    request, nome_client, documento_de_recebimento_factory
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    """Todo perfil com acesso ao painel recebe os seus cards, entre eles o
+    de Reprovados."""
+    client = request.getfixturevalue(nome_client)
+    user_id = client.session["_auth_user_id"]
     user = get_user_model().objects.get(id=user_id)
     status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(
         user
@@ -2283,9 +2296,7 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
     for status_esperado in status_esperados:
         documento_de_recebimento_factory(status=status_esperado)
 
-    response = client_autenticado_codae_dilog.get(
-        "/documentos-de-recebimento/dashboard/"
-    )
+    response = client.get("/documentos-de-recebimento/dashboard/")
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -2293,6 +2304,8 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
 
     for status_recebido in status_recebidos:
         assert status_recebido in status_esperados
+
+    assert DocumentoDeRecebimentoWorkflow.REPROVADO in status_recebidos
 
 
 @pytest.mark.parametrize(

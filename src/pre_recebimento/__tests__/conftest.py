@@ -6,6 +6,7 @@ from faker import Faker
 from model_bakery import baker
 
 from src.dados_comuns.constants import (
+    ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
@@ -1111,6 +1112,29 @@ def client_autenticado_dilog_visualizacao(client, django_user_model, codae):
         usuario=user,
         instituicao=codae,
         perfil=perfil_dilog_visualizacao,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_administrador_codae_gabinete(client, django_user_model, codae):
+    """Client autenticado com perfil ADMINISTRADOR_CODAE_GABINETE."""
+    email = "administradorcodaegabinete@test.com"
+    password = DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="6666666"
+    )
+    perfil_gabinete = baker.make(
+        "Perfil", nome=ADMINISTRADOR_CODAE_GABINETE, ativo=True
+    )
+    baker.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_gabinete,
         data_inicial=datetime.date.today(),
         ativo=True,
     )

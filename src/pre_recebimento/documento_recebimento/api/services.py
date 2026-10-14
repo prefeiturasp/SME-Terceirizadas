@@ -17,25 +17,30 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+            DocumentoDeRecebimentoWorkflow.REPROVADO,
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+            DocumentoDeRecebimentoWorkflow.REPROVADO,
         ],
         DILOG_CRONOGRAMA: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+            DocumentoDeRecebimentoWorkflow.REPROVADO,
         ],
         ADMINISTRADOR_CODAE_GABINETE: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+            DocumentoDeRecebimentoWorkflow.REPROVADO,
         ],
         DILOG_DIRETORIA: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+            DocumentoDeRecebimentoWorkflow.REPROVADO,
         ],
     }
