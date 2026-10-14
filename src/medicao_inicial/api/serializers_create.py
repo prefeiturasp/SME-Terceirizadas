@@ -114,7 +114,9 @@ from ..validators import (
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
     validate_lanches_emergenciais_diarios,
-    validate_medicao_cemei,
+    validate_medicao_cemei_cei,
+    validate_medicao_cemei_emei,
+    validate_medicao_cemei_programas_e_projetos,
     validate_solicitacoes_etec,
     validate_solicitacoes_etec_escola_sem_alunos_regulares,
     validate_solicitacoes_programas_e_projetos,
@@ -375,17 +377,22 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if lista_erros:
             raise serializers.ValidationError(lista_erros)
 
-    # TODO: adicionar testes unitarios
     def valida_finalizar_medicao_cemei(
         self, instance: SolicitacaoMedicaoInicial
-    ) -> None:  # pragma: no cover
+    ) -> None:
         if (
             not instance.escola.eh_cemei
             or instance.status
             != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
         ):
             return
-        lista_erros = validate_medicao_cemei(instance)
+
+        lista_erros = []
+        lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
+        lista_erros = validate_lanche_emergencial(instance, lista_erros)
+        lista_erros = validate_medicao_cemei_cei(instance, lista_erros)
+        lista_erros = validate_medicao_cemei_programas_e_projetos(instance, lista_erros)
+        lista_erros = validate_medicao_cemei_emei(instance, lista_erros)
         lista_erros = validate_lanches_emergenciais_diarios(instance, lista_erros)
         if lista_erros:
             raise serializers.ValidationError(lista_erros)

@@ -83,6 +83,7 @@ class SolicitacaoMedicaoInicialAdmin(admin.ModelAdmin):
         "status",
         "escola__lote__iniciais",
         "recreio_nas_ferias",
+        "lanche_emergencial_extraordinario",
     )
 
 
