@@ -54,9 +54,7 @@ class TipoAlimentacaoViewSet(viewsets.ModelViewSet):
     Filtro opcional ``tipo_unidade__uuid`` ou ``tipo_unidade__uuid[]``:
     restringe aos tipos vinculados ao tipo de unidade escolar por
     ``VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar`` ativo.
-    Sem o parâmetro, a lista continua completa. O front do relatório de
-    alimentações servidas precisa enviar esse parâmetro para carregar só os
-    tipos aplicáveis. Com o Grupo 1 selecionado, o campo deve ir vazio.
+    Sem o parâmetro, a lista continua completa.
     """
 
     lookup_field = "uuid"

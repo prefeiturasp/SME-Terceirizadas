@@ -1064,10 +1064,6 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     """
     Lista faixas etárias ativas.
-
-    Não há vínculo de faixa etária com tipo de unidade, então a lista não
-    recebe filtro por tipo. No relatório de alimentações servidas a faixa só
-    é válida para o Grupo 1 ou o Grupo 2, regra aplicada na validação dos filtros.
     """
 
     queryset = FaixaEtaria.objects.filter(ativo=True)
@@ -1393,9 +1389,7 @@ class GrupoUnidadeEscolarViewSet(ModelViewSet):
     def grupos_por_dre(self, request):
         """
         Informa se cada grupo tem escola na DRE indicada em ``dre``.
-
-        Aceita uma única DRE. O relatório de alimentações servidas não consome
-        este endpoint; a tela usa ``GET /grupos-unidade-escolar/``.
+        Aceita uma única DRE.
         """
         dre_uuid = request.query_params.get("dre")
         if not dre_uuid:

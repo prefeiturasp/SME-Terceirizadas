@@ -621,8 +621,7 @@ class SolicitacaoMedicaoInicialViewSet(
         ``eh_relatorio_alimentacoes_servidas=true`` devolve apenas meses com
         medição aprovada pela CODAE no escopo do usuário (DRE ou empresa).
         ``status`` e ``eh_relatorio_adesao`` não mudam quando esse parâmetro
-        está ausente. O front do relatório de alimentações servidas precisa
-        enviá-lo.
+        está ausente.
         """
         if request.query_params.get("eh_relatorio_alimentacoes_servidas"):
             return Response(

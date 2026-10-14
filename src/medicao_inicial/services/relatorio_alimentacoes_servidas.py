@@ -1,69 +1,4 @@
-"""Filtros do Relatório de Alimentações Servidas.
-
-Este módulo valida o conjunto de filtros da tela e calcula os meses de
-referência permitidos. A exportação Excel lê a query string com
-``filtros_exportacao_relatorio_alimentacoes_servidas``, que aplica esta
-mesma validação. A consulta e o arquivo ficam em
-``relatorio_alimentacoes_servidas_dados`` e
-``relatorio_alimentacoes_servidas_excel``.
-
-Query string da exportação
-    Listas no formato do Axios, com a chave repetida e colchetes
-    (``dres[]=a&dres[]=b``), como em ``relatorio-adesao/exportar-xlsx/``.
-    A chave sem colchetes também é aceita. Parâmetro ausente significa
-    "sem restrição" dentro dos demais filtros.
-
-Meses de referência e recreios
-    ``meses`` (``meses[]=11_2023&meses[]=12_2023``, cada item ``MM_AAAA``) traz
-    só meses regulares. ``recreios_nas_ferias`` (``recreios_nas_ferias[]=<uuid>``)
-    traz recreios. Pelo menos um dos dois é obrigatório; o front pode enviar
-    só um, ou os dois. Duplicados são descartados e ``meses`` sai em ordem
-    cronológica. O antigo parâmetro ``mes`` não é mais lido.
-
-Meses e recreios permitidos
-    A regra é a do front: ``GET /medicao-inicial/solicitacao-medicao-inicial/
-    meses-anos/?status=MEDICAO_APROVADA_PELA_CODAE``. Ali, o item sem
-    ``recreio_nas_ferias`` é um mês regular e o item com ``recreio_nas_ferias``
-    é um recreio. Aqui:
-
-    - cada ``meses`` precisa ter solicitação regular (sem recreio) com status
-      ``MEDICAO_APROVADA_PELA_CODAE``;
-    - cada ``recreios_nas_ferias`` precisa ter solicitação com status
-      ``MEDICAO_APROVADA_PELA_CODAE``, e o mês/ano dele é o da solicitação.
-
-    Ambos no escopo do usuário (``solicitacoes_aprovadas_no_escopo``). Esse
-    recorte institucional já existia na exportação e foi mantido: o
-    ``meses-anos/`` não restringe a empresa terceirizada por lote, a exportação
-    restringe. Por isso, para esse perfil, a exportação pode recusar um item
-    que o ``meses-anos/`` mostra. Os endpoints de opções não foram alterados.
-
-Escopo
-    DRE: somente a própria diretoria. Terceirizada (tipo de serviço
-    TERCEIRIZADA): somente as DREs dos lotes com contrato vigente, o mesmo
-    recorte de ``/diretorias-regionais-simplissima/``. Demais perfis
-    autorizados: sem recorte institucional.
-
-    ``/diretorias-regionais-simplissima/`` não passa a restringir o perfil DRE,
-    porque outras telas consomem a lista completa. O recorte da DRE é garantido
-    aqui na validação e nos endpoints de lote, escola e subprefeitura.
-
-Período
-    ``periodo_lancamento_de`` e ``periodo_lancamento_ate`` vão juntos ou ficam
-    ambos vazios. Cada data precisa cair no mês de algum item de ``meses`` ou
-    no mês/ano de algum recreio selecionado (podem ser meses diferentes), com
-    De anterior ou igual a Até.
-
-Tipos de unidade
-    ``tipos_unidades`` aceita tipos de grupos diferentes; cada UUID precisa
-    existir e ter grupo cadastrado. Nenhum grupo é completado: valem só os
-    tipos enviados.
-
-Tipo de alimentação
-    Recusado somente quando todos os tipos de unidade informados são do
-    Grupo 1. Com o Grupo 1 junto de outro grupo, é aceito e vale para as
-    unidades dos demais grupos. Quando há tipos de unidade e vínculos ativos,
-    o tipo precisa ser aplicável a esses tipos.
-"""
+"""Filtros do Relatório de Alimentações Servidas."""
 
 from datetime import datetime
 
@@ -150,7 +85,7 @@ def meses_permitidos(usuario):
 
 
 def meses_regulares_permitidos(usuario):
-    """Meses regulares aprovados no escopo: itens do ``meses-anos/`` sem recreio."""
+    """Meses com solicitação regular (sem recreio) aprovada no escopo do usuário."""
     solicitacoes = solicitacoes_aprovadas_no_escopo(usuario)
     return _pares_mes_ano(solicitacoes.filter(recreio_nas_ferias__isnull=True))
 
@@ -179,7 +114,7 @@ def _pares_mes_ano(solicitacoes):
 
 
 def validar_filtros_relatorio_alimentacoes_servidas(dados, usuario):
-    """Valida o payload do formulário e devolve os dados normalizados."""
+    """Valida o payload dos filtros e devolve os dados normalizados."""
     serializer = FiltrosRelatorioAlimentacoesServidasSerializer(
         data=dados, context={"usuario": usuario}
     )
@@ -201,7 +136,10 @@ CAMPOS_TEXTO = ("periodo_lancamento_de", "periodo_lancamento_ate")
 
 
 def dados_da_query_string(query_params):
-    """Converte a query string do front no payload do serializer."""
+    """Monta o payload do serializer com as listas ``campo[]`` e as datas.
+
+    A chave sem colchetes também é aceita; parâmetro ausente fica fora do payload.
+    """
     dados = {
         campo: query_params.get(campo)
         for campo in CAMPOS_TEXTO
@@ -286,7 +224,10 @@ def _validar_usuario(usuario):
 
 
 def _validar_meses_e_recreios(dados, usuario):
-    """Devolve (meses, recreios, meses_do_periodo) já validados e sem duplicados."""
+    """Devolve (meses, recreios, meses_do_periodo) já validados e sem duplicados.
+
+    Exige ao menos um mês ou um recreio.
+    """
     valores_meses = dados.get("meses") or []
     valores_recreios = dados.get("recreios_nas_ferias") or []
     if not valores_meses and not valores_recreios:
@@ -297,7 +238,10 @@ def _validar_meses_e_recreios(dados, usuario):
 
 
 def _validar_meses(valores, usuario):
-    """Devolve os pares (mes, ano) sem duplicados, em ordem cronológica."""
+    """Devolve os pares (mes, ano) sem duplicados, em ordem cronológica.
+
+    Cada mês precisa ter solicitação regular aprovada pela CODAE.
+    """
     if not valores:
         return []
     pares = {_interpretar_mes(*_partir_mes(valor)) for valor in valores}
@@ -309,7 +253,11 @@ def _validar_meses(valores, usuario):
 
 
 def _validar_recreios(valores, usuario):
-    """Devolve os UUIDs sem duplicados (em ordem cronológica) e seus meses/anos."""
+    """Devolve os UUIDs sem duplicados (em ordem cronológica) e seus meses/anos.
+
+    Cada recreio precisa ter solicitação aprovada pela CODAE; o mês/ano dele é o
+    da solicitação.
+    """
     if not valores:
         return [], set()
     uuids = {str(valor) for valor in valores}
@@ -385,6 +333,7 @@ def _validar_regras(dados, usuario):
 
 
 def _validar_dres(dres, usuario):
+    """Exige ao menos uma DRE dentro do escopo do usuário."""
     if not dres:
         raise serializers.ValidationError(
             {"dres": "Informe ao menos uma diretoria regional."}
@@ -522,6 +471,10 @@ def _todos_no_grupo_1(grupos_dos_tipos):
 
 
 def _validar_tipos_alimentacao(uuids, grupos_dos_tipos, tipos_unidades):
+    """Recusa tipo de alimentação quando todos os tipos de unidade são do Grupo 1.
+
+    Nos demais casos, o tipo precisa existir e ser aplicável aos tipos de unidade.
+    """
     if _todos_no_grupo_1(grupos_dos_tipos):
         _recusar_alimentacao_no_grupo_1(uuids)
         return
@@ -567,6 +520,7 @@ def _validar_tipos_alimentacao_aplicaveis(uuids, tipos_unidades):
 
 
 def _validar_periodo(dados, meses):
+    """De e Até vão juntos, De não passa de Até e cada data cai em um mês selecionado."""
     data_de = dados.get("periodo_lancamento_de") or ""
     data_ate = dados.get("periodo_lancamento_ate") or ""
     if bool(data_de) != bool(data_ate):
@@ -636,11 +590,9 @@ def _campo_uuids(obrigatorio=False):
 
 
 class FiltrosRelatorioAlimentacoesServidasSerializer(serializers.Serializer):
-    """Valida o formulário do Relatório de Alimentações Servidas.
+    """Valida os filtros do Relatório de Alimentações Servidas.
 
-    Usado por ``relatorio-alimentacoes-servidas/exportar-xlsx/`` por meio de
-    ``validar_filtros_relatorio_alimentacoes_servidas``, com o usuário em
-    ``context['usuario']``.
+    O usuário é lido de ``context['usuario']``.
     """
 
     meses = serializers.ListField(

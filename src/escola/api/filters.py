@@ -23,7 +23,7 @@ def instituicao_da_requisicao(request):
 
 
 def dres_da_terceirizada(terceirizada):
-    """DREs dos lotes da empresa com contrato vigente, como em diretorias-regionais-simplissima."""
+    """DREs dos lotes da empresa com contrato vigente."""
     return DiretoriaRegional.objects.filter(
         lotes__terceirizada=terceirizada,
         lotes__contratos_do_lote__encerrado=False,
@@ -146,15 +146,6 @@ class DiretoriaRegionalFilter(filters.FilterSet):
 class EscolaParaFiltrosFilter(filters.FilterSet):
     """
     Filtros de escolas usados por relatórios.
-
-    Listas seguem a serialização do front, com a chave repetida e colchetes
-    (``diretoria_regional__uuid[]``, ``lote__uuid[]``, ``subprefeitura__uuid[]``,
-    ``tipo_unidade__uuid[]``). O valor único sem colchetes continua valendo
-    para ``diretoria_regional__uuid``, ``lote__uuid``, ``subprefeitura__uuid``
-    e ``tipo_gestao__nome``. ``tipo_unidade__uuid__in`` e
-    ``excluir_tipo_unidade__uuid[]`` permanecem compatíveis com os relatórios
-    de adesão e financeiro.
-
     Usuários de DRE e de empresa terceirizada só recebem escolas do próprio escopo.
     """
 
@@ -178,7 +169,7 @@ class SubprefeituraFilter(filters.FilterSet):
     """
     Filtra subprefeituras pela diretoria regional.
 
-    Sem parâmetro, devolve o cadastro completo (Cadastro de Lote).
+    Sem parâmetro, devolve o cadastro completo.
     Com ``diretoria_regional__uuid`` ou ``diretoria_regional__uuid[]``,
     devolve a união distinta das subprefeituras vinculadas às DREs informadas.
     DRE e Terceirizada não recebem subprefeituras de DREs fora do próprio escopo.
