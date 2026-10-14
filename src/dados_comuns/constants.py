@@ -1232,6 +1232,10 @@ class StringsSearchHelpText(Enum):
     )
     PESQUISE_POR_TITULO = "Pesquise por: título"
     PESQUISE_POR_INICIAIS_OU_NOME_DO_TIPO_DE_UNIDADE_NUMERO_DO_EDITAL_TIPO_DE_SOBREMESA = "Pesquise por: iniciais ou nome do tipo de unidade, número do edital, tipo de sobremesa"
+    PESQUISE_POR_NOME_DO_USUARIO = "Pesquise por: nome do usuário"
+    PESQUISE_POR_NOME_DA_ESCOLA_CODIGO_EOL_DA_ESCOLA_OU_NOME_DO_LOTE = (
+        "Pesquise por: nome da escola, código eol da escola ou nome do lote"
+    )
 
     @classmethod
     def choices(cls):
