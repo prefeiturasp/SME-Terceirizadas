@@ -43,6 +43,18 @@ class PermissaoParaCadastrarTermoRecebimentoDefinitivo(
     PERFIS_PERMITIDOS = [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
 
 
+class PermissaoParaAssinarTermoRecebimentoDefinitivo(
+    PermissaoTermoRecebimentoDefinitivo
+):
+    """Permissão para o Fiscal do Contrato assinar o termo.
+
+    Apenas o perfil DILOG_QUALIDADE pode assinar. A checagem de que o
+    usuário é um dos três fiscais do termo é feita na action.
+    """
+
+    PERFIS_PERMITIDOS = [DILOG_QUALIDADE]
+
+
 def usuario_vinculado_a_empresa_fornecedor(usuario):
     """Retorna True quando o usuário possui vínculo ativo em empresa do
     tipo fornecedor (FORNECEDOR ou FORNECEDOR_E_DISTRIBUIDOR)."""

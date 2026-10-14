@@ -3,9 +3,9 @@ from types import SimpleNamespace
 
 import pytest
 from model_bakery import baker
+from rest_framework.exceptions import ValidationError
 
 from src.dados_comuns.constants import (
-    GRUPO_PROGRAMAS_E_PROJETOS,
     TIPOS_UNIDADE_ESCOLAR,
     StringsValidationErrors,
 )
@@ -18,6 +18,7 @@ from src.medicao_inicial.models import (
     DescontoFinanceiro,
     GrupoMedicao,
     Medicao,
+    SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao,
 )
@@ -336,7 +337,7 @@ class TestCriaValoresMedicaoInclusoesContinuas:
             nome=CategoriaMedicao.ALIMENTACAO
         )
         grupo_programas, _ = GrupoMedicao.objects.get_or_create(
-            nome=GRUPO_PROGRAMAS_E_PROJETOS
+            nome=GrupoMedicao.PROGRAMAS_E_PROJETOS
         )
         grupo_etec, _ = GrupoMedicao.objects.get_or_create(nome="ETEC")
         return categoria, grupo_programas, grupo_etec
@@ -410,7 +411,9 @@ class TestCriaValoresMedicaoInclusoesContinuas:
             solicitacao
         )
 
-        valores = self._valores_numero_alunos(solicitacao, GRUPO_PROGRAMAS_E_PROJETOS)
+        valores = self._valores_numero_alunos(
+            solicitacao, GrupoMedicao.PROGRAMAS_E_PROJETOS
+        )
         assert valores.count() == 30
         assert self._dias_criados(valores) == {f"{dia:02d}" for dia in range(1, 31)}
         assert all(valor.valor == "15" for valor in valores)
@@ -432,10 +435,10 @@ class TestCriaValoresMedicaoInclusoesContinuas:
 
         assert not Medicao.objects.filter(
             solicitacao_medicao_inicial=solicitacao,
-            grupo__nome=GRUPO_PROGRAMAS_E_PROJETOS,
+            grupo__nome=GrupoMedicao.PROGRAMAS_E_PROJETOS,
         ).exists()
         assert not self._valores_numero_alunos(
-            solicitacao, GRUPO_PROGRAMAS_E_PROJETOS
+            solicitacao, GrupoMedicao.PROGRAMAS_E_PROJETOS
         ).exists()
 
     def test_nao_cria_quando_encerramento_no_ultimo_dia_do_mes_anterior(self):
@@ -455,7 +458,7 @@ class TestCriaValoresMedicaoInclusoesContinuas:
 
         assert not Medicao.objects.filter(
             solicitacao_medicao_inicial=solicitacao,
-            grupo__nome=GRUPO_PROGRAMAS_E_PROJETOS,
+            grupo__nome=GrupoMedicao.PROGRAMAS_E_PROJETOS,
         ).exists()
 
     def test_cria_valores_somente_ate_data_encerramento_antecipado_no_mesmo_mes(self):
@@ -472,7 +475,9 @@ class TestCriaValoresMedicaoInclusoesContinuas:
             solicitacao
         )
 
-        valores = self._valores_numero_alunos(solicitacao, GRUPO_PROGRAMAS_E_PROJETOS)
+        valores = self._valores_numero_alunos(
+            solicitacao, GrupoMedicao.PROGRAMAS_E_PROJETOS
+        )
         assert self._dias_criados(valores) == {f"{dia:02d}" for dia in range(1, 11)}
         assert valores.count() == 10
         assert all(valor.valor == "12" for valor in valores)
@@ -490,7 +495,9 @@ class TestCriaValoresMedicaoInclusoesContinuas:
             solicitacao
         )
 
-        valores = self._valores_numero_alunos(solicitacao, GRUPO_PROGRAMAS_E_PROJETOS)
+        valores = self._valores_numero_alunos(
+            solicitacao, GrupoMedicao.PROGRAMAS_E_PROJETOS
+        )
         assert self._dias_criados(valores) == {"01"}
 
     def test_nao_cria_quando_inclusao_nao_autorizada(self):
@@ -505,7 +512,7 @@ class TestCriaValoresMedicaoInclusoesContinuas:
 
         assert not Medicao.objects.filter(
             solicitacao_medicao_inicial=solicitacao,
-            grupo__nome=GRUPO_PROGRAMAS_E_PROJETOS,
+            grupo__nome=GrupoMedicao.PROGRAMAS_E_PROJETOS,
         ).exists()
 
     def test_nao_cria_quando_nao_existe_inclusao_continua(self):
@@ -538,7 +545,7 @@ class TestCriaValoresMedicaoInclusoesContinuas:
         assert self._dias_criados(valores) == {f"{dia:02d}" for dia in range(1, 16)}
         assert not Medicao.objects.filter(
             solicitacao_medicao_inicial=solicitacao,
-            grupo__nome=GRUPO_PROGRAMAS_E_PROJETOS,
+            grupo__nome=GrupoMedicao.PROGRAMAS_E_PROJETOS,
         ).exists()
 
     def test_etec_nao_cria_medicao_quando_encerrada_antes_do_mes(self):
@@ -588,7 +595,9 @@ class TestCriaValoresMedicaoInclusoesContinuas:
             solicitacao
         )
 
-        valores = self._valores_numero_alunos(solicitacao, GRUPO_PROGRAMAS_E_PROJETOS)
+        valores = self._valores_numero_alunos(
+            solicitacao, GrupoMedicao.PROGRAMAS_E_PROJETOS
+        )
         valores_por_dia = {valor.dia: valor.valor for valor in valores}
         assert valores_por_dia["10"] == "30"
         assert valores_por_dia["11"] == "20"
@@ -601,7 +610,7 @@ class TestCriaValoresMedicaoInclusoesContinuas:
         solicitacao = self._setup_solicitacao(escola)
         self._setup_inclusao_continua(escola, numero_alunos=10)
         categoria = CategoriaMedicao.objects.get(nome=CategoriaMedicao.ALIMENTACAO)
-        grupo = GrupoMedicao.objects.get(nome=GRUPO_PROGRAMAS_E_PROJETOS)
+        grupo = GrupoMedicao.objects.get(nome=GrupoMedicao.PROGRAMAS_E_PROJETOS)
         medicao = baker.make(
             "Medicao",
             solicitacao_medicao_inicial=solicitacao,
@@ -650,13 +659,13 @@ class TestCriaValoresMedicaoInclusoesContinuas:
             escola.inclusoes_alimentacao_continua.all(),
             30,
             "Programas/Projetos",
-            GRUPO_PROGRAMAS_E_PROJETOS,
+            GrupoMedicao.PROGRAMAS_E_PROJETOS,
         )
 
         assert inclusao.quantidades_periodo.exists()
         assert not Medicao.objects.filter(
             solicitacao_medicao_inicial=solicitacao,
-            grupo__nome=GRUPO_PROGRAMAS_E_PROJETOS,
+            grupo__nome=GrupoMedicao.PROGRAMAS_E_PROJETOS,
         ).exists()
 
     def test_valores_por_dia_respeitam_data_inicial_data_final_e_encerramento(self):
@@ -730,3 +739,141 @@ def test_solicitacao_medicao_inicial_salva_descricao_do_metodo(
 
     assert solicitacao.descricao_metodo == "Contagem manual"
     assert list(solicitacao.tipos_contagem_alimentacao.all()) == [tipo_contagem]
+
+
+@pytest.mark.django_db
+class TestFinalizacaoMedicaoEmebsKitLanche:
+    @pytest.fixture(autouse=True)
+    def isolar_validacoes_dos_outros_blocos(self, monkeypatch):
+        validacoes = [
+            "valida_medicoes_inexistentes_emebs",
+            "validate_lancamento_alimentacoes_medicao_emebs",
+            "validate_lancamento_inclusoes",
+            "validate_lancamento_dietas_emebs",
+            "validate_lancamento_inclusoes_dietas_emef_emebs",
+            "validate_solicitacoes_programas_e_projetos_emebs",
+            "validate_lanches_emergenciais_diarios",
+        ]
+        for nome in validacoes:
+            monkeypatch.setattr(
+                f"src.medicao_inicial.api.serializers_create.{nome}",
+                lambda solicitacao, lista_erros, *argumentos: lista_erros,
+            )
+
+    @staticmethod
+    def _criar_solicitacao(escola):
+        return baker.make(
+            SolicitacaoMedicaoInicial,
+            escola=escola,
+            mes="09",
+            ano="2026",
+            recreio_nas_ferias=None,
+            status=(
+                SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+            ),
+        )
+
+    @staticmethod
+    def _criar_lancamentos(solicitacao, grupo, categoria, lancamentos):
+        if lancamentos is None:
+            return
+        medicao = baker.make(
+            Medicao,
+            solicitacao_medicao_inicial=solicitacao,
+            grupo=grupo,
+            periodo_escolar=None,
+        )
+        for dia, nome_campo, valor in lancamentos:
+            baker.make(
+                ValorMedicao,
+                medicao=medicao,
+                categoria_medicao=categoria,
+                dia=dia,
+                semana=str(ValorMedicao.get_week_of_month(2026, 9, int(dia))),
+                nome_campo=nome_campo,
+                valor=valor,
+                infantil_ou_fundamental=ValorMedicao.FUNDAMENTAL,
+                tipo_alimentacao=None,
+                faixa_etaria=None,
+            )
+
+    @pytest.mark.parametrize(
+        "lancamentos",
+        [
+            None,
+            [],
+            [("04", "kit_lanche", "20")],
+            [("04", "lanche_emergencial", "20"), ("08", "lanche_emergencial", "20")],
+            [("03", "kit_lanche", "20"), ("05", "kit_lanche", "20")],
+        ],
+        ids=[
+            "bloco_nao_salvo",
+            "bloco_sem_valores",
+            "kits_parcialmente_preenchidos",
+            "somente_lanches_emergenciais",
+            "kits_em_dias_nao_autorizados",
+        ],
+    )
+    def test_bloqueia_finalizacao_com_kits_pendentes(
+        self,
+        escola_emebs,
+        grupo_solicitacoes_alimentacao,
+        categoria_medicao_solicitacoes_alimentacao,
+        monkeypatch,
+        lancamentos,
+    ):
+        solicitacao = self._criar_solicitacao(escola_emebs)
+        self._criar_lancamentos(
+            solicitacao,
+            grupo_solicitacoes_alimentacao,
+            categoria_medicao_solicitacoes_alimentacao,
+            lancamentos,
+        )
+        monkeypatch.setattr(
+            "src.medicao_inicial.validators.get_lista_dias_solicitacoes",
+            lambda parametros, escola: ["04", "08"],
+        )
+        serializer = SolicitacaoMedicaoInicialCreateSerializer()
+
+        with pytest.raises(ValidationError) as erro:
+            serializer.valida_finalizar_medicao_emebs(solicitacao)
+
+        assert erro.value.detail == [
+            {
+                "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
+                "erro": "Restam dias a serem lançados nos Kit Lanches.",
+            }
+        ]
+
+    @pytest.mark.parametrize(
+        "dias_autorizados,lancamentos",
+        [
+            ([], None),
+            (["04", "08"], [("04", "kit_lanche", "20"), ("08", "kit_lanche", "20")]),
+            (["04", "08"], [("04", "kit_lanche", "0"), ("08", "kit_lanche", "20")]),
+        ],
+        ids=["sem_kits_autorizados", "todos_os_kits_preenchidos", "zero_informado"],
+    )
+    def test_nao_bloqueia_finalizacao_sem_kits_pendentes(
+        self,
+        escola_emebs,
+        grupo_solicitacoes_alimentacao,
+        categoria_medicao_solicitacoes_alimentacao,
+        monkeypatch,
+        dias_autorizados,
+        lancamentos,
+    ):
+        solicitacao = self._criar_solicitacao(escola_emebs)
+        self._criar_lancamentos(
+            solicitacao,
+            grupo_solicitacoes_alimentacao,
+            categoria_medicao_solicitacoes_alimentacao,
+            lancamentos,
+        )
+        monkeypatch.setattr(
+            "src.medicao_inicial.validators.get_lista_dias_solicitacoes",
+            lambda parametros, escola: dias_autorizados,
+        )
+        serializer = SolicitacaoMedicaoInicialCreateSerializer()
+
+        assert serializer.valida_finalizar_medicao_emebs(solicitacao) is None

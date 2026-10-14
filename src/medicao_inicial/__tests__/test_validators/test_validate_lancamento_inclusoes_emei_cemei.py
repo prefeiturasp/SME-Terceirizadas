@@ -6,7 +6,7 @@ from model_bakery import baker
 from src.cardapio.base.models import (
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
 )
-from src.dados_comuns.constants import TIPOS_ALIMENTACAO
+from src.dados_comuns.constants import TIPOS_ALIMENTACAO, StringsValidationErrors
 from src.inclusao_alimentacao.models import InclusaoDeAlimentacaoCEMEI
 from src.medicao_inicial.utils import get_linhas_da_tabela
 from src.medicao_inicial.validators import validate_lancamento_inclusoes_emei_cemei
@@ -145,7 +145,7 @@ class TestValidateLancamentoInclusoesEMEICEMEI:
         assert lista_erros == [
             {
                 "periodo_escolar": medicao.nome_periodo_grupo,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         ]
 
@@ -214,7 +214,7 @@ class TestValidateLancamentoInclusoesEMEICEMEI:
         assert lista_erros == [
             {
                 "periodo_escolar": medicao.nome_periodo_grupo,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         ]
 

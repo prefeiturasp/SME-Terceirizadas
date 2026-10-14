@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpResponse
 from openpyxl.reader.excel import load_workbook
 
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.imr.admin import (
     ImportacaoPlanilhaTipoOcorrenciaAdmin,
     ImportacaoPlanilhaTipoPenalidadeAdmin,
@@ -133,7 +134,7 @@ def test_importa_planilha_tipo_penalidade_erro_arquivo_formato_incorreto(
     file_pdf = SimpleUploadedFile(
         name="teste_carga_tipos_penalidades.pdf",
         content=response.content,
-        content_type="application/pdf",
+        content_type=ContentTypesParaRequests.PDF.value,
     )
 
     importacao_planilha_tipo_penalidade_factory.create(conteudo=file_pdf)
@@ -267,7 +268,7 @@ def test_importa_planilha_tipo_ocorrencia_erro_arquivo_formato_incorreto(
     file_pdf = SimpleUploadedFile(
         name="teste_carga_tipos_ocorrencia.pdf",
         content=response.content,
-        content_type="application/pdf",
+        content_type=ContentTypesParaRequests.PDF.value,
     )
 
     importacao_planilha_tipo_ocorrencia_factory.create(conteudo=file_pdf)

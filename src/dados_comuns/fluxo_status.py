@@ -14,6 +14,7 @@ from django_xworkflows import models as xwf_models
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from src.dados_comuns import constants
+from src.dados_comuns.constants import ContentTypesParaRequests
 
 from ..escola import models as m
 from ..perfil.models import Usuario
@@ -3314,7 +3315,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         anexo = {
             "arquivo": html_to_pdf_email_anexo(html_string_relatorio),
             "nome": f"dieta_especial_{self.id_externo}.pdf",
-            "mimetypes": "application/pdf",
+            "mimetypes": ContentTypesParaRequests.PDF.value,
         }
 
         for email in partes_interessadas:
@@ -6378,6 +6379,74 @@ class FluxoCronogramaSemanal(xwf_models.WorkflowEnabled, models.Model):
             link_acesse_aqui=url_detalhe_cronograma,
             usuarios=usuarios,
         )
+
+    class Meta:
+        abstract = True
+
+
+class TermoRecebimentoDefinitivoWorkflow(xwf_models.Workflow):
+    """Workflow do Termo de Recebimento Definitivo (módulo Pós-Recebimento)."""
+
+    log_model = ""  # Disable logging to database
+
+    RASCUNHO = "RASCUNHO"
+    ENVIADO_FISCAIS = "ENVIADO_FISCAIS"
+    ENVIADO_DILOG = "ENVIADO_DILOG"
+    ENVIADO_COORDENADOR = "ENVIADO_COORDENADOR"
+    ENVIADO_FORNECEDOR = "ENVIADO_FORNECEDOR"
+    ASSINADO_FORNECEDOR = "ASSINADO_FORNECEDOR"
+
+    states = (
+        (RASCUNHO, "Rascunho"),
+        (ENVIADO_FISCAIS, "Enviado Fiscais"),
+        (ENVIADO_DILOG, "Enviado DILOG"),
+        (ENVIADO_COORDENADOR, "Enviado Coordenador"),
+        (ENVIADO_FORNECEDOR, "Enviado Fornecedor"),
+        (ASSINADO_FORNECEDOR, "Assinado Fornecedor"),
+    )
+
+    transitions = (
+        ("inicia_fluxo", RASCUNHO, ENVIADO_FISCAIS),
+        ("fiscais_assinam", ENVIADO_FISCAIS, ENVIADO_DILOG),
+    )
+
+    initial_state = RASCUNHO
+
+
+class FluxoTermoRecebimentoDefinitivo(xwf_models.WorkflowEnabled, models.Model):
+    """Classe abstrata que adiciona o workflow do Termo de Recebimento Definitivo."""
+
+    workflow_class = TermoRecebimentoDefinitivoWorkflow
+    status = xwf_models.StateField(workflow_class, max_length=20)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        """Registra no log a transição de status do termo."""
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.TERMO_RECEBIMENTO_DEFINITIVO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=kwargs.get("justificativa", ""),
+        )
+
+    @xworkflows.after_transition("inicia_fluxo")
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs.get("user")
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.TERMO_RECEBIMENTO_DEFINITIVO_ENVIADO_AOS_FISCAIS,
+                usuario=user,
+            )
+
+    @xworkflows.after_transition("fiscais_assinam")
+    def _fiscais_assinam_hook(self, *args, **kwargs):
+        user = kwargs.get("user")
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.TERMO_RECEBIMENTO_DEFINITIVO_ETAPA_FISCAIS_CONCLUIDA,
+                usuario=user,
+            )
 
     class Meta:
         abstract = True

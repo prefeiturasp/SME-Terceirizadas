@@ -10,6 +10,7 @@ from src.dados_comuns.constants import (
     ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_UE,
+    ContentTypesParaRequests,
 )
 from src.dados_comuns.models import (
     AnexoLogSolicitacoesUsuario,
@@ -141,27 +142,23 @@ def test_gerar_arquivo_pdf_unico_sem_compactacao(reclamacao):
     conteudo_pdf = b"%PDF-1.4 conteudo"
     criar_anexo_reclamacao(reclamacao, "documento.pdf", conteudo_pdf)
 
-    nome, conteudo, tipo_mime = (
-        ServicoHistoricoReclamacaoProduto.gerar_arquivo_pdfs(
-            reclamacao.uuid,
-            reclamacao.uuid,
-        )
+    nome, conteudo, tipo_mime = ServicoHistoricoReclamacaoProduto.gerar_arquivo_pdfs(
+        reclamacao.uuid,
+        reclamacao.uuid,
     )
 
     assert nome == "documento.pdf"
     assert conteudo == conteudo_pdf
-    assert tipo_mime == "application/pdf"
+    assert tipo_mime == ContentTypesParaRequests.PDF.value
 
 
 def test_multiplos_pdfs_sao_agrupados_em_zip(reclamacao):
     criar_anexo_reclamacao(reclamacao, "documento-1.pdf", b"%PDF-1.4 primeiro")
     criar_anexo_reclamacao(reclamacao, "documento-2.pdf", b"%PDF-1.4 segundo")
 
-    nome, conteudo, tipo_mime = (
-        ServicoHistoricoReclamacaoProduto.gerar_arquivo_pdfs(
-            reclamacao.uuid,
-            reclamacao.uuid,
-        )
+    nome, conteudo, tipo_mime = ServicoHistoricoReclamacaoProduto.gerar_arquivo_pdfs(
+        reclamacao.uuid,
+        reclamacao.uuid,
     )
 
     assert nome == f"documentos_reclamacao_{reclamacao.uuid}.zip"
@@ -180,11 +177,9 @@ def test_multiplas_imagens_sao_agrupadas_em_zip(reclamacao):
     criar_anexo_reclamacao(reclamacao, "frente.jpg", b"imagem-frente")
     criar_anexo_reclamacao(reclamacao, "verso.png", b"imagem-verso")
 
-    nome, conteudo, tipo_mime = (
-        ServicoHistoricoReclamacaoProduto.gerar_arquivo_imagens(
-            reclamacao.uuid,
-            reclamacao.uuid,
-        )
+    nome, conteudo, tipo_mime = ServicoHistoricoReclamacaoProduto.gerar_arquivo_imagens(
+        reclamacao.uuid,
+        reclamacao.uuid,
     )
 
     assert nome == f"imagens_reclamacao_{reclamacao.uuid}.zip"

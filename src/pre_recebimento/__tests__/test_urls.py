@@ -17,7 +17,7 @@ from rest_framework.test import APIClient
 
 from src.dados_comuns import constants
 from src.dados_comuns.api.paginations import DefaultPagination
-from src.dados_comuns.constants import FORMATO_DATA_BRASILEIRO
+from src.dados_comuns.constants import FORMATO_DATA_BRASILEIRO, ContentTypesParaRequests
 from src.dados_comuns.fluxo_status import (
     CronogramaWorkflow,
     DocumentoDeRecebimentoWorkflow,
@@ -1145,7 +1145,7 @@ def test_url_relatorio_cronograma_ponto_a_ponto_flv_conteudo(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["Content-Type"] == "application/pdf"
+    assert response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
 
     pdf_reader = PdfReader(BytesIO(response.content))
     pdf_text = "\n".join(page.extract_text() for page in pdf_reader.pages)
@@ -3392,6 +3392,22 @@ def test_ficha_tecnica_retrieve_ok(
     assert response.data == FichaTecnicaDetalharSerializer(ficha_tecnica).data
 
 
+def test_url_dashboard_ficha_tecnica_perfil_dilog_visualizacao(
+    client_autenticado_dilog_visualizacao, ficha_tecnica_factory
+):
+    """DILOG_VISUALIZACAO acessa o dashboard e tem seus status mapeados.
+
+    O perfil precisa estar em ``PERFIS_PERMITIDOS`` e em
+    ``STATUS_POR_PERFIL``.
+    """
+    ficha_tecnica_factory(status=FichaTecnicaDoProdutoWorkflow.APROVADA)
+
+    response = client_autenticado_dilog_visualizacao.get("/ficha-tecnica/dashboard/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert "results" in response.json()
+
+
 def test_url_dashboard_ficha_tecnica_status_retornados(
     client_autenticado_codae_dilog, ficha_tecnica_factory, django_user_model
 ):
@@ -3653,6 +3669,23 @@ def test_url_ficha_tecnica_rascunho_analise_create(
     assert (
         analises.first().ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
     )
+
+
+def test_url_ficha_tecnica_detalhar_com_analise_perfil_dilog_visualizacao(
+    client_autenticado_dilog_visualizacao,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    analise_ficha_tecnica_factory,
+):
+    """DILOG_VISUALIZACAO pode visualizar o Detalhar da ficha técnica"""
+    ficha_tecnica = ficha_tecnica_perecivel_enviada_para_analise
+    analise_ficha_tecnica_factory.create(ficha_tecnica=ficha_tecnica)
+
+    response = client_autenticado_dilog_visualizacao.get(
+        f"/ficha-tecnica/{ficha_tecnica.uuid}/detalhar-com-analise/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["uuid"] == str(ficha_tecnica.uuid)
 
 
 def test_url_ficha_tecnica_detalhar_com_analise_ok(
@@ -3990,7 +4023,7 @@ def test_url_pdf_ficha_tecnica(
     )
     assert response.status_code == status.HTTP_200_OK
     headers = response.headers
-    assert headers["Content-Type"] == "application/pdf"
+    assert headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         headers["Content-Disposition"]
         == f'filename="ficha_tecnica_{ficha_tecnica_perecivel_enviada_para_analise.numero}.pdf"'
@@ -4024,7 +4057,7 @@ def test_url_pdf_ficha_tecnica_nao_perecivel(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["Content-Type"] == "application/pdf"
+    assert response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["Content-Disposition"]
         == f'filename="ficha_tecnica_{ficha_tecnica.numero}.pdf"'
@@ -4289,7 +4322,7 @@ def test_url_layout_embalagem_download_ok(
     response = client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
 
     # Verifica que o PDF gerado é válido
     pdf_reader = PdfReader(BytesIO(response.content))

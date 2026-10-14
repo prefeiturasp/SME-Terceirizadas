@@ -10,7 +10,7 @@ from django_weasyprint.utils import DjangoURLFetcher
 from pypdf import PdfReader
 from weasyprint import HTML
 
-from src.dados_comuns.constants import FORMATO_DATA_BRASILEIRO
+from src.dados_comuns.constants import FORMATO_DATA_BRASILEIRO, ContentTypesParaRequests
 from src.relatorios.utils import merge_pdf_com_rodape_assinatura
 
 from ..utils import (
@@ -136,7 +136,7 @@ def test_html_to_pdf_response():
     pdf = html_to_pdf_response(html_string, nome_pdf)
 
     assert pdf.status_code == 200
-    assert pdf.headers["Content-Type"] == "application/pdf"
+    assert pdf.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert pdf.headers["Content-Disposition"] == f'filename="{nome_pdf}"'
 
     texto = extrair_texto_de_pdf(pdf.content)
@@ -150,7 +150,7 @@ def test_extrair_texto_de_pdf():
     pdf_file = HTML(
         string=html_string, url_fetcher=DjangoURLFetcher(), base_url="file://abobrinha"
     ).write_pdf()
-    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response = HttpResponse(pdf_file, content_type=ContentTypesParaRequests.PDF.value)
     texto = extrair_texto_de_pdf(response.content)
     assert "Teste de PDF" in texto
     assert "Conteúdo do PDF gerado" in texto
@@ -175,7 +175,7 @@ def test_html_to_pdf_file_async_false():
     pdf = html_to_pdf_file(html_string, nome_pdf, is_async=False)
 
     assert pdf.status_code == 200
-    assert pdf.headers["Content-Type"] == "application/pdf"
+    assert pdf.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert pdf.headers["Content-Disposition"] == f'filename="{nome_pdf}"'
 
     texto = extrair_texto_de_pdf(pdf.content)
@@ -205,7 +205,7 @@ def test_html_to_pdf_watermark_async_false():
     )
 
     assert response.status_code == 200
-    assert response.headers["Content-Type"] == "application/pdf"
+    assert response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert response.headers["Content-Disposition"] == f'filename="{nome_pdf}"'
 
     texto = extrair_texto_de_pdf(response.content)
@@ -240,7 +240,7 @@ def test_html_to_pdf_multiple_async_false():
     response = html_to_pdf_multiple(lista_strings, nome_pdf, is_async=False)
 
     assert response.status_code == 200
-    assert response.headers["Content-Type"] == "application/pdf"
+    assert response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert response.headers["Content-Disposition"] == f'filename="{nome_pdf}"'
 
     texto = extrair_texto_de_pdf(response.content)

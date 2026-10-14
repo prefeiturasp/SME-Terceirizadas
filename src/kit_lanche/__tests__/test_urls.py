@@ -6,6 +6,7 @@ from rest_framework import status
 from src.dados_comuns.constants import (
     PEDIDOS_CODAE,
     SEM_FILTRO,
+    ContentTypesParaRequests,
 )
 
 from ...dados_comuns import constants
@@ -364,7 +365,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_relatorio(
     )
     id_externo = solicitacao_avulsa_dre_validado.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="solicitacao_avulsa_{id_externo}.pdf"'
@@ -668,7 +669,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
     )
     id_externo = solicitacao_unificada_lista_igual_codae_questionado.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="solicitacao_unificada_{id_externo}.pdf"'

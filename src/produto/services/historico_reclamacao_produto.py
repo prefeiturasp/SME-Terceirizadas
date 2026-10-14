@@ -4,6 +4,7 @@ import zipfile
 from typing import Any
 from uuid import UUID
 
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
 from src.produto.models import AnexoReclamacaoDeProduto, ReclamacaoDeProduto
 
@@ -46,10 +47,7 @@ class ServicoHistoricoReclamacaoProduto:
         log = cls.obter_log(reclamacao, uuid_log)
         if log.status_evento not in ACOES_COM_ARQUIVOS_NO_HISTORICO:
             return []
-        if (
-            log.status_evento
-            == LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
-        ):
+        if log.status_evento == LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU:
             return list(reclamacao.anexos.all())
         return list(log.anexos.all())
 
@@ -61,10 +59,7 @@ class ServicoHistoricoReclamacaoProduto:
     ) -> list[TipoAnexoHistorico]:
         if log.status_evento not in ACOES_COM_ARQUIVOS_NO_HISTORICO:
             return []
-        if (
-            log.status_evento
-            == LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
-        ):
+        if log.status_evento == LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU:
             return anexos_iniciais
         return list(log.anexos.all())
 
@@ -78,7 +73,7 @@ class ServicoHistoricoReclamacaoProduto:
         pdfs = [
             anexo
             for anexo in anexos
-            if cls._obter_tipo_mime(anexo) == "application/pdf"
+            if cls._obter_tipo_mime(anexo) == ContentTypesParaRequests.PDF.value
         ]
         return pdfs
 
@@ -137,7 +132,7 @@ class ServicoHistoricoReclamacaoProduto:
     ) -> dict[str, bool | int]:
         tipos_mime = [cls._obter_tipo_mime(anexo) for anexo in anexos]
         return {
-            "possui_pdf": "application/pdf" in tipos_mime,
+            "possui_pdf": ContentTypesParaRequests.PDF.value in tipos_mime,
             "quantidade_imagens": sum(
                 1
                 for tipo_mime in tipos_mime
@@ -163,8 +158,7 @@ class ServicoHistoricoReclamacaoProduto:
         anexos: list[AnexoReclamacaoDeProduto],
     ) -> dict[str, Any] | None:
         possui_log_inicial = any(
-            log.status_evento
-            == LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            log.status_evento == LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
             for log in logs
         )
         if possui_log_inicial:
@@ -172,12 +166,10 @@ class ServicoHistoricoReclamacaoProduto:
         return {
             "uuid": str(reclamacao.uuid),
             "anexos": anexos,
-            "status_evento": (
+            "status_evento": (LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
+            "status_evento_explicacao": dict(LogSolicitacoesUsuario.STATUS_POSSIVEIS)[
                 LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
-            ),
-            "status_evento_explicacao": dict(
-                LogSolicitacoesUsuario.STATUS_POSSIVEIS
-            )[LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU],
+            ],
             "usuario": reclamacao.criado_por,
             "criado_em": reclamacao.criado_em.strftime("%d/%m/%Y %H:%M:%S"),
             "descricao": str(reclamacao),
@@ -207,9 +199,7 @@ class ServicoHistoricoReclamacaoProduto:
     ) -> tuple[str, bytes, str]:
         imagens = cls.obter_imagens_acao(uuid_reclamacao, uuid_log)
         if not imagens:
-            raise ValueError(
-                "Não há imagens disponíveis para esta ação do histórico."
-            )
+            raise ValueError("Não há imagens disponíveis para esta ação do histórico.")
         nome_download = cls.obter_nome_download_imagens(imagens, uuid_log)
         return cls._gerar_arquivo(imagens, nome_download)
 

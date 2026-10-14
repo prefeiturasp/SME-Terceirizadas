@@ -11,6 +11,8 @@ from pikepdf import Pdf
 from pypdf import PdfReader, PdfWriter
 from weasyprint import CSS, HTML
 
+from src.dados_comuns.constants import ContentTypesParaRequests
+
 from ..dados_comuns.constants import FORMATO_DATA_BRASILEIRO
 from ..dados_comuns.models import LogSolicitacoesUsuario
 
@@ -83,7 +85,7 @@ def html_to_pdf_response(html_string, pdf_filename, request=None):
         url_fetcher=DjangoURLFetcher(),
         base_url=request.build_absolute_uri("/") if request else "file://abobrinha",
     ).write_pdf()
-    response = HttpResponse(pdf_file, content_type="application/pdf")
+    response = HttpResponse(pdf_file, content_type=ContentTypesParaRequests.PDF.value)
     response["Content-Disposition"] = f'filename="{pdf_filename}"'
     return response
 
@@ -96,7 +98,9 @@ def html_to_pdf_file(html_string, pdf_filename, is_async=False):
     if is_async:
         return pdf_file
     else:
-        response = HttpResponse(pdf_file, content_type="application/pdf")
+        response = HttpResponse(
+            pdf_file, content_type=ContentTypesParaRequests.PDF.value
+        )
         response["Content-Disposition"] = f'filename="{pdf_filename}"'
         return response
 
@@ -123,7 +127,9 @@ def html_to_pdf_watermark(html_string, pdf_filename, watermark, is_async=False):
     if is_async:
         return arquivo_final.read()
     else:
-        response = HttpResponse(arquivo_final, content_type="application/pdf")
+        response = HttpResponse(
+            arquivo_final, content_type=ContentTypesParaRequests.PDF.value
+        )
         response["Content-Disposition"] = f'filename="{pdf_filename}"'
         return response
 
@@ -144,7 +150,9 @@ def html_to_pdf_multiple(lista_strings, pdf_filename, is_async=False):
     if is_async:
         return arquivo_final.read()
     else:
-        response = HttpResponse(arquivo_final, content_type="application/pdf")
+        response = HttpResponse(
+            arquivo_final, content_type=ContentTypesParaRequests.PDF.value
+        )
         response["Content-Disposition"] = f'filename="{pdf_filename}"'
         return response
 
