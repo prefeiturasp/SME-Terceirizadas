@@ -203,7 +203,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             qs = sorted(
                 query_set.filter(status__in=workflow).distinct().all(),
                 key=lambda x: (
-                    x.log_mais_recente.criado_em if x.log_mais_recente else "-criado_em"
+                    x.log_mais_recente.criado_em if x.log_mais_recente else x.criado_em
                 ),
                 reverse=True,
             )
