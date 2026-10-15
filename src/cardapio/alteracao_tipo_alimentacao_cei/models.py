@@ -11,7 +11,7 @@ from src.cardapio.alteracao_tipo_alimentacao_cei.managers.alteracao_tipo_aliment
 from src.dados_comuns.behaviors import (
     CriadoEm,
     CriadoPor,
-    Logs,
+    TemLogs,
     MatriculadosQuandoCriado,
     SolicitacaoForaDoPrazo,
     TemChaveExterna,
@@ -36,7 +36,7 @@ class AlteracaoCardapioCEI(
     TemObservacao,
     FluxoAprovacaoPartindoDaEscola,
     TemIdentificadorExternoAmigavel,
-    Logs,
+    TemLogs,
     TemPrioridade,
     SolicitacaoForaDoPrazo,
     EhAlteracaoCardapio,

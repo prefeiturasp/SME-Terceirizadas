@@ -7,7 +7,7 @@ from src.dados_comuns.constants import StringsVerboseNameModels
 
 from ...dados_comuns.behaviors import (
     CriadoPor,
-    Logs,
+    TemLogs,
     ModeloBase,
     TemIdentificadorExternoAmigavel,
 )
@@ -20,43 +20,27 @@ from .solicitacao import SolicitacaoRemessa
 
 
 class GuiaManager(models.Manager):
-    def create_guia(
-        self,
-        StrNumGui,
-        DtEntrega,
-        StrCodUni,
-        StrNomUni,
-        StrEndUni,
-        StrNumUni,
-        StrBaiUni,
-        StrCepUni,
-        StrCidUni,
-        StrEstUni,
-        StrConUni,
-        StrTelUni,
-        solicitacao,
-        escola,
-    ):
+    def create_guia(self, solicitacao, escola, **dados_unidade):
         return self.create(
-            numero_guia=StrNumGui,
-            data_entrega=DtEntrega,
-            codigo_unidade=StrCodUni,
-            nome_unidade=StrNomUni,
-            endereco_unidade=StrEndUni,
-            numero_unidade=StrNumUni,
-            bairro_unidade=StrBaiUni,
-            cep_unidade=StrCepUni,
-            cidade_unidade=StrCidUni,
-            estado_unidade=StrEstUni,
-            contato_unidade=StrConUni,
-            telefone_unidade=StrTelUni,
+            numero_guia=dados_unidade["StrNumGui"],
+            data_entrega=dados_unidade["DtEntrega"],
+            codigo_unidade=dados_unidade["StrCodUni"],
+            nome_unidade=dados_unidade["StrNomUni"],
+            endereco_unidade=dados_unidade["StrEndUni"],
+            numero_unidade=dados_unidade["StrNumUni"],
+            bairro_unidade=dados_unidade["StrBaiUni"],
+            cep_unidade=dados_unidade["StrCepUni"],
+            cidade_unidade=dados_unidade["StrCidUni"],
+            estado_unidade=dados_unidade["StrEstUni"],
+            contato_unidade=dados_unidade["StrConUni"],
+            telefone_unidade=dados_unidade["StrTelUni"],
             solicitacao=solicitacao,
             escola=escola,
         )
 
 
 class NotificacaoOcorrenciasGuia(
-    ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoNotificacaoOcorrencia
+    ModeloBase, TemIdentificadorExternoAmigavel, TemLogs, FluxoNotificacaoOcorrencia
 ):
     numero = models.CharField(
         StringsVerboseNameModels.NUMERO_DA_NOTIFICACAO.value,

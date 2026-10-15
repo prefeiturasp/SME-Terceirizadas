@@ -15,7 +15,7 @@ from src.pre_recebimento.cronograma_entrega.models import Cronograma
 from src.relatorios.utils import merge_pdf_com_string_template
 
 from ...dados_comuns.behaviors import (
-    Logs,
+    TemLogs,
     ModeloBase,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
@@ -109,7 +109,7 @@ class TipoDeDocumentoDeRecebimento(TemChaveExterna):
 
 
 class DocumentoDeRecebimento(
-    ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoDocumentoDeRecebimento
+    ModeloBase, TemIdentificadorExternoAmigavel, TemLogs, FluxoDocumentoDeRecebimento
 ):
     cronograma = models.ForeignKey(
         Cronograma,

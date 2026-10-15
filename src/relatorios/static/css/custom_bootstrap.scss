@@ -4148,10 +4148,6 @@ tbody.collapse.show {
 }
 
 .breadcrumb-item + .breadcrumb-item:hover::before {
-  text-decoration: underline;
-}
-
-.breadcrumb-item + .breadcrumb-item:hover::before {
   text-decoration: none;
 }
 

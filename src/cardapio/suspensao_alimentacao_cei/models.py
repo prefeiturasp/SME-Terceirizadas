@@ -4,7 +4,7 @@ from src.cardapio.suspensao_alimentacao.models import MotivoSuspensao
 from src.dados_comuns.behaviors import (
     CriadoEm,
     CriadoPor,
-    Logs,
+    TemLogs,
     TemChaveExterna,
     TemData,
     TemIdentificadorExternoAmigavel,
@@ -29,7 +29,7 @@ class SuspensaoAlimentacaoDaCEI(
     TemIdentificadorExternoAmigavel,
     CriadoEm,
     FluxoInformativoPartindoDaEscola,
-    Logs,
+    TemLogs,
     TemObservacao,
     TemPrioridade,
     TemTerceirizadaConferiuGestaoAlimentacao,

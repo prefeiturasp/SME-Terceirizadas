@@ -28,6 +28,9 @@ from src.terceirizada.fixtures.factories.terceirizada_factory import (
 )
 
 
+PRODUTO_MAMAO_PAPAYA = "MAMAO PAPAYA"
+
+
 @pytest.fixture
 def empresa():
     return EmpresaFactory()
@@ -283,7 +286,7 @@ def termos_painel_assinatura(usuario_fiscal, tres_fiscais):
             contrato_alfa,
             fiscais_com_usuario,
             TermoRecebimentoDefinitivo.ENVIADO_FISCAIS,
-            (("001/2026", "MAMAO PAPAYA"), ("002/2026", "ABACATE")),
+            (("001/2026", PRODUTO_MAMAO_PAPAYA), ("002/2026", "ABACATE")),
         ),
         pendente_de_outro_fiscal=_cria_termo_do_painel(
             outra_empresa,
@@ -305,7 +308,7 @@ def termos_painel_assinatura(usuario_fiscal, tres_fiscais):
             TermoRecebimentoDefinitivo.ASSINADO_FORNECEDOR,
             # Dois cronogramas do mesmo produto: o painel deve exibir o
             # nome uma única vez.
-            (("005/2026", "MAMAO PAPAYA"), ("006/2026", "MAMAO PAPAYA")),
+            (("005/2026", PRODUTO_MAMAO_PAPAYA), ("006/2026", PRODUTO_MAMAO_PAPAYA)),
         ),
     )
 

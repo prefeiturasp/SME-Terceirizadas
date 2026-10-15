@@ -15,7 +15,7 @@ from ..dados_comuns.behaviors import (
     CriadoEm,
     CriadoPor,
     EhCopia,
-    Logs,
+    TemLogs,
     Nomeavel,
     TemAlteradoEm,
     TemChaveExterna,
@@ -499,7 +499,7 @@ class HomologacaoProduto(
     CriadoEm,
     CriadoPor,
     FluxoHomologacaoProduto,
-    Logs,
+    TemLogs,
     TemIdentificadorExternoAmigavel,
     Ativavel,
     EhCopia,
@@ -990,7 +990,7 @@ class ReclamacaoDeProduto(
     TemChaveExterna,
     CriadoEm,
     CriadoPor,
-    Logs,
+    TemLogs,
     TemIdentificadorExternoAmigavel,
 ):
     homologacao_produto = models.ForeignKey(

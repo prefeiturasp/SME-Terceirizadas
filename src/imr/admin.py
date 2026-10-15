@@ -115,7 +115,8 @@ class ImportacaoPlanilhaTipoPenalidadeAdmin(admin.ModelAdmin):
         return my_urls + urls
 
     def exporta_planilha(self, request):
-        return exportar_planilha_importacao_tipos_penalidade(request)
+        # request é exigido pela assinatura das views do Django admin.
+        return exportar_planilha_importacao_tipos_penalidade()
 
     def processa_planilha(self, request, queryset):
         arquivo = queryset.first()

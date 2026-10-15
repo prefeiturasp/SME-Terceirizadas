@@ -157,7 +157,7 @@ def html_to_pdf_multiple(lista_strings, pdf_filename, is_async=False):
         return response
 
 
-def html_to_pdf_email_anexo(html_string, pdf_filename=None):
+def html_to_pdf_email_anexo(html_string):
     # O PDF gerado aqui pode ser anexado num email.
     # Utilizado para enviar email ao cancelar dietas ativas automaticamente.
     pdf_file = HTML(

@@ -35,6 +35,9 @@ from ..layout_embalagem.models import LayoutDeEmbalagem, TipoDeEmbalagemDeLayout
 fake = Faker("pt_BR")
 
 
+OBSERVACAO_PADRAO_TESTE = "Imagine uma observação aqui."
+
+
 @pytest.fixture
 def codae():
     return baker.make("Codae")
@@ -520,7 +523,7 @@ def payload_layout_embalagem(
 ):
     return {
         "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
-        "observacoes": "Imagine uma observação aqui.",
+        "observacoes": OBSERVACAO_PADRAO_TESTE,
         "tipos_de_embalagens": [
             {
                 "tipo_embalagem": "PRIMARIA",
@@ -725,7 +728,7 @@ def layout_de_embalagem_para_correcao(ficha_tecnica_factory, empresa):
             status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             empresa=empresa,
         ),
-        observacoes="Imagine uma observação aqui.",
+        observacoes=OBSERVACAO_PADRAO_TESTE,
         status=LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     )
     baker.make(
@@ -752,7 +755,7 @@ def layout_de_embalagem_aprovado(ficha_tecnica_factory, empresa):
             status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             empresa=empresa,
         ),
-        observacoes="Imagine uma observação aqui.",
+        observacoes=OBSERVACAO_PADRAO_TESTE,
         status=LayoutDeEmbalagemWorkflow.APROVADO,
     )
     baker.make(
@@ -785,7 +788,7 @@ def layout_de_embalagem_em_analise_com_correcao(ficha_tecnica_factory, empresa):
             status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             empresa=empresa,
         ),
-        observacoes="Imagine uma observação aqui.",
+        observacoes=OBSERVACAO_PADRAO_TESTE,
         status=LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
     )
     baker.make(

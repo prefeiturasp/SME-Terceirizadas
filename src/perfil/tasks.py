@@ -21,6 +21,10 @@ from .models import (
 )
 from .utils import get_cargo_eol
 
+MENSAGEM_PROCESSANDO_ARQUIVO = "Processando arquivo %s"
+MENSAGEM_ARQUIVO_ENCONTRADO = "Arquivo encontrado %s"
+MENSAGEM_ARQUIVO_NAO_ENCONTRADO = "Arquivo não encontrado %s"
+
 logger = logging.getLogger("sigpae.taskPerfil")
 
 
@@ -57,16 +61,16 @@ def busca_cargo_de_usuario(registro_funcional):
     retry_kwargs={"max_retries": 8},
 )
 def processa_planilha_usuario_externo_coresso_async(username, arquivo_uuid):
-    logger.info("Processando arquivo %s", arquivo_uuid)
+    logger.info(MENSAGEM_PROCESSANDO_ARQUIVO, arquivo_uuid)
     try:
         arquivo = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=arquivo_uuid)
         usuario = get_user_model().objects.get(username=username)
-        logger.info("Arquivo encontrado %s", arquivo_uuid)
+        logger.info(MENSAGEM_ARQUIVO_ENCONTRADO, arquivo_uuid)
 
         if valida_arquivo_importacao_usuarios(arquivo=arquivo):
             importa_usuarios_externos_coresso(usuario, arquivo)
     except ObjectDoesNotExist:
-        logger.info("Arquivo não encontrado %s", arquivo_uuid)
+        logger.info(MENSAGEM_ARQUIVO_NAO_ENCONTRADO, arquivo_uuid)
 
 
 @shared_task(
@@ -74,18 +78,18 @@ def processa_planilha_usuario_externo_coresso_async(username, arquivo_uuid):
     retry_kwargs={"max_retries": 8},
 )
 def processa_planilha_usuario_servidor_coresso_async(username, arquivo_uuid):
-    logger.info("Processando arquivo %s", arquivo_uuid)
+    logger.info(MENSAGEM_PROCESSANDO_ARQUIVO, arquivo_uuid)
     try:
         arquivo = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.get(
             uuid=arquivo_uuid
         )
         usuario = get_user_model().objects.get(username=username)
-        logger.info("Arquivo encontrado %s", arquivo_uuid)
+        logger.info(MENSAGEM_ARQUIVO_ENCONTRADO, arquivo_uuid)
 
         if valida_arquivo_importacao_usuarios(arquivo=arquivo):
             importa_usuarios_servidores_coresso(usuario, arquivo)
     except ObjectDoesNotExist:
-        logger.info("Arquivo não encontrado %s", arquivo_uuid)
+        logger.info(MENSAGEM_ARQUIVO_NAO_ENCONTRADO, arquivo_uuid)
 
 
 @shared_task(
@@ -93,15 +97,15 @@ def processa_planilha_usuario_servidor_coresso_async(username, arquivo_uuid):
     retry_kwargs={"max_retries": 8},
 )
 def processa_planilha_usuario_ue_parceira_coresso_async(username, arquivo_uuid):
-    logger.info("Processando arquivo %s", arquivo_uuid)
+    logger.info(MENSAGEM_PROCESSANDO_ARQUIVO, arquivo_uuid)
     try:
         arquivo = ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.objects.get(
             uuid=arquivo_uuid
         )
         usuario = get_user_model().objects.get(username=username)
-        logger.info("Arquivo encontrado %s", arquivo_uuid)
+        logger.info(MENSAGEM_ARQUIVO_ENCONTRADO, arquivo_uuid)
 
         if valida_arquivo_importacao_usuarios(arquivo=arquivo):
             importa_usuarios_ues_parceiras_coresso(usuario, arquivo)
     except ObjectDoesNotExist:
-        logger.info("Arquivo não encontrado %s", arquivo_uuid)
+        logger.info(MENSAGEM_ARQUIVO_NAO_ENCONTRADO, arquivo_uuid)

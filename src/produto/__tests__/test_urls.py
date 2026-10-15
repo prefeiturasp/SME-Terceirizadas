@@ -2016,7 +2016,7 @@ def test_url_lista_marcas_nova_reclamacao(
     client_autenticado_vinculo_codae_produto, produtos_edital_41
 ):
     response = client_autenticado_vinculo_codae_produto.get(
-        f"/marcas/lista-nomes-nova-reclamacao/", content_type="application/json"
+        "/marcas/lista-nomes-nova-reclamacao/", content_type="application/json"
     )
     assert response.status_code == status.HTTP_200_OK
     dados = response.json()
@@ -2029,7 +2029,7 @@ def test_url_lista_marcas_nova_reclamacao_com_filtro_edital(
     client_autenticado_vinculo_codae_produto, produtos_edital_41
 ):
     response = client_autenticado_vinculo_codae_produto.get(
-        f"/marcas/lista-nomes-nova-reclamacao/?nome_edital=Edital de Pregão nº 78/sme/2022",
+        "/marcas/lista-nomes-nova-reclamacao/?nome_edital=Edital de Pregão nº 78/sme/2022",
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_200_OK
@@ -2094,7 +2094,7 @@ def test_url_filtro_homologados_por_parametros_com_filtro_edital(
     client_autenticado_vinculo_codae_produto, produtos_edital_41
 ):
     response = client_autenticado_vinculo_codae_produto.get(
-        f"/produtos/filtro-homologados-por-parametros/?nome_edital=Edital de Pregão nº 78/sme/2022",
+        "/produtos/filtro-homologados-por-parametros/?nome_edital=Edital de Pregão nº 78/sme/2022",
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_200_OK

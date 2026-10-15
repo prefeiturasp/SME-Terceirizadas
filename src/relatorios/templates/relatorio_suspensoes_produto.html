@@ -25,23 +25,23 @@
     <div class="visao-geral-produto">
       <div class="tres-informacoes">
         <div class="informacao">
-          <label>Nome</label>
+          <span class="rotulo">Nome</span>
           <p>{{produto.ultima_homologacao.ultimo_log.usuario.nome}}</p>
           <p>RF: {{produto.ultima_homologacao.ultimo_log.usuario.registro_funcional|default:''}}</p>
         </div>
         <div class="informacao">
-          <label>Cargo</label>
+          <span class="rotulo">Cargo</span>
           <p>{{produto.ultima_homologacao.ultimo_log.usuario.cargo}}</p>
         </div>
         <div class="informacao">
-          <label>Justificativa de suspensão de produto</label>
+          <span class="rotulo">Justificativa de suspensão de produto</span>
           <p>{{produto.ultima_homologacao.ultimo_log.justificativa|safe_content}}</p>
         </div>
       </div>
 
       <div class="uma-informacao">
         <div class="informacao">
-          <label>Anexo</label>
+          <span class="rotulo">Anexo</span>
           {%if produto.ultima_homologacao.ultimo_log.get_anexos|length %}
             <p>Sim</p>
           {% else %}

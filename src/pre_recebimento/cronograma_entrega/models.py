@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from src.dados_comuns.behaviors import (
-    Logs,
+    TemLogs,
     ModeloBase,
     TemIdentificadorExternoAmigavel,
 )
@@ -20,7 +20,7 @@ from src.pre_recebimento.qualidade.models import TipoEmbalagemQld
 from src.terceirizada.models import Contrato, Terceirizada
 
 
-class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronograma):
+class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, TemLogs, FluxoCronograma):
     """Cronograma de entrega de produtos alimentícios para as escolas.
 
     Registra o planejamento de entregas de um produto vinculado a uma ficha técnica,
@@ -319,7 +319,7 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
 
 
 class SolicitacaoAlteracaoCronograma(
-    ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma, Logs
+    ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma, TemLogs
 ):
     """Solicitação de alteração de um cronograma já assinado.
 

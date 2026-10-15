@@ -196,6 +196,11 @@ DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
 
 
+TIPO_PRODUTO_COMUM = "Comum"
+TIPO_PRODUTO_DIETA_ESPECIAL = "Dieta especial"
+FILTRAR_POR_RECLAMACOES = "reclamacoes/"
+
+
 class CustomPagination(PageNumberPagination):
     page = DEFAULT_PAGE
     page_size = DEFAULT_PAGE_SIZE
@@ -1581,9 +1586,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def filtra_editais_dieta_ou_comum(self, request, queryset):
         if request.query_params.get("eh_para_alunos_com_dieta", None):
             eh_para_alunos_com_dieta = (
-                "Dieta especial"
+                TIPO_PRODUTO_DIETA_ESPECIAL
                 if request.query_params.get("eh_para_alunos_com_dieta") == "true"
-                else "Comum"
+                else TIPO_PRODUTO_COMUM
             )
             edital = request.query_params.get("nome_edital", None)
             if edital:
@@ -1701,7 +1706,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def lista_produtos(self, request):
         query_set = Produto.objects.filter(ativo=True)
         filtrar_por = request.query_params.get("filtrar_por", None)
-        if filtrar_por == "reclamacoes/":
+        if filtrar_por == FILTRAR_POR_RECLAMACOES:
             query_set = query_set.filter(
                 homologacao__reclamacoes__isnull=False,
                 homologacao__status__in=[
@@ -2229,10 +2234,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             filtros.append(nome_marca)
         if nome_fabricante:
             filtros.append(nome_fabricante)
-        if tipo == "Comum":
-            filtros.append("Comum")
-        if tipo == "Dieta especial":
-            filtros.append("Dieta especial")
+        if tipo == TIPO_PRODUTO_COMUM:
+            filtros.append(TIPO_PRODUTO_COMUM)
+        if tipo == TIPO_PRODUTO_DIETA_ESPECIAL:
+            filtros.append(TIPO_PRODUTO_DIETA_ESPECIAL)
         return filtros
 
     def filtra_produtos_suspensos(self, homologacoes, query_params):
@@ -2248,9 +2253,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes = homologacoes.filter(
                 produto__fabricante__nome=nome_fabricante
             )
-        if tipo == "Comum":
+        if tipo == TIPO_PRODUTO_COMUM:
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=False)
-        if tipo == "Dieta especial":
+        if tipo == TIPO_PRODUTO_DIETA_ESPECIAL:
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
         return homologacoes
 
@@ -2751,14 +2756,14 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             queryset = self.get_queryset().filter(edital__uuid__in=editais_uuid)
             if (
                 tipo_produto_edital_origem.lower()
-                == ProdutoEdital.OPCOES_TIPO_PRODUTO["Comum"].lower()
+                == ProdutoEdital.OPCOES_TIPO_PRODUTO[TIPO_PRODUTO_COMUM].lower()
             ):
                 queryset = queryset.filter(
-                    tipo_produto__icontains=ProdutoEdital.OPCOES_TIPO_PRODUTO["Comum"]
+                    tipo_produto__icontains=ProdutoEdital.OPCOES_TIPO_PRODUTO[TIPO_PRODUTO_COMUM]
                 )
             else:
                 queryset = queryset.exclude(
-                    tipo_produto__icontains=ProdutoEdital.OPCOES_TIPO_PRODUTO["Comum"]
+                    tipo_produto__icontains=ProdutoEdital.OPCOES_TIPO_PRODUTO[TIPO_PRODUTO_COMUM]
                 )
             queryset = queryset.order_by("produto__nome", "produto__marca__nome")
             data = self.get_serializer(queryset, many=True).data
@@ -2896,7 +2901,7 @@ class FabricanteViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
     def lista_fabricantes(self, request):
         query_set = Fabricante.objects.all()
         filtrar_por = request.query_params.get("filtrar_por", None)
-        if filtrar_por == "reclamacoes/":
+        if filtrar_por == FILTRAR_POR_RECLAMACOES:
             query_set = query_set.filter(
                 produto__homologacao__reclamacoes__isnull=False,
                 produto__homologacao__status__in=[
@@ -3018,7 +3023,7 @@ class MarcaViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
     def lista_marcas(self, request):
         query_set = Marca.objects.all()
         filtrar_por = request.query_params.get("filtrar_por", None)
-        if filtrar_por == "reclamacoes/":
+        if filtrar_por == FILTRAR_POR_RECLAMACOES:
             query_set = query_set.filter(
                 produto__homologacao__reclamacoes__isnull=False,
                 produto__homologacao__status__in=[

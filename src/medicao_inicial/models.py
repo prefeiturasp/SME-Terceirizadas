@@ -14,7 +14,7 @@ from ..dados_comuns.behaviors import (
     Ativavel,
     CriadoEm,
     CriadoPor,
-    Logs,
+    TemLogs,
     Nomeavel,
     Posicao,
     TemAlteradoEm,
@@ -93,7 +93,7 @@ class SolicitacaoMedicaoInicial(
     TemMes,
     TemAno,
     FluxoSolicitacaoMedicaoInicial,
-    Logs,
+    TemLogs,
 ):
     """Solicitação de Medição Inicial."""
 
@@ -549,7 +549,7 @@ class SolicitacaoMedicaoInicial(
         return f"Solicitação #{self.id_externo} -- Escola {self.escola.nome} -- {self.mes}/{self.ano}"
 
 
-class OcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedicaoInicial):
+class OcorrenciaMedicaoInicial(TemChaveExterna, TemLogs, FluxoSolicitacaoMedicaoInicial):
     """Modelo para mapear a tabela Ocorrência e salvar objetos ocorrêcia da medição inicial."""
 
     nome_ultimo_arquivo = models.CharField(max_length=100, null=True, blank=True)
@@ -632,7 +632,7 @@ class Medicao(
     FluxoSolicitacaoMedicaoInicial,
     CriadoEm,
     CriadoPor,
-    Logs,
+    TemLogs,
 ):
     solicitacao_medicao_inicial = models.ForeignKey(
         "SolicitacaoMedicaoInicial", on_delete=models.CASCADE, related_name="medicoes"

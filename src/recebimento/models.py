@@ -13,7 +13,7 @@ from django.db import models
 from multiselectfield import MultiSelectField
 
 from src.dados_comuns.behaviors import (
-    Logs,
+    TemLogs,
     ModeloBase,
     TemArquivosDeletaveis,
     TemChaveExterna,
@@ -161,7 +161,7 @@ class ReposicaoCronogramaFichaRecebimento(ModeloBase):
 
 
 class FichaDeRecebimento(
-    ModeloBase, FluxoFichaDeRecebimento, TemIdentificadorExternoAmigavel, Logs
+    ModeloBase, FluxoFichaDeRecebimento, TemIdentificadorExternoAmigavel, TemLogs
 ):
     """Ficha de recebimento: registro central do recebimento físico.
 
