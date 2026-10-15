@@ -195,6 +195,18 @@ DEFAULT_PAGE_SIZE = 10
 
 MSG_ERROR_VERIFIQUE_PARAMETROS = "Verifique os parâmetros e tente novamente"
 
+CAMPOS_POR_GRUPO_SOLICITACOES = {
+    GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO: {
+        "kit_lanche",
+        "lanche_emergencial",
+        "observacoes",
+    },
+    GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: {
+        "lanche_emergencial",
+        "observacoes",
+    },
+}
+
 
 def valida_periodo_relatorio_consolidado(
     mes: str,
@@ -1045,19 +1057,10 @@ class SolicitacaoMedicaoInicialViewSet(
         escola = usuario.vinculo_atual.instituicao
         uuid = request.query_params.get("uuid_solicitacao")
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
-        campos_por_grupo_solicitacoes = {
-            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO: [
-                "kit_lanche",
-                "lanche_emergencial",
-            ],
-            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: [
-                "lanche_emergencial",
-            ],
-        }
         retorno = []
         for medicao in solicitacao.medicoes.all():
             campos_a_desconsiderar = get_campos_a_desconsiderar(escola, medicao)
-            campos_permitidos = campos_por_grupo_solicitacoes.get(
+            campos_permitidos = CAMPOS_POR_GRUPO_SOLICITACOES.get(
                 medicao.nome_periodo_grupo
             )
             total_por_nome_campo = {}
@@ -1894,6 +1897,19 @@ class MedicaoViewSet(
                 defaults={"valor": "", "habilitado_correcao": True},
             )
 
+    def filtra_campos_correcao_por_grupo(self, medicao, data):
+        """Mantém apenas os campos pertinentes ao grupo da medição."""
+        campos_permitidos = CAMPOS_POR_GRUPO_SOLICITACOES.get(
+            medicao.nome_periodo_grupo
+        )
+        if campos_permitidos is None:
+            return data
+        return [
+            valor_medicao
+            for valor_medicao in data
+            if not valor_medicao or valor_medicao.get("nome_campo") in campos_permitidos
+        ]
+
     @action(
         detail=True,
         methods=["PATCH"],
@@ -1918,11 +1934,10 @@ class MedicaoViewSet(
         ]
         try:
             acao = self.get_nome_acao(medicao, status_codae)
-            self.prepara_valores_medicao_para_log(medicao, request.data)
-            log_alteracoes_escola_corrige_periodo(
-                request.user, medicao, acao, request.data
-            )
-            for valor_medicao in request.data:
+            data = self.filtra_campos_correcao_por_grupo(medicao, request.data)
+            self.prepara_valores_medicao_para_log(medicao, data)
+            log_alteracoes_escola_corrige_periodo(request.user, medicao, acao, data)
+            for valor_medicao in data:
                 if not valor_medicao:
                     continue
                 dia = int(valor_medicao.get("dia", ""))
