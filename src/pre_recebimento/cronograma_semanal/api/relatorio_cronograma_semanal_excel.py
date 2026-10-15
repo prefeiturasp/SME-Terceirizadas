@@ -190,6 +190,66 @@ def _queryset_cronogramas(ids_cronogramas):
     )
 
 
+def _criar_formatos(workbook):
+    formato_dados = workbook.add_format(
+        {
+            "align": "center",
+            "valign": "vcenter",
+            "border": 1,
+            "font_size": 9,
+            "text_wrap": True,
+        }
+    )
+
+    formato_dados_numero = workbook.add_format(
+        {
+            "align": "center",
+            "valign": "vcenter",
+            "border": 1,
+            "font_size": 9,
+            "num_format": "#,##0.00",
+        }
+    )
+
+    formato_dados_moeda = workbook.add_format(
+        {
+            "align": "center",
+            "valign": "vcenter",
+            "border": 1,
+            "font_size": 9,
+            "num_format": "R$ #,##0.00",
+        }
+    )
+    return formato_dados, formato_dados_numero, formato_dados_moeda
+
+
+def _escrever_linha(
+    worksheet,
+    linha_atual,
+    valores,
+    formato_dados,
+    formato_dados_numero,
+    formato_dados_moeda,
+    max_lengths,
+):
+    for col_idx, valor in enumerate(valores):
+        eh_numerica = col_idx in INDICES_COLUNAS_NUMERICAS
+        eh_moeda = col_idx == INDICE_COLUNA_CUSTO_UNITARIO
+
+        if (eh_numerica or eh_moeda) and valor is not None:
+            worksheet.write_number(
+                linha_atual,
+                col_idx,
+                valor,
+                formato_dados_moeda if eh_moeda else formato_dados_numero,
+            )
+        elif eh_numerica or eh_moeda:
+            worksheet.write(linha_atual, col_idx, "", formato_dados)
+        else:
+            worksheet.write(linha_atual, col_idx, valor, formato_dados)
+        _ajusta_max_length(max_lengths, col_idx, valor)
+
+
 def gera_relatorio_cronogramas_semanais_xlsx(ids_cronogramas, filtros=None):
     """Gera o arquivo Excel do Relatório de Cronogramas Semanais.
 
@@ -220,54 +280,21 @@ def gera_relatorio_cronogramas_semanais_xlsx(ids_cronogramas, filtros=None):
 
     max_lengths = [len(coluna) for coluna in COLUNAS]
 
-    formato_dados = workbook.add_format(
-        {
-            "align": "center",
-            "valign": "vcenter",
-            "border": 1,
-            "font_size": 9,
-            "text_wrap": True,
-        }
-    )
-
-    formato_dados_numero = workbook.add_format(
-        {
-            "align": "center",
-            "valign": "vcenter",
-            "border": 1,
-            "font_size": 9,
-            "num_format": "#,##0.00",
-        }
-    )
-
-    formato_dados_moeda = workbook.add_format(
-        {
-            "align": "center",
-            "valign": "vcenter",
-            "border": 1,
-            "font_size": 9,
-            "num_format": "R$ #,##0.00",
-        }
+    formato_dados, formato_dados_numero, formato_dados_moeda = _criar_formatos(
+        workbook
     )
 
     linha_atual = PRIMEIRA_LINHA_DE_DADOS
     for valores in linhas:
-        for col_idx, valor in enumerate(valores):
-            eh_numerica = col_idx in INDICES_COLUNAS_NUMERICAS
-            eh_moeda = col_idx == INDICE_COLUNA_CUSTO_UNITARIO
-
-            if (eh_numerica or eh_moeda) and valor is not None:
-                worksheet.write_number(
-                    linha_atual,
-                    col_idx,
-                    valor,
-                    formato_dados_moeda if eh_moeda else formato_dados_numero,
-                )
-            elif eh_numerica or eh_moeda:
-                worksheet.write(linha_atual, col_idx, "", formato_dados)
-            else:
-                worksheet.write(linha_atual, col_idx, valor, formato_dados)
-            _ajusta_max_length(max_lengths, col_idx, valor)
+        _escrever_linha(
+            worksheet,
+            linha_atual,
+            valores,
+            formato_dados,
+            formato_dados_numero,
+            formato_dados_moeda,
+            max_lengths,
+        )
         linha_atual += 1
 
     if linha_atual == PRIMEIRA_LINHA_DE_DADOS:

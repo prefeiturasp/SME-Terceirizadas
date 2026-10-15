@@ -31,6 +31,9 @@ from ..validators import (
 )
 
 
+MENSAGEM_ARQUIVO_DEVE_SER_PDF = "Arquivo deve ser um PDF."
+
+
 class InformacoesNutricionaisFichaTecnicaCreateSerializer(serializers.ModelSerializer):
     informacao_nutricional = serializers.UUIDField()
 
@@ -244,7 +247,7 @@ class FichaTecnicaRascunhoSerializer(
 
     def validate_arquivo(self, value):
         if value and "pdf" not in value:
-            raise serializers.ValidationError("Arquivo deve ser um PDF.")
+            raise serializers.ValidationError(MENSAGEM_ARQUIVO_DEVE_SER_PDF)
         return value
 
     def create(self, validated_data):
@@ -409,7 +412,7 @@ class FichaTecnicaCreateSerializer(
 
     def validate_arquivo(self, value):
         if value and "pdf" not in value:
-            raise serializers.ValidationError("Arquivo deve ser um PDF.")
+            raise serializers.ValidationError(MENSAGEM_ARQUIVO_DEVE_SER_PDF)
         return value
 
     def update(self, instance, validated_data):
@@ -480,7 +483,7 @@ class FichaTecnicaFLVCreateSerializer(
 
     def validate_arquivo(self, value):
         if value and "pdf" not in value:
-            raise serializers.ValidationError("Arquivo deve ser um PDF.")
+            raise serializers.ValidationError(MENSAGEM_ARQUIVO_DEVE_SER_PDF)
         return value
 
     def create(self, validated_data):
@@ -921,7 +924,7 @@ class FichaTecnicaAtualizacaoSerializer(serializers.ModelSerializer):
 
     def validate_arquivo(self, value):
         if value and "pdf" not in value:
-            raise serializers.ValidationError("Arquivo deve ser um PDF.")
+            raise serializers.ValidationError(MENSAGEM_ARQUIVO_DEVE_SER_PDF)
         return value
 
     def update(self, instance, validated_data):

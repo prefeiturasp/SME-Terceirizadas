@@ -14,7 +14,8 @@ from src.imr.models import CategoriaOcorrencia, TipoGravidade, TipoPenalidade
 from src.terceirizada.models import Edital
 
 
-def exportar_planilha_importacao_tipos_penalidade(request, **kwargs):
+def exportar_planilha_importacao_tipos_penalidade():
+    """Gera a planilha modelo de importação dos tipos de penalidade."""
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )

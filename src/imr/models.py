@@ -17,7 +17,7 @@ from ..dados_comuns.behaviors import (
     ArquivoCargaBase,
     CriadoPor,
     Grupo,
-    Logs,
+    TemLogs,
     ModeloBase,
     Nomeavel,
     PerfilDiretorSupervisao,
@@ -501,7 +501,7 @@ class FormularioDiretor(ModeloBase):
         verbose_name_plural = "Formulários do Diretor - Ocorrências"
 
 
-class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao, Logs):
+class FormularioSupervisao(ModeloBase, FluxoFormularioSupervisao, TemLogs):
     escola = models.ForeignKey(
         Escola, on_delete=models.PROTECT, related_name="formularios_supervisao"
     )

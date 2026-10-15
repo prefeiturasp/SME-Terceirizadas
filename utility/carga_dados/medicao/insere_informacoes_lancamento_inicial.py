@@ -53,6 +53,7 @@ from src.perfil.models.perfil import Perfil, Vinculo
 from src.perfil.models.usuario import Usuario
 
 QUANTIDADE_ALUNOS = 100
+OBSERVACAO_SEM_INFORMACOES = "<p>nenhuma</p>"
 MOTIVO_INCLUSAO_PROGRAMAS_PROJETOS = "Programas/Projetos Específicos"
 MOTIVO_INCLUSAO_EVENTO_ESPECIFICO = "Evento Específico"
 CLASSIFICACAO_DIETA_NOME_TIPO_A = "Tipo A"
@@ -741,7 +742,7 @@ def solicitar_lanche_emergencial_cemei(
                 "tipos_alimentacao_para": [tipo_lanche_emergencial],
             }
         ],
-        "observacao": "<p>nenhuma</p>",
+        "observacao": OBSERVACAO_SEM_INFORMACOES,
         "datas_intervalo": [{"data": data}],
     }
     context = {"request": type("Request", (), {"user": usuario})}
@@ -808,7 +809,7 @@ def incluir_programas_e_projetos(
                 "periodo_escolar": periodo_escolar,
                 "tipos_alimentacao": [tipo_alimentacao],
                 "numero_alunos": "10",
-                "observacao": "<p>nenhuma</p>",
+                "observacao": OBSERVACAO_SEM_INFORMACOES,
             }
         ],
         "motivo": motivo,
@@ -865,7 +866,7 @@ def incluir_etec(
                 "periodo_escolar": periodo_escolar,
                 "tipos_alimentacao": [tipo_alimentacao],
                 "numero_alunos": "10",
-                "observacao": "<p>nenhuma</p>",
+                "observacao": OBSERVACAO_SEM_INFORMACOES,
             }
         ],
         "motivo": motivo,

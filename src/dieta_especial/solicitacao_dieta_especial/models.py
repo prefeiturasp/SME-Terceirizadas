@@ -25,7 +25,7 @@ from src.dados_comuns.behaviors import (
     CriadoEm,
     CriadoPor,
     Descritivel,
-    Logs,
+    TemLogs,
     Nomeavel,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
@@ -184,7 +184,7 @@ class SolicitacaoDietaEspecial(
     CriadoPor,
     FluxoDietaEspecialPartindoDaEscola,
     TemPrioridade,
-    Logs,
+    TemLogs,
     TemIdentificadorExternoAmigavel,
     Ativavel,
 ):

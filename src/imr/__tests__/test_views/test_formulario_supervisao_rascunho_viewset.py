@@ -36,7 +36,7 @@ def test_create_formulario_supervisao(
     }
 
     response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
+        "/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -87,7 +87,7 @@ def test_formulario_supervisao_tipo_ocorrencia_nao_existe(
         ],
     }
     response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
+        "/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -167,7 +167,7 @@ def test_formulario_supervisao_respostas_nao(
     }
 
     response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
+        "/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -271,7 +271,7 @@ def test_update_formulario_supervisao(
     }
 
     response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
+        "/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )
@@ -411,7 +411,7 @@ def test_formulario_supervisao_erro_parametrizacao_uuid(
     }
 
     response = client.post(
-        f"/imr/rascunho-formulario-supervisao/",
+        "/imr/rascunho-formulario-supervisao/",
         data=json.dumps(payload),
         content_type="application/json",
     )

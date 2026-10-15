@@ -71,6 +71,10 @@ def criar_suspensoes(grupo_suspensao, datas_cancelamentos):
         )
 
 
+NOME_USUARIO_TESTE = "Usuário TESTE"
+TITULO_RECREIO_FERIAS_JULHO_2025 = "Recreio nas Férias - Julho 2025"
+
+
 @pytest.fixture
 def escola():
     terceirizada = baker.make("Terceirizada")
@@ -746,7 +750,7 @@ def solicitacao_medicao_inicial_aprovada_codae(
     django_user_model,
 ):
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao@escola.com",
@@ -780,7 +784,7 @@ def solicitacao_medicao_inicial_aprovada_codae(
 def recreio_nas_ferias(escola):
     recreio = baker.make(
         "RecreioNasFerias",
-        titulo="Recreio nas Férias - Julho 2025",
+        titulo=TITULO_RECREIO_FERIAS_JULHO_2025,
         data_inicio=datetime.date(2025, 7, 14),
         data_fim=datetime.date(2025, 8, 1),
     )
@@ -911,7 +915,7 @@ def solicitacao_medicao_inicial_recreio_nas_ferias_aprovada_codae(
     django_user_model,
 ):
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_recreio_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao_recreio@escola.com",
@@ -948,7 +952,7 @@ def solicitacao_com_historico_completo(
 ):
     solicitacao = solicitacoes_medicao_inicial_emef
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao@escola.com",
@@ -1057,7 +1061,7 @@ def escola_cei():
 def recreio_nas_ferias_cei(escola_cei):
     recreio = baker.make(
         "RecreioNasFerias",
-        titulo="Recreio nas Férias - Julho 2025",
+        titulo=TITULO_RECREIO_FERIAS_JULHO_2025,
         data_inicio=datetime.date(2025, 7, 14),
         data_fim=datetime.date(2025, 8, 1),
     )
@@ -1078,7 +1082,7 @@ def recreio_nas_ferias_cei(escola_cei):
 def recreio_nas_ferias_cemei(escola_cemei):
     recreio = baker.make(
         "RecreioNasFerias",
-        titulo="Recreio nas Férias - Julho 2025",
+        titulo=TITULO_RECREIO_FERIAS_JULHO_2025,
         data_inicio=datetime.date(2025, 7, 14),
         data_fim=datetime.date(2025, 8, 1),
     )
@@ -1217,7 +1221,7 @@ def solicitacao_medicao_inicial_recreio_nas_ferias_cei_aprovada_codae(
     django_user_model,
 ):
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_recreio_cei_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao_recreio_cei@escola.com",
@@ -1431,7 +1435,7 @@ def solicitacao_medicao_inicial_recreio_nas_ferias_cemei_aprovada_codae(
     django_user_model,
 ):
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_recreio_cemei_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao_recreio_cemei@escola.com",

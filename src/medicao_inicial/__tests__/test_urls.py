@@ -636,6 +636,60 @@ def test_url_endpoint_quantidades_alimentacoes_lancadas_extraordinaria(
     assert resultados[0]["valor_total"] == 15
 
 
+def test_url_endpoint_quantidades_alimentacoes_lancadas_extraordinaria_ignora_campos_de_outros_grupos(
+    client_autenticado_da_escola,
+    solicitacao_medicao_inicial_lanche_emergencial_extraordinario,
+    categoria_medicao_solicitacoes_alimentacao,
+):
+    solicitacao = solicitacao_medicao_inicial_lanche_emergencial_extraordinario
+    grupo = baker.make(
+        "GrupoMedicao",
+        nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS,
+    )
+    medicao = baker.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao,
+        periodo_escolar=None,
+        grupo=grupo,
+        status="MEDICAO_APROVADA_PELA_CODAE",
+    )
+    for nome_campo, valor in [
+        ("lanche_emergencial", "300"),
+        ("kit_lanche", "10"),
+        ("lanche", "0"),
+        ("lanche_4h", "0"),
+        ("refeicao", "0"),
+        ("sobremesa", "0"),
+    ]:
+        baker.make(
+            "ValorMedicao",
+            medicao=medicao,
+            categoria_medicao=categoria_medicao_solicitacoes_alimentacao,
+            dia="02",
+            semana="2",
+            nome_campo=nome_campo,
+            valor=valor,
+        )
+
+    response = client_autenticado_da_escola.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/quantidades-alimentacoes-lancadas-periodo-grupo/"
+        f"?uuid_solicitacao={solicitacao.uuid}",
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    resultado = [
+        r
+        for r in response.data["results"]
+        if r["nome_periodo_grupo"]
+        == GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS
+    ][0]
+    assert resultado["valor_total"] == 300
+    nomes_campos = [v["nome_campo"] for v in resultado["valores"]]
+    assert "kit_lanche" not in nomes_campos
+    assert "lanche_emergencial" in nomes_campos
+
+
 def test_url_endpoint_quantidades_alimentacoes_lancadas_periodo_grupo_escola_cei(
     client_autenticado_da_escola_cei,
     solicitacao_medicao_inicial_varios_valores_escola_cei,
@@ -1634,6 +1688,66 @@ def test_url_escola_corrige_medicao_extraordinaria(
     assert medicao.valores_medicao.filter(
         nome_campo="lanche_emergencial", dia="02", valor="15"
     ).exists()
+
+
+def test_url_escola_corrige_medicao_extraordinaria_ignora_kit_lanche(
+    client_autenticado_da_escola,
+    solicitacao_medicao_inicial_lanche_emergencial_extraordinario,
+    categoria_medicao_solicitacoes_alimentacao,
+    monkeypatch,
+):
+    solicitacao = solicitacao_medicao_inicial_lanche_emergencial_extraordinario
+    grupo = baker.make(
+        "GrupoMedicao",
+        nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS,
+    )
+    medicao = baker.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao,
+        periodo_escolar=None,
+        grupo=grupo,
+        status="MEDICAO_CORRECAO_SOLICITADA_CODAE",
+    )
+    baker.make(
+        "DiaParaCorrigir",
+        medicao=medicao,
+        categoria_medicao=categoria_medicao_solicitacoes_alimentacao,
+        dia="02",
+    )
+
+    monkeypatch.setattr(
+        "src.medicao_inicial.api.viewsets.log_alteracoes_escola_corrige_periodo",
+        lambda *args, **kwargs: None,
+    )
+
+    data = [
+        {
+            "dia": "02",
+            "nome_campo": "lanche_emergencial",
+            "valor": "15",
+            "categoria_medicao": categoria_medicao_solicitacoes_alimentacao.id,
+            "tipo_alimentacao": "",
+        },
+        {
+            "dia": "07",
+            "nome_campo": "kit_lanche",
+            "valor": "10",
+            "categoria_medicao": categoria_medicao_solicitacoes_alimentacao.id,
+            "tipo_alimentacao": "",
+        },
+    ]
+    response = client_autenticado_da_escola.patch(
+        f"/medicao-inicial/medicao/{medicao.uuid}/escola-corrige-medicao/",
+        content_type="application/json",
+        data=json.dumps(data),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    medicao.refresh_from_db()
+    assert medicao.valores_medicao.filter(
+        nome_campo="lanche_emergencial", dia="02", valor="15"
+    ).exists()
+    assert not medicao.valores_medicao.filter(nome_campo="kit_lanche").exists()
 
 
 def test_url_escola_corrige_medicao_loga_correcao_inicial(

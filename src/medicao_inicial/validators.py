@@ -123,6 +123,8 @@ def erros_unicos(lista_erros):
     return list(map(dict, set(tuple(sorted(erro.items())) for erro in lista_erros)))
 
 
+CATEGORIA_ALIMENTACOES = "alimentações"
+
 EXCLUIR_MEDICOES = [
     "ETEC",
     GrupoMedicao.PROGRAMAS_E_PROJETOS,
@@ -418,7 +420,7 @@ def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
     DIA_ID = 3
 
     for faixa_etaria in faixas_etarias:
-        if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
+        if lista_erros_com_periodo(lista_erros, medicao, CATEGORIA_ALIMENTACOES):
             continue
         log = next(
             (
@@ -479,7 +481,7 @@ def validate_lancamento_alimentacoes_medicao_cei_cemei_faixas_etarias(
     DIA_ID = 3
 
     for faixa_etaria in faixas_etarias:
-        if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
+        if lista_erros_com_periodo(lista_erros, medicao, CATEGORIA_ALIMENTACOES):
             continue
         log = next(
             (
@@ -1112,7 +1114,7 @@ def validate_lancamento_alimentacoes_medicao_cei(solicitacao, lista_erros):
                 )
             )
             periodo_com_erro = False
-            if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
+            if lista_erros_com_periodo(lista_erros, medicao, CATEGORIA_ALIMENTACOES):
                 continue
             periodo_com_erro = (
                 validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
@@ -1153,7 +1155,7 @@ def validate_lancamento_alimentacoes_medicao_cei_cemei(
             )
         )
         periodo_com_erro = False
-        if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
+        if lista_erros_com_periodo(lista_erros, medicao, CATEGORIA_ALIMENTACOES):
             continue
         periodo_com_erro = validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
             faixas_etarias,
@@ -1626,7 +1628,7 @@ def get_lista_erros_inclusoes_cei(
                 )
             )
             periodo_com_erro = False
-            if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
+            if lista_erros_com_periodo(lista_erros, medicao, CATEGORIA_ALIMENTACOES):
                 continue
             inclusoes_ = get_inclusoes_filtradas_cei(inclusoes, dia, mes, ano, medicao)
             if not inclusoes_.exists():
@@ -1690,7 +1692,7 @@ def get_lista_erros_inclusoes_cei_cemei(
             )
         )
         periodo_com_erro = False
-        if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
+        if lista_erros_com_periodo(lista_erros, medicao, CATEGORIA_ALIMENTACOES):
             continue
         inclusoes_ = get_inclusoes_filtradas_cei_cemei(
             inclusoes, dia, mes, ano, medicao

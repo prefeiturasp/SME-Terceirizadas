@@ -10,7 +10,7 @@ from src.dados_comuns.behaviors import (
     CanceladoIndividualmente,
     CriadoEm,
     CriadoPor,
-    Logs,
+    TemLogs,
     Nomeavel,
     TemChaveExterna,
     TemData,
@@ -143,7 +143,7 @@ class GrupoSuspensaoAlimentacao(
     CriadoEm,
     TemObservacao,
     FluxoInformativoPartindoDaEscola,
-    Logs,
+    TemLogs,
     TemPrioridade,
     TemTerceirizadaConferiuGestaoAlimentacao,
 ):
