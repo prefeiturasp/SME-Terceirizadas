@@ -114,6 +114,10 @@ env = environ.Env()
 ARQUIVO_MARCA_DAGUA_PRELIMINAR = "preliminar.pdf"
 
 
+FORMATO_DATA_HORA_PDF = "%d/%m/%Y às %H:%M"
+NOME_ARQUIVO_DIETA_ESPECIAL = "relatorio_dieta_especial.pdf"
+
+
 def valida_request_method_get(request):
     if request and request.method != "GET":
         return HttpResponseNotAllowed()
@@ -697,7 +701,7 @@ def relatorio_guia_de_remessa(guias, is_async=False):  # noqa C901
             }
         )
 
-        data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+        data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
 
         lista_pdfs.append(html_string.replace("dt_file", data_arquivo))
 
@@ -853,7 +857,79 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
     )
 
 
+def _montar_faixas(qa, periodo_interno, periodo_externo):
+    p_faixas = qa.filter(
+        periodo__nome=periodo_interno,
+        periodo_externo__nome=periodo_externo,
+    )
+    total_inclusao = sum(p_faixas.values_list("quantidade_alunos", flat=True))
+    total_matriculados = sum(
+        p_faixas.values_list("matriculados_quando_criado", flat=True)
+    )
+    faixas = [
+        {
+            "nome_faixa": x.faixa_etaria.__str__(),
+            "quantidade_alunos": x.quantidade_alunos,
+            "matriculados_quando_criado": x.matriculados_quando_criado,
+        }
+        for x in p_faixas
+    ]
+    return faixas, total_inclusao, total_matriculados
+
+
+def _montar_inclusoes_cei(solicitacao, escola):
+    qa = solicitacao.quantidade_alunos_por_faixas_etarias
+    vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    inclusoes = []
+    for periodo_externo in solicitacao.periodos_da_solicitacao(
+        nivel_interno=False, nome_coluna="periodo_externo"
+    ):
+        inclusao = {"periodo_externo_nome": periodo_externo}
+        vinculo = vinculos_class.objects.filter(
+            periodo_escolar__nome=periodo_externo,
+            ativo=True,
+            tipo_unidade_escolar=escola.tipo_unidade,
+        ).first()
+        if vinculo:
+            inclusao["tipos_alimentacao"] = ", ".join(
+                vinculo.tipos_alimentacao.values_list("nome", flat=True)
+            )
+        else:
+            inclusao["tipos_alimentacao"] = ""
+        if periodo_externo == "INTEGRAL":
+            inclusao["periodos_internos"] = []
+            for periodo_interno in solicitacao.periodos_da_solicitacao(
+                nivel_interno=True, nome_coluna="periodo"
+            ):
+                faixas, total_inclusao, total_matriculados = _montar_faixas(
+                    qa, periodo_interno, periodo_externo
+                )
+                inclusao["periodos_internos"].append(
+                    {
+                        "periodo_interno_nome": periodo_interno,
+                        "quantidades_faixas": faixas,
+                        "total_inclusao": total_inclusao,
+                        "total_matriculados": total_matriculados,
+                    }
+                )
+        else:
+            faixas, total_inclusao, total_matriculados = _montar_faixas(
+                qa, periodo_externo, periodo_externo
+            )
+            inclusao["quantidades_faixas"] = faixas
+            inclusao["total_inclusao"] = total_inclusao
+            inclusao["total_matriculados"] = total_matriculados
+        inclusoes.append(inclusao)
+    return inclusoes
+
+
 def relatorio_inclusao_alimentacao_cei(request, solicitacao):
+    """Gera o PDF da solicitação de inclusão de alimentação da CEI.
+
+    Args:
+        request: mantido por uniformidade com as demais funções relatorio_*.
+        solicitacao: solicitação de inclusão de alimentação da CEI.
+    """
     escola = solicitacao.rastro_escola
     escola = _aplica_nome_historico_escola(escola, solicitacao.data)
     logs = solicitacao.logs
@@ -869,78 +945,7 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
             },
         )
     else:
-        qa = solicitacao.quantidade_alunos_por_faixas_etarias
-        vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-        inclusoes = []
-        for periodo_externo in solicitacao.periodos_da_solicitacao(
-            nivel_interno=False, nome_coluna="periodo_externo"
-        ):
-            inclusao = {"periodo_externo_nome": periodo_externo}
-            vinculo = vinculos_class.objects.filter(
-                periodo_escolar__nome=periodo_externo,
-                ativo=True,
-                tipo_unidade_escolar=escola.tipo_unidade,
-            ).first()
-            if vinculo:
-                inclusao["tipos_alimentacao"] = ", ".join(
-                    vinculo.tipos_alimentacao.values_list("nome", flat=True)
-                )
-            else:
-                inclusao["tipos_alimentacao"] = ""
-            if periodo_externo == "INTEGRAL":
-                inclusao["periodos_internos"] = []
-                for periodo_interno in solicitacao.periodos_da_solicitacao(
-                    nivel_interno=True, nome_coluna="periodo"
-                ):
-                    p_faixas = qa.filter(
-                        periodo__nome=periodo_interno,
-                        periodo_externo__nome=periodo_externo,
-                    )
-                    total_inclusao = sum(
-                        p_faixas.values_list("quantidade_alunos", flat=True)
-                    )
-                    total_matriculados = sum(
-                        p_faixas.values_list("matriculados_quando_criado", flat=True)
-                    )
-
-                    p_faixas = [
-                        {
-                            "nome_faixa": x.faixa_etaria.__str__(),
-                            "quantidade_alunos": x.quantidade_alunos,
-                            "matriculados_quando_criado": x.matriculados_quando_criado,
-                        }
-                        for x in p_faixas
-                    ]
-                    inclusao["periodos_internos"].append(
-                        {
-                            "periodo_interno_nome": periodo_interno,
-                            "quantidades_faixas": p_faixas,
-                            "total_inclusao": total_inclusao,
-                            "total_matriculados": total_matriculados,
-                        }
-                    )
-            else:
-                p_faixas = qa.filter(
-                    periodo__nome=periodo_externo, periodo_externo__nome=periodo_externo
-                )
-                total_inclusao = sum(
-                    p_faixas.values_list("quantidade_alunos", flat=True)
-                )
-                total_matriculados = sum(
-                    p_faixas.values_list("matriculados_quando_criado", flat=True)
-                )
-                p_faixas = [
-                    {
-                        "nome_faixa": x.faixa_etaria.__str__(),
-                        "quantidade_alunos": x.quantidade_alunos,
-                        "matriculados_quando_criado": x.matriculados_quando_criado,
-                    }
-                    for x in p_faixas
-                ]
-                inclusao["quantidades_faixas"] = p_faixas
-                inclusao["total_inclusao"] = total_inclusao
-                inclusao["total_matriculados"] = total_matriculados
-            inclusoes.append(inclusao)
+        inclusoes = _montar_inclusoes_cei(solicitacao, escola)
         html_string = render_to_string(
             "novo_solicitacao_inclusao_alimentacao_cei.html",
             {
@@ -1274,7 +1279,7 @@ def relatorio_produto_homologacao(request, produto):
             "justificativa_analise_sensorial": justificativa_analise_sensorial,
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     html_string = html_string.replace("dt_file", data_arquivo)
     return html_to_pdf_response(
         html_string, f"produto_homologacao_{produto.id_externo}.pdf"
@@ -1296,7 +1301,7 @@ def relatorio_historico_produto(produto):
         },
     )
 
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     html_string = html_string.replace("dt_file", data_arquivo)
 
     response = html_to_pdf_response(
@@ -1571,7 +1576,7 @@ def relatorio_geral_dieta_especial_pdf(form, queryset, user):
             "user": user,
         },
     )
-    return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
+    return html_to_pdf_file(html_string, NOME_ARQUIVO_DIETA_ESPECIAL, is_async=True)
 
 
 def get_total_por_periodo(tabelas, campo, eh_cemei=False):
@@ -1694,7 +1699,7 @@ def relatorio_historico_ocorrencias_medicao_inicial(
             "logo_sme": logo_sme,
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     html_string = html_string.replace("dt_file", data_arquivo)
 
     return html_to_pdf_file(html_string, nome_arquivo, is_async=True)
@@ -1774,11 +1779,11 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
         == SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE
     ):
         return html_to_pdf_file(
-            html_string, "relatorio_dieta_especial.pdf", is_async=True
+            html_string, NOME_ARQUIVO_DIETA_ESPECIAL, is_async=True
         )
     return html_to_pdf_watermark(
         html_string,
-        "relatorio_dieta_especial.pdf",
+        NOME_ARQUIVO_DIETA_ESPECIAL,
         ARQUIVO_MARCA_DAGUA_PRELIMINAR,
         is_async=True,
     )
@@ -1830,11 +1835,11 @@ def relatorio_solicitacao_medicao_por_escola_recreio_nas_ferias(solicitacao):
         == SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE
     ):
         return html_to_pdf_file(
-            html_string, "relatorio_dieta_especial.pdf", is_async=True
+            html_string, NOME_ARQUIVO_DIETA_ESPECIAL, is_async=True
         )
     return html_to_pdf_watermark(
         html_string,
-        "relatorio_dieta_especial.pdf",
+        NOME_ARQUIVO_DIETA_ESPECIAL,
         ARQUIVO_MARCA_DAGUA_PRELIMINAR,
         is_async=True,
     )
@@ -1898,12 +1903,12 @@ def relatorio_solicitacao_medicao_por_escola_cei_recreio_nas_ferias(solicitacao)
         == SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE
     ):
         return html_to_pdf_file(
-            html_string, "relatorio_dieta_especial.pdf", is_async=True
+            html_string, NOME_ARQUIVO_DIETA_ESPECIAL, is_async=True
         )
     else:
         return html_to_pdf_watermark(
             html_string,
-            "relatorio_dieta_especial.pdf",
+            NOME_ARQUIVO_DIETA_ESPECIAL,
             ARQUIVO_MARCA_DAGUA_PRELIMINAR,
             is_async=True,
         )
@@ -1938,12 +1943,12 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
         == SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE
     ):
         return html_to_pdf_file(
-            html_string, "relatorio_dieta_especial.pdf", is_async=True
+            html_string, NOME_ARQUIVO_DIETA_ESPECIAL, is_async=True
         )
     else:
         return html_to_pdf_watermark(
             html_string,
-            "relatorio_dieta_especial.pdf",
+            NOME_ARQUIVO_DIETA_ESPECIAL,
             ARQUIVO_MARCA_DAGUA_PRELIMINAR,
             is_async=True,
         )
@@ -1999,12 +2004,12 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
         == SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE
     ):
         return html_to_pdf_file(
-            html_string, "relatorio_dieta_especial.pdf", is_async=True
+            html_string, NOME_ARQUIVO_DIETA_ESPECIAL, is_async=True
         )
     else:
         return html_to_pdf_watermark(
             html_string,
-            "relatorio_dieta_especial.pdf",
+            NOME_ARQUIVO_DIETA_ESPECIAL,
             ARQUIVO_MARCA_DAGUA_PRELIMINAR,
             is_async=True,
         )
@@ -2053,12 +2058,12 @@ def relatorio_solicitacao_medicao_por_escola_cemei_recreio_nas_ferias(solicitaca
         == SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE
     ):
         return html_to_pdf_file(
-            html_string, "relatorio_dieta_especial.pdf", is_async=True
+            html_string, NOME_ARQUIVO_DIETA_ESPECIAL, is_async=True
         )
     else:
         return html_to_pdf_watermark(
             html_string,
-            "relatorio_dieta_especial.pdf",
+            NOME_ARQUIVO_DIETA_ESPECIAL,
             ARQUIVO_MARCA_DAGUA_PRELIMINAR,
             is_async=True,
         )
@@ -2365,12 +2370,12 @@ def relatorio_solicitacao_medicao_por_escola_emebs(solicitacao):
         == SolicitacaoMedicaoInicialWorkflow.MEDICAO_APROVADA_PELA_CODAE
     ):
         return html_to_pdf_file(
-            html_string, "relatorio_dieta_especial.pdf", is_async=True
+            html_string, NOME_ARQUIVO_DIETA_ESPECIAL, is_async=True
         )
     else:
         return html_to_pdf_watermark(
             html_string,
-            "relatorio_dieta_especial.pdf",
+            NOME_ARQUIVO_DIETA_ESPECIAL,
             ARQUIVO_MARCA_DAGUA_PRELIMINAR,
             is_async=True,
         )
@@ -2448,7 +2453,7 @@ def get_pdf_cronograma(request, cronograma):
             "logs": logs,
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"cronogram_{cronograma.numero}.pdf",
@@ -2468,7 +2473,7 @@ def get_pdf_cronograma_ponto_a_ponto_flv(request, cronograma):
             "logs": logs,
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"cronograma_flv_{cronograma.numero}.pdf",
@@ -2488,7 +2493,7 @@ def get_pdf_cronograma_semanal(request, cronograma):
             "logs": logs,
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"cronograma_semanal_{cronograma.numero}.pdf",
@@ -2597,7 +2602,7 @@ def get_pdf_relatorio_solicitacao_alteracao_cronograma(solicitacao_cronograma):
             "eh_fornecedor_ciente": eh_fornecedor_ciente,
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     html_string = html_string.replace("dt_file", data_arquivo)
     return html_to_pdf_response(html_string, "alteracao_cronograma.pdf")
 
@@ -2650,7 +2655,7 @@ def get_pdf_ficha_tecnica(request, ficha):
             "exibir_numero_registro": ficha.exibir_numero_registro,
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"ficha_tecnica_{ficha.numero}.pdf",
@@ -2684,7 +2689,7 @@ def relatorio_formulario_supervisao(formulario_supervisao):
             ),
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     return html_to_pdf_file(
         html_string.replace("dt_file", data_arquivo),
         "relatorio_formulario_supervisao.pdf",
@@ -2693,7 +2698,7 @@ def relatorio_formulario_supervisao(formulario_supervisao):
 
 
 def exportar_relatorio_notificacao(data, template_name, filename):
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     html_template = get_template(template_name)
     rendered_html = html_template.render({"dados": data})
     return html_to_pdf_file(
@@ -2809,7 +2814,7 @@ def get_pdf_ficha_recebimento(request, ficha):
             "assinatura": ficha.logs.last(),
         },
     )
-    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
+    data_arquivo = datetime.datetime.today().strftime(FORMATO_DATA_HORA_PDF)
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"ficha_recebimento_{ficha.etapa.cronograma.numero}.pdf",

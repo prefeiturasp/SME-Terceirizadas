@@ -3,7 +3,7 @@ from django.db import models
 from ..dados_comuns.behaviors import (  # noqa I101
     CriadoEm,
     CriadoPor,
-    Logs,
+    TemLogs,
     TemChaveExterna,
     TemData,
 )
@@ -16,7 +16,7 @@ from .utils import (
 
 
 class LancamentoDiario(
-    CriadoEm, CriadoPor, TemData, Logs, TemChaveExterna, models.Model
+    CriadoEm, CriadoPor, TemData, TemLogs, TemChaveExterna, models.Model
 ):
     escola_periodo_escolar = models.ForeignKey(
         StringsCaminhoModelos.MODEL_ESCOLAPERIODOESCOLAR.value,

@@ -256,7 +256,7 @@ def test_html_to_pdf_email_anexo():
     )
     nome_pdf = "cancelamento.pdf"
 
-    pdf_bytes = html_to_pdf_email_anexo(html_string, pdf_filename=nome_pdf)
+    pdf_bytes = html_to_pdf_email_anexo(html_string)
     assert isinstance(pdf_bytes, bytes)
 
     texto = extrair_texto_de_pdf(pdf_bytes)

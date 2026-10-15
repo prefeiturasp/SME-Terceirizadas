@@ -5,6 +5,9 @@ from ..dados_comuns.fluxo_status import (
     ReclamacaoProdutoWorkflow,
 )
 
+LABEL_DATA_QUESTIONAMENTO_CODAE = "Data questionamento CODAE"
+
+
 NOVA_RECLAMACAO_HOMOLOGACOES_STATUS = [
     HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
     HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
@@ -46,13 +49,13 @@ RELATORIO_RECLAMACOES_PRODUTOS = {
         ]: "Data resposta nutricionista",
         STATUS_DICT[
             LogSolicitacoesUsuario.CODAE_QUESTIONOU_NUTRISUPERVISOR
-        ]: "Data questionamento CODAE",
+        ]: LABEL_DATA_QUESTIONAMENTO_CODAE,
         STATUS_DICT[
             LogSolicitacoesUsuario.CODAE_QUESTIONOU_TERCEIRIZADA
-        ]: "Data questionamento CODAE",
+        ]: LABEL_DATA_QUESTIONAMENTO_CODAE,
         STATUS_DICT[
             LogSolicitacoesUsuario.CODAE_QUESTIONOU_UE
-        ]: "Data questionamento CODAE",
+        ]: LABEL_DATA_QUESTIONAMENTO_CODAE,
         STATUS_DICT[
             LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO
         ]: "Data resposta terceirizada",

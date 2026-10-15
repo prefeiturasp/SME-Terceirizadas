@@ -60,6 +60,9 @@ from ...services.historico_reclamacao_produto import (
 )
 
 
+SOURCE_STATUS_STATE_TITLE = "status.state.title"
+
+
 class FabricanteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fabricante
@@ -216,7 +219,7 @@ class LogHistoricoReclamacaoProdutoSerializer(LogProdutoComAnexosSerializer):
 class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     anexos = serializers.SerializerMethodField()
-    status_titulo = serializers.CharField(source="status.state.title")
+    status_titulo = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
     logs = serializers.SerializerMethodField()
     usuario = serializers.SerializerMethodField()
 
@@ -334,7 +337,7 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     logs = LogProdutoComVinculoSerializer(many=True)
     ultimo_log = LogProdutoComVinculoSerializer()
-    status_titulo = serializers.CharField(source="status.state.title")
+    status_titulo = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
     data_cadastro = serializers.DateField()
     ultima_analise = AnaliseSensorialSerializer()
 
@@ -870,7 +873,7 @@ class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
 class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
     ultimo_log = UltimoLogRelatorioSituacaoSerializer()
-    status_titulo = serializers.CharField(source="status.state.title")
+    status_titulo = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
     justificativa = serializers.SerializerMethodField()
 
     def get_justificativa(self, obj):
@@ -928,7 +931,7 @@ class EscolaSolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerialize
 
 
 class SolicitacaoCadastroProdutoDietaSimplesSerializer(serializers.ModelSerializer):
-    status_title = serializers.CharField(source="status.state.title")
+    status_title = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
 
     class Meta:
         model = SolicitacaoCadastroProdutoDieta
@@ -947,7 +950,7 @@ class SolicitacaoCadastroProdutoDietaSimplesSerializer(serializers.ModelSerializ
 class SolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerializer):
     aluno = AlunoSimplesSerializer()
     escola = EscolaSolicitacaoCadastroProdutoDietaSerializer()
-    status_title = serializers.CharField(source="status.state.title")
+    status_title = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
 
     class Meta:
         model = SolicitacaoCadastroProdutoDieta
@@ -982,7 +985,7 @@ class SolicitacaoCadastroProdutoDietaConfirmarSerializer(
 
 class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
-    status_titulo = serializers.CharField(source="status.state.title")
+    status_titulo = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
     logs = LogSolicitacoesSerializer(many=True)
     usuario = serializers.SerializerMethodField()
     anexos = serializers.SerializerMethodField()
@@ -1018,7 +1021,7 @@ class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
 
 class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):
     reclamacoes = ReclamacaoDeProdutoRelatorioSerializer(many=True)
-    status_titulo = serializers.CharField(source="status.state.title")
+    status_titulo = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     editais_reclamacoes = serializers.SerializerMethodField()
 
@@ -1069,7 +1072,7 @@ class ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(
     serializers.ModelSerializer
 ):
     escola = EscolaSimplissimaSerializer()
-    status_titulo = serializers.CharField(source="status.state.title")
+    status_titulo = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
     logs = serializers.SerializerMethodField()
 
     def get_logs(self, obj):
@@ -1277,7 +1280,7 @@ class ProdutoReclamacaoExcelSerializer(serializers.ModelSerializer):
 
 
 class HomologacaoReclamacaoExcelSerializer(serializers.ModelSerializer):
-    status_titulo = serializers.CharField(source="status.state.title")
+    status_titulo = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
     produto = ProdutoReclamacaoExcelSerializer()
 
     class Meta:
@@ -1295,7 +1298,7 @@ class HomologacaoReclamacaoExcelSerializer(serializers.ModelSerializer):
 
 class ReclamacaoDeProdutoExcelSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
-    status_titulo = serializers.CharField(source="status.state.title")
+    status_titulo = serializers.CharField(source=SOURCE_STATUS_STATE_TITLE)
     numero_edital = serializers.CharField(read_only=True)
     homologacao_produto = HomologacaoReclamacaoExcelSerializer(read_only=True)
 

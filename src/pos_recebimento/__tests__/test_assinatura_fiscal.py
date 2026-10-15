@@ -17,6 +17,9 @@ URL_PENDENTES = "/pos-recebimento/termos/pendentes-assinatura/"
 URL_ASSINADOS = "/pos-recebimento/termos/assinados/"
 
 
+SENHA_INCORRETA = "senha-errada"
+
+
 def _url_assinar(termo):
     return f"/pos-recebimento/termos/{termo.uuid}/fiscal-assina-termo/"
 
@@ -68,7 +71,7 @@ def test_fiscal_assina_termo_senha_incorreta_retorna_401(
     client, tres_fiscais, termo_para_assinatura
 ):
     _login(client, tres_fiscais[0])
-    response = _assinar(client, termo_para_assinatura, password="senha-errada")
+    response = _assinar(client, termo_para_assinatura, password=SENHA_INCORRETA)
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert not AssinaturaTermoRecebimentoDefinitivo.objects.exists()

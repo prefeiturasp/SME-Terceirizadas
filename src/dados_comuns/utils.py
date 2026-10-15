@@ -837,9 +837,9 @@ def filtrar_dias_letivos(dias_letivos: list[int], mes: int, ano: int):
     dias_filtrados = []
     for dia in dias_letivos:
         data = datetime.date(ano, mes, dia)
-        dia_semana = data.weekday()  # 0=Segunda, 6=Domingo
+        dia_semana = data.weekday()  # segunda-feira a domingo: zero a seis
 
-        eh_fim_de_semana = dia_semana >= 5  # 5=Sábado, 6=Domingo
+        eh_fim_de_semana = dia_semana >= 5  # sábado e domingo
         eh_feriado = f"{dia:02d}" in feriados
 
         if not eh_fim_de_semana and not eh_feriado:

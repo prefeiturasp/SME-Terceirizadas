@@ -279,7 +279,7 @@ def processa_dias_letivos(
             periodo_escolar=periodo_escolar,
         ).first()
         if not dia_calendario:
-            dia_calendario = DiaCalendario.objects.create(
+            DiaCalendario.objects.create(
                 escola=escola,
                 data=data,
                 dia_letivo=dia_dict["ehLetivo"],

@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from src.dados_comuns.behaviors import CriadoPor, Logs, ModeloBase
+from src.dados_comuns.behaviors import CriadoPor, TemLogs, ModeloBase
 from src.dados_comuns.constants import StringsVerboseNameModels
 from src.dados_comuns.fluxo_status import FluxoTermoRecebimentoDefinitivo
 from src.pre_recebimento.cronograma_entrega.models import Cronograma
@@ -9,7 +9,7 @@ from src.terceirizada.models import Contrato, Terceirizada
 
 
 class TermoRecebimentoDefinitivo(
-    ModeloBase, CriadoPor, Logs, FluxoTermoRecebimentoDefinitivo
+    ModeloBase, CriadoPor, TemLogs, FluxoTermoRecebimentoDefinitivo
 ):
     """Termo de Recebimento Definitivo do módulo Pós-Recebimento.
 

@@ -512,7 +512,7 @@ class ProcessadorPlanilhaUsuarioPerfilEscola:
             logger.error(
                 f'Usuário com email "{email}" ou com rf "{registro_funcional}" já existe.'
             )
-            raise Exception(
+            raise ValueError(
                 f'Usuário com email "{email}" ou com rf '
                 + f'"{registro_funcional}" já existe. Nome na planilha: {nome_planilha}.'
             )
@@ -522,7 +522,7 @@ class ProcessadorPlanilhaUsuarioPerfilEscola:
             perfil = Perfil.objects.get(nome=usuario_schema.perfil)
         except Perfil.DoesNotExist:
             logger.error(f"Este perfil não existe: {usuario_schema.perfil}")
-            raise Exception(f"Este perfil não existe: {usuario_schema.perfil}")
+            raise ValueError(f"Este perfil não existe: {usuario_schema.perfil}")
         data_atual = date.today()
         usuario = Usuario.objects.create_user(
             email=usuario_schema.email,
@@ -708,7 +708,7 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
             Perfil.objects.get(nome=usuario_schema.perfil)
         except Perfil.DoesNotExist:
             logger.error(f"Este perfil não existe: {usuario_schema.perfil}")
-            raise Exception(f"Este perfil não existe: {usuario_schema.perfil}")
+            raise ValueError(f"Este perfil não existe: {usuario_schema.perfil}")
         if usuario_schema.perfil == perfis["perfil_usuario_codae"]:
             codae = instituicoes_codae["codae_alimentacao"]
         elif usuario_schema.perfil == perfis["perfil_usuario_nutri_codae"]:
@@ -736,7 +736,7 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
             logger.error(
                 f'Usuário com email "{email}" ou com rf "{registro_funcional}" já existe.'
             )
-            raise Exception(
+            raise ValueError(
                 f'Usuário com email "{email}" ou com rf '
                 + f'"{registro_funcional}" já existe. Nome na planilha: {nome_planilha}.'
             )
@@ -746,7 +746,7 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
             perfil = Perfil.objects.get(nome=usuario_schema.perfil)
         except Perfil.DoesNotExist:
             logger.error(f"Este perfil não existe: {usuario_schema.perfil}")
-            raise Exception(f"Este perfil não existe: {usuario_schema.perfil}")
+            raise ValueError(f"Este perfil não existe: {usuario_schema.perfil}")
         data_atual = date.today()
         usuario = Usuario.objects.create_user(
             email=usuario_schema.email,
@@ -898,7 +898,7 @@ class ProcessadorPlanilhaUsuarioPerfilDre:
     def consulta_dre(self, codigo_eol_dre):
         dre = DiretoriaRegional.objects.filter(codigo_eol=codigo_eol_dre).first()
         if not dre:
-            raise Exception(f"Dre não encontrada para o código: {codigo_eol_dre}.")
+            raise ValueError(f"Dre não encontrada para o código: {codigo_eol_dre}.")
         return dre
 
     def checa_usuario(self, registro_funcional, email, nome_planilha):
@@ -909,7 +909,7 @@ class ProcessadorPlanilhaUsuarioPerfilDre:
             logger.error(
                 f'Usuário com email "{email}" ou com rf "{registro_funcional}" já existe.'
             )
-            raise Exception(
+            raise ValueError(
                 f'Usuário com email "{email}" ou com rf '
                 + f'"{registro_funcional}" já existe. Nome na planilha: {nome_planilha}.'
             )
@@ -919,7 +919,7 @@ class ProcessadorPlanilhaUsuarioPerfilDre:
             perfil = Perfil.objects.get(nome=usuario_schema.perfil)
         except Perfil.DoesNotExist:
             logger.error(f"Este perfil não existe: {usuario_schema.perfil}")
-            raise Exception(f"Este perfil não existe: {usuario_schema.perfil}")
+            raise ValueError(f"Este perfil não existe: {usuario_schema.perfil}")
         data_atual = date.today()
         usuario = Usuario.objects.create_user(
             email=usuario_schema.email,

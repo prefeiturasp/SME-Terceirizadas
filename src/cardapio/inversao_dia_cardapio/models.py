@@ -8,7 +8,7 @@ from src.cardapio.inversao_dia_cardapio.managers.inversao_dia_cardapio_managers 
 from src.dados_comuns.behaviors import (
     CriadoEm,
     CriadoPor,
-    Logs,
+    TemLogs,
     Motivo,
     SolicitacaoForaDoPrazo,
     TemChaveExterna,
@@ -38,7 +38,7 @@ class InversaoCardapio(
     TemIdentificadorExternoAmigavel,
     FluxoAprovacaoPartindoDaEscola,
     TemPrioridade,
-    Logs,
+    TemLogs,
     SolicitacaoForaDoPrazo,
     TemTerceirizadaConferiuGestaoAlimentacao,
 ):

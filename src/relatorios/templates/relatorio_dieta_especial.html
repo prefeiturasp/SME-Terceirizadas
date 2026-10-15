@@ -46,57 +46,57 @@
       </div>
        <div class="quatro-informacoes">
         <div class="informacao">
-          <label>Solicitação #{{dieta.id_externo}}</label>
+          <span class="rotulo">Solicitação #{{dieta.id_externo}}</span>
         </div>
         <div class="informacao-tres">
-          <p>Status Solicitação: <label>{{dieta.status|obter_titulo_status_dieta}}</label></p>
+          <p>Status Solicitação: <span class="rotulo">{{dieta.status|obter_titulo_status_dieta}}</span></p>
         </div>
       </div>
       <div class="quatro-informacoes">
         <div class="informacao">
-          <label>Código EOL do aluno</label>
+          <span class="rotulo">Código EOL do aluno</span>
           {{dieta.aluno.codigo_eol|default:''}}
         </div>
         <div class="informacao">
-          <label>Nome do Aluno</label>
+          <span class="rotulo">Nome do Aluno</span>
           {{dieta.aluno.nome}}
         </div>
         <div class="informacao">
-          <label>Data de Nascimento</label>
+          <span class="rotulo">Data de Nascimento</span>
           {{dieta.aluno.data_nascimento|date:'d/m/Y'}}
         </div>
         <div class="informacao">
-          <label>Classificação da dieta</label>
+          <span class="rotulo">Classificação da dieta</span>
           {{dieta.classificacao|default:""}}
         </div>
       </div>
       <div class="quatro-informacoes">
         <div class="informacao">
-          <label>Diagnóstico</label>
+          <span class="rotulo">Diagnóstico</span>
           {% for alergia in dieta.alergias_intolerancias.all %}
             {{alergia}}
           {% endfor %}
         </div>
         <div class="informacao-tres">
-          <label>Nome do protocolo</label>
+          <span class="rotulo">Nome do protocolo</span>
           {% if dieta.nome_protocolo %}{{ dieta.nome_protocolo }}{% elif dieta.protocolo_padrao %}{{ dieta.protocolo_padrao.nome_protocolo }}{% endif %}
         </div>
         <div class="informacao">
-          <label>Data de término</label>
+          <span class="rotulo">Data de término</span>
           {{dieta.data_termino|date:'d/m/Y'|default:"Sem data de término"}}
         </div>
       </div>
       <div class="quatro-informacoes">
         <div class="informacao">
-          <label>Motivo da Negação</label>
+          <span class="rotulo">Motivo da Negação</span>
           {{dieta.motivo_negacao|default:""}}
         </div>
         <div class="informacao-tres">
-          <label>Justificativa</label>
+          <span class="rotulo">Justificativa</span>
           {{dieta.justificativa_negacao|safe_content|default:""}}
         </div>
         <div class="informacao">
-          <label>Data da Negação</label>
+          <span class="rotulo">Data da Negação</span>
           {% if dieta.status.state.title == "CODAE negou a solicitação"%}
             {{ dieta.logs.last.criado_em|date:"d/m/Y" }}
           {% endif %}
@@ -104,13 +104,13 @@
       </div>
       <div class="quatro-informacoes">
         <div class="informacao-tres">
-          <label>Nome do usuário</label>
+          <span class="rotulo">Nome do usuário</span>
           {% if dieta.status.state.title == "CODAE negou a solicitação" or dieta.status.state.title == "CODAE autorizou" %}
             {{ dieta.logs.last.usuario.nome|default:"" }}
           {% endif %}
         </div>
         <div class="informacao-tres">
-          <label>RF</label>
+          <span class="rotulo">RF</span>
           {% if dieta.status.state.title == "CODAE negou a solicitação" or dieta.status.state.title == "CODAE autorizou" %}
             {{ dieta.logs.last.usuario.registro_funcional|default:"" }}
           {% endif %}
@@ -119,11 +119,11 @@
 
       <div class="quatro-informacoes">
         <div class="informacao-tres">
-          <label>Observação da Dieta</label>
+          <span class="rotulo">Observação da Dieta</span>
           {{dieta.observacoes|safe_content}}
         </div>
         <div class="informacao-tres">
-          <label>Informações Adicionais</label>
+          <span class="rotulo">Informações Adicionais</span>
           {{dieta.informacoes_adicionais|safe_content}}
         </div>
       </div>

@@ -9,6 +9,9 @@ from src.dados_comuns.models import Contato
 from src.perfil.models import Usuario
 from src.terceirizada.models import EmailTerceirizadaPorModulo, Terceirizada
 
+SUFIXO_EMAIL_ADMIN_COM = "@admin.com"
+SUFIXO_EMAIL_AMCOM_COM = "@amcom.com"
+
 logger = logging.getLogger("sigpae.cmd_suja_base")
 
 env = environ.Env()
@@ -25,8 +28,8 @@ class Command(BaseCommand):
             Q(email__isnull=True)
             | Q(email="")
             | Q(email__icontains="fake_")
-            | Q(email__icontains="@admin.com")
-            | Q(email__icontains="@amcom.com")
+            | Q(email__icontains=SUFIXO_EMAIL_ADMIN_COM)
+            | Q(email__icontains=SUFIXO_EMAIL_AMCOM_COM)
         )
         self.suja_emails_usuarios(filtro_ignorar)
         self.suja_emails_contatos(filtro_ignorar)
@@ -55,8 +58,8 @@ class Command(BaseCommand):
             Q(representante_email__isnull=True)
             | Q(representante_email="")
             | Q(representante_email__icontains="fake_")
-            | Q(representante_email__icontains="@admin.com")
-            | Q(representante_email__icontains="@amcom.com")
+            | Q(representante_email__icontains=SUFIXO_EMAIL_ADMIN_COM)
+            | Q(representante_email__icontains=SUFIXO_EMAIL_AMCOM_COM)
         )
         self.stdout.write(
             self.style.SUCCESS(
@@ -74,8 +77,8 @@ class Command(BaseCommand):
             Q(responsavel_email__isnull=True)
             | Q(responsavel_email="")
             | Q(responsavel_email__icontains="fake_")
-            | Q(responsavel_email__icontains="@admin.com")
-            | Q(responsavel_email__icontains="@amcom.com")
+            | Q(responsavel_email__icontains=SUFIXO_EMAIL_ADMIN_COM)
+            | Q(responsavel_email__icontains=SUFIXO_EMAIL_AMCOM_COM)
         )
         self.stdout.write(
             self.style.SUCCESS(
@@ -93,8 +96,8 @@ class Command(BaseCommand):
             Q(email__isnull=True)
             | Q(email="")
             | Q(email__icontains="fake_")
-            | Q(email__icontains="@admin.com")
-            | Q(email__icontains="@amcom.com")
+            | Q(email__icontains=SUFIXO_EMAIL_ADMIN_COM)
+            | Q(email__icontains=SUFIXO_EMAIL_AMCOM_COM)
         )
         self.stdout.write(
             self.style.SUCCESS(

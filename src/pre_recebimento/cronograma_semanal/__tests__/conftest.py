@@ -19,6 +19,9 @@ from src.pre_recebimento.cronograma_semanal.models import (
 )
 from src.terceirizada.models import Terceirizada
 
+MES_ANO_MARCO_2026 = "03/2026"
+MES_ANO_ABRIL_2026 = "04/2026"
+
 fake = Faker("pt_BR")
 
 
@@ -213,7 +216,7 @@ def programacao_entrega_semanal(cronograma_semanal_rascunho):
     return baker.make(
         ProgramacaoEntregaSemanal,
         cronograma_semanal=cronograma_semanal_rascunho,
-        mes_programado="03/2026",
+        mes_programado=MES_ANO_MARCO_2026,
         data_inicio=timezone.now().date(),
         data_fim=timezone.now().date() + datetime.timedelta(days=5),
         quantidade=100.0,
@@ -260,13 +263,13 @@ def payload_cronograma_semanal_com_programacoes(cronograma_ponto_a_ponto_assinad
         "observacoes": "Rascunho com programações",
         "programacoes": [
             {
-                "mes_programado": "03/2026",
+                "mes_programado": MES_ANO_MARCO_2026,
                 "data_inicio": "2026-03-01",
                 "data_fim": "2026-03-15",
                 "quantidade": 50.0,
             },
             {
-                "mes_programado": "04/2026",
+                "mes_programado": MES_ANO_ABRIL_2026,
                 "data_inicio": "2026-04-01",
                 "data_fim": "2026-04-15",
                 "quantidade": 30.0,
@@ -354,8 +357,8 @@ def cronograma_semanal_para_relatorio(cronograma_ponto_a_ponto_com_etapas):
         status=CronogramaSemanalWorkflow.ENVIADO_AO_FORNECEDOR,
     )
     for mes, inicio, fim, quantidade in (
-        ("03/2026", datetime.date(2026, 3, 1), datetime.date(2026, 3, 15), 50.0),
-        ("04/2026", datetime.date(2026, 4, 1), datetime.date(2026, 4, 15), 30.0),
+        (MES_ANO_MARCO_2026, datetime.date(2026, 3, 1), datetime.date(2026, 3, 15), 50.0),
+        (MES_ANO_ABRIL_2026, datetime.date(2026, 4, 1), datetime.date(2026, 4, 15), 30.0),
     ):
         baker.make(
             ProgramacaoEntregaSemanal,
@@ -397,9 +400,9 @@ def cronogramas_semanais_relatorio(
         status=CronogramaSemanalWorkflow.FORNECEDOR_CIENTE,
     )
     programacoes = (
-        (primeiro, "03/2026", datetime.date(2026, 3, 1), datetime.date(2026, 3, 15)),
+        (primeiro, MES_ANO_MARCO_2026, datetime.date(2026, 3, 1), datetime.date(2026, 3, 15)),
         (primeiro, "05/2026", datetime.date(2026, 5, 1), datetime.date(2026, 5, 15)),
-        (segundo, "04/2026", datetime.date(2026, 4, 1), datetime.date(2026, 4, 15)),
+        (segundo, MES_ANO_ABRIL_2026, datetime.date(2026, 4, 1), datetime.date(2026, 4, 15)),
     )
     for semanal, mes, data_inicio, data_fim in programacoes:
         baker.make(

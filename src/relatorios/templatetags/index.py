@@ -35,6 +35,8 @@ from ...inclusao_alimentacao.models import (
 )
 from ...kit_lanche.models import EscolaQuantidade
 
+TH_FAIXA_ETARIA_TOTAL = '<th class="faixa-etaria" colspan="1"></th>'
+
 register = template.Library()
 
 # Add support for multi-line template tags
@@ -739,7 +741,7 @@ def build_rows_faixas_etarias(tabela):
 
 def _build_th_header_faixa(faixa, recreio, categoria):
     if faixa == "total":
-        return '<th class="faixa-etaria" colspan="1"></th>'
+        return TH_FAIXA_ETARIA_TOTAL
     if recreio:
         colspan = 1 if categoria == CHAVE_ALIMENTACAO_REGULAR else 2
         return f'<th class="faixa-etaria" colspan="{colspan}">{faixa}</th>'
@@ -749,7 +751,7 @@ def _build_th_header_faixa(faixa, recreio, categoria):
 def _build_ths_header_categoria(faixas_limite, recreio, categoria):
     html = []
     if recreio and categoria == CHAVE_ALIMENTACAO_REGULAR:
-        html.append('<th class="faixa-etaria" colspan="1"></th>')
+        html.append(TH_FAIXA_ETARIA_TOTAL)
     for faixa in faixas_limite:
         html.append(_build_th_header_faixa(faixa, recreio, categoria))
     return html
@@ -778,7 +780,7 @@ def build_headers_faixas_etarias(tabela):
             index_inicial += numero_campos
 
     for _ in tabela["nomes_campos"]:
-        html_output.append('<th class="faixa-etaria" colspan="1"></th>')
+        html_output.append(TH_FAIXA_ETARIA_TOTAL)
 
     return "".join(html_output)
 

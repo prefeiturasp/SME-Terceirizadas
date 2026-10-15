@@ -361,7 +361,7 @@ class TemPrioridade(object):
         return data_retorno
 
 
-class Logs(object):
+class TemLogs(object):
     @property
     def logs(self):
         return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid).order_by(
@@ -437,6 +437,11 @@ class Logs(object):
             if log:
                 return log.last().criado_em.strftime(FORMATO_DATA_BRASILEIRO)
         return ""
+
+
+# Alias mantido para compatibilidade com migrations históricas que referenciam
+# src.dados_comuns.behaviors.Logs nas bases dos modelos.
+Logs = TemLogs
 
 
 class TemVinculos(models.Model):

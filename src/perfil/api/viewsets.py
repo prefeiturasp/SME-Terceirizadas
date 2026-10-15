@@ -75,6 +75,12 @@ from src.pos_recebimento.api.permissions import (
 )
 from src.terceirizada.models import Terceirizada
 
+CABECALHO_NOME_DO_USUARIO = "Nome do Usuário"
+MENSAGEM_PERFIL_INVALIDO = "Perfil Inválido"
+MENSAGEM_PERFIL_NAO_PERMITIDO = "Perfil não permitido"
+MENSAGEM_PROCESSAMENTO_IMPORTACAO_INICIADO = "Processamento de importação iniciado com sucesso."
+MENSAGEM_ARQUIVO_REMOVIDO = "Arquivo removido com sucesso."
+
 logger = logging.getLogger(__name__)
 
 
@@ -378,7 +384,7 @@ def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
     ws = workbook.active
     ws.title = "CODAE"
     headers = [
-        "Nome do Usuário",
+        CABECALHO_NOME_DO_USUARIO,
         "Cargo",
         "Email",
         "CPF",
@@ -407,8 +413,8 @@ def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
         'COORDENADOR_GESTAO_PRODUTO"',
         allow_blank=True,
     )
-    dv.error = "Perfil Inválido"
-    dv.errorTitle = "Perfil não permitido"
+    dv.error = MENSAGEM_PERFIL_INVALIDO
+    dv.errorTitle = MENSAGEM_PERFIL_NAO_PERMITIDO
     ws.add_data_validation(dv)
     dv.add("G2:G1048576")
     workbook.save(response)
@@ -426,7 +432,7 @@ def exportar_planilha_importacao_usuarios_perfil_escola(request, **kwargs):
     ws.title = "ESCOLA"
     headers = [
         "Cód. EOL da U.E",
-        "Nome do Usuário",
+        CABECALHO_NOME_DO_USUARIO,
         "Cargo",
         "Email",
         "CPF",
@@ -447,8 +453,8 @@ def exportar_planilha_importacao_usuarios_perfil_escola(request, **kwargs):
             bottom=styles.Side(border_style="thin", color="000000"),
         )
     dv = DataValidation(type="list", formula1='"DIRETOR_UE"', allow_blank=True)
-    dv.error = "Perfil Inválido"
-    dv.errorTitle = "Perfil não permitido"
+    dv.error = MENSAGEM_PERFIL_INVALIDO
+    dv.errorTitle = MENSAGEM_PERFIL_NAO_PERMITIDO
     ws.add_data_validation(dv)
     dv.add("H2:H1048576")
     workbook.save(response)
@@ -466,7 +472,7 @@ def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
     ws.title = "DRE"
     headers = [
         "Cód. EOL da DRE",
-        "Nome do Usuário",
+        CABECALHO_NOME_DO_USUARIO,
         "Cargo",
         "Email",
         "CPF",
@@ -487,8 +493,8 @@ def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
             bottom=styles.Side(border_style="thin", color="000000"),
         )
     dv = DataValidation(type="list", formula1='"COGESTOR_DRE"', allow_blank=True)
-    dv.error = "Perfil Inválido"
-    dv.errorTitle = "Perfil não permitido"
+    dv.error = MENSAGEM_PERFIL_INVALIDO
+    dv.errorTitle = MENSAGEM_PERFIL_NAO_PERMITIDO
     ws.add_data_validation(dv)
     dv.add("H2:H1048576")
     workbook.save(response)
@@ -506,7 +512,7 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
     ws.title = "Servidores CoreSSO"
     headers = [
         "Cód. EOL da Instituição (Escola, DRE ou CODAE)",
-        "Nome do Usuário",
+        CABECALHO_NOME_DO_USUARIO,
         "Cargo",
         "Email",
         "CPF",
@@ -539,8 +545,8 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
         [p.nome for p in Perfil.objects.exclude(nome__in=perfis_negados)]
     )
     dv2 = DataValidation(type="list", formula1=f"{perfis}", allow_blank=True)
-    dv2.error = "Perfil Inválido"
-    dv2.errorTitle = "Perfil não permitido"
+    dv2.error = MENSAGEM_PERFIL_INVALIDO
+    dv2.errorTitle = MENSAGEM_PERFIL_NAO_PERMITIDO
     ws.add_data_validation(dv2)
     dv2.add("H2:H1048576")
 
@@ -566,7 +572,7 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
     workbook: Workbook = Workbook()
     ws = workbook.active
     ws.title = "Usuários Externos CoreSSO"
-    headers = ["Nome do Usuário", "Email", "CPF", "Perfil", "CNPJ da Empresa"]
+    headers = [CABECALHO_NOME_DO_USUARIO, "Email", "CPF", "Perfil", "CNPJ da Empresa"]
     _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
@@ -585,8 +591,8 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
         [p.nome for p in Perfil.objects.filter(nome__in=perfis_permitidos)]
     )
     dv = DataValidation(type="list", formula1=f"{perfis}", allow_blank=True)
-    dv.error = "Perfil Inválido"
-    dv.errorTitle = "Perfil não permitido"
+    dv.error = MENSAGEM_PERFIL_INVALIDO
+    dv.errorTitle = MENSAGEM_PERFIL_NAO_PERMITIDO
     ws.add_data_validation(dv)
     dv.add("D2:D1048576")
 
@@ -605,7 +611,7 @@ def exportar_planilha_importacao_usuarios_ue_parceira_coresso(request, **kwargs)
     ws.title = "UEs Parceiras CoreSSO"
     headers = [
         "Cód. EOL da Instituição (Unidade Parceira)",
-        "Nome do Usuário",
+        CABECALHO_NOME_DO_USUARIO,
         "Cargo",
         "Email",
         "CPF",
@@ -630,8 +636,8 @@ def exportar_planilha_importacao_usuarios_ue_parceira_coresso(request, **kwargs)
         [p.nome for p in Perfil.objects.filter(nome__in=perfis_permitidos)]
     )
     dv = DataValidation(type="list", formula1=f"{perfis}", allow_blank=True)
-    dv.error = "Perfil Inválido"
-    dv.errorTitle = "Perfil não permitido"
+    dv.error = MENSAGEM_PERFIL_INVALIDO
+    dv.errorTitle = MENSAGEM_PERFIL_NAO_PERMITIDO
     ws.add_data_validation(dv)
     dv.add("F2:F1048576")
 
@@ -775,7 +781,7 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
         )
 
         return Response(
-            dict(detail="Processamento de importação iniciado com sucesso."),
+            dict(detail=MENSAGEM_PROCESSAMENTO_IMPORTACAO_INICIADO),
             status=HTTP_200_OK,
         )
 
@@ -796,7 +802,7 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
         arquivo.removido()
 
         return Response(
-            dict(detail="Arquivo removido com sucesso."), status=HTTP_200_OK
+            dict(detail=MENSAGEM_ARQUIVO_REMOVIDO), status=HTTP_200_OK
         )
 
 
@@ -855,7 +861,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
         )
 
         return Response(
-            dict(detail="Processamento de importação iniciado com sucesso."),
+            dict(detail=MENSAGEM_PROCESSAMENTO_IMPORTACAO_INICIADO),
             status=HTTP_200_OK,
         )
 
@@ -876,7 +882,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
         arquivo.removido()
 
         return Response(
-            dict(detail="Arquivo removido com sucesso."), status=HTTP_200_OK
+            dict(detail=MENSAGEM_ARQUIVO_REMOVIDO), status=HTTP_200_OK
         )
 
 
@@ -934,7 +940,7 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
         )
 
         return Response(
-            dict(detail="Processamento de importação iniciado com sucesso."),
+            dict(detail=MENSAGEM_PROCESSAMENTO_IMPORTACAO_INICIADO),
             status=HTTP_200_OK,
         )
 
@@ -955,5 +961,5 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
         arquivo.removido()
 
         return Response(
-            dict(detail="Arquivo removido com sucesso."), status=HTTP_200_OK
+            dict(detail=MENSAGEM_ARQUIVO_REMOVIDO), status=HTTP_200_OK
         )

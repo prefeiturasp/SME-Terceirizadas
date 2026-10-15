@@ -1946,7 +1946,7 @@ def solicitacao_medicao_inicial_teste_salvar_logs_cei(
             log.criado_em = datetime.date(2023, 10, 1)
             log.save()
         for dia in range(1, 32):
-            log = baker.make(
+            baker.make(
                 "LogAlunosMatriculadosFaixaEtariaDia",
                 escola=escola_cei,
                 periodo_escolar=periodo,

@@ -655,13 +655,12 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer(
 
     def validate(self, attrs):
         conteudo = attrs.get("conteudo")
-        if conteudo:
-            if not conteudo.name.split(".")[-1] in ["xlsx", "xls"]:
-                raise serializers.ValidationError(
-                    {
-                        "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
-                    }
-                )
+        if conteudo and conteudo.name.split(".")[-1] not in ["xlsx", "xls"]:
+            raise serializers.ValidationError(
+                {
+                    "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
+                }
+            )
 
         return attrs
 
@@ -677,13 +676,12 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer(
 
     def validate(self, attrs):
         conteudo = attrs.get("conteudo")
-        if conteudo:
-            if not conteudo.name.split(".")[-1] in ["xlsx", "xls"]:
-                raise serializers.ValidationError(
-                    {
-                        "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
-                    }
-                )
+        if conteudo and conteudo.name.split(".")[-1] not in ["xlsx", "xls"]:
+            raise serializers.ValidationError(
+                {
+                    "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
+                }
+            )
 
         return attrs
 
@@ -699,13 +697,12 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOCreateSerializer(
 
     def validate(self, attrs):
         conteudo = attrs.get("conteudo")
-        if conteudo:
-            if not conteudo.name.split(".")[-1] in ["xlsx", "xls"]:
-                raise serializers.ValidationError(
-                    {
-                        "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
-                    }
-                )
+        if conteudo and conteudo.name.split(".")[-1] not in ["xlsx", "xls"]:
+            raise serializers.ValidationError(
+                {
+                    "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
+                }
+            )
 
         return attrs
 

@@ -2039,8 +2039,8 @@ class OcorrenciaViewSet(
         permission_classes=(UsuarioDiretoriaRegional,),
     )
     def dre_pede_correcao_ocorrencia(self, request, uuid=None):
-        object = self.get_object()
-        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
+        objeto = self.get_object()
+        ocorrencia = objeto.solicitacao_medicao_inicial.ocorrencia
         justificativa = request.data.get("justificativa", "")
         try:
             ocorrencia.dre_pede_correcao(user=request.user, justificativa=justificativa)
@@ -2061,8 +2061,8 @@ class OcorrenciaViewSet(
         permission_classes=(UsuarioCODAENutriManifestacao,),
     )
     def codae_pede_correcao_ocorrencia(self, request, uuid=None):
-        object = self.get_object()
-        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
+        objeto = self.get_object()
+        ocorrencia = objeto.solicitacao_medicao_inicial.ocorrencia
         justificativa = request.data.get("justificativa", "")
         try:
             ocorrencia.codae_pede_correcao_ocorrencia(
@@ -2085,8 +2085,8 @@ class OcorrenciaViewSet(
         permission_classes=(UsuarioDiretoriaRegional,),
     )
     def dre_aprova_ocorrencia(self, request, uuid=None):
-        object = self.get_object()
-        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
+        objeto = self.get_object()
+        ocorrencia = objeto.solicitacao_medicao_inicial.ocorrencia
         try:
             ocorrencia.dre_aprova(user=request.user)
             serializer = self.get_serializer(
@@ -2106,8 +2106,8 @@ class OcorrenciaViewSet(
         permission_classes=(UsuarioCODAENutriManifestacao,),
     )
     def codae_aprova_ocorrencia(self, request, uuid=None):
-        object = self.get_object()
-        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
+        objeto = self.get_object()
+        ocorrencia = objeto.solicitacao_medicao_inicial.ocorrencia
         try:
             ocorrencia.codae_aprova_ocorrencia(user=request.user)
             serializer = self.get_serializer(

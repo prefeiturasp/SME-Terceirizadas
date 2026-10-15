@@ -237,7 +237,7 @@ def test_consulta_protocolo_padrao_sem_escola(
     )
     with pytest.raises(
         Exception,
-        match=f"Erro: Escola inválida. Não foi possível encontrar os editais e protocolos.",
+        match="Erro: Escola inválida. Não foi possível encontrar os editais e protocolos.",
     ):
         processador.consulta_protocolo_padrao(solicitacao_dieta_schema, None)
 
