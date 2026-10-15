@@ -14,6 +14,12 @@ from src.cardapio.alteracao_tipo_alimentacao_cemei.api.serializers_create import
     AlteracaoCardapioCEMEISerializerCreate,
 )
 from src.cardapio.base.models import TipoAlimentacao
+from src.dados_comuns.constants import (
+    JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE,
+    MSG_SCRIPT_CANCELADO,
+    MSG_SOLICITACAO_APROVADO_PELA_CODAE,
+    MSG_SOLICITACAO_APROVADO_PELA_DRE,
+)
 from src.dados_comuns.utils import eh_dia_util, obter_dias_uteis_apos
 from src.dieta_especial.logs_models.models import (
     LogQuantidadeDietasAutorizadas,
@@ -47,6 +53,7 @@ from src.perfil.models.perfil import Perfil, Vinculo
 from src.perfil.models.usuario import Usuario
 
 QUANTIDADE_ALUNOS = 100
+OBSERVACAO_SEM_INFORMACOES = "<p>nenhuma</p>"
 MOTIVO_INCLUSAO_PROGRAMAS_PROJETOS = "Programas/Projetos Específicos"
 MOTIVO_INCLUSAO_EVENTO_ESPECIFICO = "Evento Específico"
 CLASSIFICACAO_DIETA_NOME_TIPO_A = "Tipo A"
@@ -164,7 +171,7 @@ def obter_informacoes_escolas(dados):
             print(f"----> Erro ao buscar vinculo para {informacao["email"]}:\n{e}")
 
     if erro:
-        print("================== SCRIP CANCELADO ==================")
+        print(MSG_SCRIPT_CANCELADO)
         exit()
 
     return dados
@@ -175,7 +182,7 @@ def obter_usuario(email):
         return Usuario.objects.get(email=email)
     except Exception:
         print(f"Nenhum usuário encontrado com  email {email}")
-        print("================== SCRIP CANCELADO ==================")
+        print(MSG_SCRIPT_CANCELADO)
         exit()
 
 
@@ -508,7 +515,7 @@ def solicitar_kit_lanche(escola, usuario, ano, mes, data_kit_lanche, usuario_dre
 
     if not queryset.exists():
         print(f"Nenhum kit encontrado para escola {escola.nome}")
-        print("================== SCRIP CANCELADO ==================")
+        print(MSG_SCRIPT_CANCELADO)
         exit()
     kit = queryset.first()
     usuario_codae = obter_usuario_codae()
@@ -536,12 +543,12 @@ def solicitar_kit_lanche(escola, usuario, ano, mes, data_kit_lanche, usuario_dre
     )
 
     solicitacao_kit_lanche_avulsa.dre_valida(user=usuario_dre)
-    print("Solicitação aprovado pela DRE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_DRE)
 
     solicitacao_kit_lanche_avulsa.codae_autoriza(
-        user=usuario_codae, justificativa="Sem observações por parte da CODAE"
+        user=usuario_codae, justificativa=JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE
     )
-    print("Solicitação aprovado pela CODAE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_CODAE)
 
     dia_passeio = retorna_dia_util(datetime.datetime(ano, mes, data_kit_lanche))
 
@@ -559,7 +566,7 @@ def solicitar_kit_lanche_cemei(escola, usuario, ano, mes, data_kit_lanche, usuar
     )
     if not queryset.exists():
         print(f"Nenhum kit encontrado para escola {escola.nome}")
-        print("================== SCRIP CANCELADO ==================")
+        print(MSG_SCRIPT_CANCELADO)
         exit()
     kit = queryset.first()
     faixas = FaixaEtaria.objects.filter(ativo=True)
@@ -607,12 +614,12 @@ def solicitar_kit_lanche_cemei(escola, usuario, ano, mes, data_kit_lanche, usuar
     )
 
     solicitacao_kit_lanche_cemei.dre_valida(user=usuario_dre)
-    print("Solicitação aprovado pela DRE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_DRE)
 
     solicitacao_kit_lanche_cemei.codae_autoriza(
-        user=usuario_codae, justificativa="Sem observações por parte da CODAE"
+        user=usuario_codae, justificativa=JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE
     )
-    print("Solicitação aprovado pela CODAE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_CODAE)
 
     dia_passeio = retorna_dia_util(datetime.datetime(ano, mes, data_kit_lanche))
     solicitacao_kit_lanche_cemei.data = dia_passeio
@@ -681,12 +688,12 @@ def solicitar_lanche_emergencial(
     )
 
     solicitacao_lanche_emergencial.dre_valida(user=usuario_dre)
-    print("Solicitação aprovado pela DRE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_DRE)
 
     solicitacao_lanche_emergencial.codae_autoriza(
-        user=usuario_codae, justificativa="Sem observações por parte da CODAE"
+        user=usuario_codae, justificativa=JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE
     )
-    print("Solicitação aprovado pela CODAE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_CODAE)
 
     dia_lanche_emergencial = retorna_dia_util(
         datetime.datetime(ano, mes, data_lanche_emercencial)
@@ -735,7 +742,7 @@ def solicitar_lanche_emergencial_cemei(
                 "tipos_alimentacao_para": [tipo_lanche_emergencial],
             }
         ],
-        "observacao": "<p>nenhuma</p>",
+        "observacao": OBSERVACAO_SEM_INFORMACOES,
         "datas_intervalo": [{"data": data}],
     }
     context = {"request": type("Request", (), {"user": usuario})}
@@ -749,12 +756,12 @@ def solicitar_lanche_emergencial_cemei(
     )
 
     solicitacao_lanche_emergencial.dre_valida(user=usuario_dre)
-    print("Solicitação aprovado pela DRE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_DRE)
 
     solicitacao_lanche_emergencial.codae_autoriza(
-        user=usuario_codae, justificativa="Sem observações por parte da CODAE"
+        user=usuario_codae, justificativa=JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE
     )
-    print("Solicitação aprovado pela CODAE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_CODAE)
 
     dia_lanche_emergencial = retorna_dia_util(
         datetime.datetime(ano, mes, data_lanche_emercencial)
@@ -802,7 +809,7 @@ def incluir_programas_e_projetos(
                 "periodo_escolar": periodo_escolar,
                 "tipos_alimentacao": [tipo_alimentacao],
                 "numero_alunos": "10",
-                "observacao": "<p>nenhuma</p>",
+                "observacao": OBSERVACAO_SEM_INFORMACOES,
             }
         ],
         "motivo": motivo,
@@ -818,12 +825,12 @@ def incluir_programas_e_projetos(
         f"Solicitação cadastrada: InclusaoAlimentacaoContinua UUID={programas_e_projetos.uuid}"
     )
     programas_e_projetos.dre_valida(user=usuario_dre)
-    print("Solicitação aprovado pela DRE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_DRE)
 
     programas_e_projetos.codae_autoriza(
-        user=usuario_codae, justificativa="Sem observações por parte da CODAE"
+        user=usuario_codae, justificativa=JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE
     )
-    print("Solicitação aprovado pela CODAE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_CODAE)
 
     nova_data_inicio = retorna_dia_util(datetime.datetime(ano, mes, data_kit_lanche))
     nova_data_fim = retorna_dia_util(
@@ -859,7 +866,7 @@ def incluir_etec(
                 "periodo_escolar": periodo_escolar,
                 "tipos_alimentacao": [tipo_alimentacao],
                 "numero_alunos": "10",
-                "observacao": "<p>nenhuma</p>",
+                "observacao": OBSERVACAO_SEM_INFORMACOES,
             }
         ],
         "motivo": motivo,
@@ -876,12 +883,12 @@ def incluir_etec(
     print(f"Solicitação cadastrada: InclusaoAlimentacaoContinua UUID={etec.uuid}")
 
     etec.dre_valida(user=usuario_dre)
-    print("Solicitação aprovado pela DRE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_DRE)
 
     etec.codae_autoriza(
-        user=usuario_codae, justificativa="Sem observações por parte da CODAE"
+        user=usuario_codae, justificativa=JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE
     )
-    print("Solicitação aprovado pela CODAE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_CODAE)
 
     nova_data_inicio = retorna_dia_util(
         datetime.datetime(ano, mes, data_lanche_emergencial)
@@ -949,12 +956,12 @@ def incluir_solicitacoes_ceu_gestao(
     )
 
     ceu_gestao.dre_valida(user=usuario_dre)
-    print("Solicitação aprovado pela DRE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_DRE)
 
     ceu_gestao.codae_autoriza(
-        user=usuario_codae, justificativa="Sem observações por parte da CODAE"
+        user=usuario_codae, justificativa=JUSTIFICATIVA_SEM_OBSERVACOES_PARTE_CODAE
     )
-    print("Solicitação aprovado pela CODAE")
+    print(MSG_SOLICITACAO_APROVADO_PELA_CODAE)
 
     nova_data = retorna_dia_util(datetime.datetime(ano, mes, data_kit_lanche))
     periodo_inclusao = ceu_gestao.inclusoes_normais.all()[0]

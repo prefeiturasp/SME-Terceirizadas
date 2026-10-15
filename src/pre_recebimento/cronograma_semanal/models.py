@@ -7,7 +7,7 @@ com as programações de entrega de cada semana.
 from django.db import models
 
 from src.dados_comuns.behaviors import (
-    Logs,
+    TemLogs,
     ModeloBase,
     TemIdentificadorExternoAmigavel,
 )
@@ -17,7 +17,7 @@ from src.pre_recebimento.cronograma_entrega.models import Cronograma
 
 
 class CronogramaSemanal(
-    ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogramaSemanal
+    ModeloBase, TemIdentificadorExternoAmigavel, TemLogs, FluxoCronogramaSemanal
 ):
     """
     Cronograma Semanal FLV derivado de Cronograma Mensal Ponto a Ponto.

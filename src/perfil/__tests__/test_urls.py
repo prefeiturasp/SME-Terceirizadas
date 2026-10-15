@@ -11,6 +11,7 @@ from ...dados_comuns.constants import (
     EMAIL_TESTE,
     TIPOS_GESTAO,
     TIPOS_UNIDADE_ESCOLAR,
+    EmailsParaTeste,
 )
 from ...eol_servico.utils import EOLServicoSGP
 from ..api.helpers import ofuscar_email
@@ -302,7 +303,7 @@ def test_busca_sem_vinculos_ativos(
 def _setup_usuario_escola(usuario_factory, vinculo_factory, escola_um):
     usuario_escola = usuario_factory.create(
         username="1234568",
-        email="escola@admin.com",
+        email=EmailsParaTeste.ESCOLA_ADMIN.value,
         registro_funcional="1234568",
     )
     vinculo_factory.create(

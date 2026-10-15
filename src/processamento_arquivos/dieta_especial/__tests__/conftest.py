@@ -24,6 +24,11 @@ from src.processamento_arquivos.dieta_especial.schemas import (
     ArquivoCargaDietaEspecialSchema,
 )
 
+TIPO_CONTEUDO_PLANILHA_XLSX = (
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+MODELO_ALIMENTO_DIETA_ESPECIAL = "dieta_especial.Alimento"
+
 
 @pytest.fixture
 def arquivo_carga_dieta_especial():
@@ -194,7 +199,7 @@ def arquivo_carga_dieta_especial_com_informacoes(
     arquivo = SimpleUploadedFile(
         name=f"{uuid.uuid4()}.xlsx",
         content=buffer.read(),
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        content_type=TIPO_CONTEUDO_PLANILHA_XLSX,
     )
     arquivo_carga_dieta_especial.conteudo = arquivo
     arquivo_carga_dieta_especial.save()
@@ -212,7 +217,7 @@ def arquivo_extensao_incorreta(arquivo_carga_dieta_especial):
     arquivo = SimpleUploadedFile(
         name=f"{uuid.uuid4()}.xlsm",
         content=buffer.read(),
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        content_type=TIPO_CONTEUDO_PLANILHA_XLSX,
     )
     arquivo_carga_dieta_especial.conteudo = arquivo
     arquivo_carga_dieta_especial.save()
@@ -230,7 +235,7 @@ def arquivo_colunas_incorreta(arquivo_carga_dieta_especial):
     arquivo = SimpleUploadedFile(
         name=f"{uuid.uuid4()}.xlsx",
         content=buffer.read(),
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        content_type=TIPO_CONTEUDO_PLANILHA_XLSX,
     )
     arquivo_carga_dieta_especial.conteudo = arquivo
     arquivo_carga_dieta_especial.save()
@@ -248,17 +253,17 @@ def solicitacao_dieta_schema(mock_cabecalho_e_informacoes_excel):
 def alimentos():
     return [
         baker.make(
-            "dieta_especial.Alimento",
+            MODELO_ALIMENTO_DIETA_ESPECIAL,
             nome="ARROZ",
             tipo_listagem_protocolo=Alimento.SO_ALIMENTOS,
         ),
         baker.make(
-            "dieta_especial.Alimento",
+            MODELO_ALIMENTO_DIETA_ESPECIAL,
             nome="FEIJAO",
             tipo_listagem_protocolo=Alimento.SO_ALIMENTOS,
         ),
         baker.make(
-            "dieta_especial.Alimento",
+            MODELO_ALIMENTO_DIETA_ESPECIAL,
             nome="BATATA",
             tipo_listagem_protocolo=Alimento.SO_SUBSTITUTOS,
         ),
@@ -269,17 +274,17 @@ def alimentos():
 def alimentos_substitutivos():
     return [
         baker.make(
-            "dieta_especial.Alimento",
+            MODELO_ALIMENTO_DIETA_ESPECIAL,
             nome="AVEIA",
             tipo_listagem_protocolo=Alimento.SO_SUBSTITUTOS,
         ),
         baker.make(
-            "dieta_especial.Alimento",
+            MODELO_ALIMENTO_DIETA_ESPECIAL,
             nome="LENTILHA",
             tipo_listagem_protocolo=Alimento.SO_SUBSTITUTOS,
         ),
         baker.make(
-            "dieta_especial.Alimento",
+            MODELO_ALIMENTO_DIETA_ESPECIAL,
             nome="ERVILHA",
             tipo_listagem_protocolo=Alimento.SO_ALIMENTOS,
         ),
@@ -313,7 +318,7 @@ def arquivo_carga_alimentos_com_informacoes(
     arquivo = SimpleUploadedFile(
         name=f"{uuid.uuid4()}.xlsx",
         content=buffer.read(),
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        content_type=TIPO_CONTEUDO_PLANILHA_XLSX,
     )
     arquivo_carga_alimentos_e_substitutos.conteudo = arquivo
     arquivo_carga_alimentos_e_substitutos.save()
@@ -333,7 +338,7 @@ def arquivo_alimentos_abas_incorreta(arquivo_carga_alimentos_e_substitutos):
     arquivo = SimpleUploadedFile(
         name=f"{uuid.uuid4()}.xlsx",
         content=buffer.read(),
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        content_type=TIPO_CONTEUDO_PLANILHA_XLSX,
     )
     arquivo_carga_alimentos_e_substitutos.conteudo = arquivo
     arquivo_carga_alimentos_e_substitutos.save()

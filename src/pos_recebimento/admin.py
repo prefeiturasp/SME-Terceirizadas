@@ -1,6 +1,10 @@
 from django.contrib import admin
 
-from .models import CronogramaTermoRecebimentoDefinitivo, TermoRecebimentoDefinitivo
+from .models import (
+    AssinaturaTermoRecebimentoDefinitivo,
+    CronogramaTermoRecebimentoDefinitivo,
+    TermoRecebimentoDefinitivo,
+)
 
 
 class CronogramaTermoRecebimentoDefinitivoInline(admin.TabularInline):
@@ -41,3 +45,17 @@ class CronogramaTermoRecebimentoDefinitivoAdmin(admin.ModelAdmin):
         "quantidade_total_recebida",
     )
     search_fields = ("termo__uuid", "cronograma__numero")
+
+
+@admin.register(AssinaturaTermoRecebimentoDefinitivo)
+class AssinaturaTermoRecebimentoDefinitivoAdmin(admin.ModelAdmin):
+    """Admin das assinaturas dos termos de recebimento definitivo."""
+
+    list_display = (
+        "termo",
+        "usuario",
+        "etapa",
+        "criado_em",
+    )
+    list_filter = ("etapa",)
+    search_fields = ("termo__uuid", "usuario__nome", "usuario__email")

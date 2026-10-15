@@ -3,7 +3,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from multiselectfield import MultiSelectField
 
-from src.dados_comuns.behaviors import Logs, TemIdentificadorExternoAmigavel
+from src.dados_comuns.behaviors import TemLogs, TemIdentificadorExternoAmigavel
 from src.dados_comuns.constants import StringsCaminhoModelos, StringsVerboseNameModels
 from src.dados_comuns.fluxo_status import (
     FluxoSolicitacaoDeAlteracao,
@@ -31,7 +31,7 @@ class SolicitacaoRemessaManager(models.Manager):
 
 
 class SolicitacaoRemessa(
-    ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoSolicitacaoRemessa
+    ModeloBase, TemIdentificadorExternoAmigavel, TemLogs, FluxoSolicitacaoRemessa
 ):
     ATIVA = "ATIVA"
     ARQUIVADA = "ARQUIVADA"

@@ -8,10 +8,11 @@ from model_bakery import baker
 
 from src.dados_comuns.constants import (
     FORMATO_DATA_BRASILEIRO,
-    GRUPO_INFANTIL_INTEGRAL,
     TIPOS_UNIDADE_ESCOLAR,
+    ContentTypesParaRequests,
 )
 from src.dados_comuns.models import LogSolicitacoesUsuario
+from src.medicao_inicial.models import GrupoMedicao
 from src.pre_recebimento.documento_recebimento.api.serializers.serializers import (
     DocRecebimentoFichaDeRecebimentoSerializer,
 )
@@ -22,6 +23,7 @@ from src.pre_recebimento.ficha_tecnica.api.helpers import (
 from src.pre_recebimento.ficha_tecnica.models import FichaTecnicaDoProduto
 from src.pre_recebimento.tasks import gerar_relatorio_cronogramas_pdf_async
 from src.produto.models import Fabricante, HomologacaoProduto, Marca, Produto
+from src.recebimento.models import VeiculoFichaDeRecebimento
 from src.relatorios.utils import extrair_texto_de_pdf
 from src.terceirizada.models import Terceirizada
 
@@ -31,6 +33,7 @@ from ..relatorios import (
     get_pdf_cronograma,
     get_pdf_ficha_recebimento,
     get_pdf_ficha_tecnica,
+    get_pdf_relatorio_solicitacao_alteracao_cronograma,
     get_total_por_periodo,
     obter_justificativa_dieta,
     obter_relatorio_da_unidade,
@@ -40,7 +43,6 @@ from ..relatorios import (
     relatorio_solicitacao_medicao_por_escola_cemei_recreio_nas_ferias,
     relatorio_solicitacao_medicao_por_escola_recreio_nas_ferias,
     relatorio_suspensao_de_alimentacao,
-    get_pdf_relatorio_solicitacao_alteracao_cronograma,
 )
 
 pytestmark = pytest.mark.django_db
@@ -71,7 +73,7 @@ def test_relatorio_suspensao_de_alimentacao(grupo_suspensao_alimentacao):
     pdf_response = relatorio_suspensao_de_alimentacao(None, grupo_suspensao_alimentacao)
 
     assert pdf_response.status_code == 200
-    assert pdf_response.headers["Content-Type"] == "application/pdf"
+    assert pdf_response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         pdf_response.headers["Content-Disposition"]
         == f'filename="solicitacao_suspensao_{grupo_suspensao_alimentacao.id_externo}.pdf"'
@@ -101,7 +103,7 @@ def test_relatorio_suspensao_de_alimentacao_parcialmente_cancelado(
     )
 
     assert pdf_response.status_code == 200
-    assert pdf_response.headers["Content-Type"] == "application/pdf"
+    assert pdf_response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         pdf_response.headers["Content-Disposition"]
         == f'filename="solicitacao_suspensao_{grupo_suspensao_alimentacao_cancelamento_parcial.id_externo}.pdf"'
@@ -135,7 +137,7 @@ def test_relatorio_suspensao_de_alimentacao_totalmente_cancelado(
     )
 
     assert pdf_response.status_code == 200
-    assert pdf_response.headers["Content-Type"] == "application/pdf"
+    assert pdf_response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         pdf_response.headers["Content-Disposition"]
         == f'filename="solicitacao_suspensao_{grupo_suspensao_alimentacao_cancelamento_total.id_externo}.pdf"'
@@ -187,7 +189,7 @@ def test_relatorio_dieta_especial_protocolo_cancelada(
 def test_get_total_por_periodo_unico_periodo():
     tabelas = [
         {
-            "periodos": [GRUPO_INFANTIL_INTEGRAL],
+            "periodos": [GrupoMedicao.INFANTIL_INTEGRAL],
             "nomes_campos": [
                 "matriculados",
                 "frequencia",
@@ -219,16 +221,16 @@ def test_get_total_por_periodo_unico_periodo():
         }
     ]
     total_refeicao = get_total_por_periodo(tabelas, "total_refeicoes_pagamento")
-    assert total_refeicao == {GRUPO_INFANTIL_INTEGRAL: 80}
+    assert total_refeicao == {GrupoMedicao.INFANTIL_INTEGRAL: 80}
 
     total_sobremesa = get_total_por_periodo(tabelas, "total_sobremesas_pagamento")
-    assert total_sobremesa == {GRUPO_INFANTIL_INTEGRAL: 110}
+    assert total_sobremesa == {GrupoMedicao.INFANTIL_INTEGRAL: 110}
 
 
 def test_get_total_por_periodo_multiplos_periodos():
     tabelas = [
         {
-            "periodos": ["PARCIAL", GRUPO_INFANTIL_INTEGRAL],
+            "periodos": ["PARCIAL", GrupoMedicao.INFANTIL_INTEGRAL],
             "nomes_campos": [
                 "matriculados",
                 "frequencia",
@@ -265,10 +267,10 @@ def test_get_total_por_periodo_multiplos_periodos():
         }
     ]
     total_refeicao = get_total_por_periodo(tabelas, "total_refeicoes_pagamento", True)
-    assert total_refeicao == {GRUPO_INFANTIL_INTEGRAL: 80}
+    assert total_refeicao == {GrupoMedicao.INFANTIL_INTEGRAL: 80}
 
     total_sobremesa = get_total_por_periodo(tabelas, "total_sobremesas_pagamento", True)
-    assert total_sobremesa == {GRUPO_INFANTIL_INTEGRAL: 110}
+    assert total_sobremesa == {GrupoMedicao.INFANTIL_INTEGRAL: 110}
 
 
 def test_relatorio_dieta_especial_protocolo_alteracao_ue(
@@ -374,7 +376,7 @@ def test_get_pdf_ficha_tecnica(ficha_tecnica):
     nome_pdf = f"ficha_tecnica_{ficha_tecnica.numero}.pdf"
     texto = extrair_texto_de_pdf(response.content)
 
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert f'filename="{nome_pdf}"' in response["Content-Disposition"]
 
     assert ficha_tecnica.numero in texto
@@ -437,7 +439,7 @@ def test_get_pdf_ficha_tecnica_sem_envasador(ficha_tecnica_sem_envasador):
     nome_pdf = f"ficha_tecnica_{ficha_tecnica_sem_envasador.numero}.pdf"
     texto = extrair_texto_de_pdf(response.content)
 
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert f'filename="{nome_pdf}"' in response["Content-Disposition"]
 
     assert "Envasador/Distribuidor" not in texto
@@ -451,7 +453,7 @@ def test_get_pdf_ficha_tecnica_flv_ponto_a_ponto_sem_fabricante(
     )
     texto = extrair_texto_de_pdf(response.content)
 
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert "FABRICANTE E/OU ENVASADOR/DISTRIBUIDOR" not in texto
     assert "Nº do Registro do Rótulo" not in texto
     assert "DETALHES DO PRODUTO" in texto
@@ -465,7 +467,7 @@ def test_get_pdf_ficha_tecnica_flv_ponto_a_ponto_com_fabricante(
     response = get_pdf_ficha_tecnica(None, ficha)
     texto = extrair_texto_de_pdf(response.content)
 
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert "FABRICANTE E/OU ENVASADOR/DISTRIBUIDOR" in texto
     assert ficha.fabricante.fabricante.nome in texto
     assert "Nº do Registro do Rótulo" in texto
@@ -701,7 +703,7 @@ def test_relatorio_ficha_recebimento(
     pdf_response = get_pdf_ficha_recebimento(None, ficha_recebimento_com_ocorrencia)
 
     assert pdf_response.status_code == 200
-    assert pdf_response.headers["Content-Type"] == "application/pdf"
+    assert pdf_response.headers["Content-Type"] == ContentTypesParaRequests.PDF.value
 
     texto = extrair_texto_de_pdf(pdf_response.content)
 
@@ -743,7 +745,10 @@ def test_relatorio_ficha_recebimento(
     )
 
     assert pdf_response_reposicao.status_code == 200
-    assert pdf_response_reposicao.headers["Content-Type"] == "application/pdf"
+    assert (
+        pdf_response_reposicao.headers["Content-Type"]
+        == ContentTypesParaRequests.PDF.value
+    )
 
     texto_reposicao = extrair_texto_de_pdf(pdf_response_reposicao.content)
 
@@ -763,7 +768,10 @@ def test_relatorio_ficha_recebimento(
     )
 
     assert pdf_response_carta_credito.status_code == 200
-    assert pdf_response_carta_credito.headers["Content-Type"] == "application/pdf"
+    assert (
+        pdf_response_carta_credito.headers["Content-Type"]
+        == ContentTypesParaRequests.PDF.value
+    )
 
     texto_carta_credito = extrair_texto_de_pdf(pdf_response_carta_credito.content)
 
@@ -778,7 +786,10 @@ def test_relatorio_cronograma_entrega(cronograma):
     pdf_response_cronograma = get_pdf_cronograma(None, cronograma)
 
     assert pdf_response_cronograma.status_code == 200
-    assert pdf_response_cronograma.headers["Content-Type"] == "application/pdf"
+    assert (
+        pdf_response_cronograma.headers["Content-Type"]
+        == ContentTypesParaRequests.PDF.value
+    )
 
     texto_pdf = extrair_texto_de_pdf(pdf_response_cronograma.content)
 
@@ -1349,3 +1360,107 @@ def test_get_pdf_relatorio_solicitacao_alteracao_cronograma_exibe_aprovado_dilog
     texto_normalizado = re.sub(r"\s+", "", extrair_texto_de_pdf(relatorio.content))
 
     assert "AprovadoDILOG" in texto_normalizado
+
+
+@pytest.mark.parametrize(
+    "categoria",
+    [
+        FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        FichaTecnicaDoProduto.CATEGORIA_NAO_PERECIVEIS,
+    ],
+    ids=["perecivel", "nao_perecivel"],
+)
+def test_relatorio_ficha_recebimento_placas_por_veiculo(
+    ficha_recebimento_com_ocorrencia, categoria
+):
+    ficha = ficha_recebimento_com_ocorrencia
+    ficha_tecnica = ficha.etapa.cronograma.ficha_tecnica
+    ficha_tecnica.categoria = categoria
+    ficha_tecnica.save(update_fields=["categoria"])
+
+    primeiro_veiculo = ficha.veiculos.get()
+    primeiro_veiculo.numero = "Veículo 1"
+    primeiro_veiculo.placa = "ABC1D23"
+    primeiro_veiculo.save(update_fields=["numero", "placa"])
+    baker.make(
+        VeiculoFichaDeRecebimento,
+        ficha_recebimento=ficha,
+        numero="Veículo 2",
+        placa="DEF4G56",
+        numero_nota_fiscal="654321",
+        quantidade_nota_fiscal=500,
+        embalagens_nota_fiscal=50,
+        quantidade_recebida=400,
+        embalagens_recebidas=40,
+        estado_higienico_adequado=False,
+        temperatura_recebimento="20°C",
+        temperatura_produto="3°C",
+        lacre="100002",
+        numero_sif_sisbi_sisp="5678",
+        termografo=False,
+    )
+
+    resposta = get_pdf_ficha_recebimento(None, ficha)
+    texto = re.sub(r"\s+", " ", extrair_texto_de_pdf(resposta.content))
+
+    assert resposta.status_code == 200
+    assert resposta.headers["Content-Type"] == "application/pdf"
+    assert texto.count("Placa do Veículo:") == 2
+    assert (
+        texto.index("Veículo 1")
+        < texto.index("ABC1D23")
+        < texto.index("Veículo 2")
+        < texto.index("DEF4G56")
+    )
+    for campo in [
+        "Nº Nota Fiscal",
+        "Quantidade da Nota Fiscal",
+        "Embalagens da Nota Fiscal",
+        "Quantidade Recebida",
+        "Embalagens Recebidas",
+        "Estado Higiênico-Sanitário",
+    ]:
+        assert texto.count(campo) == 2
+
+    for campo in [
+        "T °C(Área do Recebimento)",
+        "T °C(Produto)",
+        "Lacre:",
+        "Nº SIF, SISBI ou SISP",
+        "Termógrafo:",
+    ]:
+        if categoria == FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS:
+            assert texto.count(campo) == 2
+        else:
+            assert campo not in texto
+
+
+@pytest.mark.parametrize(
+    "categoria",
+    [
+        FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        FichaTecnicaDoProduto.CATEGORIA_NAO_PERECIVEIS,
+    ],
+    ids=["perecivel", "nao_perecivel"],
+)
+@pytest.mark.parametrize("placa", [None, ""], ids=["placa_nula", "placa_vazia"])
+def test_relatorio_ficha_recebimento_placa_nao_informada(
+    ficha_recebimento_com_ocorrencia, categoria, placa
+):
+    ficha = ficha_recebimento_com_ocorrencia
+    ficha_tecnica = ficha.etapa.cronograma.ficha_tecnica
+    ficha_tecnica.categoria = categoria
+    ficha_tecnica.save(update_fields=["categoria"])
+    veiculo = ficha.veiculos.get()
+    veiculo.placa = placa
+    veiculo.save(update_fields=["placa"])
+
+    resposta = get_pdf_ficha_recebimento(None, ficha)
+    texto = re.sub(r"\s+", " ", extrair_texto_de_pdf(resposta.content))
+
+    assert resposta.status_code == 200
+    assert resposta.headers["Content-Type"] == "application/pdf"
+    assert texto.count("Placa do Veículo:") == 1
+    assert veiculo.numero in texto
+    assert "Placa do Veículo: None" not in texto
+    assert "Placa do Veículo: null" not in texto

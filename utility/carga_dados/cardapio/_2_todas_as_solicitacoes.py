@@ -20,6 +20,7 @@ from src.cardapio.suspensao_alimentacao.models import (
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SuspensaoAlimentacao,
 )
+from src.dados_comuns.constants import EmailsParaTeste
 from src.escola.models import DiretoriaRegional, Escola, PeriodoEscolar
 from src.inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -174,7 +175,7 @@ def fluxo_escola_loop(obj, user):
 
 
 def cria_inclusoes_continuas(qtd=50):
-    user = Usuario.objects.get(email="escola@admin.com")
+    user = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
     for i in range(qtd):
         try:
             inclusao_continua = InclusaoAlimentacaoContinua.objects.create(
@@ -202,7 +203,7 @@ def cria_inclusoes_continuas(qtd=50):
 
 
 def cria_inclusoes_normais(qtd=50):
-    user = Usuario.objects.get(email="escola@admin.com")
+    user = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
     for i in range(qtd):
         try:
             grupo_inclusao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(
@@ -259,7 +260,7 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
 
 
 def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
-    user = Usuario.objects.get(email="escola@admin.com")
+    user = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
     for i in range(qtd):
         try:
             base = SolicitacaoKitLanche.objects.create(
@@ -283,7 +284,7 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
 
 
 def cria_inversoes_cardapio(qtd=50):
-    user = Usuario.objects.get(email="escola@admin.com")
+    user = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
     for i in range(qtd):
         try:
             inversao = InversaoCardapio.objects.create(
@@ -300,7 +301,7 @@ def cria_inversoes_cardapio(qtd=50):
 
 
 def cria_suspensoes_alimentacao(qtd=50):
-    user = Usuario.objects.get(email="escola@admin.com")
+    user = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
     for i in range(qtd):
         suspensao_grupo = GrupoSuspensaoAlimentacao.objects.create(
             criado_por=user,
@@ -324,7 +325,7 @@ def cria_suspensoes_alimentacao(qtd=50):
 
 def cria_alteracoes_cardapio(qtd=50):
     # TODO terminar os relacionamentos...
-    user = Usuario.objects.get(email="escola@admin.com")
+    user = Usuario.objects.get(email=EmailsParaTeste.ESCOLA_ADMIN.value)
     for i in range(qtd):
         alteracao_cardapio = AlteracaoCardapio(
             data_inicial=hoje + datetime.timedelta(RANDOM_INT_1_15),
@@ -344,8 +345,7 @@ print("-> criando inclusoes normais")
 cria_inclusoes_normais(QTD_PEDIDOS)
 print("-> criando solicicitacoes kit lanche avulsa")
 cria_solicitacoes_kit_lanche_avulsa(QTD_PEDIDOS)
-# print('-> criando inversoes de cardapio')
-# cria_inversoes_cardapio(QTD_PEDIDOS)      # FIXME: ta dando problema
+# FIXME: criação de inversões de cardápio desabilitada (estava dando problema)
 print("-> criando suspensoes alimentação")
 cria_suspensoes_alimentacao(QTD_PEDIDOS)
 print("-> criando alterações de cardapio")

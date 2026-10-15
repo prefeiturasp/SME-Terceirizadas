@@ -36,6 +36,7 @@ from rest_framework.exceptions import ValidationError
 from workalendar.america import BrazilSaoPauloCity
 
 from config.settings.base import URL_CONFIGS
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.docs import (
     DOCS_FLUXO_PARTINDO_ESCOLA_GESTAO_ALIMENTACAO_DJANGO_WORKFLOW,
 )
@@ -288,7 +289,7 @@ def atualiza_central_download(
     arquivo,
     content_type=None,
 ):
-    type_pdf = "application/pdf"
+    type_pdf = ContentTypesParaRequests.PDF.value
     type_xlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
     if content_type is None:
@@ -836,9 +837,9 @@ def filtrar_dias_letivos(dias_letivos: list[int], mes: int, ano: int):
     dias_filtrados = []
     for dia in dias_letivos:
         data = datetime.date(ano, mes, dia)
-        dia_semana = data.weekday()  # 0=Segunda, 6=Domingo
+        dia_semana = data.weekday()  # segunda-feira a domingo: zero a seis
 
-        eh_fim_de_semana = dia_semana >= 5  # 5=Sábado, 6=Domingo
+        eh_fim_de_semana = dia_semana >= 5  # sábado e domingo
         eh_feriado = f"{dia:02d}" in feriados
 
         if not eh_fim_de_semana and not eh_feriado:

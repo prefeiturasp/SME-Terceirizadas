@@ -35,6 +35,10 @@ from .....dados_comuns.api.serializers import (
 )
 from .....dados_comuns.constants import FORMATO_DATA_BRASILEIRO
 
+FORMATO_MES_ANO = "%m/%Y"
+CAMPO_CRONOGRAMA_EMPRESA = "cronograma.empresa"
+TEXTO_NAO_INFORMADO = "Não Informado"
+
 
 class ProgramacaoDoRecebimentoDoCronogramaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,7 +60,7 @@ class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
         if not obj.data_programada:
             return None
         if obj.cronograma and obj.cronograma.ponto_a_ponto:
-            return obj.data_programada.strftime("%m/%Y")
+            return obj.data_programada.strftime(FORMATO_MES_ANO)
         return obj.data_programada.strftime(FORMATO_DATA_BRASILEIRO)
 
     def get_etapa(self, obj):
@@ -120,7 +124,7 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
         if not obj.data_programada:
             return None
         if obj.cronograma and obj.cronograma.ponto_a_ponto:
-            return obj.data_programada.strftime("%m/%Y")
+            return obj.data_programada.strftime(FORMATO_MES_ANO)
         return obj.data_programada.strftime(FORMATO_DATA_BRASILEIRO)
 
     def get_status(self, obj):
@@ -155,7 +159,7 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
-    fornecedor = serializers.CharField(source="cronograma.empresa")
+    fornecedor = serializers.CharField(source=CAMPO_CRONOGRAMA_EMPRESA)
     cronograma = serializers.CharField(source="cronograma.numero")
     status = serializers.CharField(source="get_status_display")
     programa_leve_leite = serializers.SerializerMethodField()
@@ -283,7 +287,7 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoAlteracaoCronogramaCompletoSerializer(serializers.ModelSerializer):
-    fornecedor = serializers.CharField(source="cronograma.empresa")
+    fornecedor = serializers.CharField(source=CAMPO_CRONOGRAMA_EMPRESA)
     cronograma = CronogramaSerializer()
     status = serializers.CharField(source="get_status_display")
     etapas_antigas = EtapasDoCronogramaSerializer(many=True)
@@ -394,7 +398,7 @@ class EtapasDoCronogramaFichaDeRecebimentoSerializer(serializers.ModelSerializer
         if not obj.data_programada:
             return None
         if obj.cronograma and obj.cronograma.ponto_a_ponto:
-            return obj.data_programada.strftime("%m/%Y")
+            return obj.data_programada.strftime(FORMATO_MES_ANO)
         return obj.data_programada.strftime(FORMATO_DATA_BRASILEIRO)
 
     def get_desvinculada_recebimento(self, obj):
@@ -603,7 +607,7 @@ class EtapaCronogramaRelatorioSerializer(serializers.ModelSerializer):
         if not obj.data_programada:
             return None
         if obj.cronograma and obj.cronograma.ponto_a_ponto:
-            return obj.data_programada.strftime("%m/%Y")
+            return obj.data_programada.strftime(FORMATO_MES_ANO)
         return obj.data_programada.strftime(FORMATO_DATA_BRASILEIRO)
 
     def get_etapa(self, obj):
@@ -768,10 +772,10 @@ class CronogramaRelatorioSerializer(serializers.ModelSerializer):
 
     def get_modalidade(self, obj):
         if not obj.contrato:
-            return "Não Informado"
+            return TEXTO_NAO_INFORMADO
         if not obj.contrato.modalidade:
-            return "Não Informado"
-        return obj.contrato.modalidade.nome or "Não Informado"
+            return TEXTO_NAO_INFORMADO
+        return obj.contrato.modalidade.nome or TEXTO_NAO_INFORMADO
 
     class Meta:
         model = Cronograma
@@ -843,7 +847,7 @@ class PainelCronogramaSerializer(serializers.ModelSerializer):
 
 
 class PainelSolicitacaoAlteracaoCronogramaSerializerItem(serializers.ModelSerializer):
-    empresa = serializers.CharField(source="cronograma.empresa")
+    empresa = serializers.CharField(source=CAMPO_CRONOGRAMA_EMPRESA)
     cronograma = serializers.CharField(source="cronograma.numero")
     produto = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")

@@ -103,6 +103,11 @@ from ....dados_comuns.models import LogSolicitacoesUsuario
 from .validators import valida_parametros_calendario
 
 
+MENSAGEM_ASSINATURA_NAO_VALIDADA = (
+    "Assinatura do cronograma não foi validada. Verifique sua senha."
+)
+
+
 def _uuid_valido(valor):
     """Verifica se o parâmetro recebido é um UUID válido."""
     if not valor:
@@ -203,7 +208,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             qs = sorted(
                 query_set.filter(status__in=workflow).distinct().all(),
                 key=lambda x: (
-                    x.log_mais_recente.criado_em if x.log_mais_recente else "-criado_em"
+                    x.log_mais_recente.criado_em if x.log_mais_recente else x.criado_em
                 ),
                 reverse=True,
             )
@@ -437,7 +442,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         if not usuario.verificar_autenticidade(request.data.get("password")):
             return Response(
                 dict(
-                    detail="Assinatura do cronograma não foi validada. Verifique sua senha."
+                    detail=MENSAGEM_ASSINATURA_NAO_VALIDADA
                 ),
                 status=HTTP_401_UNAUTHORIZED,
             )
@@ -479,7 +484,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         if not usuario.verificar_autenticidade(request.data.get("password")):
             return Response(
                 dict(
-                    detail="Assinatura do cronograma não foi validada. Verifique sua senha."
+                    detail=MENSAGEM_ASSINATURA_NAO_VALIDADA
                 ),
                 status=HTTP_401_UNAUTHORIZED,
             )
@@ -519,7 +524,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         if not usuario.verificar_autenticidade(request.data.get("password")):
             return Response(
                 dict(
-                    detail="Assinatura do cronograma não foi validada. Verifique sua senha."
+                    detail=MENSAGEM_ASSINATURA_NAO_VALIDADA
                 ),
                 status=HTTP_401_UNAUTHORIZED,
             )

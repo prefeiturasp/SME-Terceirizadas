@@ -9,7 +9,11 @@ from src.cardapio.base.api.serializers import (
 from src.cardapio.base.models import (
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
 )
-from src.dados_comuns.constants import FORMATO_DATA_BRASILEIRO, TIPOS_ALIMENTACAO
+from src.dados_comuns.constants import (
+    FORMATO_DATA_BRASILEIRO,
+    TIPOS_ALIMENTACAO,
+    StringsParametrizacaoFinanceiraTabela,
+)
 from src.dados_comuns.utils import converte_numero_em_mes
 from src.dieta_especial.solicitacao_dieta_especial.models import ClassificacaoDieta
 from src.escola.models import FaixaEtaria, GrupoUnidadeEscolar
@@ -223,7 +227,7 @@ def _build_tabela_alimentacao_cei(tabelas, faixas_etarias, totais_consumo):
             (
                 t
                 for t in tabelas
-                if t.nome == "Preço das Alimentações"
+                if t.nome == StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value
                 and t.periodo_escolar
                 and t.periodo_escolar.nome == periodo
             ),
@@ -446,7 +450,8 @@ def _build_tabela_alimentacao_emei(
         (
             t
             for t in tabelas
-            if "Preço das Alimentações" in t.nome and not t.periodo_escolar
+            if StringsParametrizacaoFinanceiraTabela.ALIMENTACOES.value in t.nome
+            and not t.periodo_escolar
         ),
         None,
     )

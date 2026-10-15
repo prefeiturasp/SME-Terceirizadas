@@ -11,6 +11,7 @@ from pypdf import PdfReader
 from rest_framework import status
 
 from src.dados_comuns import constants
+from src.dados_comuns.constants import ContentTypesParaRequests
 from src.dados_comuns.fluxo_status import FichaDeRecebimentoWorkflow
 from src.pre_recebimento.ficha_tecnica.models import FichaTecnicaDoProduto
 from src.recebimento.models import (
@@ -419,7 +420,7 @@ def test_gerar_pdf_ficha_recebimento_sem_tag_leve_leite(
     ficha_tecnica = cronograma.ficha_tecnica
 
     assert response.status_code == status.HTTP_200_OK
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         f'filename="ficha_recebimento_{cronograma.numero}.pdf"'
         in response["Content-Disposition"]
@@ -467,7 +468,7 @@ def test_gerar_pdf_ficha_recebimento(
     etapa = ficha_completa.etapa
 
     assert response.status_code == status.HTTP_200_OK
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
     assert (
         f'filename="ficha_recebimento_{cronograma.numero}.pdf"'
         in response["Content-Disposition"]
@@ -508,7 +509,7 @@ def test_gerar_pdf_ficha_recebimento_perfil_dilog_visualizacao(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response["Content-Type"] == "application/pdf"
+    assert response["Content-Type"] == ContentTypesParaRequests.PDF.value
 
 
 def test_gerar_pdf_ficha_nao_encontrada(client_autenticado_qualidade):

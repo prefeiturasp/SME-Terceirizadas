@@ -28,6 +28,9 @@ from src.terceirizada.fixtures.factories.terceirizada_factory import (
 )
 
 
+PRODUTO_MAMAO_PAPAYA = "MAMAO PAPAYA"
+
+
 @pytest.fixture
 def empresa():
     return EmpresaFactory()
@@ -202,6 +205,30 @@ def client_fiscal(client, usuario_fiscal):
     return client, usuario_fiscal
 
 
+@pytest.fixture
+def usuario_dilog_diretoria(django_user_model):
+    """Usuário com perfil DILOG_DIRETORIA vinculado à CODAE."""
+    email = "dilog.diretoria@test.com"
+    user = django_user_model.objects.create_user(
+        username=email,
+        password=constants.DJANGO_ADMIN_PASSWORD,
+        email=email,
+        registro_funcional="7654321",
+        nome="Diretor DILOG",
+    )
+    perfil = baker.make("Perfil", nome=constants.DILOG_DIRETORIA, ativo=True)
+    codae = baker.make("Codae")
+    baker.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    return user
+
+
 def _cria_termo_do_painel(empresa, contrato, fiscais, status, cronogramas=()):
     """Termo para o painel de assinaturas."""
 
@@ -259,7 +286,7 @@ def termos_painel_assinatura(usuario_fiscal, tres_fiscais):
             contrato_alfa,
             fiscais_com_usuario,
             TermoRecebimentoDefinitivo.ENVIADO_FISCAIS,
-            (("001/2026", "MAMAO PAPAYA"), ("002/2026", "ABACATE")),
+            (("001/2026", PRODUTO_MAMAO_PAPAYA), ("002/2026", "ABACATE")),
         ),
         pendente_de_outro_fiscal=_cria_termo_do_painel(
             outra_empresa,
@@ -281,6 +308,39 @@ def termos_painel_assinatura(usuario_fiscal, tres_fiscais):
             TermoRecebimentoDefinitivo.ASSINADO_FORNECEDOR,
             # Dois cronogramas do mesmo produto: o painel deve exibir o
             # nome uma única vez.
-            (("005/2026", "MAMAO PAPAYA"), ("006/2026", "MAMAO PAPAYA")),
+            (("005/2026", PRODUTO_MAMAO_PAPAYA), ("006/2026", PRODUTO_MAMAO_PAPAYA)),
         ),
+    )
+
+
+@pytest.fixture
+def termo_para_assinatura(empresa, contrato, tres_fiscais):
+    """Termo ``ENVIADO_FISCAIS`` com os três fiscais do contrato."""
+    return _cria_termo_do_painel(
+        empresa,
+        contrato,
+        list(tres_fiscais),
+        TermoRecebimentoDefinitivo.ENVIADO_FISCAIS,
+    )
+
+
+@pytest.fixture
+def termo_fiscais_repetidos(empresa, contrato, tres_fiscais):
+    """Termo com o primeiro fiscal repetido nos papéis 1 e 2."""
+    return _cria_termo_do_painel(
+        empresa,
+        contrato,
+        [tres_fiscais[0], tres_fiscais[0], tres_fiscais[2]],
+        TermoRecebimentoDefinitivo.ENVIADO_FISCAIS,
+    )
+
+
+@pytest.fixture
+def termo_fiscal_unico(empresa, contrato, tres_fiscais):
+    """Termo com o mesmo usuário nos três papéis de fiscal."""
+    return _cria_termo_do_painel(
+        empresa,
+        contrato,
+        [tres_fiscais[0], tres_fiscais[0], tres_fiscais[0]],
+        TermoRecebimentoDefinitivo.ENVIADO_FISCAIS,
     )

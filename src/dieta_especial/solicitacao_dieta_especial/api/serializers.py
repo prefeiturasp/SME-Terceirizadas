@@ -615,11 +615,11 @@ class SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer(
         )
 
     def get_protocolo_padrao(self, obj):
-        return (
-            obj.nome_protocolo
-            if obj.nome_protocolo
-            else (obj.protocolo_padrao.nome_protocolo if obj.protocolo_padrao else "")
-        )
+        if obj.nome_protocolo:
+            return obj.nome_protocolo
+        if obj.protocolo_padrao:
+            return obj.protocolo_padrao.nome_protocolo
+        return ""
 
     def get_data_autorizacao(self, obj):
         return obj.data_autorizacao or None
@@ -690,11 +690,11 @@ class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
         return obj.classificacao.nome if obj.classificacao else None
 
     def get_protocolo_padrao(self, obj):
-        return (
-            obj.nome_protocolo
-            if obj.nome_protocolo
-            else (obj.protocolo_padrao.nome_protocolo if obj.protocolo_padrao else "")
-        )
+        if obj.nome_protocolo:
+            return obj.nome_protocolo
+        if obj.protocolo_padrao:
+            return obj.protocolo_padrao.nome_protocolo
+        return ""
 
     def get_data_autorizacao(self, obj):
         return obj.data_autorizacao or None

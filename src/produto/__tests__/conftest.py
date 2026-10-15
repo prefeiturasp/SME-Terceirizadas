@@ -8,7 +8,11 @@ from django.http import QueryDict
 from faker import Faker
 from model_bakery import baker
 
-from src.dados_comuns.constants import ADMINISTRADOR_EMPRESA, StringsCaminhoModelos
+from src.dados_comuns.constants import (
+    ADMINISTRADOR_EMPRESA,
+    NumerosDeEditais,
+    StringsCaminhoModelos,
+)
 from src.produto.api.serializers.serializers import (
     HomologacaoProdutoPainelGerencialSerializer,
     ProdutoReclamacaoSerializer,
@@ -110,17 +114,17 @@ def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, 
 def produtos_edital_41(escola):
     edital = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 41/sme/2017",
+        numero=NumerosDeEditais.EDITAL_41_2017.value,
         uuid="12288b47-9d27-4089-8c2e-48a6061d83ea",
     )
     baker.make(
         "Edital",
-        numero="Edital de Pregão nº 78/sme/2016",
+        numero=NumerosDeEditais.EDITAL_78_2016.value,
         uuid="b30a2102-2ae0-404d-8a56-8e5ecd73f868",
     )
     edital_3 = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 78/sme/2022",
+        numero=NumerosDeEditais.EDITAL_78_2022.value,
         uuid="131f4000-3e31-44f1-9ba5-e7df001a8426",
     )
     marca_1 = baker.make("Marca", nome="NAMORADOS")
@@ -268,7 +272,7 @@ def client_autenticado_vinculo_terceirizada_homologacao(
         produto=produto,
         rastro_terceirizada=escola.lote.terceirizada,
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
         uuid="774ad907-d871-4bfd-b1aa-d4e0ecb6c01f",
     )
     homologacao_produto.status = (
@@ -373,17 +377,17 @@ def produto(user, protocolo1, protocolo2, marca1, fabricante):
 def produto_com_editais(produto, escola):
     edital = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 41/sme/2017",
+        numero=NumerosDeEditais.EDITAL_41_2017.value,
         uuid="12288b47-9d27-4089-8c2e-48a6061d83ea",
     )
     edital_2 = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 78/sme/2016",
+        numero=NumerosDeEditais.EDITAL_78_2016.value,
         uuid="b30a2102-2ae0-404d-8a56-8e5ecd73f868",
     )
     edital_3 = baker.make(
         "Edital",
-        numero="Edital de Pregão nº 78/sme/2022",
+        numero=NumerosDeEditais.EDITAL_78_2022.value,
         uuid="131f4000-3e31-44f1-9ba5-e7df001a8426",
     )
     pe1 = baker.make(
@@ -457,7 +461,7 @@ def hom_produto_com_editais(escola, user, produto_com_editais):
         produto=produto_com_editais,
         rastro_terceirizada=escola.lote.terceirizada,
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
     )
     baker.make(
         "LogSolicitacoesUsuario",
@@ -901,7 +905,7 @@ def homologacao_produto(escola, user, produto, edital):
         produto=produto,
         rastro_terceirizada=escola.lote.terceirizada,
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
     )
     baker.make("ProdutoEdital", edital=edital, produto=produto, suspenso=False)
     return homologacao_produto
@@ -946,7 +950,7 @@ def reclamacao(homologacao_produto_escola_ou_nutri_reclamou, escola, user):
         reclamante_cargo="Cargo",
         reclamante_nome="Anderson",
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
     )
     return reclamacao
 
@@ -984,7 +988,7 @@ def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
         reclamante_cargo="Cargo",
         reclamante_nome="Arthur",
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
         status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE,
     )
     return reclamacao
@@ -1002,7 +1006,7 @@ def reclamacao_nutrisupervisor(
         reclamante_cargo="Cargo",
         reclamante_nome="Arthur",
         criado_por=user,
-        criado_em=datetime.datetime.utcnow(),
+        criado_em=datetime.datetime.now(datetime.timezone.utc),
         status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_NUTRISUPERVISOR,
     )
     return reclamacao
@@ -1189,9 +1193,9 @@ def numero_editais():
     query_params.setlist(
         constants.PayloadVariaveis.EDITAIS.value,
         [
-            "Edital de Pregão nº 78/sme/2022",
-            "Edital de Pregão nº 78/sme/2016",
-            "Edital de Pregão nº 41/sme/2017",
+            NumerosDeEditais.EDITAL_78_2022.value,
+            NumerosDeEditais.EDITAL_78_2016.value,
+            NumerosDeEditais.EDITAL_41_2017.value,
         ],
     )
     return query_params

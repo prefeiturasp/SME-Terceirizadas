@@ -4,8 +4,8 @@ from unittest.mock import patch
 import pytest
 from model_bakery import baker
 
-from src.dados_comuns.constants import GRUPO_SOLICITACOES_ALIMENTACAO
-from src.medicao_inicial.models import CategoriaMedicao
+from src.dados_comuns.constants import StringsValidationErrors
+from src.medicao_inicial.models import CategoriaMedicao, GrupoMedicao
 from src.medicao_inicial.validators import validate_lanche_emergencial
 
 pytestmark = pytest.mark.django_db
@@ -24,7 +24,7 @@ class TestValidateLancheEmergencial:
         medicao = baker.make(
             "Medicao",
             solicitacao_medicao_inicial=solicitacao,
-            grupo__nome=GRUPO_SOLICITACOES_ALIMENTACAO,
+            grupo__nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
         )
         return solicitacao, medicao
 
@@ -75,8 +75,8 @@ class TestValidateLancheEmergencial:
 
         assert retorno == [
             {
-                "periodo_escolar": GRUPO_SOLICITACOES_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         ]
 
@@ -132,8 +132,8 @@ class TestValidateLancheEmergencial:
 
         assert retorno == [
             {
-                "periodo_escolar": GRUPO_SOLICITACOES_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         ]
 
@@ -149,8 +149,8 @@ class TestValidateLancheEmergencial:
 
         assert retorno == [
             {
-                "periodo_escolar": GRUPO_SOLICITACOES_ALIMENTACAO,
-                "erro": "Restam dias a serem lançados nos Lanches Emergenciais.",
+                "periodo_escolar": GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS_NOS_LANCHES_EMERGENCIAIS.value,
             }
         ]
 

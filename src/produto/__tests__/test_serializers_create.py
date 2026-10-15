@@ -1,8 +1,11 @@
 import pytest
 from model_bakery import baker
+from rest_framework import serializers
 
 from src.dados_comuns.constants import StringsCaminhoModelos
-from src.produto.api.serializers.serializers_create import *
+from src.produto.api.serializers.serializers_create import (
+    CadastroProdutosEditalCreateSerializer,
+)
 
 pytestmark = pytest.mark.django_db
 

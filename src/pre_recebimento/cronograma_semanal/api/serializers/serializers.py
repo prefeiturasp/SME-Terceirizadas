@@ -20,6 +20,9 @@ from src.pre_recebimento.cronograma_semanal.models import (
     ProgramacaoEntregaSemanal,
 )
 
+CAMPO_CRONOGRAMA_MENSAL_NUMERO = "cronograma_mensal.numero"
+CAMPO_CRONOGRAMA_MENSAL_FICHA_TECNICA_PRODUTO_NOME = "cronograma_mensal.ficha_tecnica.produto.nome"
+
 
 class CronogramaSemanalListagemSerializer(serializers.ModelSerializer):
     """
@@ -28,10 +31,10 @@ class CronogramaSemanalListagemSerializer(serializers.ModelSerializer):
     Ordenação por data de alteração (mais recente primeiro).
     """
 
-    numero = serializers.CharField(source="cronograma_mensal.numero", read_only=True)
+    numero = serializers.CharField(source=CAMPO_CRONOGRAMA_MENSAL_NUMERO, read_only=True)
     numero_semanal = serializers.CharField(source="numero", read_only=True)
     produto = serializers.CharField(
-        source="cronograma_mensal.ficha_tecnica.produto.nome", read_only=True
+        source=CAMPO_CRONOGRAMA_MENSAL_FICHA_TECNICA_PRODUTO_NOME, read_only=True
     )
     quantidade_total = serializers.SerializerMethodField(read_only=True)
     unidade_medida = serializers.SerializerMethodField(read_only=True)
@@ -82,9 +85,9 @@ class CronogramaSemanalCalendarioSerializer(serializers.ModelSerializer):
     Filtrado por mês e ano via query params.
     """
 
-    numero = serializers.CharField(source="cronograma_mensal.numero", read_only=True)
+    numero = serializers.CharField(source=CAMPO_CRONOGRAMA_MENSAL_NUMERO, read_only=True)
     produto = serializers.CharField(
-        source="cronograma_mensal.ficha_tecnica.produto.nome", read_only=True
+        source=CAMPO_CRONOGRAMA_MENSAL_FICHA_TECNICA_PRODUTO_NOME, read_only=True
     )
     fornecedor = serializers.CharField(
         source="cronograma_mensal.empresa.nome_fantasia", read_only=True
@@ -163,7 +166,7 @@ class CronogramaSemanalRelatorioSerializer(serializers.ModelSerializer):
         source="cronograma_mensal.empresa.nome_fantasia", read_only=True
     )
     produto = serializers.CharField(
-        source="cronograma_mensal.ficha_tecnica.produto.nome", read_only=True
+        source=CAMPO_CRONOGRAMA_MENSAL_FICHA_TECNICA_PRODUTO_NOME, read_only=True
     )
     qtd_total_empenho = serializers.FloatField(
         source="cronograma_mensal.qtd_total_empenho", read_only=True
@@ -256,7 +259,7 @@ class CronogramaMensalSimplesSerializer(serializers.ModelSerializer):
 
 
 class CronogramaSemanalRascunhosSerializer(serializers.ModelSerializer):
-    numero = serializers.CharField(source="cronograma_mensal.numero", read_only=True)
+    numero = serializers.CharField(source=CAMPO_CRONOGRAMA_MENSAL_NUMERO, read_only=True)
 
     class Meta:
         model = CronogramaSemanal

@@ -10,6 +10,7 @@ import environ
 import numpy as np
 import pandas as pd
 
+from src.dados_comuns.constants import ColunasPlanilhaEscola
 from src.dados_comuns.models import Contato
 from src.escola.models import (
     DiretoriaRegional,
@@ -31,7 +32,12 @@ ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_excel(
     f"{ROOT_DIR}/planilhas_de_carga/escola_dre_codae.xlsx",
-    converters={"EOL": str, "TELEFONE2": str, "COD. CODAE": str, "CEP": str},
+    converters={
+        "EOL": str,
+        "TELEFONE2": str,
+        ColunasPlanilhaEscola.COD_CODAE.value: str,
+        "CEP": str,
+    },
     sheet_name="EMEI",
 )
 
@@ -41,19 +47,29 @@ df = df.replace(np.nan, "", regex=True)
 df["EOL"] = df["EOL"].str.strip().str.upper()
 df["EOL"] = df["EOL"].apply(coloca_zero_a_esquerda)
 
-df["TIPO DE U.E"] = df["TIPO DE U.E"].str.strip().str.upper()
-df["TIPO DE U.E"] = df["TIPO DE U.E"].apply(normaliza_nome)
+df[ColunasPlanilhaEscola.TIPO_DE_UE.value] = (
+    df[ColunasPlanilhaEscola.TIPO_DE_UE.value].str.strip().str.upper()
+)
+df[ColunasPlanilhaEscola.TIPO_DE_UE.value] = df[
+    ColunasPlanilhaEscola.TIPO_DE_UE.value
+].apply(normaliza_nome)
 
 df["NOME"] = df["NOME"].str.strip().str.upper()
 
 df["DRE"] = df["DRE"].str.strip().str.upper()
 df["DRE"] = df["DRE"].apply(normaliza_nome)
 
-df["SIGLA/LOTE"] = df["SIGLA/LOTE"].str.strip().str.upper()
+df[ColunasPlanilhaEscola.SIGLA_LOTE.value] = (
+    df[ColunasPlanilhaEscola.SIGLA_LOTE.value].str.strip().str.upper()
+)
 df["E-MAIL"] = df["E-MAIL"].str.strip().str.upper()
 
-df["ENDEREÇO"] = df["ENDEREÇO"].str.strip().str.upper()
-df["ENDEREÇO"] = df["ENDEREÇO"].apply(normaliza_nome)
+df[ColunasPlanilhaEscola.ENDERECO.value] = (
+    df[ColunasPlanilhaEscola.ENDERECO.value].str.strip().str.upper()
+)
+df[ColunasPlanilhaEscola.ENDERECO.value] = df[
+    ColunasPlanilhaEscola.ENDERECO.value
+].apply(normaliza_nome)
 
 df["Nº"] = df["Nº"].str.strip().str.upper()
 
@@ -69,13 +85,15 @@ df["TELEFONE2"] = df["TELEFONE2"].str.strip().str.upper()
 df["TELEFONE2"] = df["TELEFONE2"].apply(somente_digitos)
 
 df["EMPRESA"] = df["EMPRESA"].str.strip().str.upper()
-df["COD. CODAE"] = df["COD. CODAE"].str.strip().str.upper()
+df[ColunasPlanilhaEscola.COD_CODAE.value] = (
+    df[ColunasPlanilhaEscola.COD_CODAE.value].str.strip().str.upper()
+)
 
 
 def cria_tipos_unidade_escolar():
     cont = 0
     for index, row in df.iterrows():
-        iniciais = row["TIPO DE U.E"]
+        iniciais = row[ColunasPlanilhaEscola.TIPO_DE_UE.value]
         obj, created = TipoUnidadeEscolar.objects.get_or_create(iniciais=iniciais)
         if created:
             cont += 1
@@ -89,9 +107,9 @@ def cria_escolas():
     cont = 0
     for index, row in df.iterrows():
         dre_str = row["DRE"]
-        tipo_ue_str = row["TIPO DE U.E"]
-        lote_sigla_str = row["SIGLA/LOTE"]
-        cod_codae = row["COD. CODAE"]
+        tipo_ue_str = row[ColunasPlanilhaEscola.TIPO_DE_UE.value]
+        lote_sigla_str = row[ColunasPlanilhaEscola.SIGLA_LOTE.value]
+        cod_codae = row[ColunasPlanilhaEscola.COD_CODAE.value]
         t1 = row["TELEFONE"]
         if 8 < len(t1) > 10:
             t1 = None
@@ -116,9 +134,8 @@ def cria_escolas():
         )
 
         escola_obj, created = Escola.objects.get_or_create(
-            nome=f"{row['TIPO DE U.E']} {row['NOME']}",
+            nome=f"{row[ColunasPlanilhaEscola.TIPO_DE_UE.value]} {row['NOME']}",
             codigo_eol=row["EOL"],
-            # codigo_codae=cod_codae,
             diretoria_regional=dre_obj,
             tipo_unidade=tipo_ue_obj,
             tipo_gestao=tipo_gestao,

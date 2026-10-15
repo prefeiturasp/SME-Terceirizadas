@@ -15,7 +15,7 @@ from src.pre_recebimento.cronograma_entrega.models import Cronograma
 from src.relatorios.utils import merge_pdf_com_string_template
 
 from ...dados_comuns.behaviors import (
-    Logs,
+    TemLogs,
     ModeloBase,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
@@ -109,7 +109,7 @@ class TipoDeDocumentoDeRecebimento(TemChaveExterna):
 
 
 class DocumentoDeRecebimento(
-    ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoDocumentoDeRecebimento
+    ModeloBase, TemIdentificadorExternoAmigavel, TemLogs, FluxoDocumentoDeRecebimento
 ):
     cronograma = models.ForeignKey(
         Cronograma,
@@ -145,6 +145,9 @@ class DocumentoDeRecebimento(
     )
     correcao_solicitada = models.TextField(
         StringsVerboseNameModels.CORRECAO_SOLICITADA.value, blank=True
+    )
+    justificativa_reprovacao = models.TextField(
+        StringsVerboseNameModels.JUSTIFICATIVA_REPROVACAO.value, blank=True
     )
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):

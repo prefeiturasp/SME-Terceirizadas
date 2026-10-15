@@ -23,6 +23,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COGESTOR_DRE,
+    StringsValidationErrors,
 )
 from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EOLException, EOLServicoSGP
@@ -517,7 +518,8 @@ class AlteraEmailSerializer(serializers.ModelSerializer):
             )
         except httpx.TimeoutException:
             return Response(
-                {"detail": "EOL Timeout"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": StringsValidationErrors.EOL_TIMEOUT.value},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         return instance
 
@@ -528,7 +530,8 @@ class AlteraEmailSerializer(serializers.ModelSerializer):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except httpx.TimeoutException:
             return Response(
-                {"detail": "EOL Timeout"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": StringsValidationErrors.EOL_TIMEOUT.value},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(
             {"detail": "E-mail atualizado com sucesso!"}, status=status.HTTP_200_OK
@@ -562,7 +565,8 @@ class AlterarVinculoSerializer(serializers.ModelSerializer):
                 return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             except httpx.TimeoutException:
                 return Response(
-                    {"detail": "EOL Timeout"}, status=status.HTTP_400_BAD_REQUEST
+                    {"detail": StringsValidationErrors.EOL_TIMEOUT.value},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
     def update(self, usuario, validated_data):
@@ -616,7 +620,8 @@ class RedefinirSenhaSerializer(serializers.ModelSerializer):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except httpx.TimeoutException:
             return Response(
-                {"detail": "EOL Timeout"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": StringsValidationErrors.EOL_TIMEOUT.value},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         return instance
 
@@ -650,11 +655,12 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer(
 
     def validate(self, attrs):
         conteudo = attrs.get("conteudo")
-        if conteudo:
-            if not conteudo.name.split(".")[-1] in ["xlsx", "xls"]:
-                raise serializers.ValidationError(
-                    {"detail": "Extensão do arquivo não suportada."}
-                )
+        if conteudo and conteudo.name.split(".")[-1] not in ["xlsx", "xls"]:
+            raise serializers.ValidationError(
+                {
+                    "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
+                }
+            )
 
         return attrs
 
@@ -670,11 +676,12 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer(
 
     def validate(self, attrs):
         conteudo = attrs.get("conteudo")
-        if conteudo:
-            if not conteudo.name.split(".")[-1] in ["xlsx", "xls"]:
-                raise serializers.ValidationError(
-                    {"detail": "Extensão do arquivo não suportada."}
-                )
+        if conteudo and conteudo.name.split(".")[-1] not in ["xlsx", "xls"]:
+            raise serializers.ValidationError(
+                {
+                    "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
+                }
+            )
 
         return attrs
 
@@ -690,11 +697,12 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOCreateSerializer(
 
     def validate(self, attrs):
         conteudo = attrs.get("conteudo")
-        if conteudo:
-            if not conteudo.name.split(".")[-1] in ["xlsx", "xls"]:
-                raise serializers.ValidationError(
-                    {"detail": "Extensão do arquivo não suportada."}
-                )
+        if conteudo and conteudo.name.split(".")[-1] not in ["xlsx", "xls"]:
+            raise serializers.ValidationError(
+                {
+                    "detail": StringsValidationErrors.EXTENSAO_ARQUIVO_NAO_SUPORTADA.value
+                }
+            )
 
         return attrs
 

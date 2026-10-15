@@ -6,15 +6,18 @@ from faker import Faker
 from model_bakery import baker
 
 from src.dados_comuns.constants import (
+    ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     DILOG_ABASTECIMENTO,
     DILOG_CRONOGRAMA,
     DILOG_QUALIDADE,
+    DILOG_VISUALIZACAO,
     DJANGO_ADMIN_PASSWORD,
     EMAIL_TESTE,
     USUARIO_EMPRESA,
+    NumerosParaCronogramas,
 )
 from src.dados_comuns.fluxo_status import (
     FichaTecnicaDoProdutoWorkflow,
@@ -30,6 +33,9 @@ from ..ficha_tecnica.models import AnaliseFichaTecnica, FichaTecnicaDoProduto
 from ..layout_embalagem.models import LayoutDeEmbalagem, TipoDeEmbalagemDeLayout
 
 fake = Faker("pt_BR")
+
+
+OBSERVACAO_PADRAO_TESTE = "Imagine uma observação aqui."
 
 
 @pytest.fixture
@@ -120,7 +126,7 @@ def cronograma_chamada_publica(contrato_chamada_publica):
 def cronograma_rascunho(armazem, contrato, empresa):
     return baker.make(
         "Cronograma",
-        numero="002/2022A",
+        numero=NumerosParaCronogramas.NUMERO_002_2022A.value,
         contrato=contrato,
         armazem=armazem,
         empresa=empresa,
@@ -131,7 +137,7 @@ def cronograma_rascunho(armazem, contrato, empresa):
 def cronograma_recebido(armazem, contrato, empresa):
     return baker.make(
         "Cronograma",
-        numero="002/2022A",
+        numero=NumerosParaCronogramas.NUMERO_002_2022A.value,
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -143,7 +149,7 @@ def cronograma_recebido(armazem, contrato, empresa):
 def cronograma_qualquer(contrato_qualquer):
     return baker.make(
         "Cronograma",
-        numero="002/2022A",
+        numero=NumerosParaCronogramas.NUMERO_002_2022A.value,
         contrato=contrato_qualquer,
     )
 
@@ -214,7 +220,7 @@ def cronograma_solicitado_alteracao(armazem, contrato, empresa):
 def solicitacao_cronograma_em_analise(cronograma):
     return baker.make(
         "SolicitacaoAlteracaoCronograma",
-        numero_solicitacao="00222/2022",
+        numero_solicitacao=NumerosParaCronogramas.NUMERO_00222_2022.value,
         cronograma=cronograma,
         status="EM_ANALISE",
     )
@@ -224,7 +230,7 @@ def solicitacao_cronograma_em_analise(cronograma):
 def solicitacao_cronograma_ciente(cronograma):
     return baker.make(
         "SolicitacaoAlteracaoCronograma",
-        numero_solicitacao="00222/2022",
+        numero_solicitacao=NumerosParaCronogramas.NUMERO_00222_2022.value,
         cronograma=cronograma,
         status="CRONOGRAMA_CIENTE",
     )
@@ -245,7 +251,7 @@ def solicitacao_cronograma_aprovado_dilog_abastecimento(
 
     return baker.make(
         "SolicitacaoAlteracaoCronograma",
-        numero_solicitacao="00222/2022",
+        numero_solicitacao=NumerosParaCronogramas.NUMERO_00222_2022.value,
         cronograma=cronograma_solicitado_alteracao,
         status="APROVADO_DILOG_ABASTECIMENTO",
     )
@@ -255,7 +261,7 @@ def solicitacao_cronograma_aprovado_dilog_abastecimento(
 def cronograma_assinado_fornecedor(armazem, contrato, empresa):
     return baker.make(
         "Cronograma",
-        numero="002/2022A",
+        numero=NumerosParaCronogramas.NUMERO_002_2022A.value,
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -267,7 +273,7 @@ def cronograma_assinado_fornecedor(armazem, contrato, empresa):
 def cronograma_assinado_perfil_cronograma(armazem, contrato, empresa):
     return baker.make(
         "Cronograma",
-        numero="002/2022A",
+        numero=NumerosParaCronogramas.NUMERO_002_2022A.value,
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -441,7 +447,7 @@ def cronogramas_multiplos_status_com_log_cronograma_ciente(armazem, contrato, em
     )
     s1 = baker.make(
         "SolicitacaoAlteracaoCronograma",
-        numero_solicitacao="00222/2022",
+        numero_solicitacao=NumerosParaCronogramas.NUMERO_00222_2022.value,
         cronograma=c1,
         status="CRONOGRAMA_CIENTE",
     )
@@ -517,7 +523,7 @@ def payload_layout_embalagem(
 ):
     return {
         "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
-        "observacoes": "Imagine uma observação aqui.",
+        "observacoes": OBSERVACAO_PADRAO_TESTE,
         "tipos_de_embalagens": [
             {
                 "tipo_embalagem": "PRIMARIA",
@@ -722,7 +728,7 @@ def layout_de_embalagem_para_correcao(ficha_tecnica_factory, empresa):
             status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             empresa=empresa,
         ),
-        observacoes="Imagine uma observação aqui.",
+        observacoes=OBSERVACAO_PADRAO_TESTE,
         status=LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     )
     baker.make(
@@ -749,7 +755,7 @@ def layout_de_embalagem_aprovado(ficha_tecnica_factory, empresa):
             status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             empresa=empresa,
         ),
-        observacoes="Imagine uma observação aqui.",
+        observacoes=OBSERVACAO_PADRAO_TESTE,
         status=LayoutDeEmbalagemWorkflow.APROVADO,
     )
     baker.make(
@@ -782,7 +788,7 @@ def layout_de_embalagem_em_analise_com_correcao(ficha_tecnica_factory, empresa):
             status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
             empresa=empresa,
         ),
-        observacoes="Imagine uma observação aqui.",
+        observacoes=OBSERVACAO_PADRAO_TESTE,
         status=LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
     )
     baker.make(
@@ -1091,6 +1097,52 @@ def client_autenticado_vinculo_dilog_qualidade(client, django_user_model, codae)
     )
     client.login(username=email, password=password)
     return client, user
+
+
+@pytest.fixture
+def client_autenticado_dilog_visualizacao(client, django_user_model, codae):
+    """Client autenticado com perfil DILOG_VISUALIZACAO vinculado à CODAE."""
+    email = "dilogvisualizacao@test.com"
+    password = DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="7777777"
+    )
+    perfil_dilog_visualizacao = baker.make(
+        "Perfil", nome=DILOG_VISUALIZACAO, ativo=True
+    )
+    baker.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_dilog_visualizacao,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_administrador_codae_gabinete(client, django_user_model, codae):
+    """Client autenticado com perfil ADMINISTRADOR_CODAE_GABINETE."""
+    email = "administradorcodaegabinete@test.com"
+    password = DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="6666666"
+    )
+    perfil_gabinete = baker.make(
+        "Perfil", nome=ADMINISTRADOR_CODAE_GABINETE, ativo=True
+    )
+    baker.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_gabinete,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client
 
 
 @pytest.fixture

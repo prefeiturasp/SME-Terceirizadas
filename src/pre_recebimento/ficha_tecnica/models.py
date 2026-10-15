@@ -8,7 +8,7 @@ from src.pre_recebimento.base.models import UnidadeMedida
 
 from ...dados_comuns.behaviors import (
     CriadoPor,
-    Logs,
+    TemLogs,
     ModeloBase,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
@@ -79,7 +79,7 @@ class FabricanteFichaTecnica(ModeloBase):
 
 
 class FichaTecnicaDoProduto(
-    ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoFichaTecnicaDoProduto
+    ModeloBase, TemIdentificadorExternoAmigavel, TemLogs, FluxoFichaTecnicaDoProduto
 ):
     CATEGORIA_PERECIVEIS = "PERECIVEIS"
     CATEGORIA_NAO_PERECIVEIS = "NAO_PERECIVEIS"

@@ -15,10 +15,6 @@ from src.dados_comuns.constants import (
     DIETA_ESPECIAL_TIPO_A,
     DIETA_ESPECIAL_TIPO_B,
     DJANGO_ADMIN_PASSWORD,
-    GRUPO_RECREIO_NAS_FERIAS,
-    GRUPO_RECREIO_NAS_FERIAS_0_A_3,
-    GRUPO_RECREIO_NAS_FERIAS_4_A_14,
-    GRUPO_SOLICITACOES_ALIMENTACAO,
     TIPO_UNIDADE_CEI_DIRET,
     TIPOS_UNIDADE_ESCOLAR,
     EmailsParaTeste,
@@ -31,7 +27,7 @@ from src.dieta_especial.solicitacao_dieta_especial.models import (
     SolicitacaoDietaEspecial,
 )
 from src.escola.models import Aluno, Lote
-from src.medicao_inicial.models import CategoriaMedicao
+from src.medicao_inicial.models import CategoriaMedicao, GrupoMedicao
 from src.perfil.models.usuario import Usuario
 from src.pre_recebimento.cronograma_entrega.fixtures.factories.cronograma_factory import (
     CronogramaFactory,
@@ -73,6 +69,10 @@ def criar_suspensoes(grupo_suspensao, datas_cancelamentos):
             cancelado=cancelado,
             cancelado_justificativa=justificativa,
         )
+
+
+NOME_USUARIO_TESTE = "Usuário TESTE"
+TITULO_RECREIO_FERIAS_JULHO_2025 = "Recreio nas Férias - Julho 2025"
 
 
 @pytest.fixture
@@ -184,7 +184,7 @@ def grupo_suspensao_alimentacao_cancelamento_total(escola):
 
 @pytest.fixture
 def usuario_escola(escola):
-    email = "escola@admin.com"
+    email = EmailsParaTeste.ESCOLA_ADMIN.value
     password = DJANGO_ADMIN_PASSWORD
     rf = "1545933"
     user = Usuario.objects.create_user(
@@ -750,7 +750,7 @@ def solicitacao_medicao_inicial_aprovada_codae(
     django_user_model,
 ):
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao@escola.com",
@@ -784,7 +784,7 @@ def solicitacao_medicao_inicial_aprovada_codae(
 def recreio_nas_ferias(escola):
     recreio = baker.make(
         "RecreioNasFerias",
-        titulo="Recreio nas Férias - Julho 2025",
+        titulo=TITULO_RECREIO_FERIAS_JULHO_2025,
         data_inicio=datetime.date(2025, 7, 14),
         data_fim=datetime.date(2025, 8, 1),
     )
@@ -804,7 +804,7 @@ def recreio_nas_ferias(escola):
 @pytest.fixture
 def solicitacao_medicao_inicial_recreio_nas_ferias(escola, recreio_nas_ferias):
     tipo_contagem = baker.make("TipoContagemAlimentacao", nome="Fichas")
-    grupo_recreio = baker.make("GrupoMedicao", nome=GRUPO_RECREIO_NAS_FERIAS)
+    grupo_recreio = baker.make("GrupoMedicao", nome=GrupoMedicao.RECREIO_NAS_FERIAS)
     grupo_colaboradores = baker.make("GrupoMedicao", nome="Colaboradores")
 
     categoria_alimentacao = baker.make(
@@ -915,7 +915,7 @@ def solicitacao_medicao_inicial_recreio_nas_ferias_aprovada_codae(
     django_user_model,
 ):
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_recreio_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao_recreio@escola.com",
@@ -952,7 +952,7 @@ def solicitacao_com_historico_completo(
 ):
     solicitacao = solicitacoes_medicao_inicial_emef
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao@escola.com",
@@ -1061,7 +1061,7 @@ def escola_cei():
 def recreio_nas_ferias_cei(escola_cei):
     recreio = baker.make(
         "RecreioNasFerias",
-        titulo="Recreio nas Férias - Julho 2025",
+        titulo=TITULO_RECREIO_FERIAS_JULHO_2025,
         data_inicio=datetime.date(2025, 7, 14),
         data_fim=datetime.date(2025, 8, 1),
     )
@@ -1082,7 +1082,7 @@ def recreio_nas_ferias_cei(escola_cei):
 def recreio_nas_ferias_cemei(escola_cemei):
     recreio = baker.make(
         "RecreioNasFerias",
-        titulo="Recreio nas Férias - Julho 2025",
+        titulo=TITULO_RECREIO_FERIAS_JULHO_2025,
         data_inicio=datetime.date(2025, 7, 14),
         data_fim=datetime.date(2025, 8, 1),
     )
@@ -1117,7 +1117,7 @@ def solicitacao_medicao_inicial_recreio_nas_ferias_cei(
     escola_cei, recreio_nas_ferias_cei
 ):
     tipo_contagem = baker.make("TipoContagemAlimentacao", nome="Fichas")
-    grupo_recreio = baker.make("GrupoMedicao", nome=GRUPO_RECREIO_NAS_FERIAS)
+    grupo_recreio = baker.make("GrupoMedicao", nome=GrupoMedicao.RECREIO_NAS_FERIAS)
     grupo_colaboradores = baker.make("GrupoMedicao", nome="Colaboradores")
 
     categoria_alimentacao = baker.make(
@@ -1221,7 +1221,7 @@ def solicitacao_medicao_inicial_recreio_nas_ferias_cei_aprovada_codae(
     django_user_model,
 ):
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_recreio_cei_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao_recreio_cei@escola.com",
@@ -1260,15 +1260,15 @@ def solicitacao_medicao_inicial_recreio_nas_ferias_cemei(
 
     grupo_0a3 = baker.make(
         "GrupoMedicao",
-        nome=GRUPO_RECREIO_NAS_FERIAS_0_A_3,
+        nome=GrupoMedicao.RECREIO_NAS_FERIAS_0_A_3,
     )
     grupo_4a14 = baker.make(
         "GrupoMedicao",
-        nome=GRUPO_RECREIO_NAS_FERIAS_4_A_14,
+        nome=GrupoMedicao.RECREIO_NAS_FERIAS_4_A_14,
     )
     grupo_solicitacoes = baker.make(
         "GrupoMedicao",
-        nome=GRUPO_SOLICITACOES_ALIMENTACAO,
+        nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
     )
     grupo_colaboradores = baker.make(
         "GrupoMedicao",
@@ -1435,7 +1435,7 @@ def solicitacao_medicao_inicial_recreio_nas_ferias_cemei_aprovada_codae(
     django_user_model,
 ):
     usuario = django_user_model.objects.create_user(
-        nome="Usuário TESTE",
+        nome=NOME_USUARIO_TESTE,
         username="medicao_recreio_cemei_teste",
         password=DJANGO_ADMIN_PASSWORD,
         email="medicao_recreio_cemei@escola.com",

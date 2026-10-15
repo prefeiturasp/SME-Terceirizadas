@@ -3,6 +3,7 @@ import datetime
 import pytest
 from model_bakery import baker
 
+from src.dados_comuns.constants import StringsValidationErrors
 from src.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     Medicao,
@@ -78,11 +79,8 @@ def _criar_permissao_especial(escola, periodo_escolar):
 
 
 def _eh_numero_alunos(solicitacao, periodo_escolar):
-    return (
-        periodo_escolar
-        not in solicitacao.escola.periodos_escolares(
-            ano=solicitacao.ano, mes=solicitacao.mes
-        )
+    return periodo_escolar not in solicitacao.escola.periodos_escolares(
+        ano=solicitacao.ano, mes=solicitacao.mes
     )
 
 
@@ -185,7 +183,7 @@ class TestValidateLancamentoInclusoes:
         assert lista_erros == [
             {
                 "periodo_escolar": periodo_escolar_manha.nome,
-                "erro": "Restam dias a serem lançados nas alimentações.",
+                "erro": StringsValidationErrors.RESTAM_DIAS_A_SEREM_LANCADOS.value,
             }
         ]
 

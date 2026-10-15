@@ -15,7 +15,7 @@ from src.dados_comuns.constants import StringsVerboseNameModels
 from src.pre_recebimento.ficha_tecnica.models import FichaTecnicaDoProduto
 
 from ...dados_comuns.behaviors import (
-    Logs,
+    TemLogs,
     ModeloBase,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
@@ -136,7 +136,7 @@ class TipoDeEmbalagemDeLayout(TemChaveExterna):
 
 
 class LayoutDeEmbalagem(
-    ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoLayoutDeEmbalagem
+    ModeloBase, TemIdentificadorExternoAmigavel, TemLogs, FluxoLayoutDeEmbalagem
 ):
     """Layout de embalagem de um produto vinculado a uma ficha técnica.
 

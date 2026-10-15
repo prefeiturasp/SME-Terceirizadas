@@ -11,6 +11,7 @@ from src.dados_comuns.constants import (
     PEDIDOS_CODAE,
     PEDIDOS_DRE,
     SEM_FILTRO,
+    ContentTypesParaRequests,
 )
 from src.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from src.escola.dias_letivos.models import DiaLetivoSIGPAE
@@ -43,7 +44,7 @@ def test_url_endpoint_alt_card_cei_relatorio(
     )
     id_externo = alteracao_cardapio_cei.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"] == "application/pdf"
+    assert response.headers["content-type"] == ContentTypesParaRequests.PDF.value
     assert (
         response.headers["content-disposition"]
         == f'filename="alteracao_cardapio_{id_externo}.pdf"'
