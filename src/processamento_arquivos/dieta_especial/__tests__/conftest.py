@@ -24,6 +24,11 @@ from src.processamento_arquivos.dieta_especial.schemas import (
     ArquivoCargaDietaEspecialSchema,
 )
 
+TIPO_CONTEUDO_PLANILHA_XLSX = (
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+MODELO_ALIMENTO_DIETA_ESPECIAL = "dieta_especial.Alimento"
+
 
 @pytest.fixture
 def arquivo_carga_dieta_especial():
