@@ -631,11 +631,7 @@ class SolicitacaoMedicaoInicialViewSet(
         """
         if request.query_params.get("eh_relatorio_alimentacoes_servidas"):
             return Response(
-                {
-                    "results": meses_anos_relatorio_alimentacoes_servidas(
-                        request.user
-                    )
-                },
+                {"results": meses_anos_relatorio_alimentacoes_servidas(request.user)},
                 status=status.HTTP_200_OK,
             )
         qs_solicitacao_medicao = self._montar_queryset_meses_anos(request)
@@ -1049,18 +1045,36 @@ class SolicitacaoMedicaoInicialViewSet(
         escola = usuario.vinculo_atual.instituicao
         uuid = request.query_params.get("uuid_solicitacao")
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
+        campos_por_grupo_solicitacoes = {
+            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO: [
+                "kit_lanche",
+                "lanche_emergencial",
+            ],
+            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS: [
+                "lanche_emergencial",
+            ],
+        }
         retorno = []
         for medicao in solicitacao.medicoes.all():
             campos_a_desconsiderar = get_campos_a_desconsiderar(escola, medicao)
+            campos_permitidos = campos_por_grupo_solicitacoes.get(
+                medicao.nome_periodo_grupo
+            )
             total_por_nome_campo = {}
             for valor_medicao in medicao.valores_medicao.exclude(
                 categoria_medicao__nome__icontains="DIETA"
             ):
-                if valor_medicao.nome_campo not in campos_a_desconsiderar:
-                    total_por_nome_campo[valor_medicao.nome_campo] = (
-                        total_por_nome_campo.get(valor_medicao.nome_campo, 0)
-                        + int(valor_medicao.valor)
-                    )
+                if valor_medicao.nome_campo in campos_a_desconsiderar:
+                    continue
+                if (
+                    campos_permitidos is not None
+                    and valor_medicao.nome_campo not in campos_permitidos
+                ):
+                    continue
+                total_por_nome_campo[valor_medicao.nome_campo] = (
+                    total_por_nome_campo.get(valor_medicao.nome_campo, 0)
+                    + int(valor_medicao.valor)
+                )
             total_por_nome_campo = tratar_valores(
                 solicitacao, escola, total_por_nome_campo
             )
