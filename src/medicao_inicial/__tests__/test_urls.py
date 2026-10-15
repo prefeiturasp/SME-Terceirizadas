@@ -1690,6 +1690,66 @@ def test_url_escola_corrige_medicao_extraordinaria(
     ).exists()
 
 
+def test_url_escola_corrige_medicao_extraordinaria_ignora_kit_lanche(
+    client_autenticado_da_escola,
+    solicitacao_medicao_inicial_lanche_emergencial_extraordinario,
+    categoria_medicao_solicitacoes_alimentacao,
+    monkeypatch,
+):
+    solicitacao = solicitacao_medicao_inicial_lanche_emergencial_extraordinario
+    grupo = baker.make(
+        "GrupoMedicao",
+        nome=GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS,
+    )
+    medicao = baker.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao,
+        periodo_escolar=None,
+        grupo=grupo,
+        status="MEDICAO_CORRECAO_SOLICITADA_CODAE",
+    )
+    baker.make(
+        "DiaParaCorrigir",
+        medicao=medicao,
+        categoria_medicao=categoria_medicao_solicitacoes_alimentacao,
+        dia="02",
+    )
+
+    monkeypatch.setattr(
+        "src.medicao_inicial.api.viewsets.log_alteracoes_escola_corrige_periodo",
+        lambda *args, **kwargs: None,
+    )
+
+    data = [
+        {
+            "dia": "02",
+            "nome_campo": "lanche_emergencial",
+            "valor": "15",
+            "categoria_medicao": categoria_medicao_solicitacoes_alimentacao.id,
+            "tipo_alimentacao": "",
+        },
+        {
+            "dia": "07",
+            "nome_campo": "kit_lanche",
+            "valor": "10",
+            "categoria_medicao": categoria_medicao_solicitacoes_alimentacao.id,
+            "tipo_alimentacao": "",
+        },
+    ]
+    response = client_autenticado_da_escola.patch(
+        f"/medicao-inicial/medicao/{medicao.uuid}/escola-corrige-medicao/",
+        content_type="application/json",
+        data=json.dumps(data),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    medicao.refresh_from_db()
+    assert medicao.valores_medicao.filter(
+        nome_campo="lanche_emergencial", dia="02", valor="15"
+    ).exists()
+    assert not medicao.valores_medicao.filter(nome_campo="kit_lanche").exists()
+
+
 def test_url_escola_corrige_medicao_loga_correcao_inicial(
     client_autenticado_da_escola,
     solicitacao_medicao_inicial_lanche_emergencial_extraordinario,
