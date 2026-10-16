@@ -1,13 +1,18 @@
 from decimal import Decimal
 
 import pytest
+from model_bakery import baker
 
 from src.dados_comuns.constants import (
     DIETA_ESPECIAL_TIPO_A,
     DIETA_ESPECIAL_TIPO_B,
 )
 from src.escola.models import GrupoUnidadeEscolar
-from src.medicao_inicial.models import CategoriaMedicao
+from src.medicao_inicial.models import (
+    CategoriaMedicao,
+    GrupoMedicao,
+    TipoValorParametrizacaoFinanceira,
+)
 from src.medicao_inicial.services.relatorio_ateste_financeiro import (
     build_relatorio_financeiro_grupo_cei,
     build_relatorio_financeiro_grupo_cemei,
@@ -556,3 +561,189 @@ def test_relatorio_ateste_financeiro_grupo_emebs_conteudo_pdf(
 
     assert "TURMA INFANTIL" in texto
     assert "TURMA FUNDAMENTAL" in texto
+
+
+@pytest.mark.django_db
+class TestRelatorioAtesteFinanceiroEmeiLancheEmergencialExtraordinarias:
+    """
+    O relatório de ateste financeiro obtém o consumo via
+    `calcula_totais_consumo_por_grupo` (mesmo cálculo do endpoint
+    `totais-atendimento-consumo`), que não filtra medições por grupo.
+
+    Por isso o `lanche_emergencial` lançado nas medições de
+    `SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS` entra na linha
+    "LANCHE EMERGENCIAL" da tabela de alimentações, somado ao das
+    `SOLICITACOES_DE_ALIMENTACAO`.
+    """
+
+    LINHA_LANCHE_EMERGENCIAL = "LANCHE EMERGENCIAL"
+    VALOR_UNITARIO = Decimal("4.00")
+    VALOR_REAJUSTE = Decimal("1.00")
+    QUANTIDADE_SOLICITACOES = 3
+    QUANTIDADE_EXTRAORDINARIAS = 5
+
+    @pytest.fixture
+    def cenario(
+        self,
+        relatorio_financeiro_emei,
+        parametrizacao_financeira_emei,
+        tipo_unidade_escolar_emei,
+        tipo_alimentacao_lanche_emergencial,
+    ):
+        escola = baker.make(
+            "Escola",
+            lote=relatorio_financeiro_emei.lote,
+            tipo_unidade=tipo_unidade_escolar_emei,
+        )
+        solicitacao = baker.make(
+            "SolicitacaoMedicaoInicial",
+            escola=escola,
+            mes=relatorio_financeiro_emei.mes,
+            ano=relatorio_financeiro_emei.ano,
+            status="MEDICAO_APROVADA_PELA_CODAE",
+        )
+
+        vinculo = baker.make(
+            "VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar",
+            tipo_unidade_escolar=tipo_unidade_escolar_emei,
+        )
+        vinculo.tipos_alimentacao.add(tipo_alimentacao_lanche_emergencial)
+
+        tabela_alimentacoes = next(
+            tabela
+            for tabela in parametrizacao_financeira_emei.tabelas.all()
+            if "Preço das Alimentações" in tabela.nome
+        )
+        for nome_tipo_valor, valor in (
+            ("UNITARIO", self.VALOR_UNITARIO),
+            ("REAJUSTE", self.VALOR_REAJUSTE),
+        ):
+            baker.make(
+                "ParametrizacaoFinanceiraTabelaValor",
+                tabela=tabela_alimentacoes,
+                nome_campo="lanche_emergencial",
+                faixa_etaria=None,
+                tipo_alimentacao=tipo_alimentacao_lanche_emergencial,
+                tipo_valor=TipoValorParametrizacaoFinanceira.objects.get(
+                    nome=nome_tipo_valor
+                ),
+                valor=str(valor),
+            )
+
+        return {
+            "relatorio_financeiro": relatorio_financeiro_emei,
+            "parametrizacao": parametrizacao_financeira_emei,
+            "solicitacao": solicitacao,
+            "categoria_solicitacoes": baker.make(
+                "CategoriaMedicao", nome=CategoriaMedicao.SOLICITACOES_DE_ALIMENTACAO
+            ),
+        }
+
+    @staticmethod
+    def _lanca_lanche_emergencial(cenario, nome_grupo, quantidade):
+        grupo, _ = GrupoMedicao.objects.get_or_create(nome=nome_grupo)
+        medicao = baker.make(
+            "Medicao",
+            solicitacao_medicao_inicial=cenario["solicitacao"],
+            periodo_escolar=None,
+            grupo=grupo,
+        )
+        baker.make(
+            "ValorMedicao",
+            medicao=medicao,
+            categoria_medicao=cenario["categoria_solicitacoes"],
+            nome_campo="lanche_emergencial",
+            valor=str(quantidade),
+            dia="01",
+            semana="1",
+        )
+
+    @staticmethod
+    def _gera_relatorio(cenario):
+        """Gera o relatório pelo fluxo real e devolve (dados do builder, texto do PDF)."""
+        capturado = {}
+
+        def builder(*args, **kwargs):
+            capturado["relatorio"] = build_relatorio_financeiro_grupo_emei(
+                *args, **kwargs
+            )
+            return capturado["relatorio"]
+
+        pdf_bytes = gerar_relatorio_ateste_financeiro(
+            relatorio_financeiro=cenario["relatorio_financeiro"],
+            parametrizacao=cenario["parametrizacao"],
+            builder=builder,
+            template=TEMPLATE_HTML_EMEI,
+            tipo_calculo="tipo_alimentacao",
+        )
+        return capturado["relatorio"], extrair_texto_de_pdf(pdf_bytes)
+
+    @classmethod
+    def _linha_lanche_emergencial(cls, relatorio):
+        return next(
+            linha
+            for linha in relatorio["alimentacao"]["linhas"]
+            if linha["tipo"] == cls.LINHA_LANCHE_EMERGENCIAL
+        )
+
+    def test_relatorio_considera_medicao_extraordinaria(self, cenario):
+        self._lanca_lanche_emergencial(
+            cenario,
+            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS,
+            self.QUANTIDADE_EXTRAORDINARIAS,
+        )
+
+        relatorio, texto = self._gera_relatorio(cenario)
+
+        linha = self._linha_lanche_emergencial(relatorio)
+        assert linha["numero_atendimentos"] == self.QUANTIDADE_EXTRAORDINARIAS
+        assert linha["total_unitario"] == self.VALOR_UNITARIO + self.VALOR_REAJUSTE
+        assert linha["valor_total"] == Decimal("25.00")
+        assert self.LINHA_LANCHE_EMERGENCIAL in texto
+
+    def test_relatorio_soma_solicitacoes_e_extraordinarias(self, cenario):
+        self._lanca_lanche_emergencial(
+            cenario,
+            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
+            self.QUANTIDADE_SOLICITACOES,
+        )
+        self._lanca_lanche_emergencial(
+            cenario,
+            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS,
+            self.QUANTIDADE_EXTRAORDINARIAS,
+        )
+
+        relatorio, _ = self._gera_relatorio(cenario)
+
+        total = self.QUANTIDADE_SOLICITACOES + self.QUANTIDADE_EXTRAORDINARIAS
+        linha = self._linha_lanche_emergencial(relatorio)
+        assert linha["numero_atendimentos"] == total
+        assert linha["valor_total"] == Decimal("40.00")
+        assert relatorio["alimentacao"]["total_atendimentos"] == total
+        assert relatorio["alimentacao"]["valor_total"] == Decimal("40.00")
+        assert relatorio["consolidado"]["quantidade"] == total
+        assert relatorio["consolidado"]["valor"] == Decimal("40.00")
+
+    def test_adicionar_extraordinaria_aumenta_o_valor_do_relatorio(self, cenario):
+        self._lanca_lanche_emergencial(
+            cenario,
+            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO,
+            self.QUANTIDADE_SOLICITACOES,
+        )
+        relatorio_antes, _ = self._gera_relatorio(cenario)
+
+        self._lanca_lanche_emergencial(
+            cenario,
+            GrupoMedicao.SOLICITACOES_DE_ALIMENTACAO_EXTRAORDINARIAS,
+            self.QUANTIDADE_EXTRAORDINARIAS,
+        )
+        relatorio_depois, _ = self._gera_relatorio(cenario)
+
+        antes = self._linha_lanche_emergencial(relatorio_antes)
+        depois = self._linha_lanche_emergencial(relatorio_depois)
+        assert antes["numero_atendimentos"] == self.QUANTIDADE_SOLICITACOES
+        assert (
+            depois["numero_atendimentos"] - antes["numero_atendimentos"]
+            == self.QUANTIDADE_EXTRAORDINARIAS
+        )
+        assert depois["valor_total"] - antes["valor_total"] == Decimal("25.00")
