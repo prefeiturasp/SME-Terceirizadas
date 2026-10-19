@@ -172,3 +172,6 @@ import './step_definitions/grupos_inclusao_alimentacao_normal'
 
 import './commands_api/commands_grupos_suspensoes_alimentacao'
 import './step_definitions/grupos_suspensoes_alimentacao'
+
+import './commands_api/commands_grupos_unidade_escolar'
+import './step_definitions/grupos_unidade_escolar'
