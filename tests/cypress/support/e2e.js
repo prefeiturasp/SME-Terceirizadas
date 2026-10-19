@@ -169,3 +169,6 @@ import './step_definitions/fichas_de_recebimento'
 
 import './commands_api/commands_grupos_inclusao_alimentacao_normal'
 import './step_definitions/grupos_inclusao_alimentacao_normal'
+
+import './commands_api/commands_grupos_suspensoes_alimentacao'
+import './step_definitions/grupos_suspensoes_alimentacao'
