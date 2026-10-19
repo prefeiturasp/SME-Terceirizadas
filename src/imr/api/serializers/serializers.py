@@ -400,3 +400,26 @@ class OcorrenciaNaoSeAplicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = OcorrenciaNaoSeAplica
         exclude = ("id",)
+
+
+class ConsultaOcorrenciasDiretorSerializer(serializers.Serializer):
+    solicitacao_medicao_inicial = serializers.UUIDField()
+
+
+class RespostaOcorrenciaDiretorSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField()
+    parametrizacao = serializers.UUIDField(allow_null=True)
+    titulo = serializers.CharField()
+    posicao = serializers.IntegerField(allow_null=True)
+    resposta = serializers.CharField(allow_blank=True)
+
+
+class FormularioDiretorListagemSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField()
+    data = serializers.DateField(format=FORMATO_DATA_BRASILEIRO)
+    categoria = CategoriaOcorrenciaSerializer()
+    tipo_ocorrencia = serializers.UUIDField()
+    titulo = serializers.CharField()
+    descricao = serializers.CharField(allow_blank=True)
+    grupo = serializers.IntegerField(allow_null=True)
+    respostas = RespostaOcorrenciaDiretorSerializer(many=True)
