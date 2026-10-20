@@ -175,3 +175,9 @@ import './step_definitions/grupos_suspensoes_alimentacao'
 
 import './commands_api/commands_grupos_unidade_escolar'
 import './step_definitions/grupos_unidade_escolar'
+
+import './commands_api/commands_guias_da_requisicao'
+import './step_definitions/guias_da_requisicao'
+
+import './commands_api/commands_historico_escola'
+import './step_definitions/historico_escola'
