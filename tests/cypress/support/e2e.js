@@ -184,3 +184,6 @@ import './step_definitions/historico_escola'
 
 import './commands_api/commands_homologacoes_produtos'
 import './step_definitions/homologacoes_produtos'
+
+import './commands_api/commands_horario_combo_unidade_escolar'
+import './step_definitions/horario_combo_unidade_escolar'
