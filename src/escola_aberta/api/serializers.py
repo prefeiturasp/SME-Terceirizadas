@@ -142,7 +142,7 @@ class EscolaAbertaCreateSerializer(serializers.Serializer):
             instance.dias_semana = rec["dias_semana"]
             instance.save()
 
-            instance.unidades_participantes.all().delete()  # recria as unidades
+            instance.unidades_participantes.all().delete()
             self._criar_unidades(instance, unidades)
         return instance
 
