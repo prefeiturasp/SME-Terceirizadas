@@ -181,3 +181,6 @@ import './step_definitions/guias_da_requisicao'
 
 import './commands_api/commands_historico_escola'
 import './step_definitions/historico_escola'
+
+import './commands_api/commands_homologacoes_produtos'
+import './step_definitions/homologacoes_produtos'
