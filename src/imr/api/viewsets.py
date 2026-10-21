@@ -14,6 +14,7 @@ from src.dados_comuns.permissions import (
     UsuarioCODAENutriSupervisao,
     UsuarioEscolaTercTotal,
 )
+from src.medicao_inicial.models import SolicitacaoMedicaoInicial
 from src.terceirizada.models import Edital, Terceirizada
 
 from ...dados_comuns.constants import (
@@ -26,6 +27,7 @@ from ...dados_comuns.fluxo_status import FormularioSupervisaoWorkflow
 from ...escola.models import DiretoriaRegional, Escola
 from ..models import (
     Equipamento,
+    FormularioDiretor,
     FormularioSupervisao,
     Insumo,
     Mobiliario,
@@ -41,7 +43,9 @@ from ..tasks import (
 )
 from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
+    ConsultaOcorrenciasDiretorSerializer,
     EquipamentoSerializer,
+    FormularioDiretorListagemSerializer,
     FormularioSupervisaoRetrieveSerializer,
     FormularioSupervisaoSerializer,
     FormularioSupervisaoSimplesSerializer,
@@ -60,6 +64,7 @@ from .serializers.serializers_create import (
     FormularioSupervisaoCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
 )
+from .services import listar_ocorrencias_diretor
 
 
 class PeriodoVisitaModelViewSet(
@@ -377,6 +382,32 @@ class FormularioDiretorModelViewSet(
             "list": FormularioSupervisaoSerializer,
             "retrieve": FormularioSupervisaoSerializer,
         }.get(self.action, FormularioDiretorManyCreateSerializer)
+
+    def list(self, request, *args, **kwargs):
+        consulta = ConsultaOcorrenciasDiretorSerializer(data=request.query_params)
+        consulta.is_valid(raise_exception=True)
+        solicitacao = get_object_or_404(
+            SolicitacaoMedicaoInicial,
+            uuid=consulta.validated_data["solicitacao_medicao_inicial"],
+            escola=request.user.vinculo_atual.instituicao,
+        )
+        formularios = (
+            FormularioDiretor.objects.filter(
+                solicitacao_medicao_inicial=solicitacao,
+                formulario_base__data__month=int(solicitacao.mes),
+                formulario_base__data__year=int(solicitacao.ano),
+            )
+            .select_related("formulario_base")
+            .order_by("-criado_em")
+        )
+        ocorrencias = listar_ocorrencias_diretor(formularios)
+        pagina = self.paginate_queryset(ocorrencias)
+        if pagina is not None:
+            serializer = FormularioDiretorListagemSerializer(pagina, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = FormularioDiretorListagemSerializer(ocorrencias, many=True)
+        return Response(serializer.data)
 
     @action(
         detail=False,
