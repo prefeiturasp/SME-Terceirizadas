@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import QuerySet
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -64,6 +65,7 @@ from .serializers.serializers import (
     UtensilioMesaSerializer,
 )
 from .serializers.serializers_create import (
+    AtualizacaoOcorrenciaDiretorSerializer,
     FormularioDiretorManyCreateSerializer,
     FormularioSupervisaoCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
@@ -443,6 +445,41 @@ class FormularioDiretorModelViewSet(
         escola = request.user.vinculo_atual.instituicao
         if formulario.solicitacao_medicao_inicial.escola != escola:
             raise PermissionDenied(StringsValidationErrors.PERMISSAO_NEGADA.value)
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        consulta = ConsultaOcorrenciaDiretorSerializer(
+            data={
+                "uuid": kwargs["uuid"],
+                "tipo_ocorrencia": request.data.get("tipo_ocorrencia"),
+                "grupo": request.data.get("grupo"),
+            }
+        )
+        consulta.is_valid(raise_exception=True)
+
+        formulario = get_object_or_404(
+            FormularioDiretor, uuid=consulta.validated_data["uuid"]
+        )
+        self._valida_escola_da_ocorrencia(request, formulario)
+
+        atualizacao = AtualizacaoOcorrenciaDiretorSerializer(
+            formulario,
+            data=request.data,
+            context={"formulario": formulario},
+        )
+        atualizacao.is_valid(raise_exception=True)
+
+        tipo_ocorrencia = atualizacao.validated_data["tipo_ocorrencia"]
+        grupo = atualizacao.validated_data["grupo"]
+
+        if obter_ocorrencia_diretor(formulario, tipo_ocorrencia, grupo) is None:
+            raise Http404
+
+        atualizacao.save()
+
+        ocorrencia = obter_ocorrencia_diretor(formulario, tipo_ocorrencia, grupo)
+        serializer = OcorrenciaDiretorRetrieveSerializer(ocorrencia)
+        return Response(serializer.data)
 
     @action(
         detail=False,
