@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from src.dados_comuns.api.paginations import DefaultPagination
@@ -22,6 +23,7 @@ from ...dados_comuns.constants import (
     MENSAGEM_SOLICITACAO_GERACAO_ARQUIVO,
     TIPO_UNIDADE_CEI_DIRET,
     TIPOS_UNIDADE_ESCOLAR,
+    StringsValidationErrors,
 )
 from ...dados_comuns.fluxo_status import FormularioSupervisaoWorkflow
 from ...escola.models import DiretoriaRegional, Escola
@@ -43,6 +45,7 @@ from ..tasks import (
 )
 from .filters import FormularioSupervisaoFilter
 from .serializers.serializers import (
+    ConsultaOcorrenciaDiretorSerializer,
     ConsultaOcorrenciasDiretorSerializer,
     EquipamentoSerializer,
     FormularioDiretorListagemSerializer,
@@ -51,6 +54,7 @@ from .serializers.serializers import (
     FormularioSupervisaoSimplesSerializer,
     InsumoSerializer,
     MobiliarioSerializer,
+    OcorrenciaDiretorRetrieveSerializer,
     OcorrenciaNaoSeAplicaSerializer,
     PeriodoVisitaSerializer,
     ReparoEAdaptacaoSerializer,
@@ -64,7 +68,7 @@ from .serializers.serializers_create import (
     FormularioSupervisaoCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
 )
-from .services import listar_ocorrencias_diretor
+from .services import listar_ocorrencias_diretor, obter_ocorrencia_diretor
 
 
 class PeriodoVisitaModelViewSet(
@@ -408,6 +412,37 @@ class FormularioDiretorModelViewSet(
 
         serializer = FormularioDiretorListagemSerializer(ocorrencias, many=True)
         return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        consulta = ConsultaOcorrenciaDiretorSerializer(
+            data={
+                **request.query_params.dict(),
+                "uuid": self.kwargs["uuid"],
+            }
+        )
+        consulta.is_valid(raise_exception=True)
+
+        formulario = get_object_or_404(
+            FormularioDiretor, uuid=consulta.validated_data["uuid"]
+        )
+        self._valida_escola_da_ocorrencia(request, formulario)
+
+        tipo_ocorrencia = get_object_or_404(
+            TipoOcorrencia, uuid=consulta.validated_data["tipo_ocorrencia"]
+        )
+        ocorrencia = obter_ocorrencia_diretor(
+            formulario, tipo_ocorrencia, consulta.validated_data["grupo"]
+        )
+        if ocorrencia is None:
+            raise Http404
+
+        serializer = OcorrenciaDiretorRetrieveSerializer(ocorrencia)
+        return Response(serializer.data)
+
+    def _valida_escola_da_ocorrencia(self, request, formulario):
+        escola = request.user.vinculo_atual.instituicao
+        if formulario.solicitacao_medicao_inicial.escola != escola:
+            raise PermissionDenied(StringsValidationErrors.PERMISSAO_NEGADA.value)
 
     @action(
         detail=False,
