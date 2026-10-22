@@ -1011,3 +1011,250 @@ def test_retrieve_ocorrencia_rejeita_perfil_sem_permissao(
     resposta = cliente.get(montar_url_ocorrencia(formulario, contexto.tipo))
 
     assert resposta.status_code == status.HTTP_403_FORBIDDEN
+
+
+def montar_corpo_atualizacao(
+    contexto,
+    data="10/09/2026",
+    resposta="Avental",
+    grupo=1,
+    parametrizacao=None,
+):
+    return {
+        "tipo_ocorrencia": str(contexto.tipo.uuid),
+        "grupo": grupo,
+        "data": data,
+        "ocorrencias": [
+            {
+                "parametrizacao": str((parametrizacao or contexto.parametrizacao).uuid),
+                "grupo": grupo,
+                "resposta": resposta,
+            }
+        ],
+    }
+
+
+@freeze_time("2026-10-19")
+def test_update_ocorrencia_diretor_atualiza_data_e_resposta(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(
+            montar_corpo_atualizacao(contexto, data="11/09/2026", resposta="Avental")
+        ),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_200_OK
+    assert resposta.json()["data"] == "11/09/2026"
+    assert resposta.json()["respostas"] == [
+        {
+            "uuid": resposta.json()["respostas"][0]["uuid"],
+            "parametrizacao": str(contexto.parametrizacao.uuid),
+            "titulo": "Qual item do uniforme faltou?",
+            "posicao": 1,
+            "resposta": "Avental",
+        }
+    ]
+
+    formulario.formulario_base.refresh_from_db()
+    assert formulario.formulario_base.data == date(2026, 9, 11)
+
+    respostas = formulario.formulario_base.respostas_campo_texto_simples.all()
+    assert respostas.count() == 1
+    assert respostas.first().resposta == "Avental"
+
+
+@freeze_time("2026-10-19")
+def test_update_ocorrencia_diretor_preserva_outros_grupos(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+    resposta_campo_texto_simples_factory,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+    resposta_campo_texto_simples_factory.create(
+        formulario_base=formulario.formulario_base,
+        parametrizacao=contexto.parametrizacao,
+        grupo=2,
+        resposta="Camisa",
+    )
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(montar_corpo_atualizacao(contexto, resposta="Avental")),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_200_OK
+
+    respostas = formulario.formulario_base.respostas_campo_texto_simples.all()
+    assert respostas.count() == 2
+    assert respostas.filter(grupo=1, resposta="Avental").exists()
+    assert respostas.filter(grupo=2, resposta="Camisa").exists()
+
+
+@freeze_time("2026-10-19")
+def test_update_ocorrencia_diretor_mantem_data_original_sem_duplicidade(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(montar_corpo_atualizacao(contexto)),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_200_OK
+    assert resposta.json()["data"] == "10/09/2026"
+
+
+@freeze_time("2026-10-19")
+def test_update_ocorrencia_diretor_rejeita_data_de_outra_competencia(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(montar_corpo_atualizacao(contexto, data="10/08/2026")),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_400_BAD_REQUEST
+    assert resposta.json() == {
+        "data": [StringsValidationErrors.DATA_FORA_DA_COMPETENCIA_DA_MEDICAO.value]
+    }
+
+
+@freeze_time("2026-10-19")
+def test_update_ocorrencia_diretor_rejeita_data_de_ocorrencia_duplicada(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+    criar_ocorrencia_diretor(data=date(2026, 9, 11))
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(montar_corpo_atualizacao(contexto, data="11/09/2026")),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_400_BAD_REQUEST
+    assert resposta.json() == {
+        "data": [StringsValidationErrors.DATA_DE_OCORRENCIA_DUPLICADA.value]
+    }
+
+
+@freeze_time("2026-10-19")
+def test_update_ocorrencia_diretor_rejeita_parametrizacao_de_outro_tipo(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+    tipo_ocorrencia_factory,
+    parametrizacao_ocorrencia_factory,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+    outro_tipo = tipo_ocorrencia_factory.create(
+        edital=contexto.tipo.edital,
+        categoria=contexto.tipo.categoria,
+        perfis=["DIRETOR"],
+        status=True,
+    )
+    outra_parametrizacao = parametrizacao_ocorrencia_factory.create(
+        tipo_ocorrencia=outro_tipo
+    )
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(
+            montar_corpo_atualizacao(contexto, parametrizacao=outra_parametrizacao)
+        ),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_400_BAD_REQUEST
+    assert "ocorrencias" in resposta.json()
+
+
+def test_update_ocorrencia_diretor_retorna_403_para_escola_de_outra_escola(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+    escola_factory,
+    solicitacao_medicao_inicial_factory,
+):
+    contexto = contexto_listagem_diretor
+    outra_medicao = solicitacao_medicao_inicial_factory.create(
+        escola=escola_factory.create(), mes="09", ano="2026"
+    )
+    formulario = criar_ocorrencia_diretor(medicao=outra_medicao)
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(montar_corpo_atualizacao(contexto)),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_403_FORBIDDEN
+    assert resposta.json() == {"detail": StringsValidationErrors.PERMISSAO_NEGADA.value}
+
+
+def test_update_ocorrencia_diretor_retorna_404_para_grupo_inexistente(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(montar_corpo_atualizacao(contexto, grupo=2)),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_update_ocorrencia_diretor_retorna_404_para_formulario_inexistente(
+    contexto_listagem_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = SimpleNamespace(uuid=uuid.uuid4())
+
+    resposta = contexto.cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(montar_corpo_atualizacao(contexto)),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_update_ocorrencia_diretor_rejeita_perfil_sem_permissao(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+    client_autenticado_cogestor_dre,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+    cliente, _ = client_autenticado_cogestor_dre
+
+    resposta = cliente.put(
+        f"{URL_LISTAGEM}{formulario.uuid}/",
+        data=json.dumps(montar_corpo_atualizacao(contexto)),
+        content_type="application/json",
+    )
+
+    assert resposta.status_code == status.HTTP_403_FORBIDDEN
