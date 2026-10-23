@@ -123,6 +123,35 @@ def test_create_formulario_diretor(
     assert instance.respostas_campo_numerico.count() == 1
     assert instance.respostas_campo_numerico.filter(resposta=10).exists() is True
 
+    solicitacao_medicao_inicial.refresh_from_db()
+    assert solicitacao_medicao_inicial.com_ocorrencias is True
+
+
+@freeze_time("2024-06-10")
+def test_create_formulario_diretor_sem_ocorrencias_mantem_com_ocorrencias_false(
+    client_autenticado_diretor_escola,
+    escola,
+    solicitacao_medicao_inicial_factory,
+):
+    solicitacao_medicao_inicial = solicitacao_medicao_inicial_factory(
+        escola=escola, mes="06", ano="2024"
+    )
+    payload = {
+        "datas": ["07/06/2024"],
+        "solicitacao_medicao_inicial": str(solicitacao_medicao_inicial.uuid),
+        "ocorrencias": [],
+    }
+
+    response = client_autenticado_diretor_escola["client"].post(
+        f"/imr/formulario-diretor/",
+        data=json.dumps(payload),
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+
+    solicitacao_medicao_inicial.refresh_from_db()
+    assert solicitacao_medicao_inicial.com_ocorrencias is False
+
 
 @freeze_time("2024-06-10")
 def test_create_formulario_diretor_erro_parametrizacao_uuid(
@@ -1267,6 +1296,8 @@ def test_delete_ocorrencia_diretor_remove_formulario_sem_outras_respostas(
     contexto = contexto_listagem_diretor
     formulario = criar_ocorrencia_diretor()
     formulario_base_id = formulario.formulario_base_id
+    contexto.medicao.com_ocorrencias = True
+    contexto.medicao.save(update_fields=["com_ocorrencias"])
 
     resposta = contexto.cliente.delete(montar_url_ocorrencia(formulario, contexto.tipo))
 
@@ -1276,6 +1307,9 @@ def test_delete_ocorrencia_diretor_remove_formulario_sem_outras_respostas(
         FormularioOcorrenciasBase.objects.filter(pk=formulario_base_id).exists()
         is False
     )
+
+    contexto.medicao.refresh_from_db()
+    assert contexto.medicao.com_ocorrencias is False
 
     resposta_listagem = contexto.cliente.get(
         URL_LISTAGEM,
@@ -1292,6 +1326,8 @@ def test_delete_ocorrencia_diretor_preserva_outros_grupos(
 ):
     contexto = contexto_listagem_diretor
     formulario = criar_ocorrencia_diretor()
+    contexto.medicao.com_ocorrencias = True
+    contexto.medicao.save(update_fields=["com_ocorrencias"])
     resposta_campo_texto_simples_factory.create(
         formulario_base=formulario.formulario_base,
         parametrizacao=contexto.parametrizacao,
@@ -1308,6 +1344,27 @@ def test_delete_ocorrencia_diretor_preserva_outros_grupos(
     assert respostas.count() == 1
     assert respostas.first().grupo == 2
     assert respostas.first().resposta == "Camisa"
+
+    contexto.medicao.refresh_from_db()
+    assert contexto.medicao.com_ocorrencias is True
+
+
+def test_delete_ocorrencia_diretor_mantem_com_ocorrencias_com_outra_ocorrencia(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+    contexto.medicao.com_ocorrencias = True
+    contexto.medicao.save(update_fields=["com_ocorrencias"])
+    criar_ocorrencia_diretor(data=date(2026, 9, 11))
+
+    resposta = contexto.cliente.delete(montar_url_ocorrencia(formulario, contexto.tipo))
+
+    assert resposta.status_code == status.HTTP_204_NO_CONTENT
+
+    contexto.medicao.refresh_from_db()
+    assert contexto.medicao.com_ocorrencias is True
 
 
 def test_delete_ocorrencia_diretor_retorna_403_para_escola_de_outra_escola(
