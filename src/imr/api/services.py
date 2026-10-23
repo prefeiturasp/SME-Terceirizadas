@@ -350,6 +350,29 @@ def obter_ocorrencia_diretor(formulario, tipo_ocorrencia, grupo):
     }
 
 
+def excluir_ocorrencia_diretor(formulario, tipo_ocorrencia, grupo):
+    form_base = formulario.formulario_base
+
+    for resposta in form_base.buscar_respostas():
+        if (
+            resposta.parametrizacao.tipo_ocorrencia_id == tipo_ocorrencia.pk
+            and resposta.grupo == grupo
+        ):
+            resposta.delete()
+
+    OcorrenciaNaoSeAplica.objects.filter(
+        formulario_base=form_base,
+        tipo_ocorrencia=tipo_ocorrencia,
+        grupo=grupo,
+    ).delete()
+
+    if (
+        not form_base.buscar_respostas()
+        and not form_base.respostas_nao_se_aplica.exists()
+    ):
+        form_base.delete()
+
+
 def listar_ocorrencias_diretor(formularios):
     formularios_por_base = {
         formulario.formulario_base_id: formulario for formulario in formularios

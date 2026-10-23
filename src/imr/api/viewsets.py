@@ -70,7 +70,11 @@ from .serializers.serializers_create import (
     FormularioSupervisaoCreateSerializer,
     FormularioSupervisaoRascunhoCreateSerializer,
 )
-from .services import listar_ocorrencias_diretor, obter_ocorrencia_diretor
+from .services import (
+    excluir_ocorrencia_diretor,
+    listar_ocorrencias_diretor,
+    obter_ocorrencia_diretor,
+)
 
 
 class PeriodoVisitaModelViewSet(
@@ -416,24 +420,15 @@ class FormularioDiretorModelViewSet(
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
-        consulta = ConsultaOcorrenciaDiretorSerializer(
-            data={
-                **request.query_params.dict(),
-                "uuid": self.kwargs["uuid"],
-            }
+        formulario, consulta = self._obter_formulario_por_consulta(
+            request, request.query_params.dict(), kwargs["uuid"]
         )
-        consulta.is_valid(raise_exception=True)
-
-        formulario = get_object_or_404(
-            FormularioDiretor, uuid=consulta.validated_data["uuid"]
-        )
-        self._valida_escola_da_ocorrencia(request, formulario)
 
         tipo_ocorrencia = get_object_or_404(
-            TipoOcorrencia, uuid=consulta.validated_data["tipo_ocorrencia"]
+            TipoOcorrencia, uuid=consulta["tipo_ocorrencia"]
         )
         ocorrencia = obter_ocorrencia_diretor(
-            formulario, tipo_ocorrencia, consulta.validated_data["grupo"]
+            formulario, tipo_ocorrencia, consulta["grupo"]
         )
         if ocorrencia is None:
             raise Http404
@@ -446,21 +441,27 @@ class FormularioDiretorModelViewSet(
         if formulario.solicitacao_medicao_inicial.escola != escola:
             raise PermissionDenied(StringsValidationErrors.PERMISSAO_NEGADA.value)
 
-    @transaction.atomic
-    def update(self, request, *args, **kwargs):
-        consulta = ConsultaOcorrenciaDiretorSerializer(
-            data={
-                "uuid": kwargs["uuid"],
-                "tipo_ocorrencia": request.data.get("tipo_ocorrencia"),
-                "grupo": request.data.get("grupo"),
-            }
-        )
+    def _obter_formulario_por_consulta(self, request, dados, uuid):
+        consulta = ConsultaOcorrenciaDiretorSerializer(data={**dados, "uuid": uuid})
         consulta.is_valid(raise_exception=True)
 
         formulario = get_object_or_404(
             FormularioDiretor, uuid=consulta.validated_data["uuid"]
         )
         self._valida_escola_da_ocorrencia(request, formulario)
+
+        return formulario, consulta.validated_data
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        formulario, consulta = self._obter_formulario_por_consulta(
+            request,
+            {
+                "tipo_ocorrencia": request.data.get("tipo_ocorrencia"),
+                "grupo": request.data.get("grupo"),
+            },
+            kwargs["uuid"],
+        )
 
         atualizacao = AtualizacaoOcorrenciaDiretorSerializer(
             formulario,
@@ -480,6 +481,31 @@ class FormularioDiretorModelViewSet(
         ocorrencia = obter_ocorrencia_diretor(formulario, tipo_ocorrencia, grupo)
         serializer = OcorrenciaDiretorRetrieveSerializer(ocorrencia)
         return Response(serializer.data)
+
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        formulario, consulta = self._obter_formulario_por_consulta(
+            request,
+            {
+                "tipo_ocorrencia": request.query_params.get("tipo_ocorrencia"),
+                "grupo": request.query_params.get("grupo"),
+            },
+            kwargs["uuid"],
+        )
+
+        tipo_ocorrencia = get_object_or_404(
+            TipoOcorrencia, uuid=consulta["tipo_ocorrencia"]
+        )
+
+        if (
+            obter_ocorrencia_diretor(formulario, tipo_ocorrencia, consulta["grupo"])
+            is None
+        ):
+            raise Http404
+
+        excluir_ocorrencia_diretor(formulario, tipo_ocorrencia, consulta["grupo"])
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
