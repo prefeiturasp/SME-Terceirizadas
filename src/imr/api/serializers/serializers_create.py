@@ -613,7 +613,17 @@ class FormularioDiretorCreateSerializer(serializers.ModelSerializer):
         )
         self._create_ocorrencias(ocorrencias, form_base)
 
+        if ocorrencias:
+            self._marcar_solicitacao_com_ocorrencias(solicitacao_medicao_inicial)
+
         return form_diretor
+
+    def _marcar_solicitacao_com_ocorrencias(self, solicitacao_medicao_inicial):
+        if solicitacao_medicao_inicial.com_ocorrencias:
+            return
+
+        solicitacao_medicao_inicial.com_ocorrencias = True
+        solicitacao_medicao_inicial.save(update_fields=["com_ocorrencias"])
 
     def get_serializer_class_by_name(self, name):
         return _obter_serializer_class_por_nome(name)

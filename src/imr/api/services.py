@@ -12,6 +12,7 @@ from src.dados_comuns.helper_planilha_modelo import (
 )
 from src.imr.models import (
     CategoriaOcorrencia,
+    FormularioDiretor,
     OcorrenciaNaoSeAplica,
     TipoGravidade,
     TipoPenalidade,
@@ -350,6 +351,13 @@ def obter_ocorrencia_diretor(formulario, tipo_ocorrencia, grupo):
     }
 
 
+def _solicitacao_possui_ocorrencias(solicitacao_medicao_inicial):
+    formularios = FormularioDiretor.objects.filter(
+        solicitacao_medicao_inicial=solicitacao_medicao_inicial
+    )
+    return bool(listar_ocorrencias_diretor(formularios))
+
+
 def excluir_ocorrencia_diretor(formulario, tipo_ocorrencia, grupo):
     form_base = formulario.formulario_base
 
@@ -371,6 +379,12 @@ def excluir_ocorrencia_diretor(formulario, tipo_ocorrencia, grupo):
         and not form_base.respostas_nao_se_aplica.exists()
     ):
         form_base.delete()
+
+    solicitacao_medicao_inicial = formulario.solicitacao_medicao_inicial
+
+    if not _solicitacao_possui_ocorrencias(solicitacao_medicao_inicial):
+        solicitacao_medicao_inicial.com_ocorrencias = False
+        solicitacao_medicao_inicial.save(update_fields=["com_ocorrencias"])
 
 
 def listar_ocorrencias_diretor(formularios):
