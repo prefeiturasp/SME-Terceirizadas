@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 from src.escola_aberta.api.serializers import (
     EscolaAbertaCreateSerializer,
     RecorrenciaSerializer,
+    UnidadeParticipanteInputSerializer
 )
 from src.escola_aberta.models import (
     EscolaAberta,
@@ -55,11 +56,13 @@ def test_unidades_participantes_repetidas(setup_escola_aberta_data):
                 "lote": str(setup_escola_aberta_data["lote"].uuid),
                 "unidade_educacional": str(setup_escola_aberta_data["escola_1"].uuid),
                 "tipos_alimentacao": [str(setup_escola_aberta_data["tipo_alim"].uuid)],
+                "num_participantes": 30,
             },
             {
                 "lote": str(setup_escola_aberta_data["lote"].uuid),
                 "unidade_educacional": str(setup_escola_aberta_data["escola_1"].uuid),
                 "tipos_alimentacao": [str(setup_escola_aberta_data["tipo_alim"].uuid)],
+                "num_participantes": 30,
             },
         ],
     }
@@ -98,6 +101,7 @@ def test_validacao_duplicidade_mesma_ue_periodo_e_dia(setup_escola_aberta_data):
                 "lote": str(setup_escola_aberta_data["lote"].uuid),
                 "unidade_educacional": str(setup_escola_aberta_data["escola_1"].uuid),
                 "tipos_alimentacao": [str(setup_escola_aberta_data["tipo_alim"].uuid)],
+                "num_participantes": 30,
             }
         ],
     }
@@ -106,3 +110,41 @@ def test_validacao_duplicidade_mesma_ue_periodo_e_dia(setup_escola_aberta_data):
     assert "Já existe um cadastro com esta combinação de UE" in str(
         serializer.errors["non_field_errors"]
     )
+
+
+@pytest.mark.django_db
+def test_validacao_duplicidade_ignora_o_proprio_registro_no_update(
+    setup_escola_aberta_data,
+):
+    """No update, o próprio registro não pode ser tratado como duplicado."""
+    escola_aberta = EscolaAberta.objects.create(
+        data_inicial="2026-10-10",
+        data_final="2026-10-20",
+        dias_semana=["0", "6"],
+    )
+    unidade = EscolaAbertaUnidadeParticipante.objects.create(
+        escola_aberta=escola_aberta,
+        lote=setup_escola_aberta_data["lote"],
+        unidade_educacional=setup_escola_aberta_data["escola_1"],
+    )
+    unidade.tipos_alimentacao.add(setup_escola_aberta_data["tipo_alim_1"])
+
+    payload = {
+        "recorrencias": {
+            "data_inicial": "10/10/2026",
+            "data_final": "20/10/2026",
+            "dias_semana": ["0", "6"],
+        },
+        "unidades_participantes": [
+            {
+                "lote": str(setup_escola_aberta_data["lote"].uuid),
+                "unidade_educacional": str(setup_escola_aberta_data["escola_1"].uuid),
+                "tipos_alimentacao": [
+                    str(setup_escola_aberta_data["tipo_alim_1"].uuid)
+                ],
+                "num_participantes": 30,
+            }
+        ],
+    }
+    serializer = EscolaAbertaCreateSerializer(instance=escola_aberta, data=payload)
+    assert serializer.is_valid(), serializer.errors

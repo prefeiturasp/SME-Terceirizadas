@@ -93,6 +93,9 @@ def _finalizar_formatacao_worksheet(
     _formatar_headers(headers, workbook, worksheet)
     aplicar_formatacao_numeros(worksheet, workbook, "E", largura=18)  # Quantidade Total
     aplicar_formatacao_numeros(worksheet, workbook, "M", largura=12)  # Quantidade
+    aplicar_formatacao_numeros(
+        worksheet, workbook, "Q", largura=18
+    )  # Quantidade Recebida
 
 
 @shared_task(
@@ -123,6 +126,7 @@ def gerar_relatorio_cronogramas_xlsx_async(user, ids_cronogramas, filtros=None):
         "Unidade/Etapa",
         "Total de Embalagens",
         "Situação",
+        "Quantidade Recebida",
         "Nº do Processo - SEI",
         "Nº do Empenho",
         "Nº do Contrato",
@@ -309,6 +313,8 @@ def _criar_linha_base_excel(cronograma, etapa):
         "total_embalagens": etapa.get("total_embalagens"),
         "programa_leve_leite": cronograma.get("programa_leve_leite", False),
         "situacao": etapa.get("situacao", ""),
+        # Placeholder para manter a posição da coluna; o valor é preenchido por ficha.
+        "quantidade_recebida": etapa.get("quantidade_recebida"),
         "numero_processo": cronograma.get("numero_processo", ""),
         "numero_empenho": etapa.get("numero_empenho", ""),
         "numero_contrato": cronograma.get("numero_contrato", ""),
@@ -328,6 +334,10 @@ def _processar_fichas_recebimento(linha_base, etapa, fichas_recebimento):
             linha["parte"] = ""
 
         linha["situacao"] = ficha.get("situacao")
+        quantidade_recebida = ficha.get("quantidade_recebida")
+        linha["quantidade_recebida"] = (
+            float(quantidade_recebida) if quantidade_recebida is not None else None
+        )
         linhas.append(linha)
 
     return linhas
@@ -493,9 +503,10 @@ def _definir_largura_colunas(worksheet):
         "O:O": 12,
         "P:P": 10,
         "Q:Q": 18,
-        "R:R": 12,
-        "S:S": 18,
-        "T:T": 20,
+        "R:R": 18,
+        "S:S": 12,
+        "T:T": 18,
+        "U:U": 20,
     }
 
     for col, width in LARGURA_COLUNAS.items():
