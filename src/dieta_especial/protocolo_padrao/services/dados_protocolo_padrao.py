@@ -17,7 +17,7 @@ def preparar_dados_protocolo_padrao(protocolo):
             datas_atualizacao.append(data_convertida)
 
     ultima_atualizacao = protocolo.criado_em.date()
-    
+
     if datas_atualizacao:
         ultima_atualizacao = max(datas_atualizacao).date()
 
