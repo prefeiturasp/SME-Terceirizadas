@@ -9,7 +9,7 @@ from model_bakery import baker
 from rest_framework import status
 
 from src.dados_comuns.constants import StringsValidationErrors
-from src.imr.models import FormularioOcorrenciasBase, TipoOcorrencia
+from src.imr.models import FormularioDiretor, FormularioOcorrenciasBase, TipoOcorrencia
 
 pytestmark = pytest.mark.django_db
 
@@ -1256,5 +1256,112 @@ def test_update_ocorrencia_diretor_rejeita_perfil_sem_permissao(
         data=json.dumps(montar_corpo_atualizacao(contexto)),
         content_type="application/json",
     )
+
+    assert resposta.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_delete_ocorrencia_diretor_remove_formulario_sem_outras_respostas(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+    formulario_base_id = formulario.formulario_base_id
+
+    resposta = contexto.cliente.delete(montar_url_ocorrencia(formulario, contexto.tipo))
+
+    assert resposta.status_code == status.HTTP_204_NO_CONTENT
+    assert FormularioDiretor.objects.filter(pk=formulario.pk).exists() is False
+    assert (
+        FormularioOcorrenciasBase.objects.filter(pk=formulario_base_id).exists()
+        is False
+    )
+
+    resposta_listagem = contexto.cliente.get(
+        URL_LISTAGEM,
+        {"solicitacao_medicao_inicial": str(contexto.medicao.uuid)},
+    )
+    assert resposta_listagem.status_code == status.HTTP_200_OK
+    assert resposta_listagem.json()["count"] == 0
+
+
+def test_delete_ocorrencia_diretor_preserva_outros_grupos(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+    resposta_campo_texto_simples_factory,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+    resposta_campo_texto_simples_factory.create(
+        formulario_base=formulario.formulario_base,
+        parametrizacao=contexto.parametrizacao,
+        grupo=2,
+        resposta="Camisa",
+    )
+
+    resposta = contexto.cliente.delete(montar_url_ocorrencia(formulario, contexto.tipo))
+
+    assert resposta.status_code == status.HTTP_204_NO_CONTENT
+
+    formulario.refresh_from_db()
+    respostas = formulario.formulario_base.respostas_campo_texto_simples.all()
+    assert respostas.count() == 1
+    assert respostas.first().grupo == 2
+    assert respostas.first().resposta == "Camisa"
+
+
+def test_delete_ocorrencia_diretor_retorna_403_para_escola_de_outra_escola(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+    escola_factory,
+    solicitacao_medicao_inicial_factory,
+):
+    contexto = contexto_listagem_diretor
+    outra_medicao = solicitacao_medicao_inicial_factory.create(
+        escola=escola_factory.create(), mes="09", ano="2026"
+    )
+    formulario = criar_ocorrencia_diretor(medicao=outra_medicao)
+
+    resposta = contexto.cliente.delete(montar_url_ocorrencia(formulario, contexto.tipo))
+
+    assert resposta.status_code == status.HTTP_403_FORBIDDEN
+    assert resposta.json() == {"detail": StringsValidationErrors.PERMISSAO_NEGADA.value}
+
+
+def test_delete_ocorrencia_diretor_retorna_404_para_grupo_inexistente(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+
+    resposta = contexto.cliente.delete(
+        montar_url_ocorrencia(formulario, contexto.tipo, grupo=2)
+    )
+
+    assert resposta.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_delete_ocorrencia_diretor_retorna_404_para_formulario_inexistente(
+    contexto_listagem_diretor,
+):
+    contexto = contexto_listagem_diretor
+    formulario = SimpleNamespace(uuid=uuid.uuid4())
+
+    resposta = contexto.cliente.delete(montar_url_ocorrencia(formulario, contexto.tipo))
+
+    assert resposta.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_delete_ocorrencia_diretor_rejeita_perfil_sem_permissao(
+    contexto_listagem_diretor,
+    criar_ocorrencia_diretor,
+    client_autenticado_cogestor_dre,
+):
+    contexto = contexto_listagem_diretor
+    formulario = criar_ocorrencia_diretor()
+    cliente, _ = client_autenticado_cogestor_dre
+
+    resposta = cliente.delete(montar_url_ocorrencia(formulario, contexto.tipo))
 
     assert resposta.status_code == status.HTTP_403_FORBIDDEN
